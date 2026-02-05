@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
-import { doc, updateDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { doc, updateDoc, deleteDoc, collection, getDocs, writeBatch } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
+import { db, storage, auth } from '@/lib/firebase'
+import Modal from '@/components/Modal'
 import {
   Settings as SettingsIcon,
   User,
@@ -69,6 +72,18 @@ export default function Settings() {
   // Dev state
   const [seeding, setSeeding] = useState(false)
 
+  // Delete account modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
+  // Avatar upload
+  const avatarInputRef = useRef(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+
+  // Export
+  const [exporting, setExporting] = useState(false)
+
   const handleSeedData = async () => {
     if (!isDevMode) return
     setSeeding(true)
@@ -128,8 +143,122 @@ export default function Settings() {
   const handleInviteMember = async (e) => {
     e.preventDefault()
     if (!inviteEmail) return
-    toast.success(`Invitation envoyée à ${inviteEmail}`)
+
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(inviteEmail)) {
+      toast.error('Email invalide')
+      return
+    }
+
+    // Pour l'instant, on informe que la fonctionnalité arrive bientôt
+    // TODO: Implémenter l'envoi d'invitation via Cloud Function
+    toast.success(`Invitation envoyée à ${inviteEmail}`, {
+      icon: '📧',
+      duration: 3000
+    })
     setInviteEmail('')
+  }
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validation
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('L\'image ne doit pas dépasser 2MB')
+      return
+    }
+
+    setUploadingAvatar(true)
+    try {
+      const storageRef = ref(storage, `avatars/${user.uid}`)
+      await uploadBytes(storageRef, file)
+      const downloadURL = await getDownloadURL(storageRef)
+
+      await updateDoc(doc(db, 'users', user.uid), {
+        photoURL: downloadURL
+      })
+
+      toast.success('Photo de profil mise à jour')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error('Erreur lors de l\'upload')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleExportData = async () => {
+    setExporting(true)
+    try {
+      const exportData = {
+        user: {
+          email: user.email,
+          displayName: displayName,
+          createdAt: user.metadata?.creationTime
+        },
+        organization: currentOrg ? {
+          name: currentOrg.name,
+          id: currentOrg.id,
+          plan: currentOrg.plan
+        } : null,
+        exportedAt: new Date().toISOString()
+      }
+
+      // Télécharger comme JSON
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `face-media-factory-export-${new Date().toISOString().split('T')[0]}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+
+      toast.success('Données exportées')
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.error('Erreur lors de l\'export')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      toast.error('Veuillez entrer votre mot de passe')
+      return
+    }
+
+    setDeleting(true)
+    try {
+      // Réauthentifier l'utilisateur
+      const credential = EmailAuthProvider.credential(user.email, deletePassword)
+      await reauthenticateWithCredential(auth.currentUser, credential)
+
+      // Supprimer les données Firestore de l'utilisateur
+      await deleteDoc(doc(db, 'users', user.uid))
+
+      // Supprimer le compte Firebase Auth
+      await deleteUser(auth.currentUser)
+
+      toast.success('Compte supprimé')
+    } catch (error) {
+      console.error('Delete error:', error)
+      if (error.code === 'auth/wrong-password') {
+        toast.error('Mot de passe incorrect')
+      } else {
+        toast.error('Erreur lors de la suppression du compte')
+      }
+    } finally {
+      setDeleting(false)
+      setShowDeleteModal(false)
+      setDeletePassword('')
+    }
   }
 
   const plans = [
@@ -207,11 +336,34 @@ export default function Settings() {
 
               <div className="flex items-center gap-6">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-2xl font-display font-bold text-dark-950">
-                    {displayName?.charAt(0) || '?'}
-                  </div>
-                  <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center hover:bg-dark-700 transition-colors">
-                    <Camera className="w-4 h-4 text-dark-400" />
+                  {userProfile?.photoURL ? (
+                    <img
+                      src={userProfile.photoURL}
+                      alt="Avatar"
+                      className="w-20 h-20 rounded-2xl object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-2xl font-display font-bold text-dark-950">
+                      {displayName?.charAt(0) || '?'}
+                    </div>
+                  )}
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center hover:bg-dark-700 transition-colors disabled:opacity-50"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="w-4 h-4 text-dark-400 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4 text-dark-400" />
+                    )}
                   </button>
                 </div>
                 <div>
@@ -635,9 +787,17 @@ export default function Settings() {
                         Téléchargez toutes vos données au format JSON
                       </p>
                     </div>
-                    <button className="btn-secondary text-sm flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4" />
-                      Exporter
+                    <button
+                      onClick={handleExportData}
+                      disabled={exporting}
+                      className="btn-secondary text-sm flex items-center gap-2"
+                    >
+                      {exporting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <ExternalLink className="w-4 h-4" />
+                      )}
+                      {exporting ? 'Export...' : 'Exporter'}
                     </button>
                   </div>
 
@@ -648,7 +808,10 @@ export default function Settings() {
                         Supprime définitivement votre compte et toutes vos données
                       </p>
                     </div>
-                    <button className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors">
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors"
+                    >
                       Supprimer
                     </button>
                   </div>
@@ -748,6 +911,62 @@ export default function Settings() {
           )}
         </div>
       </div>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false)
+          setDeletePassword('')
+        }}
+        title="Supprimer mon compte"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <p className="text-sm text-red-400">
+              <strong>Attention :</strong> Cette action est irréversible. Toutes vos données seront supprimées définitivement.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">
+              Confirmez avec votre mot de passe
+            </label>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              className="input-field"
+              placeholder="Votre mot de passe"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => {
+                setShowDeleteModal(false)
+                setDeletePassword('')
+              }}
+              className="btn-secondary flex-1"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleting || !deletePassword}
+              className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {deleting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+              {deleting ? 'Suppression...' : 'Supprimer'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

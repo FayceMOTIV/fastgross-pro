@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useDocument, useCollection, useLeads, useCampaigns } from '@/hooks/useFirestore'
 import { useScanner } from '@/hooks/useCloudFunctions'
 import LeadTable from '@/components/LeadTable'
+import Modal from '@/components/Modal'
+import toast from 'react-hot-toast'
 import {
   ArrowLeft,
   Globe,
@@ -44,8 +46,40 @@ export default function ClientDetail() {
   const { scan, scanning } = useScanner()
 
   const [activeTab, setActiveTab] = useState('overview')
+  const [showAddLeadModal, setShowAddLeadModal] = useState(false)
+  const [newLead, setNewLead] = useState({ firstName: '', lastName: '', email: '', company: '' })
+  const [addingLead, setAddingLead] = useState(false)
 
-  // Mock scans data (would come from subcollection)
+  // Get add function from leads hook
+  const { add: addLead } = useLeads()
+
+  const handleAddLead = async (e) => {
+    e.preventDefault()
+    if (!newLead.email) {
+      toast.error('L\'email est obligatoire')
+      return
+    }
+
+    setAddingLead(true)
+    try {
+      await addLead({
+        ...newLead,
+        clientId,
+        status: 'new',
+        score: 5
+      })
+      toast.success('Lead ajouté')
+      setShowAddLeadModal(false)
+      setNewLead({ firstName: '', lastName: '', email: '', company: '' })
+    } catch (error) {
+      console.error('Add lead error:', error)
+      toast.error('Erreur lors de l\'ajout du lead')
+    } finally {
+      setAddingLead(false)
+    }
+  }
+
+  // Scans data from client (would come from subcollection in a real implementation)
   const scans = client?.lastScanId ? [
     {
       id: client.lastScanId,
@@ -248,14 +282,14 @@ export default function ClientDetail() {
                 Relancer un scan
               </button>
               <button
-                onClick={() => navigate('/app/forgeur')}
+                onClick={() => navigate(`/app/forgeur?clientId=${clientId}`)}
                 className="btn-primary flex items-center gap-2"
               >
                 <Mail className="w-4 h-4" />
                 Nouvelle séquence
               </button>
               <button
-                onClick={() => navigate('/app/proof')}
+                onClick={() => navigate(`/app/proof?clientId=${clientId}`)}
                 className="btn-secondary flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" />
@@ -321,7 +355,7 @@ export default function ClientDetail() {
           <div className="space-y-4">
             <div className="flex justify-end">
               <button
-                onClick={() => navigate('/app/forgeur')}
+                onClick={() => navigate(`/app/forgeur?clientId=${clientId}`)}
                 className="btn-primary flex items-center gap-2 text-sm"
               >
                 <Plus className="w-4 h-4" />
@@ -376,7 +410,10 @@ export default function ClientDetail() {
               <p className="text-sm text-dark-400">
                 {clientLeads.length} lead{clientLeads.length > 1 ? 's' : ''} pour ce client
               </p>
-              <button className="btn-primary flex items-center gap-2 text-sm">
+              <button
+                onClick={() => setShowAddLeadModal(true)}
+                className="btn-primary flex items-center gap-2 text-sm"
+              >
                 <Plus className="w-4 h-4" />
                 Ajouter un lead
               </button>
@@ -391,7 +428,7 @@ export default function ClientDetail() {
           <div className="space-y-4">
             <div className="flex justify-end">
               <button
-                onClick={() => navigate('/app/proof')}
+                onClick={() => navigate(`/app/proof?clientId=${clientId}`)}
                 className="btn-primary flex items-center gap-2 text-sm"
               >
                 <Plus className="w-4 h-4" />
@@ -439,6 +476,87 @@ export default function ClientDetail() {
           </div>
         )}
       </div>
+
+      {/* Add Lead Modal */}
+      <Modal
+        isOpen={showAddLeadModal}
+        onClose={() => {
+          setShowAddLeadModal(false)
+          setNewLead({ firstName: '', lastName: '', email: '', company: '' })
+        }}
+        title="Ajouter un lead"
+        size="md"
+      >
+        <form onSubmit={handleAddLead} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-dark-300 mb-1">Prénom</label>
+              <input
+                type="text"
+                value={newLead.firstName}
+                onChange={(e) => setNewLead({ ...newLead, firstName: e.target.value })}
+                className="input-field"
+                placeholder="Jean"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-dark-300 mb-1">Nom</label>
+              <input
+                type="text"
+                value={newLead.lastName}
+                onChange={(e) => setNewLead({ ...newLead, lastName: e.target.value })}
+                className="input-field"
+                placeholder="Dupont"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm text-dark-300 mb-1">Email *</label>
+            <input
+              type="email"
+              value={newLead.email}
+              onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+              className="input-field"
+              placeholder="jean.dupont@entreprise.com"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-dark-300 mb-1">Entreprise</label>
+            <input
+              type="text"
+              value={newLead.company}
+              onChange={(e) => setNewLead({ ...newLead, company: e.target.value })}
+              className="input-field"
+              placeholder="Nom de l'entreprise"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddLeadModal(false)
+                setNewLead({ firstName: '', lastName: '', email: '', company: '' })
+              }}
+              className="btn-secondary flex-1"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={addingLead}
+              className="btn-primary flex-1 flex items-center justify-center gap-2"
+            >
+              {addingLead ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
+              Ajouter
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

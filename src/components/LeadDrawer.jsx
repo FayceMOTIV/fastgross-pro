@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import FocusTrap from 'focus-trap-react'
 import { formatDistanceToNow, format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -48,24 +49,34 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/40"
-          />
+        <FocusTrap
+          focusTrapOptions={{
+            allowOutsideClick: true,
+            escapeDeactivates: true,
+            returnFocusOnDeactivate: true,
+          }}
+        >
+          <div>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 z-40 bg-black/40"
+            />
 
-          {/* Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-dark-900 border-l border-dark-800 overflow-y-auto"
-          >
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-dark-900 border-l border-dark-800 overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Détails du lead ${lead.firstName} ${lead.lastName}`}
+            >
             {/* Header */}
             <div className="sticky top-0 bg-dark-900/90 backdrop-blur-lg border-b border-dark-800/50 p-6">
               <div className="flex items-center justify-between mb-4">
@@ -218,7 +229,8 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
               )}
             </div>
           </motion.div>
-        </>
+          </div>
+        </FocusTrap>
       )}
     </AnimatePresence>
   )

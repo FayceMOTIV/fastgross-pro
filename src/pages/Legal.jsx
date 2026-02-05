@@ -31,11 +31,8 @@ export default function Legal() {
     setSearchParams({ tab: tabId })
   }
 
-  const today = new Date().toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
+  // Date fixe de dernière mise à jour (ne pas utiliser new Date() qui change à chaque visite)
+  const lastUpdate = '5 février 2026'
 
   return (
     <div className="min-h-screen bg-dark-950">
@@ -87,7 +84,7 @@ export default function Legal() {
                   Conditions Générales de Vente
                 </h1>
                 <p className="text-dark-500 text-sm mb-8">
-                  Dernière mise à jour : {today}
+                  Dernière mise à jour : {lastUpdate}
                 </p>
 
                 <h2>1. Objet</h2>
@@ -194,7 +191,7 @@ export default function Legal() {
                   Politique de Confidentialité
                 </h1>
                 <p className="text-dark-500 text-sm mb-8">
-                  Dernière mise à jour : {today}
+                  Dernière mise à jour : {lastUpdate}
                 </p>
 
                 <h2>1. Responsable du traitement</h2>
@@ -329,23 +326,24 @@ export default function Legal() {
                   Mentions Légales
                 </h1>
                 <p className="text-dark-500 text-sm mb-8">
-                  Dernière mise à jour : {today}
+                  Dernière mise à jour : {lastUpdate}
                 </p>
 
                 <h2>Éditeur</h2>
+                {/* ⚠️ TODO: COMPLÉTER AVANT MISE EN PRODUCTION - Informations légales obligatoires */}
                 <p>
                   <strong>Face Media Factory</strong><br />
                   Société par Actions Simplifiée (SAS)<br />
                   Capital social : 10 000€<br />
                   <br />
                   Siège social :<br />
-                  [Adresse à compléter]<br />
+                  <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
                   <br />
-                  SIRET : [À compléter]<br />
-                  RCS Paris : [À compléter]<br />
-                  TVA Intracommunautaire : FR [À compléter]<br />
+                  SIRET : <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
+                  RCS Paris : <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
+                  TVA Intracommunautaire : FR <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
                   <br />
-                  Directeur de la publication : [Nom à compléter]<br />
+                  Directeur de la publication : <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
                   <br />
                   Contact :{' '}
                   <a href="mailto:contact@facemediafactory.com" className="text-brand-400 hover:underline">

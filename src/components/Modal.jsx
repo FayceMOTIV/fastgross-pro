@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import FocusTrap from 'focus-trap-react'
 import { X } from 'lucide-react'
 
 export default function Modal({
@@ -43,42 +44,54 @@ export default function Modal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          ref={overlayRef}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={handleOverlayClick}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        <FocusTrap
+          focusTrapOptions={{
+            allowOutsideClick: true,
+            escapeDeactivates: true,
+            returnFocusOnDeactivate: true,
+          }}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className={`glass-card w-full ${sizeClasses[size]} overflow-hidden`}
+            ref={overlayRef}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleOverlayClick}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           >
-            {/* Header */}
-            {(title || showClose) && (
-              <div className="flex items-center justify-between p-6 border-b border-dark-800/50">
-                {title && (
-                  <h2 className="text-xl font-display font-semibold text-white">{title}</h2>
-                )}
-                {showClose && (
-                  <button
-                    onClick={onClose}
-                    className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className={`glass-card w-full ${sizeClasses[size]} overflow-hidden`}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={title ? 'modal-title' : undefined}
+            >
+              {/* Header */}
+              {(title || showClose) && (
+                <div className="flex items-center justify-between p-6 border-b border-dark-800/50">
+                  {title && (
+                    <h2 id="modal-title" className="text-xl font-display font-semibold text-white">{title}</h2>
+                  )}
+                  {showClose && (
+                    <button
+                      onClick={onClose}
+                      aria-label="Fermer"
+                      className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              )}
 
-            {/* Content */}
-            <div className="p-6">{children}</div>
+              {/* Content */}
+              <div className="p-6">{children}</div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </FocusTrap>
       )}
     </AnimatePresence>
   )

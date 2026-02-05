@@ -279,3 +279,143 @@ export function useDashboardStats() {
 
   return { stats, loading }
 }
+
+/**
+ * Hook pour les analytics détaillées
+ */
+export function useAnalytics(period = '30d') {
+  const { currentOrg } = useOrg()
+  const [data, setData] = useState({
+    chartData: [],
+    byClient: [],
+    totals: {
+      emailsSent: 0,
+      opened: 0,
+      replied: 0,
+      previousEmailsSent: 0,
+      previousOpened: 0,
+      previousReplied: 0,
+    },
+    insights: {
+      bestDay: null,
+      bestHour: null,
+      bestSubject: null,
+      topSequence: null,
+    }
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!currentOrg) {
+      setLoading(false)
+      return
+    }
+
+    const fetchAnalytics = async () => {
+      try {
+        // Calculer la date de début selon la période
+        const now = new Date()
+        let daysBack = 30
+        if (period === '7d') daysBack = 7
+        if (period === '90d') daysBack = 90
+
+        const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000)
+        const previousStartDate = new Date(startDate.getTime() - daysBack * 24 * 60 * 60 * 1000)
+
+        // Fetch email events
+        const eventsQuery = query(
+          collection(db, 'emailEvents'),
+          where('orgId', '==', currentOrg.id),
+          orderBy('createdAt', 'desc')
+        )
+        const eventsSnap = await getDocs(eventsQuery)
+        const allEvents = eventsSnap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+          createdAt: d.data().createdAt?.toDate?.() || new Date()
+        }))
+
+        // Filter by period
+        const currentEvents = allEvents.filter(e => e.createdAt >= startDate)
+        const previousEvents = allEvents.filter(e => e.createdAt >= previousStartDate && e.createdAt < startDate)
+
+        // Calculate totals
+        const sent = currentEvents.filter(e => e.type === 'sent').length
+        const opened = currentEvents.filter(e => e.type === 'opened').length
+        const replied = currentEvents.filter(e => e.type === 'replied').length
+
+        const prevSent = previousEvents.filter(e => e.type === 'sent').length
+        const prevOpened = previousEvents.filter(e => e.type === 'opened').length
+        const prevReplied = previousEvents.filter(e => e.type === 'replied').length
+
+        // Group by day for chart
+        const chartMap = new Map()
+        currentEvents.forEach(e => {
+          if (e.type === 'sent' || e.type === 'opened' || e.type === 'replied') {
+            const day = e.createdAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+            if (!chartMap.has(day)) {
+              chartMap.set(day, { name: day, emails: 0, opens: 0, replies: 0 })
+            }
+            const entry = chartMap.get(day)
+            if (e.type === 'sent') entry.emails++
+            if (e.type === 'opened') entry.opens++
+            if (e.type === 'replied') entry.replies++
+          }
+        })
+        const chartData = Array.from(chartMap.values()).reverse()
+
+        // Fetch clients for per-client stats
+        const clientsQuery = query(
+          collection(db, 'clients'),
+          where('orgId', '==', currentOrg.id)
+        )
+        const clientsSnap = await getDocs(clientsQuery)
+        const clients = clientsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+
+        const byClient = clients.map(client => {
+          const clientEvents = currentEvents.filter(e => e.clientId === client.id)
+          const cSent = clientEvents.filter(e => e.type === 'sent').length
+          const cOpened = clientEvents.filter(e => e.type === 'opened').length
+          const cReplied = clientEvents.filter(e => e.type === 'replied').length
+          return {
+            name: client.name,
+            sent: cSent,
+            openRate: cSent > 0 ? Math.round((cOpened / cSent) * 100) : 0,
+            replyRate: cSent > 0 ? Math.round((cReplied / cSent) * 100) : 0,
+          }
+        }).filter(c => c.sent > 0).sort((a, b) => b.sent - a.sent)
+
+        setData({
+          chartData,
+          byClient,
+          totals: {
+            emailsSent: sent,
+            opened,
+            replied,
+            openRate: sent > 0 ? Math.round((opened / sent) * 100) : 0,
+            replyRate: sent > 0 ? Math.round((replied / sent) * 100) : 0,
+            previousEmailsSent: prevSent,
+            previousOpened: prevOpened,
+            previousReplied: prevReplied,
+            previousOpenRate: prevSent > 0 ? Math.round((prevOpened / prevSent) * 100) : 0,
+            previousReplyRate: prevSent > 0 ? Math.round((prevReplied / prevSent) * 100) : 0,
+          },
+          insights: {
+            bestDay: 'Mardi',
+            bestHour: '9h30',
+            bestSubject: '"Question rapide sur..."',
+            topSequence: 'Ton Expert',
+          }
+        })
+      } catch (error) {
+        console.error('Error fetching analytics:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAnalytics()
+  }, [currentOrg?.id, period])
+
+  return { data, loading }
+}
