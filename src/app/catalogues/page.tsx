@@ -3,10 +3,8 @@
 import { useState, useMemo } from 'react';
 import {
   Search,
-  Filter,
   Package,
   TrendingUp,
-  TrendingDown,
   AlertTriangle,
   Star,
   Percent,
@@ -45,9 +43,6 @@ import {
   type DistramProduct,
   type DistramCategory,
   getCatalogStats,
-  getBestsellers,
-  getPromotions,
-  getLowStockProducts,
 } from '@/data/distram-catalog';
 
 type SortOption = 'name' | 'price-asc' | 'price-desc' | 'stock' | 'bestseller';
@@ -58,7 +53,7 @@ export default function CataloguesPage() {
   const [selectedCategory, setSelectedCategory] = useState<DistramCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('name');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [showFilters, setShowFilters] = useState(false);
+  const [_showFilters, _setShowFilters] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<DistramProduct | null>(null);
   const [showOnlyPromo, setShowOnlyPromo] = useState(false);
   const [showOnlyLowStock, setShowOnlyLowStock] = useState(false);

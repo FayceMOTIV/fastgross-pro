@@ -5,7 +5,6 @@ import {
   Search,
   Filter,
   Eye,
-  Edit,
   Trash2,
   ChevronLeft,
   ChevronRight,
@@ -296,7 +295,7 @@ export default function OrdersPage() {
     setSelectedOrder(null);
   };
 
-  const handleDelete = (orderId: string) => {
+  const _handleDelete = (orderId: string) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
     setShowDeleteModal(null);
     toast.success('Commande supprimée');

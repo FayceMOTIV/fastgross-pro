@@ -14,8 +14,6 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  FileText,
-  ShoppingCart,
   Sparkles,
   Image as ImageIcon,
   Zap,
@@ -29,10 +27,9 @@ import {
   Trash2,
   Plus,
   Minus,
-  Euro
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
-import { analyzeMenuImage, type MenuAnalysisResult } from '@/services/ai/openai-vision';
+import { analyzeMenuImage } from '@/services/ai/openai-vision';
 
 interface ProduitRecommande {
   ref: string;
