@@ -1,0 +1,144 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isCommercial() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'commercial'];
+    }
+    
+    function isLivreur() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'livreur';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Clients collection
+    match /clients/{clientId} {
+      allow read: if isCommercial();
+      allow create: if isCommercial();
+      allow update: if isCommercial();
+      allow delete: if isAdmin();
+      
+      // Sub-collections
+      match /contacts/{contactId} {
+        allow read, write: if isCommercial();
+      }
+      match /notes/{noteId} {
+        allow read, write: if isCommercial();
+      }
+    }
+    
+    // Catalogues collection
+    match /catalogues/{catalogueId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+      
+      // Products sub-collection
+      match /products/{productId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin();
+      }
+    }
+    
+    // Price Grids
+    match /priceGrids/{gridId} {
+      allow read: if isCommercial();
+      allow write: if isAdmin();
+    }
+    
+    // Orders collection
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isCommercial();
+      allow update: if isCommercial() || 
+                      (isLivreur() && resource.data.assignedTo == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+    
+    // Deliveries / Routes
+    match /routes/{routeId} {
+      allow read: if isAuthenticated();
+      allow create: if isCommercial() || isAdmin();
+      allow update: if isCommercial() || isAdmin() ||
+                      (isLivreur() && resource.data.driverId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+    
+    // Prospects
+    match /prospects/{prospectId} {
+      allow read: if isCommercial();
+      allow create: if isCommercial();
+      allow update: if isCommercial();
+      allow delete: if isAdmin();
+    }
+    
+    // Chat channels
+    match /channels/{channelId} {
+      allow read: if isAuthenticated() && 
+                    request.auth.uid in resource.data.members;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+                      request.auth.uid in resource.data.members;
+      allow delete: if isAdmin();
+      
+      // Messages sub-collection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && 
+                      request.auth.uid in get(/databases/$(database)/documents/channels/$(channelId)).data.members;
+        allow create: if isAuthenticated() && 
+                        request.auth.uid in get(/databases/$(database)/documents/channels/$(channelId)).data.members;
+        allow update: if isAuthenticated() && 
+                        resource.data.senderId == request.auth.uid;
+        allow delete: if isAdmin() || resource.data.senderId == request.auth.uid;
+      }
+    }
+    
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && 
+                    (resource.data.targetUsers == null || 
+                     request.auth.uid in resource.data.targetUsers);
+      allow create: if isCommercial() || isAdmin();
+      allow update: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+    
+    // SAGE Sync Logs (admin only)
+    match /sageSyncLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Settings (admin only)
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

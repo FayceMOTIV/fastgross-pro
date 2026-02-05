@@ -1,0 +1,82 @@
+{
+  "rules": {
+    // GPS Locations - real-time driver tracking
+    "locations": {
+      "$userId": {
+        // Drivers can write their own location
+        ".write": "auth != null && auth.uid == $userId",
+        // Admins and commercials can read all locations
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'commercial')",
+        
+        // Validate location data structure
+        ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp', 'status'])",
+        
+        "lat": {
+          ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+        },
+        "lng": {
+          ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+        },
+        "speed": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0)"
+        },
+        "heading": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() < 360)"
+        },
+        "accuracy": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() > 0)"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber()"
+        },
+        "status": {
+          ".validate": "newData.isString() && (newData.val() == 'online' || newData.val() == 'offline' || newData.val() == 'busy')"
+        }
+      }
+    },
+    
+    // Online presence
+    "presence": {
+      "$userId": {
+        ".write": "auth != null && auth.uid == $userId",
+        ".read": "auth != null",
+        
+        "online": {
+          ".validate": "newData.isBoolean()"
+        },
+        "lastSeen": {
+          ".validate": "newData.isNumber()"
+        }
+      }
+    },
+    
+    // Typing indicators for chat
+    "typing": {
+      "$channelId": {
+        "$userId": {
+          ".write": "auth != null && auth.uid == $userId",
+          ".read": "auth != null",
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+    
+    // Users reference (minimal data for rules validation)
+    "users": {
+      "$userId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin')",
+        
+        "role": {
+          ".validate": "newData.isString() && (newData.val() == 'admin' || newData.val() == 'commercial' || newData.val() == 'livreur')"
+        }
+      }
+    },
+    
+    // Default deny all other paths
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

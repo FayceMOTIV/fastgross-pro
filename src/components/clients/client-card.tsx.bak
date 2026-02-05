@@ -1,0 +1,152 @@
+"use client";
+
+import { MapPin, Phone, Mail, MoreVertical, Edit, Trash2, ShoppingCart } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn, formatDate } from "@/lib/utils";
+import type { Client } from "@/types";
+
+interface ClientCardProps {
+  client: Client;
+  onEdit?: (client: Client) => void;
+  onDelete?: (client: Client) => void;
+  onNewOrder?: (client: Client) => void;
+  onClick?: (client: Client) => void;
+}
+
+const typeLabels: Record<string, string> = {
+  fastfood: "Fast-food",
+  kebab: "Kebab",
+  pizzeria: "Pizzeria",
+  snack: "Snack",
+  restaurant: "Restaurant",
+  autre: "Autre",
+};
+
+const statusConfig: Record<string, { label: string; variant: "success" | "warning" | "secondary" }> = {
+  active: { label: "Actif", variant: "success" },
+  prospect: { label: "Prospect", variant: "warning" },
+  inactive: { label: "Inactif", variant: "secondary" },
+};
+
+export function ClientCard({ client, onEdit, onDelete, onNewOrder, onClick }: ClientCardProps) {
+  const status = statusConfig[client.status] || statusConfig.active;
+
+  return (
+    <Card
+      className={cn(
+        "hover:shadow-lg transition-all duration-300",
+        onClick && "cursor-pointer"
+      )}
+      onClick={() => onClick?.(client)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              user={{ name: client.nom }}
+              size="lg"
+            />
+            <div>
+              <h3 className="font-semibold text-lg">{client.nom}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={status.variant}>{status.label}</Badge>
+                <span className="text-xs text-muted-foreground">
+                  {typeLabels[client.type] || client.type}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Actions"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit?.(client)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Modifier
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onNewOrder?.(client)}>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Nouvelle commande
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={() => onDelete?.(client)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">
+              {client.address.street}, {client.address.postalCode} {client.address.city}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <a
+              href={`tel:${client.contact.phone}`}
+              className="hover:text-primary-600"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {client.contact.phone}
+            </a>
+          </div>
+
+          {client.contact.email && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <a
+                href={`mailto:${client.contact.email}`}
+                className="hover:text-primary-600 truncate"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {client.contact.email}
+              </a>
+            </div>
+          )}
+        </div>
+
+        {(client.lastOrderDate || client.score !== undefined) && (
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-sm">
+            {client.lastOrderDate && (
+              <span className="text-muted-foreground">
+                Dernière commande : {formatDate(client.lastOrderDate)}
+              </span>
+            )}
+            {client.score !== undefined && (
+              <Badge variant={client.score >= 70 ? "success" : client.score >= 40 ? "warning" : "danger"}>
+                Score : {client.score}%
+              </Badge>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

@@ -1,0 +1,153 @@
+"use client";
+
+import { MoreVertical, Edit, Trash2, Truck, Eye, MapPin } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn, formatDate, formatCurrency } from "@/lib/utils";
+import type { Order, OrderStatus } from "@/types";
+
+interface OrderCardProps {
+  order: Order;
+  onView?: (order: Order) => void;
+  onEdit?: (order: Order) => void;
+  onDelete?: (order: Order) => void;
+  onAssignDriver?: (order: Order) => void;
+  onClick?: (order: Order) => void;
+}
+
+const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "success" | "warning" | "danger" | "info" }> = {
+  draft: { label: "Brouillon", variant: "secondary" },
+  pending: { label: "En attente", variant: "warning" },
+  validated: { label: "Validée", variant: "info" },
+  preparing: { label: "Préparation", variant: "default" },
+  delivering: { label: "En livraison", variant: "info" },
+  delivered: { label: "Livrée", variant: "success" },
+  cancelled: { label: "Annulée", variant: "danger" },
+};
+
+export function OrderCard({ order, onView, onEdit, onDelete, onAssignDriver, onClick }: OrderCardProps) {
+  const status = statusConfig[order.status] || statusConfig.pending;
+
+  return (
+    <Card
+      className={cn(
+        "hover:shadow-lg transition-all duration-300",
+        onClick && "cursor-pointer"
+      )}
+      onClick={() => onClick?.(order)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              user={{ name: order.clientName }}
+              size="md"
+            />
+            <div>
+              <h3 className="font-semibold">{order.clientName}</h3>
+              <p className="text-xs text-muted-foreground">
+                Commande #{order.id.slice(0, 8)}
+              </p>
+            </div>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Actions"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onView?.(order)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Voir détails
+              </DropdownMenuItem>
+              {order.status !== "delivered" && order.status !== "cancelled" && (
+                <>
+                  <DropdownMenuItem onClick={() => onEdit?.(order)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Modifier
+                  </DropdownMenuItem>
+                  {order.status === "validated" && (
+                    <DropdownMenuItem onClick={() => onAssignDriver?.(order)}>
+                      <Truck className="h-4 w-4 mr-2" />
+                      Assigner livreur
+                    </DropdownMenuItem>
+                  )}
+                </>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={() => onDelete?.(order)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <Badge variant={status.variant}>{status.label}</Badge>
+          <span className="text-lg font-bold text-primary-600">
+            {formatCurrency(order.total)}
+          </span>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Articles</span>
+            <span>{order.items.length} produit{order.items.length > 1 ? "s" : ""}</span>
+          </div>
+
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Livraison</span>
+            <span>{formatDate(order.deliveryDate)}</span>
+          </div>
+
+          {order.deliverySlot && (
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span>Créneau</span>
+              <span>{order.deliverySlot}</span>
+            </div>
+          )}
+        </div>
+
+        {order.deliveryAddress && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>
+                {order.deliveryAddress.street}, {order.deliveryAddress.postalCode} {order.deliveryAddress.city}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+          <span>Créée le {formatDate(order.createdAt)}</span>
+          {order.assignedTo && (
+            <Badge variant="outline" className="text-xs">
+              Livreur assigné
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
