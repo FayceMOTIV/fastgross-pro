@@ -20,7 +20,6 @@ import {
   X,
   Sun,
   Moon,
-  LogOut,
   BarChart3,
   Target,
   UserCheck,
@@ -82,7 +81,7 @@ const navigation: NavSection[] = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { theme, toggleTheme, sidebarOpen, setSidebarOpen } = useUIStore();
+  const { theme, toggleTheme } = useUIStore();
   const { unreadCount } = useNotificationStore();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -93,7 +92,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       try {
         const { state } = JSON.parse(savedTheme);
         document.documentElement.setAttribute("data-theme", state.theme || "light");
-      } catch (e) {
+      } catch {
         document.documentElement.setAttribute("data-theme", "light");
       }
     }

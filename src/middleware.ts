@@ -6,7 +6,7 @@ import type { NextRequest } from 'next/server';
  * AUTH DÉSACTIVÉE TEMPORAIREMENT
  */
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // Auth désactivée - laisser passer toutes les requêtes
   return NextResponse.next();
 }
