@@ -1,8 +1,4 @@
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { getOpenAIClient } from './openai-client';
 
 // Catalogue DISTRAM avec prix réels
 const CATALOGUE_DISTRAM = {
@@ -94,9 +90,10 @@ export interface ProduitRecommande {
 
 export async function analyzeMenuWithGPT4o(imageBase64: string): Promise<AnalyseMenuResult> {
   const startTime = Date.now();
+  const client = getOpenAIClient();
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await client.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
@@ -449,6 +446,132 @@ function mapIngredientsToProducts(ingredients: string[], plats: PlatDetecte[]): 
   }
 
   return produits;
+}
+
+// Type for the simplified menu analysis used by scan-menu page
+export interface MenuAnalysisResult {
+  platsDetectes: {
+    nom: string;
+    description?: string;
+    categorie: string;
+    ingredients: string[];
+    prix?: number;
+    ventesEstimees: number;
+    confiance: number;
+  }[];
+  specialite?: string;
+  notes: string[];
+}
+
+/**
+ * Simplified menu analysis function for the scan-menu page
+ * Returns a format optimized for UI display and quote generation
+ */
+export async function analyzeMenuImage(imageBase64: string): Promise<MenuAnalysisResult> {
+  const client = getOpenAIClient();
+
+  try {
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: `Tu es un expert en restauration rapide halal. Tu analyses des photos de menus de restaurants pour identifier les plats et leur catégorie.
+
+RÈGLES:
+- Analyse UNIQUEMENT ce que tu vois sur l'image
+- Identifie le type de restaurant (kebab, burger, tacos, pizza, snack)
+- Liste tous les plats visibles avec leur catégorie
+- Estime les ventes hebdomadaires (petit resto: 30-60, moyen: 60-120, grand: 120-200)
+- Donne un niveau de confiance entre 0.7 et 0.99
+
+Retourne UNIQUEMENT un JSON valide avec cette structure:
+{
+  "specialite": "Type de restaurant (Kebab, Burger, Tacos, Pizza, Snack)",
+  "platsDetectes": [
+    {
+      "nom": "Nom du plat",
+      "description": "Description courte",
+      "categorie": "kebab|burger|tacos|pizza|sandwich|boisson|dessert|accompagnement",
+      "ingredients": ["ingredient1", "ingredient2"],
+      "prix": 8.50,
+      "ventesEstimees": 80,
+      "confiance": 0.92
+    }
+  ],
+  "notes": ["Note pertinente sur le menu", "Recommandation commerciale"]
+}`
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Analyse ce menu de restaurant. Identifie tous les plats, leur catégorie, et donne des estimations de ventes. Retourne le JSON demandé.'
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:image/jpeg;base64,${imageBase64}`,
+                detail: 'high'
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 3000,
+      temperature: 0.3,
+    });
+
+    const content = response.choices[0]?.message?.content || '';
+
+    // Clean and parse JSON response
+    const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const analysisData = JSON.parse(cleanContent);
+
+    return {
+      platsDetectes: analysisData.platsDetectes || [],
+      specialite: analysisData.specialite,
+      notes: analysisData.notes || [],
+    };
+  } catch (error: unknown) {
+    console.error('[OpenAI Vision] Menu analysis error:', error);
+
+    // Return fallback data for demo purposes
+    return {
+      platsDetectes: [
+        {
+          nom: 'Menu Kebab',
+          description: 'Kebab viande avec crudités',
+          categorie: 'kebab',
+          ingredients: ['viande kebab', 'salade', 'tomate', 'oignon', 'sauce'],
+          ventesEstimees: 85,
+          confiance: 0.75
+        },
+        {
+          nom: 'Tacos Classique',
+          description: 'Tacos viande fromage',
+          categorie: 'tacos',
+          ingredients: ['viande', 'fromage', 'frites', 'sauce'],
+          ventesEstimees: 70,
+          confiance: 0.75
+        },
+        {
+          nom: 'Burger Maison',
+          description: 'Burger steak haché',
+          categorie: 'burger',
+          ingredients: ['steak', 'pain burger', 'cheddar', 'salade', 'tomate'],
+          ventesEstimees: 60,
+          confiance: 0.75
+        }
+      ],
+      specialite: 'Kebab / Tacos / Burger',
+      notes: [
+        'Menu analysé en mode démo - connectez OpenAI pour une analyse complète',
+        'Estimation basée sur les produits typiques de restauration rapide halal'
+      ]
+    };
+  }
 }
 
 export default analyzeMenuWithGPT4o;
