@@ -1,0 +1,143 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Vérifie que l'utilisateur appartient à l'organisation
+    function isMemberOf(orgId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
+    }
+
+    // Vérifie le rôle dans l'organisation
+    function hasRole(orgId, role) {
+      return isMemberOf(orgId) && 
+        get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.role == role;
+    }
+
+    function isAdmin(orgId) {
+      return hasRole(orgId, 'admin') || hasRole(orgId, 'owner');
+    }
+
+    // ============================================
+    // USERS - Profil utilisateur
+    // ============================================
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false; // Soft delete only
+    }
+
+    // ============================================
+    // ORGANIZATIONS - Multi-tenant
+    // ============================================
+    match /organizations/{orgId} {
+      allow read: if isMemberOf(orgId);
+      allow create: if isAuthenticated();
+      allow update: if isAdmin(orgId);
+      allow delete: if hasRole(orgId, 'owner');
+
+      // Members sub-collection
+      match /members/{memberId} {
+        allow read: if isMemberOf(orgId);
+        allow write: if isAdmin(orgId);
+      }
+    }
+
+    // ============================================
+    // CLIENTS - Les clients de l'utilisateur
+    // ============================================
+    match /clients/{clientId} {
+      allow read: if isMemberOf(resource.data.orgId);
+      allow create: if isMemberOf(request.resource.data.orgId);
+      allow update: if isMemberOf(resource.data.orgId);
+      allow delete: if isAdmin(resource.data.orgId);
+
+      // Scanner results
+      match /scans/{scanId} {
+        allow read: if isMemberOf(
+          get(/databases/$(database)/documents/clients/$(clientId)).data.orgId
+        );
+        allow write: if false; // Only Cloud Functions can write
+      }
+    }
+
+    // ============================================
+    // CAMPAIGNS - Séquences email
+    // ============================================
+    match /campaigns/{campaignId} {
+      allow read: if isMemberOf(resource.data.orgId);
+      allow create: if isMemberOf(request.resource.data.orgId);
+      allow update: if isMemberOf(resource.data.orgId);
+      allow delete: if isAdmin(resource.data.orgId);
+
+      // Individual emails in the sequence
+      match /emails/{emailId} {
+        allow read: if isMemberOf(
+          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.orgId
+        );
+        allow create: if isMemberOf(
+          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.orgId
+        );
+        allow update: if isMemberOf(
+          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.orgId
+        );
+      }
+    }
+
+    // ============================================
+    // LEADS - Prospects
+    // ============================================
+    match /leads/{leadId} {
+      allow read: if isMemberOf(resource.data.orgId);
+      allow create: if isMemberOf(request.resource.data.orgId);
+      allow update: if isMemberOf(resource.data.orgId);
+      allow delete: if isAdmin(resource.data.orgId);
+
+      // Lead activity (opens, clicks, replies)
+      match /activities/{activityId} {
+        allow read: if isMemberOf(
+          get(/databases/$(database)/documents/leads/$(leadId)).data.orgId
+        );
+        allow write: if false; // Only Cloud Functions (webhooks)
+      }
+    }
+
+    // ============================================
+    // EMAIL EVENTS - Tracking (written by webhooks)
+    // ============================================
+    match /emailEvents/{eventId} {
+      allow read: if isMemberOf(resource.data.orgId);
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // REPORTS - Rapports de valeur (Proof)
+    // ============================================
+    match /reports/{reportId} {
+      allow read: if isMemberOf(resource.data.orgId);
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // SUBSCRIPTIONS - Billing
+    // ============================================
+    match /subscriptions/{subId} {
+      allow read: if isMemberOf(resource.data.orgId);
+      allow write: if false; // Only backend
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "face-media-factory-functions",
+  "description": "Cloud Functions for Face Media Factory",
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0",
+    "@anthropic-ai/sdk": "^0.32.0",
+    "resend": "^4.0.0",
+    "cheerio": "^1.0.0",
+    "puppeteer": "^23.5.0"
+  }
+}
