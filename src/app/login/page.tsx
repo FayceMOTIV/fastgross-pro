@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Eye,
   EyeOff,
@@ -16,14 +17,16 @@ import {
   CheckCircle2,
   Zap,
   Star,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const DEMO_CREDENTIALS = {
-  admin: { email: "admin@distram.io", password: "admin123", role: "Administrateur", redirect: "/" },
-  commercial: { email: "commercial@distram.io", password: "comm123", role: "Commercial", redirect: "/commercial" },
-  livreur: { email: "livreur@distram.io", password: "liv123", role: "Livreur", redirect: "/livreur" },
-  client: { email: "client@distram.io", password: "client123", role: "Client", redirect: "/portail" },
+  admin: { email: "admin@distram.fr", password: "Demo2024!", role: "Administrateur", redirect: "/" },
+  commercial: { email: "commercial@distram.fr", password: "Demo2024!", role: "Commercial", redirect: "/commercial" },
+  livreur: { email: "livreur@distram.fr", password: "Demo2024!", role: "Livreur", redirect: "/livreur" },
+  client: { email: "kebab.istanbul@test.fr", password: "Demo2024!", role: "Client", redirect: "/portail" },
 };
 
 const FEATURES = [
@@ -40,13 +43,25 @@ const TESTIMONIALS = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, loading, error: authError, isAuthenticated, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const redirectPath =
+        user.role === 'admin' ? '/' :
+        user.role === 'commercial' ? '/commercial' :
+        user.role === 'livreur' ? '/livreur' :
+        user.role === 'client' ? '/portail' : '/';
+      router.push(redirectPath);
+    }
+  }, [isAuthenticated, user, router]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -66,22 +81,16 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const credential = Object.values(DEMO_CREDENTIALS).find(
-      (cred) => cred.email === email && cred.password === password
-    );
-
-    if (credential) {
-      router.push(credential.redirect);
-    } else if (email && password) {
-      // Allow any login for demo
-      router.push("/");
-    } else {
-      setError("Email ou mot de passe incorrect");
-      setIsLoading(false);
+    try {
+      await login(email, password);
+      // Redirect is handled by useAuth hook
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Erreur de connexion");
+      }
     }
   };
 
@@ -90,6 +99,8 @@ export default function LoginPage() {
     setEmail(cred.email);
     setPassword(cred.password);
   };
+
+  const displayError = error || authError;
 
   return (
     <div className="min-h-screen flex bg-[#0a0a0f] overflow-hidden">
@@ -199,8 +210,8 @@ export default function LoginPage() {
           {/* Stats */}
           <div className="flex items-center gap-8">
             {[
-              { value: "2,500+", label: "Clients" },
-              { value: "150K", label: "Livraisons/mois" },
+              { value: "300+", label: "Clients" },
+              { value: "15K", label: "Livraisons/mois" },
               { value: "98%", label: "Satisfaction" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
@@ -218,7 +229,7 @@ export default function LoginPage() {
               <CheckCircle2 className="h-6 w-6" />
               <div>
                 <p className="text-xs text-white/70">Livraison terminée</p>
-                <p className="font-bold">Pizza Express</p>
+                <p className="font-bold">Kebab Istanbul</p>
               </div>
             </div>
           </div>
@@ -280,12 +291,12 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
+            {displayError && (
               <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-sm flex items-center gap-3">
                 <div className="p-1 bg-rose-500/20 rounded-lg">
-                  <Shield className="h-4 w-4" />
+                  <AlertCircle className="h-4 w-4" />
                 </div>
-                {error}
+                {displayError}
               </div>
             )}
 
@@ -305,6 +316,7 @@ export default function LoginPage() {
                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                     placeholder="vous@example.com"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -324,6 +336,7 @@ export default function LoginPage() {
                     className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
                     placeholder="••••••••"
                     required
+                    disabled={loading}
                   />
                   <button
                     type="button"
@@ -341,17 +354,17 @@ export default function LoginPage() {
                 <input type="checkbox" className="w-4 h-4 rounded border-white/20 bg-white/5 text-violet-500 focus:ring-violet-500/50" />
                 <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors">Se souvenir de moi</span>
               </label>
-              <a href="#" className="text-sm text-violet-400 hover:text-violet-300 transition-colors">
+              <Link href="/forgot-password" className="text-sm text-violet-400 hover:text-violet-300 transition-colors">
                 Mot de passe oublié ?
-              </a>
+              </Link>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="group w-full flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Connexion en cours...
@@ -382,7 +395,8 @@ export default function LoginPage() {
                   key={key}
                   type="button"
                   onClick={() => handleQuickLogin(key as keyof typeof DEMO_CREDENTIALS)}
-                  className="group flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-violet-500/30 rounded-xl transition-all"
+                  disabled={loading}
+                  className="group flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-violet-500/30 rounded-xl transition-all disabled:opacity-50"
                 >
                   <div className={cn(
                     "w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white text-sm",
@@ -408,9 +422,9 @@ export default function LoginPage() {
           <div className="mt-10 text-center">
             <p className="text-sm text-white/40">
               Pas encore de compte ?{" "}
-              <a href="/welcome" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
-                Découvrir DISTRAM
-              </a>
+              <Link href="/register" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
+                Créer un compte
+              </Link>
             </p>
           </div>
 
