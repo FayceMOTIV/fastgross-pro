@@ -31,18 +31,18 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// Groq API call for AI chat
+// OpenAI API call for AI chat
 async function askAI(question: string): Promise<string> {
-  const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-  if (!GROQ_API_KEY) {
+  if (!OPENAI_API_KEY) {
     // Fallback responses for demo
     const responses: Record<string, string> = {
       "client": "Vos 3 clients prioritaires aujourd'hui sont: 1) Snack Gourmet (30 jours sans commande), 2) La Friterie (commande en attente), 3) Burger Express (relance planifiée).",
       "livr": "Le livreur Ahmed est le plus proche de votre position, à 2.3km. Il termine sa tournée dans environ 45 minutes.",
       "chiffre": "CA du jour: 4 520€ (+12% vs hier). 8 commandes validées, 2 en attente de confirmation.",
       "stock": "Alertes stock: Huile de friture (niveau bas, réappro suggérée), Viande kebab (stock OK pour 5 jours).",
-      "default": "Je suis votre assistant IA FastGross. Je peux vous aider avec: les clients à relancer, la localisation des livreurs, les stats du jour, et bien plus. Que souhaitez-vous savoir?"
+      "default": "Je suis votre assistant IA DISTRAM. Je peux vous aider avec: les clients à relancer, la localisation des livreurs, les stats du jour, et bien plus. Que souhaitez-vous savoir?"
     };
 
     const key = Object.keys(responses).find(k => question.toLowerCase().includes(k));
@@ -51,18 +51,18 @@ async function askAI(question: string): Promise<string> {
   }
 
   try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: `Tu es l'assistant IA de FastGross Pro, une application de gestion pour grossistes alimentaires B2B.
+            content: `Tu es l'assistant IA de DISTRAM, une application de gestion pour grossistes alimentaires halal B2B.
             Tu réponds de manière concise et actionnable en français.
             Tu as accès aux données de l'entreprise: clients, commandes, livreurs, stocks, statistiques.
             Donne des réponses courtes et pratiques, adaptées à une utilisation mobile.`

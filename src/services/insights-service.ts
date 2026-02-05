@@ -21,20 +21,20 @@ export interface WeeklyReportData {
   insights: AIInsight[];
 }
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY || process.env.NEXT_PUBLIC_GROQ_API_KEY;
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
-// Helper to call Groq API
-async function callGroqAPI(prompt: string, systemPrompt?: string): Promise<string> {
+// Helper to call OpenAI API
+async function callOpenAIAPI(prompt: string, systemPrompt?: string): Promise<string> {
   try {
-    const response = await fetch(GROQ_API_URL, {
+    const response = await fetch(OPENAI_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -48,13 +48,13 @@ async function callGroqAPI(prompt: string, systemPrompt?: string): Promise<strin
     });
 
     if (!response.ok) {
-      throw new Error(`Groq API error: ${response.statusText}`);
+      throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
     return data.choices[0]?.message?.content || "";
   } catch (error) {
-    console.error("Groq API error:", error);
+    console.error("OpenAI API error:", error);
     // Return fallback response
     return "Analyse non disponible. Veuillez réessayer ultérieurement.";
   }
@@ -87,7 +87,7 @@ export async function detectInactiveClients(days: number = 30): Promise<AIInsigh
       const daysSinceOrder = Math.floor((Date.now() - client.lastOrder.getTime()) / (24 * 60 * 60 * 1000));
       const potentialLoss = client.avgMonthlyRevenue * 12;
 
-      const aiAnalysis = await callGroqAPI(
+      const aiAnalysis = await callOpenAIAPI(
         `Client "${client.name}" n'a pas commandé depuis ${daysSinceOrder} jours. Son CA moyen mensuel était de ${client.avgMonthlyRevenue}€. Propose une action de réactivation en 1 phrase.`
       );
 
@@ -164,7 +164,7 @@ export async function predictChurnRisk(clientId: string): Promise<AIInsight> {
     Propose 3 actions concrètes pour réduire le risque de perte de ce client.
   `;
 
-  const aiResponse = await callGroqAPI(prompt);
+  const aiResponse = await callOpenAIAPI(prompt);
   const actions = aiResponse.split("\n").filter(line => line.trim()).slice(0, 3);
 
   return {
@@ -327,7 +327,7 @@ export async function suggestOptimalPricing(productId: string): Promise<AIInsigh
     Explique en 1-2 phrases pourquoi ce prix est optimal.
   `;
 
-  const aiExplanation = await callGroqAPI(prompt);
+  const aiExplanation = await callOpenAIAPI(prompt);
 
   return {
     id: generateInsightId(),
@@ -463,5 +463,5 @@ export async function askAI(question: string, _context?: Record<string, unknown>
     Réponds de manière concise et actionnable en 2-3 phrases maximum.
   `;
 
-  return callGroqAPI(prompt);
+  return callOpenAIAPI(prompt);
 }

@@ -87,7 +87,7 @@ export async function generateSmartPromoSuggestion(
     const prompt = buildAIPrompt(request, discountLimits);
 
     // 4. Appeler l'IA
-    const aiSuggestions = await callGroqAPI(prompt);
+    const aiSuggestions = await callOpenAIAPI(prompt);
 
     // 5. VÉRIFIER et corriger les suggestions de l'IA
     const verifiedSuggestions = verifySuggestions(
@@ -199,27 +199,27 @@ IMPORTANT: Réponds UNIQUEMENT en JSON valide avec ce format exact:
 }
 
 /**
- * Appelle l'API Groq
+ * Appelle l'API OpenAI GPT-4o
  */
-async function callGroqAPI(prompt: string): Promise<RawAISuggestion[]> {
-  const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+async function callOpenAIAPI(prompt: string): Promise<RawAISuggestion[]> {
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-  if (!GROQ_API_KEY) {
-    console.warn("Groq API key not found, using rule-based suggestions");
+  if (!OPENAI_API_KEY) {
+    console.warn("OpenAI API key not found, using rule-based suggestions");
     return [];
   }
 
   try {
     const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
+      "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
@@ -236,7 +236,7 @@ async function callGroqAPI(prompt: string): Promise<RawAISuggestion[]> {
     );
 
     if (!response.ok) {
-      throw new Error(`Groq API error: ${response.statusText}`);
+      throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -249,7 +249,7 @@ async function callGroqAPI(prompt: string): Promise<RawAISuggestion[]> {
     const parsed: AIResponse = JSON.parse(content);
     return parsed.suggestions || [];
   } catch (error) {
-    console.error("Error calling Groq API:", error);
+    console.error("Error calling OpenAI API:", error);
     return [];
   }
 }

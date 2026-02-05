@@ -632,9 +632,9 @@ export async function analyzeWithAI(anomalies: BehaviorAnomaly[]): Promise<{
   insights: string[];
   prioritizedActions: { clientId: string; clientName: string; action: string; urgency: "high" | "medium" | "low" }[];
 }> {
-  const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
-  if (!GROQ_API_KEY || anomalies.length === 0) {
+  if (!OPENAI_API_KEY || anomalies.length === 0) {
     // Fallback mock response
     return {
       insights: [
@@ -676,14 +676,14 @@ Génère un JSON avec:
 
 Réponds uniquement en JSON valide, en français.`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: "Tu es un analyste commercial expert en distribution alimentaire B2B." },
           { role: "user", content: prompt },

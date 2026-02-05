@@ -631,7 +631,7 @@ export async function sendReminder(
 export async function generateSmartReminder(
   invoice: Invoice
 ): Promise<string> {
-  const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
   const daysOverdue = Math.floor(
     (new Date().getTime() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -640,7 +640,7 @@ export async function generateSmartReminder(
   const partialPayment = invoice.amountPaid > 0;
 
   // Default template based on context
-  if (!GROQ_API_KEY) {
+  if (!OPENAI_API_KEY) {
     if (partialPayment) {
       return `Bonjour,
 
@@ -701,14 +701,14 @@ L'email doit :
 
 Génère uniquement le corps de l'email, sans objet.`;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "gpt-4o",
         messages: [
           { role: "system", content: "Tu es un expert en recouvrement de créances professionnel." },
           { role: "user", content: prompt },

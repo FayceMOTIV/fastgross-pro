@@ -102,9 +102,9 @@ export const MAJOR_CITIES = [
   "Aix-en-Provence",
 ];
 
-// Groq API for AI enrichment
-const GROQ_API_KEY = process.env.NEXT_PUBLIC_GROQ_API_KEY;
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+// OpenAI API for AI enrichment
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
 // Mock data for Google Maps search (in production, use official Places API)
 const mockGoogleMapsResults: Record<string, ScrapedProspect[]> = {
@@ -322,7 +322,7 @@ export async function enrichProspectData(
   }
 
   // Use AI to analyze and enrich data
-  if (GROQ_API_KEY) {
+  if (OPENAI_API_KEY) {
     try {
       const prompt = `Analyse ce prospect pour un grossiste alimentaire B2B:
 Nom: ${prospect.name}
@@ -339,14 +339,14 @@ Génère un JSON avec:
 
 Réponds uniquement en JSON valide.`;
 
-      const response = await fetch(GROQ_API_URL, {
+      const response = await fetch(OPENAI_API_URL, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${GROQ_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "llama-3.1-70b-versatile",
+          model: "gpt-4o",
           messages: [
             { role: "system", content: "Tu es un assistant commercial B2B expert en restauration." },
             { role: "user", content: prompt },

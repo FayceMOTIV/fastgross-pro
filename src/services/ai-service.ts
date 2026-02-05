@@ -1,16 +1,16 @@
-import OpenAI from 'openai';
+/**
+ * AI Service - DISTRAM by Face Media
+ *
+ * Core AI service using OpenAI GPT-4o for all AI-powered features
+ */
 
-// Groq client configuration
-const groq = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY || '',
-  baseURL: 'https://api.groq.com/openai/v1',
-});
+import { getOpenAIClient, OPENAI_MODELS } from './ai/openai-client';
 
-// Available models on Groq (from cheapest to most capable)
-export const GROQ_MODELS = {
-  LLAMA_8B: 'llama-3.1-8b-instant', // Very fast, cheap - good for simple tasks
-  LLAMA_70B: 'llama-3.1-70b-versatile', // Balanced - good for most tasks
-  MIXTRAL: 'mixtral-8x7b-32768', // Good for longer context
+// Available models
+export const AI_MODELS = {
+  FAST: OPENAI_MODELS.GPT4O_MINI,    // Fast, cheap - for simple tasks
+  STANDARD: OPENAI_MODELS.GPT4O,     // Balanced - good for most tasks
+  POWERFUL: OPENAI_MODELS.GPT4O,     // Most capable - for complex analysis
 } as const;
 
 // Types
@@ -46,7 +46,7 @@ interface RouteOptimization {
 export class AIService {
   private model: string;
 
-  constructor(model: string = GROQ_MODELS.LLAMA_70B) {
+  constructor(model: string = AI_MODELS.STANDARD) {
     this.model = model;
   }
 
@@ -80,7 +80,8 @@ Réponds en JSON avec ce format exact:
 }`;
 
     try {
-      const response = await groq.chat.completions.create({
+      const openai = getOpenAIClient();
+      const response = await openai.chat.completions.create({
         model: this.model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
@@ -134,7 +135,8 @@ Réponds en JSON:
 }`;
 
     try {
-      const response = await groq.chat.completions.create({
+      const openai = getOpenAIClient();
+      const response = await openai.chat.completions.create({
         model: this.model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
@@ -177,7 +179,8 @@ Fournis une analyse complète en JSON:
 }`;
 
     try {
-      const response = await groq.chat.completions.create({
+      const openai = getOpenAIClient();
+      const response = await openai.chat.completions.create({
         model: this.model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
@@ -220,8 +223,9 @@ Réponds en JSON:
 }`;
 
     try {
-      const response = await groq.chat.completions.create({
-        model: GROQ_MODELS.LLAMA_8B, // Use faster model for this
+      const openai = getOpenAIClient();
+      const response = await openai.chat.completions.create({
+        model: AI_MODELS.FAST, // Use faster model for this
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
         max_tokens: 400,
@@ -240,7 +244,7 @@ Réponds en JSON:
     message: string,
     context?: { role?: string; recentData?: string }
   ): Promise<string> {
-    const systemPrompt = `Tu es l'assistant IA de FastGross Pro, une plateforme de gestion commerciale pour grossistes alimentaires.
+    const systemPrompt = `Tu es l'assistant IA de DISTRAM, une plateforme de gestion commerciale pour grossistes alimentaires halal.
 
 Tu aides les utilisateurs (commerciaux, responsables, livreurs) à:
 - Trouver des informations sur les clients, commandes, stocks
@@ -254,8 +258,9 @@ ${context?.recentData ? `Contexte récent: ${context.recentData}` : ''}
 Réponds de manière concise, professionnelle et utile. En français.`;
 
     try {
-      const response = await groq.chat.completions.create({
-        model: GROQ_MODELS.LLAMA_8B, // Fast model for chat
+      const openai = getOpenAIClient();
+      const response = await openai.chat.completions.create({
+        model: AI_MODELS.FAST, // Fast model for chat
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message },

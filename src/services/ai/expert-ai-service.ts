@@ -1,8 +1,4 @@
-import Groq from 'groq-sdk';
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+import { getOpenAIClient, OPENAI_MODELS } from './openai-client';
 
 // ═══════════════════════════════════════════════════════════════
 // DONNÉES CATALOGUE DISTRAM (RÉELLES)
@@ -336,16 +332,17 @@ Réponds en JSON avec la structure:
 }`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.2-90b-vision-preview',
+    const openai = getOpenAIClient();
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODELS.GPT4O,
       messages: [
         { role: 'system', content: systemPrompt },
         {
           role: 'user',
           content: [
             { type: 'text', text: 'Analyse ce menu et génère la liste des produits DISTRAM nécessaires pour une semaine. Réponds en JSON.' },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-          ] as any
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}`, detail: 'high' } }
+          ]
         }
       ],
       response_format: { type: 'json_object' },
@@ -397,8 +394,9 @@ Génère aussi un email de prospection personnalisé et les arguments de vente.
 Réponds en JSON.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+    const openai = getOpenAIClient();
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODELS.GPT4O,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyse ce prospect:\n${JSON.stringify(prospect, null, 2)}\n\nRéponds en JSON.` }
@@ -445,8 +443,9 @@ Génère des actions concrètes avec responsables et délais.
 Réponds en JSON.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+    const openai = getOpenAIClient();
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODELS.GPT4O,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyse le risque churn de ce client:\n${JSON.stringify(client, null, 2)}\n\nRéponds en JSON.` }
@@ -491,8 +490,9 @@ Génère l'ordre optimal des livraisons avec heures estimées.
 Réponds en JSON.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+    const openai = getOpenAIClient();
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODELS.GPT4O,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Optimise cette tournée de livraison:\n${JSON.stringify(deliveries, null, 2)}\n\nRéponds en JSON.` }
@@ -544,8 +544,9 @@ Analyse les stocks et génère:
 Réponds en JSON.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+    const openai = getOpenAIClient();
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODELS.GPT4O,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyse ces stocks:\n${JSON.stringify(products, null, 2)}\n\nRéponds en JSON.` }
@@ -588,8 +589,9 @@ Adapte tes conseils au contexte et génère des opportunités concrètes.
 Réponds en JSON.`;
 
   try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-70b-versatile',
+    const openai = getOpenAIClient();
+    const completion = await openai.chat.completions.create({
+      model: OPENAI_MODELS.GPT4O,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Contexte de vente:\n${JSON.stringify(context, null, 2)}\n\nGénère des conseils en JSON.` }
