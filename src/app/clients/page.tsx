@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   Plus,
   Search,
@@ -17,6 +16,9 @@ import {
   UserPlus,
   Crown,
   MoreVertical,
+  MapPin,
+  Building2,
+  AlertTriangle,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Button } from "@/components/ui/button";
@@ -29,213 +31,623 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { PhonePreviewButton } from "@/components/ui/phone-preview";
 
-// Mock data
-const mockClients = [
+// Types
+type ClientStatus = "active" | "inactive" | "at_risk";
+type AccountType = "Gold" | "Silver" | "Bronze" | "Standard";
+type Depot = "Lyon" | "Montpellier" | "Bordeaux";
+
+interface Client {
+  id: string;
+  name: string;
+  businessType: string;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  address: {
+    street: string;
+    city: string;
+    postalCode: string;
+  };
+  depot: Depot;
+  commercial: string;
+  accountType: AccountType;
+  remise: number;
+  encours: number;
+  encoursMax: number;
+  lastOrder: string;
+  ordersThisMonth: number;
+  totalSpent: number;
+  status: ClientStatus;
+  avatar: string;
+  color: string;
+}
+
+// 30 DISTRAM Clients Mock Data
+const mockClients: Client[] = [
+  // === LYON (15 clients) ===
   {
-    id: "1",
-    name: "Le Kebab du Coin",
+    id: "CLI-001",
+    name: "Kebab Istanbul",
     businessType: "kebab",
-    contact: {
-      name: "Ahmed Benali",
-      phone: "06 12 34 56 78",
-      email: "contact@kebab-coin.fr",
-    },
-    address: {
-      city: "Paris",
-      postalCode: "75011",
-    },
-    lastOrder: "2024-01-08",
+    contact: { name: "Mehmet Yilmaz", phone: "04 72 12 34 56", email: "contact@kebab-istanbul.fr" },
+    address: { street: "15 Rue de la République", city: "Lyon 1er", postalCode: "69001" },
+    depot: "Lyon",
+    commercial: "Mohamed K.",
+    accountType: "Gold",
+    remise: 10,
+    encours: 890,
+    encoursMax: 5000,
+    lastOrder: "2024-02-04",
+    ordersThisMonth: 8,
     totalSpent: 45280,
     status: "active",
-    avatar: "AB",
+    avatar: "KI",
     color: "from-purple-500 to-pink-500",
   },
   {
-    id: "2",
-    name: "Pizza Express",
-    businessType: "pizzeria",
-    contact: {
-      name: "Marco Rossi",
-      phone: "06 98 76 54 32",
-      email: "marco@pizzaexpress.fr",
-    },
-    address: {
-      city: "Lyon",
-      postalCode: "69001",
-    },
-    lastOrder: "2024-01-05",
-    totalSpent: 38450,
-    status: "active",
-    avatar: "MR",
-    color: "from-orange-500 to-red-500",
-  },
-  {
-    id: "3",
-    name: "Burger House",
-    businessType: "restaurant",
-    contact: {
-      name: "Jean Dupont",
-      phone: "04 91 00 00 00",
-      email: "info@burgerhouse.fr",
-    },
-    address: {
-      city: "Marseille",
-      postalCode: "13001",
-    },
-    lastOrder: "2024-01-10",
-    totalSpent: 52190,
-    status: "active",
-    avatar: "JD",
-    color: "from-green-500 to-emerald-500",
-  },
-  {
-    id: "4",
-    name: "Snack Gourmet",
-    businessType: "snack",
-    contact: {
-      name: "Marie Martin",
-      phone: "05 61 00 00 00",
-      email: "marie@snackgourmet.fr",
-    },
-    address: {
-      city: "Toulouse",
-      postalCode: "31000",
-    },
-    lastOrder: "2023-12-15",
-    totalSpent: 18750,
-    status: "inactive",
-    avatar: "MM",
-    color: "from-amber-500 to-yellow-500",
-  },
-  {
-    id: "5",
-    name: "La Trattoria",
-    businessType: "restaurant",
-    contact: {
-      name: "Giuseppe Verdi",
-      phone: "01 45 67 89 01",
-      email: "giuseppe@trattoria.fr",
-    },
-    address: {
-      city: "Paris",
-      postalCode: "75001",
-    },
-    lastOrder: "2024-01-11",
+    id: "CLI-002",
+    name: "Chez Momo Kebab",
+    businessType: "kebab",
+    contact: { name: "Mohamed Berrouane", phone: "04 72 23 45 67", email: "momo@chezmomo.fr" },
+    address: { street: "42 Cours Gambetta", city: "Lyon 3ème", postalCode: "69003" },
+    depot: "Lyon",
+    commercial: "Mohamed K.",
+    accountType: "Gold",
+    remise: 12,
+    encours: 1250,
+    encoursMax: 6000,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 12,
     totalSpent: 67890,
     status: "active",
-    avatar: "GV",
-    color: "from-indigo-500 to-blue-500",
+    avatar: "CM",
+    color: "from-amber-500 to-orange-500",
   },
   {
-    id: "6",
-    name: "Sushi Master",
+    id: "CLI-003",
+    name: "Pizza Anatolie",
+    businessType: "pizzeria",
+    contact: { name: "Hasan Demir", phone: "04 72 34 56 78", email: "info@pizza-anatolie.fr" },
+    address: { street: "8 Place Bellecour", city: "Lyon 2ème", postalCode: "69002" },
+    depot: "Lyon",
+    commercial: "Fatima Z.",
+    accountType: "Silver",
+    remise: 8,
+    encours: 450,
+    encoursMax: 3000,
+    lastOrder: "2024-02-03",
+    ordersThisMonth: 6,
+    totalSpent: 38450,
+    status: "active",
+    avatar: "PA",
+    color: "from-red-500 to-orange-500",
+  },
+  {
+    id: "CLI-004",
+    name: "Snack Le Médina",
+    businessType: "snack",
+    contact: { name: "Karim Benali", phone: "04 72 45 67 89", email: "medina.snack@gmail.com" },
+    address: { street: "23 Rue Paul Bert", city: "Lyon 3ème", postalCode: "69003" },
+    depot: "Lyon",
+    commercial: "Mohamed K.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 320,
+    encoursMax: 2000,
+    lastOrder: "2024-02-01",
+    ordersThisMonth: 4,
+    totalSpent: 18750,
+    status: "active",
+    avatar: "SM",
+    color: "from-emerald-500 to-teal-500",
+  },
+  {
+    id: "CLI-005",
+    name: "Le Sultan d'Orient",
     businessType: "restaurant",
-    contact: {
-      name: "Takeshi Yamada",
-      phone: "01 23 45 67 89",
-      email: "contact@sushimaster.fr",
-    },
-    address: {
-      city: "Nice",
-      postalCode: "06000",
-    },
-    lastOrder: "2024-01-09",
-    totalSpent: 48320,
+    contact: { name: "Ali Mansouri", phone: "04 72 56 78 90", email: "sultan.orient@outlook.fr" },
+    address: { street: "67 Avenue Jean Jaurès", city: "Lyon 7ème", postalCode: "69007" },
+    depot: "Lyon",
+    commercial: "Fatima Z.",
+    accountType: "Gold",
+    remise: 10,
+    encours: 2100,
+    encoursMax: 8000,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 15,
+    totalSpent: 89450,
     status: "active",
-    avatar: "TY",
-    color: "from-cyan-500 to-teal-500",
-  },
-  {
-    id: "7",
-    name: "Tacos Loco",
-    businessType: "fastfood",
-    contact: {
-      name: "Carlos Rodriguez",
-      phone: "04 56 78 90 12",
-      email: "carlos@tacosloco.fr",
-    },
-    address: {
-      city: "Bordeaux",
-      postalCode: "33000",
-    },
-    lastOrder: "2024-01-12",
-    totalSpent: 31240,
-    status: "active",
-    avatar: "CR",
-    color: "from-rose-500 to-pink-500",
-  },
-  {
-    id: "8",
-    name: "Le Petit Bistrot",
-    businessType: "restaurant",
-    contact: {
-      name: "Sophie Dubois",
-      phone: "02 34 56 78 90",
-      email: "sophie@petitbistrot.fr",
-    },
-    address: {
-      city: "Nantes",
-      postalCode: "44000",
-    },
-    lastOrder: "2024-01-07",
-    totalSpent: 29850,
-    status: "active",
-    avatar: "SD",
+    avatar: "SO",
     color: "from-violet-500 to-purple-500",
   },
   {
-    id: "9",
-    name: "Poke Bowl Paradise",
-    businessType: "snack",
-    contact: {
-      name: "Emma Wilson",
-      phone: "03 45 67 89 01",
-      email: "emma@pokebowl.fr",
-    },
-    address: {
-      city: "Lille",
-      postalCode: "59000",
-    },
-    lastOrder: "2024-01-13",
-    totalSpent: 22340,
+    id: "CLI-006",
+    name: "Tacos King Lyon",
+    businessType: "tacos",
+    contact: { name: "Youssef El Amrani", phone: "04 72 67 89 01", email: "tacosking.lyon@gmail.com" },
+    address: { street: "12 Rue de la Part-Dieu", city: "Lyon 3ème", postalCode: "69003" },
+    depot: "Lyon",
+    commercial: "Rachid M.",
+    accountType: "Silver",
+    remise: 7,
+    encours: 680,
+    encoursMax: 3500,
+    lastOrder: "2024-02-04",
+    ordersThisMonth: 9,
+    totalSpent: 42300,
     status: "active",
-    avatar: "EW",
-    color: "from-lime-500 to-green-500",
+    avatar: "TK",
+    color: "from-yellow-500 to-amber-500",
   },
   {
-    id: "10",
-    name: "Bagel Corner",
-    businessType: "snack",
-    contact: {
-      name: "David Cohen",
-      phone: "01 56 78 90 12",
-      email: "david@bagelcorner.fr",
-    },
-    address: {
-      city: "Paris",
-      postalCode: "75009",
-    },
-    lastOrder: "2024-01-14",
-    totalSpent: 19560,
+    id: "CLI-007",
+    name: "Döner Express",
+    businessType: "kebab",
+    contact: { name: "Ahmet Ozturk", phone: "04 72 78 90 12", email: "doner.express@hotmail.fr" },
+    address: { street: "34 Rue Garibaldi", city: "Lyon 6ème", postalCode: "69006" },
+    depot: "Lyon",
+    commercial: "Mohamed K.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 0,
+    encoursMax: 1500,
+    lastOrder: "2024-01-28",
+    ordersThisMonth: 2,
+    totalSpent: 15600,
+    status: "at_risk",
+    avatar: "DE",
+    color: "from-slate-500 to-gray-500",
+  },
+  {
+    id: "CLI-008",
+    name: "Le Petit Bosphore",
+    businessType: "restaurant",
+    contact: { name: "Mustafa Kaya", phone: "04 72 89 01 23", email: "bosphore.lyon@gmail.com" },
+    address: { street: "56 Quai Perrache", city: "Lyon 2ème", postalCode: "69002" },
+    depot: "Lyon",
+    commercial: "Fatima Z.",
+    accountType: "Silver",
+    remise: 8,
+    encours: 890,
+    encoursMax: 4000,
+    lastOrder: "2024-02-02",
+    ordersThisMonth: 5,
+    totalSpent: 31200,
     status: "active",
-    avatar: "DC",
+    avatar: "PB",
+    color: "from-cyan-500 to-blue-500",
+  },
+  {
+    id: "CLI-009",
+    name: "Fast Kebab Villeurbanne",
+    businessType: "kebab",
+    contact: { name: "Samir Bouaziz", phone: "04 72 90 12 34", email: "fastkebab.villeurbanne@gmail.com" },
+    address: { street: "89 Cours Emile Zola", city: "Villeurbanne", postalCode: "69100" },
+    depot: "Lyon",
+    commercial: "Rachid M.",
+    accountType: "Standard",
+    remise: 0,
+    encours: 0,
+    encoursMax: 1000,
+    lastOrder: "2024-01-15",
+    ordersThisMonth: 1,
+    totalSpent: 8900,
+    status: "inactive",
+    avatar: "FK",
+    color: "from-gray-400 to-gray-500",
+  },
+  {
+    id: "CLI-010",
+    name: "Grill House Bron",
+    businessType: "grill",
+    contact: { name: "Hassan Cherif", phone: "04 72 01 23 45", email: "grillhouse.bron@gmail.com" },
+    address: { street: "15 Avenue Franklin Roosevelt", city: "Bron", postalCode: "69500" },
+    depot: "Lyon",
+    commercial: "Mohamed K.",
+    accountType: "Silver",
+    remise: 6,
+    encours: 450,
+    encoursMax: 2500,
+    lastOrder: "2024-02-03",
+    ordersThisMonth: 7,
+    totalSpent: 28700,
+    status: "active",
+    avatar: "GH",
+    color: "from-orange-500 to-red-500",
+  },
+  {
+    id: "CLI-011",
+    name: "Istanbul Grill",
+    businessType: "kebab",
+    contact: { name: "Emre Yildirim", phone: "04 78 12 34 56", email: "istanbul.grill@gmail.com" },
+    address: { street: "78 Grande Rue de la Guillotière", city: "Lyon 7ème", postalCode: "69007" },
+    depot: "Lyon",
+    commercial: "Fatima Z.",
+    accountType: "Gold",
+    remise: 10,
+    encours: 1800,
+    encoursMax: 6000,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 11,
+    totalSpent: 56780,
+    status: "active",
+    avatar: "IG",
+    color: "from-indigo-500 to-violet-500",
+  },
+  {
+    id: "CLI-012",
+    name: "Burger & Kebab",
+    businessType: "fastfood",
+    contact: { name: "Adel Messaoudi", phone: "04 78 23 45 67", email: "burgerkebab.lyon@gmail.com" },
+    address: { street: "45 Rue de Marseille", city: "Lyon 7ème", postalCode: "69007" },
+    depot: "Lyon",
+    commercial: "Rachid M.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 200,
+    encoursMax: 1500,
+    lastOrder: "2024-02-04",
+    ordersThisMonth: 4,
+    totalSpent: 19200,
+    status: "active",
+    avatar: "BK",
+    color: "from-rose-500 to-pink-500",
+  },
+  {
+    id: "CLI-013",
+    name: "Le Palais du Kebab",
+    businessType: "kebab",
+    contact: { name: "Bilal Amara", phone: "04 78 34 56 78", email: "palais.kebab@outlook.fr" },
+    address: { street: "23 Place du Pont", city: "Lyon 7ème", postalCode: "69007" },
+    depot: "Lyon",
+    commercial: "Mohamed K.",
+    accountType: "Silver",
+    remise: 8,
+    encours: 650,
+    encoursMax: 3000,
+    lastOrder: "2024-02-01",
+    ordersThisMonth: 6,
+    totalSpent: 34500,
+    status: "active",
+    avatar: "PK",
     color: "from-fuchsia-500 to-purple-500",
+  },
+  {
+    id: "CLI-014",
+    name: "Antalya Kebab",
+    businessType: "kebab",
+    contact: { name: "Osman Celik", phone: "04 78 45 67 89", email: "antalya.kebab@gmail.com" },
+    address: { street: "67 Cours Vitton", city: "Lyon 6ème", postalCode: "69006" },
+    depot: "Lyon",
+    commercial: "Fatima Z.",
+    accountType: "Standard",
+    remise: 0,
+    encours: 0,
+    encoursMax: 800,
+    lastOrder: "2024-01-20",
+    ordersThisMonth: 0,
+    totalSpent: 6700,
+    status: "at_risk",
+    avatar: "AK",
+    color: "from-slate-400 to-gray-500",
+  },
+  {
+    id: "CLI-015",
+    name: "Chez Nassim",
+    businessType: "restaurant",
+    contact: { name: "Nassim Hadj", phone: "04 78 56 78 90", email: "cheznassim@gmail.com" },
+    address: { street: "12 Rue Moncey", city: "Lyon 3ème", postalCode: "69003" },
+    depot: "Lyon",
+    commercial: "Rachid M.",
+    accountType: "Gold",
+    remise: 12,
+    encours: 2500,
+    encoursMax: 8000,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 14,
+    totalSpent: 78900,
+    status: "active",
+    avatar: "CN",
+    color: "from-teal-500 to-emerald-500",
+  },
+
+  // === MONTPELLIER (8 clients) ===
+  {
+    id: "CLI-016",
+    name: "Kebab Méditerranée",
+    businessType: "kebab",
+    contact: { name: "Rachid Bouziane", phone: "04 67 12 34 56", email: "kebab.med@gmail.com" },
+    address: { street: "34 Place de la Comédie", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Karim B.",
+    accountType: "Gold",
+    remise: 10,
+    encours: 1200,
+    encoursMax: 5000,
+    lastOrder: "2024-02-04",
+    ordersThisMonth: 10,
+    totalSpent: 52300,
+    status: "active",
+    avatar: "KM",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    id: "CLI-017",
+    name: "La Casa del Tacos",
+    businessType: "tacos",
+    contact: { name: "Carlos Mendez", phone: "04 67 23 45 67", email: "casatacos@hotmail.fr" },
+    address: { street: "12 Rue de la Loge", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Karim B.",
+    accountType: "Silver",
+    remise: 7,
+    encours: 340,
+    encoursMax: 2500,
+    lastOrder: "2024-02-03",
+    ordersThisMonth: 5,
+    totalSpent: 24500,
+    status: "active",
+    avatar: "CT",
+    color: "from-yellow-500 to-orange-500",
+  },
+  {
+    id: "CLI-018",
+    name: "Orient Express Montpellier",
+    businessType: "restaurant",
+    contact: { name: "Faisal Ahmad", phone: "04 67 34 56 78", email: "orientexpress.mtp@gmail.com" },
+    address: { street: "56 Avenue de Toulouse", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Nadia A.",
+    accountType: "Silver",
+    remise: 8,
+    encours: 780,
+    encoursMax: 3500,
+    lastOrder: "2024-02-02",
+    ordersThisMonth: 7,
+    totalSpent: 38900,
+    status: "active",
+    avatar: "OE",
+    color: "from-violet-500 to-indigo-500",
+  },
+  {
+    id: "CLI-019",
+    name: "Snack Soleil",
+    businessType: "snack",
+    contact: { name: "Ahmed Toumi", phone: "04 67 45 67 89", email: "snacksoleil@gmail.com" },
+    address: { street: "89 Rue du Faubourg Figuerolles", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Karim B.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 150,
+    encoursMax: 1500,
+    lastOrder: "2024-01-30",
+    ordersThisMonth: 3,
+    totalSpent: 12400,
+    status: "at_risk",
+    avatar: "SS",
+    color: "from-amber-400 to-yellow-500",
+  },
+  {
+    id: "CLI-020",
+    name: "Grill Master 34",
+    businessType: "grill",
+    contact: { name: "Yassine Boukhari", phone: "04 67 56 78 90", email: "grillmaster34@gmail.com" },
+    address: { street: "23 Rue de Verdun", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Nadia A.",
+    accountType: "Gold",
+    remise: 10,
+    encours: 1650,
+    encoursMax: 6000,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 12,
+    totalSpent: 61200,
+    status: "active",
+    avatar: "GM",
+    color: "from-red-500 to-rose-500",
+  },
+  {
+    id: "CLI-021",
+    name: "Pizza & Kebab Palace",
+    businessType: "kebab",
+    contact: { name: "Hamid Saadi", phone: "04 67 67 89 01", email: "pkpalace@outlook.fr" },
+    address: { street: "45 Boulevard de Strasbourg", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Karim B.",
+    accountType: "Standard",
+    remise: 0,
+    encours: 0,
+    encoursMax: 1000,
+    lastOrder: "2024-01-25",
+    ordersThisMonth: 2,
+    totalSpent: 9800,
+    status: "inactive",
+    avatar: "PP",
+    color: "from-gray-400 to-slate-500",
+  },
+  {
+    id: "CLI-022",
+    name: "Le Bazar Oriental",
+    businessType: "restaurant",
+    contact: { name: "Omar Bennis", phone: "04 67 78 90 12", email: "bazaroriental@gmail.com" },
+    address: { street: "78 Rue de l'Université", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Nadia A.",
+    accountType: "Silver",
+    remise: 7,
+    encours: 420,
+    encoursMax: 3000,
+    lastOrder: "2024-02-01",
+    ordersThisMonth: 6,
+    totalSpent: 29700,
+    status: "active",
+    avatar: "BO",
+    color: "from-emerald-500 to-green-500",
+  },
+  {
+    id: "CLI-023",
+    name: "Fast Food Galaxy",
+    businessType: "fastfood",
+    contact: { name: "Sofiane Larbi", phone: "04 67 89 01 23", email: "ffgalaxy.mtp@gmail.com" },
+    address: { street: "15 Place de l'Europe", city: "Montpellier", postalCode: "34000" },
+    depot: "Montpellier",
+    commercial: "Karim B.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 280,
+    encoursMax: 2000,
+    lastOrder: "2024-02-04",
+    ordersThisMonth: 5,
+    totalSpent: 18900,
+    status: "active",
+    avatar: "FG",
+    color: "from-purple-500 to-fuchsia-500",
+  },
+
+  // === BORDEAUX (7 clients) ===
+  {
+    id: "CLI-024",
+    name: "Le Grand Kebab Bordelais",
+    businessType: "kebab",
+    contact: { name: "Amir Zeroual", phone: "05 56 12 34 56", email: "grandkebab.bdx@gmail.com" },
+    address: { street: "45 Cours de l'Intendance", city: "Bordeaux", postalCode: "33000" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Gold",
+    remise: 10,
+    encours: 1400,
+    encoursMax: 5500,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 11,
+    totalSpent: 58700,
+    status: "active",
+    avatar: "GK",
+    color: "from-wine-500 to-red-500",
+  },
+  {
+    id: "CLI-025",
+    name: "Tacos Factory Bordeaux",
+    businessType: "tacos",
+    contact: { name: "Nabil Hammami", phone: "05 56 23 45 67", email: "tacosfactory.bdx@gmail.com" },
+    address: { street: "23 Rue Sainte-Catherine", city: "Bordeaux", postalCode: "33000" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Silver",
+    remise: 8,
+    encours: 560,
+    encoursMax: 3000,
+    lastOrder: "2024-02-03",
+    ordersThisMonth: 7,
+    totalSpent: 32400,
+    status: "active",
+    avatar: "TF",
+    color: "from-amber-500 to-yellow-500",
+  },
+  {
+    id: "CLI-026",
+    name: "Snack Porte Dijeaux",
+    businessType: "snack",
+    contact: { name: "Malik Ouahab", phone: "05 56 34 56 78", email: "snack.dijeaux@hotmail.fr" },
+    address: { street: "12 Place Gambetta", city: "Bordeaux", postalCode: "33000" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 180,
+    encoursMax: 1500,
+    lastOrder: "2024-02-02",
+    ordersThisMonth: 4,
+    totalSpent: 14200,
+    status: "active",
+    avatar: "SD",
+    color: "from-teal-500 to-cyan-500",
+  },
+  {
+    id: "CLI-027",
+    name: "Istanbul Döner",
+    businessType: "kebab",
+    contact: { name: "Selim Aydin", phone: "05 56 45 67 89", email: "istanbul.doner.bdx@gmail.com" },
+    address: { street: "67 Quai des Chartrons", city: "Bordeaux", postalCode: "33000" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Standard",
+    remise: 0,
+    encours: 0,
+    encoursMax: 1000,
+    lastOrder: "2024-01-18",
+    ordersThisMonth: 1,
+    totalSpent: 7800,
+    status: "at_risk",
+    avatar: "ID",
+    color: "from-slate-400 to-gray-500",
+  },
+  {
+    id: "CLI-028",
+    name: "La Table d'Orient",
+    businessType: "restaurant",
+    contact: { name: "Jamal Tazi", phone: "05 56 56 78 90", email: "tableorient.bdx@gmail.com" },
+    address: { street: "34 Cours du Chapeau Rouge", city: "Bordeaux", postalCode: "33000" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Gold",
+    remise: 12,
+    encours: 2200,
+    encoursMax: 7000,
+    lastOrder: "2024-02-05",
+    ordersThisMonth: 13,
+    totalSpent: 72500,
+    status: "active",
+    avatar: "TO",
+    color: "from-indigo-500 to-blue-500",
+  },
+  {
+    id: "CLI-029",
+    name: "Grill Aquitaine",
+    businessType: "grill",
+    contact: { name: "Redouane Belkadi", phone: "05 56 67 89 01", email: "grillaquitaine@outlook.fr" },
+    address: { street: "89 Rue Fondaudège", city: "Bordeaux", postalCode: "33000" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Silver",
+    remise: 7,
+    encours: 390,
+    encoursMax: 2500,
+    lastOrder: "2024-02-01",
+    ordersThisMonth: 5,
+    totalSpent: 26800,
+    status: "active",
+    avatar: "GA",
+    color: "from-orange-500 to-red-500",
+  },
+  {
+    id: "CLI-030",
+    name: "Kebab Corner Mérignac",
+    businessType: "kebab",
+    contact: { name: "Khaled Bensaid", phone: "05 56 78 90 12", email: "kebabcorner.merignac@gmail.com" },
+    address: { street: "56 Avenue de la Marne", city: "Mérignac", postalCode: "33700" },
+    depot: "Bordeaux",
+    commercial: "Youssef E.",
+    accountType: "Bronze",
+    remise: 5,
+    encours: 120,
+    encoursMax: 1500,
+    lastOrder: "2024-02-04",
+    ordersThisMonth: 4,
+    totalSpent: 16500,
+    status: "active",
+    avatar: "KC",
+    color: "from-violet-500 to-purple-500",
   },
 ];
 
 type ViewMode = "grid" | "list";
-type StatusFilter = "all" | "active" | "inactive";
-
-// Helper to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-};
+type StatusFilter = "all" | "active" | "inactive" | "at_risk";
 
 // Helper to format date
 const formatDate = (dateString: string) => {
@@ -268,6 +680,29 @@ const businessTypeBadges: Record<string, { label: string; className: string }> =
     label: "Fast Food",
     className: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   },
+  tacos: {
+    label: "Tacos",
+    className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  },
+  grill: {
+    label: "Grill",
+    className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  },
+};
+
+// Account type config
+const accountTypeConfig: Record<AccountType, { color: string; icon: string }> = {
+  Gold: { color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30", icon: "👑" },
+  Silver: { color: "text-slate-600 bg-slate-100 dark:bg-slate-800", icon: "🥈" },
+  Bronze: { color: "text-orange-700 bg-orange-100 dark:bg-orange-900/30", icon: "🥉" },
+  Standard: { color: "text-gray-600 bg-gray-100 dark:bg-gray-800", icon: "📋" },
+};
+
+// Status config
+const statusConfig: Record<ClientStatus, { label: string; color: string; bgColor: string }> = {
+  active: { label: "Actif", color: "text-emerald-700 dark:text-emerald-400", bgColor: "bg-emerald-100 dark:bg-emerald-900/30" },
+  inactive: { label: "Inactif", color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-100 dark:bg-gray-800" },
+  at_risk: { label: "À risque", color: "text-red-700 dark:text-red-400", bgColor: "bg-red-100 dark:bg-red-900/30" },
 };
 
 export default function ClientsPage() {
@@ -275,49 +710,49 @@ export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [businessTypeFilter, setBusinessTypeFilter] = useState<string>("all");
+  const [depotFilter, setDepotFilter] = useState<"all" | Depot>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-
-  // Get current month for stats
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
 
   // Filter clients
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       client.contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.address.city.toLowerCase().includes(searchQuery.toLowerCase());
+      client.address.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.commercial.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || client.status === statusFilter;
     const matchesBusinessType =
       businessTypeFilter === "all" || client.businessType === businessTypeFilter;
-    return matchesSearch && matchesStatus && matchesBusinessType;
+    const matchesDepot =
+      depotFilter === "all" || client.depot === depotFilter;
+    return matchesSearch && matchesStatus && matchesBusinessType && matchesDepot;
   });
 
   // Calculate stats
   const stats = {
     total: clients.length,
     active: clients.filter((c) => c.status === "active").length,
-    newThisMonth: clients.filter((c) => {
-      const lastOrderDate = new Date(c.lastOrder);
-      return (
-        lastOrderDate.getMonth() === currentMonth &&
-        lastOrderDate.getFullYear() === currentYear
-      );
-    }).length,
-    topSpenders: clients
-      .sort((a, b) => b.totalSpent - a.totalSpent)
-      .slice(0, 3).length,
+    atRisk: clients.filter((c) => c.status === "at_risk").length,
+    totalCA: clients.reduce((sum, c) => sum + c.totalSpent, 0),
+    avgOrderValue: Math.round(clients.reduce((sum, c) => sum + c.totalSpent, 0) / clients.reduce((sum, c) => sum + c.ordersThisMonth, 0) || 0),
   };
 
-  // Get top 3 spenders
-  const topSpenders = clients
+  // Depot stats
+  const depotStats = {
+    Lyon: clients.filter((c) => c.depot === "Lyon").length,
+    Montpellier: clients.filter((c) => c.depot === "Montpellier").length,
+    Bordeaux: clients.filter((c) => c.depot === "Bordeaux").length,
+  };
+
+  // Get top spenders
+  const topSpenders = [...clients]
     .sort((a, b) => b.totalSpent - a.totalSpent)
     .slice(0, 3);
 
   // Handle actions
   const handleCall = (phone: string) => {
-    window.location.href = `tel:${phone}`;
+    window.location.href = `tel:${phone.replace(/\s/g, '')}`;
   };
 
   const handleEmail = (email: string) => {
@@ -326,17 +761,14 @@ export default function ClientsPage() {
 
   const handleView = (clientId: string) => {
     console.log("View client:", clientId);
-    // Navigate to client details page
   };
 
   const handleEdit = (clientId: string) => {
     console.log("Edit client:", clientId);
-    // Open edit dialog or navigate to edit page
   };
 
   const handleAddClient = () => {
     console.log("Add new client");
-    // Open add client dialog
   };
 
   return (
@@ -345,11 +777,11 @@ export default function ClientsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Clients
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+              Clients DISTRAM
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Gérez et suivez votre portefeuille clients
+              Portefeuille de {stats.total} clients actifs sur 3 dépôts
             </p>
           </div>
           <Button
@@ -357,12 +789,12 @@ export default function ClientsPage() {
             className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-violet-500/30"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Ajouter un client
+            Nouveau client
           </Button>
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white dark:bg-gray-800">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -404,14 +836,14 @@ export default function ClientsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Nouveaux ce mois
+                    À risque
                   </p>
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-2">
-                    {stats.newThisMonth}
+                  <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-2">
+                    {stats.atRisk}
                   </p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl">
-                  <UserPlus className="h-6 w-6 text-white" />
+                <div className="p-3 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl">
+                  <AlertTriangle className="h-6 w-6 text-white" />
                 </div>
               </div>
             </CardContent>
@@ -422,18 +854,66 @@ export default function ClientsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Top dépensiers
+                    CA Total
                   </p>
-                  <p className="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-2">
-                    {stats.topSpenders}
+                  <p className="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-2">
+                    {formatCurrency(stats.totalCA)}
                   </p>
                 </div>
-                <div className="p-3 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl">
+                <div className="p-3 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-xl">
                   <Crown className="h-6 w-6 text-white" />
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          <Card className="rounded-2xl border-0 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white dark:bg-gray-800">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Nouveaux
+                  </p>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-2">
+                    +5
+                  </p>
+                </div>
+                <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl">
+                  <UserPlus className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Depot Quick Filters */}
+        <div className="grid grid-cols-3 gap-4">
+          {(["Lyon", "Montpellier", "Bordeaux"] as Depot[]).map((depot) => (
+            <Card
+              key={depot}
+              className={cn(
+                "rounded-xl border cursor-pointer transition-all hover:shadow-md",
+                depotFilter === depot
+                  ? "ring-2 ring-violet-500 border-violet-300"
+                  : "border-gray-200 dark:border-gray-700"
+              )}
+              onClick={() => setDepotFilter(depotFilter === depot ? "all" : depot)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
+                    <Building2 className="h-5 w-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-white">{depot}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {depotStats[depot]} clients
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Filters and Search */}
@@ -446,7 +926,7 @@ export default function ClientsPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     type="search"
-                    placeholder="Rechercher par nom, contact ou ville..."
+                    placeholder="Rechercher par nom, contact, ville ou commercial..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 h-11 rounded-xl border-gray-200 dark:border-gray-700 focus-visible:ring-violet-500"
@@ -466,9 +946,7 @@ export default function ClientsPage() {
                       <Filter className="h-4 w-4 mr-2" />
                       {statusFilter === "all"
                         ? "Statut"
-                        : statusFilter === "active"
-                        ? "Actifs"
-                        : "Inactifs"}
+                        : statusConfig[statusFilter as ClientStatus]?.label}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-xl">
@@ -477,6 +955,9 @@ export default function ClientsPage() {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("active")}>
                       Actifs
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setStatusFilter("at_risk")}>
+                      À risque
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setStatusFilter("inactive")}>
                       Inactifs
@@ -501,17 +982,23 @@ export default function ClientsPage() {
                     <DropdownMenuItem onClick={() => setBusinessTypeFilter("all")}>
                       Tous les types
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setBusinessTypeFilter("restaurant")}>
-                      Restaurant
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setBusinessTypeFilter("pizzeria")}>
-                      Pizzeria
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setBusinessTypeFilter("kebab")}>
                       Kebab
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setBusinessTypeFilter("restaurant")}>
+                      Restaurant
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setBusinessTypeFilter("tacos")}>
+                      Tacos
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setBusinessTypeFilter("snack")}>
                       Snack
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setBusinessTypeFilter("grill")}>
+                      Grill
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setBusinessTypeFilter("pizzeria")}>
+                      Pizzeria
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setBusinessTypeFilter("fastfood")}>
                       Fast Food
@@ -550,7 +1037,7 @@ export default function ClientsPage() {
             </div>
 
             {/* Active Filters */}
-            {(statusFilter !== "all" || businessTypeFilter !== "all") && (
+            {(statusFilter !== "all" || businessTypeFilter !== "all" || depotFilter !== "all") && (
               <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Filtres actifs:
@@ -561,7 +1048,7 @@ export default function ClientsPage() {
                     className="cursor-pointer rounded-lg"
                     onClick={() => setStatusFilter("all")}
                   >
-                    {statusFilter === "active" ? "Actifs" : "Inactifs"} ×
+                    {statusConfig[statusFilter as ClientStatus]?.label} ×
                   </Badge>
                 )}
                 {businessTypeFilter !== "all" && (
@@ -573,10 +1060,26 @@ export default function ClientsPage() {
                     {businessTypeBadges[businessTypeFilter]?.label || businessTypeFilter} ×
                   </Badge>
                 )}
+                {depotFilter !== "all" && (
+                  <Badge
+                    variant="secondary"
+                    className="cursor-pointer rounded-lg"
+                    onClick={() => setDepotFilter("all")}
+                  >
+                    {depotFilter} ×
+                  </Badge>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
+
+        {/* Results count */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {filteredClients.length} client{filteredClients.length > 1 ? "s" : ""} trouvé{filteredClients.length > 1 ? "s" : ""}
+          </p>
+        </div>
 
         {/* Clients Grid/List */}
         {filteredClients.length === 0 ? (
@@ -628,12 +1131,17 @@ export default function ClientsPage() {
                       {/* Avatar */}
                       <div
                         className={cn(
-                          "flex items-center justify-center rounded-xl font-bold text-white bg-gradient-to-br shadow-lg",
+                          "flex items-center justify-center rounded-xl font-bold text-white bg-gradient-to-br shadow-lg relative",
                           client.color,
                           viewMode === "grid" ? "h-16 w-16 text-xl" : "h-14 w-14 text-lg"
                         )}
                       >
                         {client.avatar}
+                        {topSpenders.find((s) => s.id === client.id) && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center text-xs">
+                            👑
+                          </div>
+                        )}
                       </div>
 
                       {/* Client Info */}
@@ -647,9 +1155,9 @@ export default function ClientsPage() {
                               {client.contact.name}
                             </p>
                           </div>
-                          {topSpenders.find((s) => s.id === client.id) && (
-                            <Crown className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                          )}
+                          <Badge className={cn("text-xs font-medium", accountTypeConfig[client.accountType].color)}>
+                            {accountTypeConfig[client.accountType].icon} {client.accountType}
+                          </Badge>
                         </div>
 
                         <div className="flex flex-wrap gap-2 mb-3">
@@ -666,12 +1174,16 @@ export default function ClientsPage() {
                           <Badge
                             className={cn(
                               "rounded-lg font-medium",
-                              client.status === "active"
-                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400"
+                              statusConfig[client.status].bgColor,
+                              statusConfig[client.status].color
                             )}
                           >
-                            {client.status === "active" ? "Actif" : "Inactif"}
+                            {client.status === "at_risk" && <AlertTriangle className="h-3 w-3 mr-1" />}
+                            {statusConfig[client.status].label}
+                          </Badge>
+                          <Badge variant="outline" className="rounded-lg text-xs">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {client.depot}
                           </Badge>
                         </div>
 
@@ -681,12 +1193,10 @@ export default function ClientsPage() {
                             <Phone className="h-4 w-4" />
                             <span>{client.contact.phone}</span>
                           </div>
-                          {client.contact.email && (
-                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                              <Mail className="h-4 w-4" />
-                              <span className="truncate">{client.contact.email}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <MapPin className="h-4 w-4" />
+                            <span className="truncate">{client.address.city}</span>
+                          </div>
                         </div>
 
                         {/* Stats */}
@@ -698,7 +1208,7 @@ export default function ClientsPage() {
                         >
                           <div>
                             <p className="text-xs text-gray-500 dark:text-gray-500">
-                              Dernière commande
+                              Dernière cmd
                             </p>
                             <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
                               {formatDate(client.lastOrder)}
@@ -706,7 +1216,7 @@ export default function ClientsPage() {
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 dark:text-gray-500">
-                              Total dépensé
+                              CA Total
                             </p>
                             <p className="text-sm font-semibold text-violet-600 dark:text-violet-400 mt-0.5">
                               {formatCurrency(client.totalSpent)}
@@ -716,23 +1226,30 @@ export default function ClientsPage() {
                             <>
                               <div>
                                 <p className="text-xs text-gray-500 dark:text-gray-500">
-                                  Ville
+                                  Cmd/mois
                                 </p>
                                 <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
-                                  {client.address.city}
+                                  {client.ordersThisMonth}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-xs text-gray-500 dark:text-gray-500">
-                                  Code postal
+                                  Commercial
                                 </p>
                                 <p className="text-sm font-medium text-gray-900 dark:text-white mt-0.5">
-                                  {client.address.postalCode}
+                                  {client.commercial}
                                 </p>
                               </div>
                             </>
                           )}
                         </div>
+
+                        {/* Remise info */}
+                        {client.remise > 0 && (
+                          <div className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+                            Remise fidélité: {client.remise}%
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -755,20 +1272,18 @@ export default function ClientsPage() {
                         <Phone className="h-4 w-4" />
                         {viewMode === "grid" && <span className="ml-2">Appeler</span>}
                       </Button>
-                      {client.contact.email && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEmail(client.contact.email!)}
-                          className={cn(
-                            "rounded-lg hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 dark:hover:bg-violet-900/20 dark:hover:text-violet-400 transition-colors",
-                            viewMode === "grid" && "flex-1"
-                          )}
-                        >
-                          <Mail className="h-4 w-4" />
-                          {viewMode === "grid" && <span className="ml-2">Email</span>}
-                        </Button>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEmail(client.contact.email)}
+                        className={cn(
+                          "rounded-lg hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200 dark:hover:bg-violet-900/20 dark:hover:text-violet-400 transition-colors",
+                          viewMode === "grid" && "flex-1"
+                        )}
+                      >
+                        <Mail className="h-4 w-4" />
+                        {viewMode === "grid" && <span className="ml-2">Email</span>}
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
