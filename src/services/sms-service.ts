@@ -1,8 +1,9 @@
 /**
- * SMS Service - SMS & WhatsApp Marketing
- * Provides SMS campaign management and templates
+ * SMS Service - SMS & WhatsApp Marketing + Twilio Integration
+ * Provides SMS campaign management, templates, and transactional SMS
  */
 
+import twilio from 'twilio';
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -14,6 +15,183 @@ import {
   orderBy,
   Timestamp,
 } from "firebase/firestore";
+
+// ============================================
+// TWILIO CONFIGURATION
+// ============================================
+
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER || '+33700000000';
+
+// Twilio client (lazy init)
+let twilioClient: twilio.Twilio | null = null;
+
+function getTwilioClient(): twilio.Twilio | null {
+  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+    console.warn('⚠️ Twilio non configuré - SMS transactionnels désactivés');
+    return null;
+  }
+
+  if (!twilioClient) {
+    twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+  }
+
+  return twilioClient;
+}
+
+/**
+ * Vérifie si Twilio est configuré
+ */
+export function isTwilioConfigured(): boolean {
+  return !!(TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN);
+}
+
+// ============================================
+// TWILIO TRANSACTIONAL SMS
+// ============================================
+
+interface TwilioSMSResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
+/**
+ * Envoie un SMS via Twilio
+ */
+async function sendTwilioSMS(to: string, body: string): Promise<TwilioSMSResult> {
+  const client = getTwilioClient();
+
+  if (!client) {
+    // Mode développement: simuler l'envoi
+    console.log('📱 [SMS MOCK]', { to, body });
+    return {
+      success: true,
+      messageId: `mock-${Date.now()}`,
+    };
+  }
+
+  try {
+    // Formater le numéro français pour Twilio
+    let formattedTo = to.replace(/[\s.-]/g, '');
+    if (formattedTo.startsWith('0')) {
+      formattedTo = '+33' + formattedTo.substring(1);
+    }
+    if (!formattedTo.startsWith('+')) {
+      formattedTo = '+33' + formattedTo;
+    }
+
+    const message = await client.messages.create({
+      body,
+      from: TWILIO_PHONE_NUMBER,
+      to: formattedTo,
+    });
+
+    console.log('✅ SMS Twilio envoyé:', message.sid);
+
+    return {
+      success: true,
+      messageId: message.sid,
+    };
+  } catch (error: any) {
+    console.error('❌ Erreur SMS Twilio:', error);
+    return {
+      success: false,
+      error: error.message || 'Erreur inconnue',
+    };
+  }
+}
+
+/**
+ * Service SMS transactionnels Twilio
+ */
+export const twilioSMS = {
+  /**
+   * Notification de livraison en cours
+   */
+  sendDeliveryNotification: async (
+    to: string,
+    orderNumber: string,
+    eta: string,
+    driverName?: string
+  ): Promise<TwilioSMSResult> => {
+    const driverInfo = driverName ? ` par ${driverName}` : '';
+    const body = `🚚 DISTRAM: Votre commande ${orderNumber} est en cours de livraison${driverInfo}. Arrivée estimée: ${eta}`;
+    return sendTwilioSMS(to, body);
+  },
+
+  /**
+   * Confirmation de commande
+   */
+  sendOrderConfirmation: async (
+    to: string,
+    orderNumber: string,
+    totalTTC: number,
+    clientName: string
+  ): Promise<TwilioSMSResult> => {
+    const body = `✅ DISTRAM: Bonjour ${clientName}, commande ${orderNumber} confirmée (${totalTTC.toFixed(2)}€ TTC). Livraison sous 24h.`;
+    return sendTwilioSMS(to, body);
+  },
+
+  /**
+   * Commande expédiée
+   */
+  sendOrderShipped: async (to: string, orderNumber: string): Promise<TwilioSMSResult> => {
+    const body = `📦 DISTRAM: Commande ${orderNumber} expédiée ! Livraison dans les prochaines heures.`;
+    return sendTwilioSMS(to, body);
+  },
+
+  /**
+   * Commande livrée
+   */
+  sendOrderDelivered: async (to: string, orderNumber: string): Promise<TwilioSMSResult> => {
+    const body = `✅ DISTRAM: Commande ${orderNumber} livrée avec succès. Merci de votre confiance !`;
+    return sendTwilioSMS(to, body);
+  },
+
+  /**
+   * Alerte stock faible (pour managers)
+   */
+  sendStockAlert: async (
+    to: string,
+    productName: string,
+    currentStock: number,
+    depot: string
+  ): Promise<TwilioSMSResult> => {
+    const body = `⚠️ ALERTE STOCK ${depot.toUpperCase()}: ${productName} - Stock: ${currentStock}. Réappro urgente requise.`;
+    return sendTwilioSMS(to, body);
+  },
+
+  /**
+   * Nouveau prospect (notification commercial)
+   */
+  sendNewProspectNotification: async (
+    commercialPhone: string,
+    clientName: string,
+    restaurantType: string,
+    ville: string
+  ): Promise<TwilioSMSResult> => {
+    const body = `🆕 DISTRAM: Nouveau prospect ! ${clientName} (${restaurantType}) à ${ville}. Contactez-le rapidement !`;
+    return sendTwilioSMS(commercialPhone, body);
+  },
+
+  /**
+   * Code de vérification
+   */
+  sendVerificationCode: async (to: string, code: string): Promise<TwilioSMSResult> => {
+    const body = `🔐 DISTRAM: Votre code de vérification est ${code}. Valide 5 minutes.`;
+    return sendTwilioSMS(to, body);
+  },
+
+  /**
+   * SMS personnalisé
+   */
+  sendCustom: async (to: string, message: string): Promise<TwilioSMSResult> => {
+    const body = message.startsWith('DISTRAM') ? message : `DISTRAM: ${message}`;
+    return sendTwilioSMS(to, body);
+  },
+};
 
 // Types
 export interface SMSCampaign {
