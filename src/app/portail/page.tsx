@@ -7,173 +7,135 @@ import {
   Package,
   FileText,
   MessageSquare,
-  TrendingUp,
   Clock,
   CheckCircle,
   Truck,
   AlertCircle,
-  Star,
   RefreshCw,
   Phone,
   Mail,
-  Award,
   DollarSign,
   Tag,
   ArrowRight,
   Bell,
   ShoppingBag,
+  MapPin,
+  User,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import Image from 'next/image';
+import { formatCurrency } from '@/lib/utils';
+import { DISTRAM_CATEGORIES, getPromotions, getBestsellers } from '@/data/distram-catalog';
 import { PhonePreviewButton } from '@/components/ui/phone-preview';
 
-// Mock data
+// Client DISTRAM Mock data
 const mockData = {
   client: {
-    businessName: 'Restaurant Le Gourmet',
-    contactName: 'Jean Dupont',
-    accountType: 'Premium',
-    memberSince: '2023-01-15',
+    businessName: 'Kebab Istanbul',
+    contactName: 'Mehmet Yilmaz',
+    accountType: 'Gold',
+    memberSince: '2023-03-15',
+    address: '15 Rue de la République, 69001 Lyon',
+    phone: '04 72 12 34 56',
+    commercial: 'Mohamed K.',
+    remise: 10,
   },
   stats: {
-    ordersThisMonth: 12,
-    totalSpent: 24500,
+    ordersThisMonth: 8,
+    totalSpent: 12450,
     pendingOrders: 2,
-    loyaltyPoints: 2450,
+    unpaidInvoices: 1,
+    unpaidAmount: 890,
   },
-  featuredProducts: [
-    {
-      id: '1',
-      name: 'Huile d\'Olive Extra Vierge Premium',
-      image: '/api/placeholder/300/300',
-      price: 45.90,
-      originalPrice: 52.90,
-      discount: 13,
-      category: 'Huiles',
-      inStock: true,
-      isPromo: true,
-    },
-    {
-      id: '2',
-      name: 'Fromage Comté AOP 18 mois',
-      image: '/api/placeholder/300/300',
-      price: 28.50,
-      category: 'Fromages',
-      inStock: true,
-      isPromo: false,
-    },
-    {
-      id: '3',
-      name: 'Frites Surgelées Premium 2.5kg',
-      image: '/api/placeholder/300/300',
-      price: 8.90,
-      originalPrice: 10.90,
-      discount: 18,
-      category: 'Surgelés',
-      inStock: true,
-      isPromo: true,
-    },
-    {
-      id: '4',
-      name: 'Sauce Tomate Italienne Bio 5L',
-      image: '/api/placeholder/300/300',
-      price: 15.50,
-      category: 'Sauces',
-      inStock: true,
-      isPromo: false,
-    },
-  ],
-  quickOrder: [
-    {
-      id: '1',
-      name: 'Huile de Tournesol 5L',
-      lastOrdered: '2026-01-28',
-      price: 12.50,
-      image: '/api/placeholder/100/100',
-      category: 'Huiles',
-    },
-    {
-      id: '2',
-      name: 'Frites Belges 2.5kg',
-      lastOrdered: '2026-01-25',
-      price: 9.20,
-      image: '/api/placeholder/100/100',
-      category: 'Surgelés',
-    },
-    {
-      id: '3',
-      name: 'Fromage Mozzarella 1kg',
-      lastOrdered: '2026-01-25',
-      price: 7.80,
-      image: '/api/placeholder/100/100',
-      category: 'Fromages',
-    },
-    {
-      id: '4',
-      name: 'Pain Hamburger x24',
-      lastOrdered: '2026-01-20',
-      price: 4.50,
-      image: '/api/placeholder/100/100',
-      category: 'Pains',
-    },
-  ],
+  // Use real DISTRAM products with promos
+  featuredProducts: getPromotions().slice(0, 4).map(p => ({
+    id: p.id,
+    ref: p.ref,
+    name: p.name,
+    price: p.promo?.prixPromo || p.prixClient,
+    originalPrice: p.prixClient,
+    discount: p.promo?.pourcentage || 0,
+    category: DISTRAM_CATEGORIES.find(c => c.id === p.category)?.label || p.category,
+    icon: DISTRAM_CATEGORIES.find(c => c.id === p.category)?.icon || '📦',
+    inStock: p.stock > 0,
+    isPromo: !!p.promo,
+    unit: p.unit,
+  })),
+  // Use bestsellers for quick order
+  quickOrder: getBestsellers().slice(0, 5).map(p => ({
+    id: p.id,
+    ref: p.ref,
+    name: p.name,
+    lastOrdered: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    price: p.prixClient,
+    category: DISTRAM_CATEGORIES.find(c => c.id === p.category)?.label || p.category,
+    icon: DISTRAM_CATEGORIES.find(c => c.id === p.category)?.icon || '📦',
+    unit: p.unit,
+  })),
   recentOrders: [
     {
-      id: 'CMD-2026-145',
-      date: '2026-02-01',
-      status: 'delivered',
-      total: 1250.50,
-      items: 15,
+      id: 'CMD-2024-1089',
+      date: new Date().toISOString().split('T')[0],
+      status: 'delivering',
+      total: 458.30,
+      items: 8,
+      deliverySlot: 'Après-midi (14h-18h)',
     },
     {
-      id: 'CMD-2026-144',
-      date: '2026-01-28',
-      status: 'in_transit',
-      total: 890.30,
+      id: 'CMD-2024-1082',
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: 'delivered',
+      total: 672.50,
       items: 12,
-      deliveryDate: '2026-02-03',
     },
     {
-      id: 'CMD-2026-143',
-      date: '2026-01-25',
-      status: 'processing',
-      total: 2100.80,
-      items: 24,
-    },
-    {
-      id: 'CMD-2026-142',
-      date: '2026-01-22',
+      id: 'CMD-2024-1075',
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: 'delivered',
-      total: 1580.20,
-      items: 18,
+      total: 345.80,
+      items: 6,
+    },
+    {
+      id: 'CMD-2024-1068',
+      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: 'delivered',
+      total: 892.40,
+      items: 15,
     },
   ],
   notifications: [
     {
       id: '1',
       type: 'promo',
-      title: 'Nouvelle promotion disponible',
-      message: 'Profitez de -20% sur tous les produits surgelés jusqu\'au 15 février',
-      date: '2026-02-02',
+      title: '-15% sur toutes les sauces',
+      message: 'Profitez de la promo sauces DISTRAM jusqu\'au 15 février',
+      date: new Date().toISOString().split('T')[0],
       isNew: true,
     },
     {
       id: '2',
       type: 'order',
-      title: 'Votre commande CMD-2026-144 est en route',
-      message: 'Livraison prévue le 3 février avant 14h',
-      date: '2026-02-01',
+      title: 'Commande CMD-2024-1089 en livraison',
+      message: 'Ahmed B. arrive cet après-midi entre 14h et 18h',
+      date: new Date().toISOString().split('T')[0],
       isNew: true,
     },
     {
       id: '3',
+      type: 'invoice',
+      title: 'Facture F-2024-0892 en attente',
+      message: 'Montant: 890€ - Échéance dépassée de 5 jours',
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      isNew: true,
+    },
+    {
+      id: '4',
       type: 'info',
-      title: 'Nouveaux produits au catalogue',
-      message: '15 nouveaux produits bio ont été ajoutés à notre catalogue',
-      date: '2026-01-30',
+      title: 'Nouveau catalogue DISTRAM',
+      message: '98 produits halal pour la restauration rapide',
+      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       isNew: false,
     },
   ],
@@ -200,12 +162,14 @@ export default function PortailHomePage() {
     switch (status) {
       case 'delivered':
         return { icon: CheckCircle, label: 'Livrée', color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-950' };
-      case 'in_transit':
+      case 'delivering':
         return { icon: Truck, label: 'En livraison', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-950' };
-      case 'processing':
+      case 'preparing':
         return { icon: Clock, label: 'En préparation', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950' };
+      case 'pending':
+        return { icon: Clock, label: 'En attente', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-950' };
       default:
-        return { icon: Package, label: 'En attente', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-950' };
+        return { icon: Package, label: 'En cours', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-950' };
     }
   };
 
@@ -218,26 +182,34 @@ export default function PortailHomePage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                  {mockData.client.accountType}
+                  Client {mockData.client.accountType}
                 </Badge>
                 <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
-                  <Award className="h-3 w-3 mr-1" />
-                  {mockData.stats.loyaltyPoints} points
+                  <Tag className="h-3 w-3 mr-1" />
+                  -{mockData.client.remise}% remise
                 </Badge>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 Bienvenue, {mockData.client.businessName}
               </h1>
-              <p className="text-orange-50 flex items-center gap-2">
-                <span>Contact: {mockData.client.contactName}</span>
-                <span className="hidden md:inline">•</span>
-                <span className="hidden md:inline">Client depuis {new Date(mockData.client.memberSince).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
-              </p>
+              <div className="text-orange-50 space-y-1">
+                <p className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>Contact: {mockData.client.contactName}</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span className="truncate">{mockData.client.address}</span>
+                </p>
+                <p className="text-sm opacity-80">
+                  Commercial DISTRAM: {mockData.client.commercial} • Client depuis {new Date(mockData.client.memberSince).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                </p>
+              </div>
             </div>
             <div className="flex gap-3">
               <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50 shadow-lg">
                 <Phone className="h-5 w-5 mr-2" />
-                <span className="hidden sm:inline">Contacter</span>
+                <span className="hidden sm:inline">{mockData.client.phone}</span>
               </Button>
               <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
                 <Mail className="h-5 w-5 mr-2" />
@@ -273,16 +245,16 @@ export default function PortailHomePage() {
                 </Badge>
               </div>
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                {mockData.stats.totalSpent.toLocaleString('fr-FR')}€
+                {formatCurrency(mockData.stats.totalSpent)}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Dépensé</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Dépensé ce mois</p>
             </CardContent>
           </Card>
 
           <Card className="border-blue-200 dark:border-blue-900 hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Clock className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <Truck className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">
                   En cours
                 </Badge>
@@ -290,22 +262,24 @@ export default function PortailHomePage() {
               <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                 {mockData.stats.pendingOrders}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">En attente</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Commandes en cours</p>
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200 dark:border-amber-900 hover:shadow-lg transition-shadow">
+          <Card className={mockData.stats.unpaidInvoices > 0 ? "border-red-200 dark:border-red-900 hover:shadow-lg transition-shadow" : "border-amber-200 dark:border-amber-900 hover:shadow-lg transition-shadow"}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <Star className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-                <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400">
-                  Fidélité
+                <FileText className={mockData.stats.unpaidInvoices > 0 ? "h-8 w-8 text-red-600 dark:text-red-400" : "h-8 w-8 text-amber-600 dark:text-amber-400"} />
+                <Badge variant="secondary" className={mockData.stats.unpaidInvoices > 0 ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400" : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400"}>
+                  {mockData.stats.unpaidInvoices > 0 ? 'À payer' : 'Factures'}
                 </Badge>
               </div>
-              <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                {mockData.stats.loyaltyPoints}
+              <div className={`text-3xl font-bold mb-1 ${mockData.stats.unpaidInvoices > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                {mockData.stats.unpaidInvoices > 0 ? formatCurrency(mockData.stats.unpaidAmount) : '0'}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Points</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {mockData.stats.unpaidInvoices > 0 ? `${mockData.stats.unpaidInvoices} facture(s) impayée(s)` : 'Tout est réglé'}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -366,9 +340,7 @@ export default function PortailHomePage() {
                   <div className="relative">
                     <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative">
                       <div className="absolute inset-0 flex items-center justify-center text-6xl">
-                        {product.category === 'Huiles' ? '🛢️' :
-                         product.category === 'Fromages' ? '🧀' :
-                         product.category === 'Surgelés' ? '🍟' : '🥫'}
+                        {product.icon}
                       </div>
                     </div>
                     {product.isPromo && (
@@ -378,22 +350,24 @@ export default function PortailHomePage() {
                     )}
                   </div>
                   <CardContent className="p-4">
+                    <p className="text-xs text-muted-foreground font-mono mb-1">{product.ref}</p>
                     <h4 className="font-semibold text-sm mb-2 line-clamp-2 min-h-[40px]">{product.name}</h4>
                     <div className="mb-3">
                       {product.isPromo && product.originalPrice ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                            {product.price.toFixed(2)}€
+                          <span className="text-lg font-bold text-red-600 dark:text-red-400">
+                            {formatCurrency(product.price)}
                           </span>
                           <span className="text-sm line-through text-gray-400">
-                            {product.originalPrice.toFixed(2)}€
+                            {formatCurrency(product.originalPrice)}
                           </span>
                         </div>
                       ) : (
                         <span className="text-lg font-bold text-gray-900 dark:text-white">
-                          {product.price.toFixed(2)}€
+                          {formatCurrency(product.price)}
                         </span>
                       )}
+                      <span className="text-xs text-muted-foreground">/{product.unit}</span>
                     </div>
                     <Button
                       size="lg"
@@ -430,19 +404,19 @@ export default function PortailHomePage() {
                     className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-orange-500 dark:hover:border-orange-500 hover:shadow-md transition-all"
                   >
                     <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
-                      {product.category === 'Huiles' ? '🛢️' :
-                       product.category === 'Fromages' ? '🧀' :
-                       product.category === 'Surgelés' ? '🍟' : '🍞'}
+                      {product.icon}
                     </div>
                     <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-mono">{product.ref}</p>
                       <h4 className="font-semibold text-sm mb-1">{product.name}</h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                         Dernière commande: {new Date(product.lastOrdered).toLocaleDateString('fr-FR')}
                       </p>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-orange-600 dark:text-orange-400">
-                          {product.price.toFixed(2)}€
+                          {formatCurrency(product.price)}
                         </span>
+                        <span className="text-xs text-muted-foreground">/{product.unit}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -551,11 +525,11 @@ export default function PortailHomePage() {
                             <span>{new Date(order.date).toLocaleDateString('fr-FR')}</span>
                             <span>•</span>
                             <span>{order.items} articles</span>
-                            {order.status === 'in_transit' && order.deliveryDate && (
+                            {order.status === 'delivering' && order.deliverySlot && (
                               <>
                                 <span>•</span>
                                 <span className="text-blue-600 dark:text-blue-400 font-medium">
-                                  Livraison: {new Date(order.deliveryDate).toLocaleDateString('fr-FR')}
+                                  {order.deliverySlot}
                                 </span>
                               </>
                             )}
@@ -563,7 +537,7 @@ export default function PortailHomePage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-lg mb-1">{order.total.toFixed(2)}€</div>
+                        <div className="font-bold text-lg mb-1">{formatCurrency(order.total)}</div>
                         <Badge className={statusConfig.bg + ' ' + statusConfig.color}>
                           {statusConfig.label}
                         </Badge>
