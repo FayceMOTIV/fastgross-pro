@@ -27,9 +27,12 @@ import {
   Trash2,
   Plus,
   Minus,
+  History,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { analyzeMenuImage } from '@/services/ai/openai-vision';
+import { saveScanToHistory } from '@/services/scan-history-service';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProduitRecommande {
   ref: string;
@@ -155,7 +158,9 @@ const MENU_PATTERNS = {
 
 export default function ScanMenuPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [currentScanId, setCurrentScanId] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -335,6 +340,37 @@ export default function ScanMenuPage() {
       };
 
       setResult(result);
+
+      // Sauvegarder dans l'historique Firebase
+      try {
+        const base64Data = selectedImage.split(',')[1];
+        const scanId = await saveScanToHistory({
+          tempsAnalyse: result.tempsAnalyse,
+          restaurant: result.restaurant,
+          platsDetectes: result.platsDetectes.map(p => ({
+            nom: p.nom,
+            categorie: p.categorie,
+            confiance: p.confiance,
+            ventesEstimees: p.ventesEstimees,
+          })),
+          nbProduits: result.produitsRecommandes.length,
+          nbEmballages: result.emballagesRecommandes.length,
+          totalHT: result.totalHT,
+          totalTTC: result.totalTTC,
+          margeEstimee: result.margeEstimee,
+          devisGenere: false,
+          commandeConvertie: false,
+          commercialId: user?.uid || 'demo',
+          commercialNom: user?.displayName || user?.email || 'Commercial',
+          depot: user?.depot || 'lyon',
+          source: /mobile|android|iphone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
+        }, base64Data);
+
+        setCurrentScanId(scanId);
+        console.log('Scan sauvegardé:', scanId);
+      } catch (saveError) {
+        console.warn('Erreur sauvegarde historique (non-bloquant):', saveError);
+      }
     } catch (err: unknown) {
       console.error('Erreur:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'analyse');
@@ -415,6 +451,16 @@ export default function ScanMenuPage() {
       <Header
         title="IA Scan Menu"
         subtitle="Photographiez un menu, obtenez un devis en 30 secondes"
+        actions={
+          <Button
+            variant="outline"
+            onClick={() => router.push('/scan-menu/historique')}
+            className="gap-2"
+          >
+            <History className="w-4 h-4" />
+            Historique
+          </Button>
+        }
       />
 
       <div className="p-6 max-w-7xl mx-auto">
