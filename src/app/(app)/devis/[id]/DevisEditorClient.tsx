@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Header from '@/components/layout/Header';
 import {
   Save, Send, FileText, Plus, Trash2,
-  ArrowLeft, Download, Copy,
+  ArrowLeft, Download, Copy, Mail, Loader2,
   Check, X, Clock, ShoppingCart, Package, Store
 } from 'lucide-react';
 import { Devis, LigneDevis, DevisStatus } from '@/types/devis';
@@ -45,6 +45,7 @@ export default function DevisEditorClient({ devisId }: DevisEditorClientProps) {
   const [addProductType, setAddProductType] = useState<'produits' | 'emballages'>('produits');
   const [searchProduct, setSearchProduct] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const isNew = devisId === 'nouveau';
 
@@ -283,6 +284,7 @@ export default function DevisEditorClient({ devisId }: DevisEditorClientProps) {
       return;
     }
 
+    setSendingEmail(true);
     const token = btoa(`${devis.id}-${Date.now()}`).replace(/=/g, '');
     const lienPartage = `${window.location.origin}/devis/public/${token}`;
 
@@ -294,16 +296,39 @@ export default function DevisEditorClient({ devisId }: DevisEditorClientProps) {
       lienPartage,
     };
 
-    setDevis(updated);
-
     try {
+      // Envoyer l'email via l'API
+      const emailResponse = await fetch('/api/email/send-devis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          devis: updated,
+          lienDevis: lienPartage,
+          includeDetails: true
+        })
+      });
+
+      const emailResult = await emailResponse.json();
+
+      if (!emailResult.success) {
+        // Si l'email échoue (ex: SendGrid non configuré), on continue quand même
+        console.warn('Email non envoyé:', emailResult.error);
+        showToast('Devis prêt (email non envoyé)');
+      } else {
+        showToast('Email envoyé au client !');
+      }
+
+      // Sauvegarder le devis avec le nouveau statut
+      setDevis(updated);
       const docRef = doc(db, 'devis', devis.id);
       await setDoc(docRef, updated);
-      showToast('Devis envoye !');
       navigator.clipboard.writeText(lienPartage);
+
     } catch (error) {
       console.error('Erreur envoi:', error);
       showToast('Erreur envoi');
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -399,9 +424,22 @@ export default function DevisEditorClient({ devisId }: DevisEditorClientProps) {
                   <Save className="h-4 w-4 mr-2" />
                   {saving ? 'Sauvegarde...' : 'Sauvegarder'}
                 </Button>
-                <Button onClick={envoyerDevis} className="bg-blue-600 hover:bg-blue-700">
-                  <Send className="h-4 w-4 mr-2" />
-                  Envoyer
+                <Button
+                  onClick={envoyerDevis}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={sendingEmail}
+                >
+                  {sendingEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Envoyer par email
+                    </>
+                  )}
                 </Button>
               </>
             )}

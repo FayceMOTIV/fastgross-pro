@@ -16,7 +16,9 @@ import {
   Search,
   CheckCircle,
   Clock,
-  Euro
+  Euro,
+  Mail,
+  Loader2
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { CATALOGUE_DISTRAM } from '@/data/catalogue-distram';
@@ -39,6 +41,98 @@ export default function DevisPage() {
   });
   const [lignes, setLignes] = useState<DevisLigne[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const envoyerParEmail = async () => {
+    if (!client.email) {
+      showToast('Email client requis');
+      return;
+    }
+
+    if (lignes.length === 0) {
+      showToast('Ajoutez des produits au devis');
+      return;
+    }
+
+    setSendingEmail(true);
+
+    try {
+      const devisId = `DEV-${Date.now()}`;
+      const token = btoa(`${devisId}-${Date.now()}`).replace(/=/g, '');
+      const lienDevis = `${window.location.origin}/devis/public/${token}`;
+
+      // Préparer le devis pour l'API
+      const devisData = {
+        id: devisId,
+        numero: `DEV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 99999)).padStart(5, '0')}`,
+        dateCreation: new Date(),
+        dateExpiration: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        status: 'envoye',
+        clientNom: client.nom,
+        clientEmail: client.email,
+        clientTelephone: client.telephone,
+        clientAdresse: client.adresse,
+        commercialId: '',
+        commercialNom: 'Commercial DISTRAM',
+        commercialEmail: 'commercial@distram.fr',
+        depot: 'lyon',
+        lignesProduits: lignes.map(l => ({
+          id: l.id,
+          ref: l.produitId,
+          nom: l.nom,
+          categorie: '',
+          quantite: l.quantite,
+          unite: 'unité',
+          prixUnitaire: l.prixUnitaire,
+          remise: l.remise,
+          totalHT: l.quantite * l.prixUnitaire * (1 - l.remise / 100),
+          obligatoire: true
+        })),
+        lignesEmballages: [],
+        totalProduitsHT: sousTotal,
+        totalEmballagesHT: 0,
+        remiseGlobale: 0,
+        totalHT: sousTotal,
+        tva: tva,
+        totalTTC: total,
+        conditionsPaiement: 'Paiement à 30 jours',
+        delaiLivraison: 'Livraison sous 48-72h',
+        validite: 30,
+        source: 'manuel',
+        tokenPartage: token,
+        lienPartage: lienDevis
+      };
+
+      const response = await fetch('/api/email/send-devis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          devis: devisData,
+          lienDevis,
+          includeDetails: true
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showToast(`Email envoyé à ${client.email}`);
+      } else {
+        showToast(result.error || 'Erreur lors de l\'envoi');
+      }
+    } catch (error) {
+      console.error('Erreur envoi email:', error);
+      showToast('Erreur lors de l\'envoi');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const filteredProducts = CATALOGUE_DISTRAM.filter(p =>
     p.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -106,6 +200,13 @@ export default function DevisPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Toast notification */}
+      {toast && (
+        <div className="fixed top-4 right-4 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
+
       <Header
         title="Devis"
         subtitle="Créez et gérez vos devis clients"
@@ -303,9 +404,22 @@ export default function DevisPage() {
                     <Download className="w-4 h-4" />
                     PDF
                   </Button>
-                  <Button className="bg-orange-600 hover:bg-orange-700 gap-2 flex-1">
-                    <Send className="w-4 h-4" />
-                    Envoyer au client
+                  <Button
+                    onClick={envoyerParEmail}
+                    disabled={sendingEmail || !client.email || lignes.length === 0}
+                    className="bg-orange-600 hover:bg-orange-700 gap-2 flex-1"
+                  >
+                    {sendingEmail ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Envoi en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4" />
+                        Envoyer par email
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>
