@@ -102,8 +102,8 @@ export default function Hero() {
             {/* Stats floating card */}
             <div className="absolute top-1/2 -right-8 transform translate-x-1/2 bg-white rounded-xl shadow-xl p-4 border hidden xl:block">
               <div className="text-center">
-                <p className="text-3xl font-bold text-orange-600">487</p>
-                <p className="text-gray-500 text-sm">Clients actifs</p>
+                <p className="text-3xl font-bold text-orange-600">300+</p>
+                <p className="text-gray-500 text-sm">Restaurants clients</p>
               </div>
             </div>
           </div>

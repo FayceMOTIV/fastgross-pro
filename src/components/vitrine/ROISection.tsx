@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Calculator, TrendingUp, Clock, Users } from 'lucide-react';
 
 export default function ROISection() {
-  const [clients, setClients] = useState(100);
+  const [clients, setClients] = useState(300); // DISTRAM: ~300 restaurants
   const [tempsDevis, setTempsDevis] = useState(15);
-  const [devisParJour, setDevisParJour] = useState(5);
+  const [devisParJour, setDevisParJour] = useState(8); // DISTRAM: 8 commerciaux actifs
 
   // Calculs ROI
   const tempsGagneParDevis = tempsDevis - 0.5; // 30 secondes avec l'IA
@@ -34,10 +34,10 @@ export default function ROISection() {
             Calculateur ROI
           </span>
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Calculez votre retour sur investissement
+            Calculez le ROI pour DISTRAM
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Entrez vos données actuelles et découvrez le potentiel de FastGross Pro.
+            Basé sur vos 300 restaurants, 3 dépôts (Lyon, Montpellier, Bordeaux) et 8 commerciaux.
           </p>
         </div>
 
