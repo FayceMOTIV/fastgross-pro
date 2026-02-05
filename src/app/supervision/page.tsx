@@ -12,231 +12,250 @@ import {
   Clock,
   Activity,
   Target,
-  Award,
   ArrowUpRight,
   ArrowDownRight,
-  Bell,
   FileCheck,
   XCircle,
   Truck,
   Package,
+  MapPin,
+  Building2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { PhonePreviewButton } from '@/components/ui/phone-preview';
 
-// Mock data
+// DISTRAM Mock Data
 const mockData = {
   manager: {
-    name: 'Mohamed Derradji',
+    name: 'Ahmed Benali',
     role: 'Directeur Commercial',
-    team: 'Équipe Paris',
+    team: 'DISTRAM Lyon',
   },
   overview: {
-    teamMembers: 12,
-    activeToday: 9,
-    ordersProcessed: 147,
-    revenue: 45680,
-    revenueChange: 12.5,
-    ordersChange: 8.3,
+    teamMembers: 8,
+    activeToday: 6,
+    ordersProcessed: 47,
+    revenue: 28450,
+    revenueChange: 8.5,
+    ordersChange: 12.3,
+    avgOrderValue: 605,
+    clientsActifs: 145,
   },
+  depots: [
+    { id: 'lyon', name: 'Lyon (Siège)', orders: 28, revenue: 16800, status: 'active' },
+    { id: 'montpellier', name: 'Montpellier', orders: 12, revenue: 7200, status: 'active' },
+    { id: 'bordeaux', name: 'Bordeaux', orders: 7, revenue: 4450, status: 'active' },
+  ],
   teamPerformance: [
     {
       id: 1,
-      name: 'Sarah Martin',
+      name: 'Mohamed Khelifi',
       role: 'Commercial Senior',
-      avatar: 'SM',
+      avatar: 'MK',
+      depot: 'Lyon',
       status: 'active',
-      orders: 23,
-      revenue: 8450,
+      orders: 12,
+      revenue: 7250,
       target: 10000,
-      performance: 84.5,
+      performance: 72.5,
       trend: 'up',
       lastActivity: '5 min',
+      clients: 45,
     },
     {
       id: 2,
-      name: 'Thomas Dubois',
+      name: 'Fatima Zahra',
       role: 'Commercial',
-      avatar: 'TD',
+      avatar: 'FZ',
+      depot: 'Lyon',
       status: 'active',
-      orders: 18,
-      revenue: 6200,
+      orders: 9,
+      revenue: 5400,
       target: 8000,
-      performance: 77.5,
+      performance: 67.5,
       trend: 'up',
       lastActivity: '12 min',
+      clients: 32,
     },
     {
       id: 3,
-      name: 'Marie Laurent',
+      name: 'Karim Belhadj',
       role: 'Commercial Senior',
-      avatar: 'ML',
+      avatar: 'KB',
+      depot: 'Montpellier',
       status: 'active',
-      orders: 21,
-      revenue: 7890,
-      target: 10000,
-      performance: 78.9,
-      trend: 'down',
+      orders: 8,
+      revenue: 4800,
+      target: 7000,
+      performance: 68.6,
+      trend: 'up',
       lastActivity: '8 min',
+      clients: 28,
     },
     {
       id: 4,
-      name: 'Pierre Moreau',
+      name: 'Nadia Amrani',
       role: 'Commercial',
-      avatar: 'PM',
+      avatar: 'NA',
+      depot: 'Montpellier',
       status: 'away',
-      orders: 15,
-      revenue: 5340,
-      target: 8000,
-      performance: 66.8,
-      trend: 'up',
-      lastActivity: '45 min',
+      orders: 4,
+      revenue: 2400,
+      target: 5000,
+      performance: 48.0,
+      trend: 'down',
+      lastActivity: '2h',
+      clients: 18,
     },
     {
       id: 5,
-      name: 'Julie Bernard',
+      name: 'Youssef El Idrissi',
       role: 'Commercial',
-      avatar: 'JB',
+      avatar: 'YE',
+      depot: 'Bordeaux',
       status: 'active',
-      orders: 19,
-      revenue: 6800,
-      target: 8000,
-      performance: 85.0,
+      orders: 7,
+      revenue: 4450,
+      target: 6000,
+      performance: 74.2,
       trend: 'up',
       lastActivity: '3 min',
+      clients: 22,
     },
     {
       id: 6,
-      name: 'Lucas Petit',
+      name: 'Rachid Mansouri',
       role: 'Commercial Junior',
-      avatar: 'LP',
-      status: 'inactive',
-      orders: 8,
-      revenue: 2900,
+      avatar: 'RM',
+      depot: 'Lyon',
+      status: 'active',
+      orders: 7,
+      revenue: 4150,
       target: 5000,
-      performance: 58.0,
-      trend: 'down',
-      lastActivity: '2h',
+      performance: 83.0,
+      trend: 'up',
+      lastActivity: '18 min',
+      clients: 15,
     },
   ],
   alerts: [
     {
       id: 1,
       type: 'critical',
-      title: 'Retard de livraison',
-      description: 'Commande #1234 en retard de 2h - Client VIP',
-      time: '5 min',
-      assignee: 'Thomas Dubois',
+      title: 'Rupture de stock imminente',
+      description: 'Kebab Volaille Halal - Stock < 50 kg (dépôt Lyon)',
+      time: '10 min',
+      assignee: 'Équipe Logistique',
     },
     {
       id: 2,
       type: 'warning',
-      title: 'Stock faible',
-      description: 'Produit REF-789 - Moins de 10 unités',
-      time: '15 min',
-      assignee: 'Équipe Logistique',
+      title: 'Livraison en retard',
+      description: 'Commande #DIS-2024-1856 - Kebab Istanbul (+45min)',
+      time: '25 min',
+      assignee: 'Livreur Hassan',
     },
     {
       id: 3,
       type: 'info',
-      title: 'Nouveau client',
-      description: 'Restaurant "Le Gourmet" - Validation requise',
-      time: '30 min',
-      assignee: 'Sarah Martin',
+      title: 'Nouveau client à valider',
+      description: "Le Sultan d'Orient - Lyon 7ème - Demande crédit",
+      time: '1h',
+      assignee: 'Mohamed K.',
     },
   ],
   pendingApprovals: [
     {
       id: 1,
       type: 'discount',
-      title: 'Remise exceptionnelle 15%',
-      client: 'Bistrot des Halles',
-      amount: 450,
-      requestedBy: 'Sarah Martin',
-      time: '10 min',
+      title: 'Remise fidélité 12%',
+      client: 'Chez Momo Kebab',
+      amount: 380,
+      requestedBy: 'Mohamed K.',
+      time: '15 min',
     },
     {
       id: 2,
       type: 'credit',
-      title: 'Augmentation plafond crédit',
-      client: 'Restaurant Le Paris',
-      amount: 5000,
-      requestedBy: 'Thomas Dubois',
-      time: '25 min',
+      title: 'Augmentation encours crédit',
+      client: 'Pizza Anatolie',
+      amount: 3000,
+      requestedBy: 'Fatima Z.',
+      time: '30 min',
     },
     {
       id: 3,
       type: 'return',
-      title: 'Retour marchandise',
-      client: 'Café Central',
-      amount: 320,
-      requestedBy: 'Marie Laurent',
-      time: '1h',
+      title: 'Retour marchandise (pain périmé)',
+      client: 'Snack Le Médina',
+      amount: 145,
+      requestedBy: 'Karim B.',
+      time: '2h',
     },
   ],
   recentActivity: [
     {
       id: 1,
       type: 'order',
-      user: 'Sarah Martin',
+      user: 'Mohamed K.',
       action: 'a créé une commande',
-      target: '#1567',
+      target: '#DIS-2024-1867',
       amount: 890,
       time: '2 min',
     },
     {
       id: 2,
-      type: 'approval',
-      user: 'Vous',
-      action: 'avez approuvé une remise pour',
-      target: 'Bistrot Moderne',
-      time: '15 min',
+      type: 'delivery',
+      user: 'Livreur Hassan',
+      action: 'a livré la commande',
+      target: '#DIS-2024-1855',
+      time: '8 min',
     },
     {
       id: 3,
-      type: 'delivery',
-      user: 'Livreur Marc',
-      action: 'a livré la commande',
-      target: '#1543',
-      time: '18 min',
+      type: 'approval',
+      user: 'Vous',
+      action: 'avez approuvé une remise pour',
+      target: 'Kebab Istanbul',
+      time: '15 min',
     },
     {
       id: 4,
       type: 'order',
-      user: 'Thomas Dubois',
+      user: 'Youssef E.',
       action: 'a créé une commande',
-      target: '#1566',
+      target: '#DIS-2024-1866',
       amount: 1240,
       time: '22 min',
     },
     {
       id: 5,
       type: 'client',
-      user: 'Marie Laurent',
+      user: 'Fatima Z.',
       action: 'a ajouté un nouveau client',
-      target: 'Le Gourmet',
-      time: '35 min',
+      target: "Le Sultan d'Orient",
+      time: '45 min',
     },
+  ],
+  topProducts: [
+    { name: 'Kebab Volaille Halal', sales: 450, unit: 'kg' },
+    { name: 'Pain Pita Turc', sales: 320, unit: 'pcs' },
+    { name: 'Sauce Blanche Maison', sales: 180, unit: 'L' },
+    { name: 'Frites Fraîches 10mm', sales: 280, unit: 'kg' },
   ],
 };
 
 export default function SupervisionPage() {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'active' | 'away'>('all');
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const [selectedDepot, setSelectedDepot] = useState<'all' | 'lyon' | 'montpellier' | 'bordeaux'>('all');
 
   const filteredTeam = mockData.teamPerformance.filter((member) => {
-    if (selectedFilter === 'all') return true;
-    return member.status === selectedFilter;
+    const statusMatch = selectedFilter === 'all' || member.status === selectedFilter;
+    const depotMatch = selectedDepot === 'all' || member.depot.toLowerCase() === selectedDepot;
+    return statusMatch && depotMatch;
   });
 
   return (
@@ -246,7 +265,7 @@ export default function SupervisionPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-              Supervision
+              Tableau de Bord DISTRAM
             </h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">
               Bonjour {mockData.manager.name} • {mockData.manager.team}
@@ -264,6 +283,38 @@ export default function SupervisionPage() {
           </div>
         </div>
 
+        {/* Depots Overview */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {mockData.depots.map((depot) => (
+            <Card
+              key={depot.id}
+              className={cn(
+                "cursor-pointer transition-all hover:shadow-lg",
+                selectedDepot === depot.id && "ring-2 ring-violet-500"
+              )}
+              onClick={() => setSelectedDepot(selectedDepot === depot.id ? 'all' : depot.id as 'lyon' | 'montpellier' | 'bordeaux')}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-violet-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-semibold text-slate-900 dark:text-white">{depot.name}</h4>
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 text-sm">
+                      <span className="text-slate-600 dark:text-slate-400">{depot.orders} cmd</span>
+                      <span className="font-semibold text-violet-600">{formatCurrency(depot.revenue)}</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         {/* Overview Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="border-violet-200 dark:border-violet-900 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50">
@@ -271,14 +322,14 @@ export default function SupervisionPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-violet-700 dark:text-violet-400">
-                    Membres d'équipe
+                    Clients Actifs
                   </p>
                   <div className="flex items-baseline gap-2 mt-2">
                     <h3 className="text-3xl font-bold text-violet-900 dark:text-violet-100">
-                      {mockData.overview.teamMembers}
+                      {mockData.overview.clientsActifs}
                     </h3>
                     <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
-                      {mockData.overview.activeToday} actifs
+                      +8 ce mois
                     </Badge>
                   </div>
                 </div>
@@ -294,30 +345,7 @@ export default function SupervisionPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Actifs aujourd'hui
-                  </p>
-                  <div className="flex items-baseline gap-2 mt-2">
-                    <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
-                      {mockData.overview.activeToday}
-                    </h3>
-                    <span className="text-sm text-slate-500">
-                      sur {mockData.overview.teamMembers}
-                    </span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <Activity className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Commandes traitées
+                    Commandes Aujourd'hui
                   </p>
                   <div className="flex items-baseline gap-2 mt-2">
                     <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -343,7 +371,7 @@ export default function SupervisionPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Chiffre d'affaires
+                    CA Aujourd'hui
                   </p>
                   <div className="flex items-baseline gap-2 mt-2">
                     <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
@@ -363,6 +391,30 @@ export default function SupervisionPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                    Panier Moyen
+                  </p>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
+                      {formatCurrency(mockData.overview.avgOrderValue)}
+                    </h3>
+                    <div className="flex items-center text-green-600 dark:text-green-400">
+                      <TrendingUp className="h-4 w-4" />
+                      <span className="text-sm font-medium">+3.2%</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <Package className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -370,9 +422,9 @@ export default function SupervisionPage() {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <CardTitle className="text-lg font-semibold">
-                    Performance de l'équipe
+                    Performance Équipe Commerciale
                   </CardTitle>
                   <div className="flex gap-2">
                     <Button
@@ -384,7 +436,7 @@ export default function SupervisionPage() {
                           'bg-violet-600 hover:bg-violet-700'
                       )}
                     >
-                      Tous
+                      Tous ({mockData.teamPerformance.length})
                     </Button>
                     <Button
                       variant={selectedFilter === 'active' ? 'default' : 'outline'}
@@ -438,9 +490,15 @@ export default function SupervisionPage() {
                             <h4 className="font-semibold text-slate-900 dark:text-white">
                               {member.name}
                             </h4>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                              {member.role}
-                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {member.role}
+                              </p>
+                              <Badge variant="outline" className="text-xs">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {member.depot}
+                              </Badge>
+                            </div>
                           </div>
                           <div className="text-right">
                             <div className="flex items-center gap-1">
@@ -454,7 +512,7 @@ export default function SupervisionPage() {
                               )}
                             </div>
                             <p className="text-xs text-slate-500">
-                              {member.orders} commandes
+                              {member.orders} cmd • {member.clients} clients
                             </p>
                           </div>
                         </div>
@@ -486,7 +544,7 @@ export default function SupervisionPage() {
                                   ? 'bg-amber-500'
                                   : 'bg-red-500'
                               )}
-                              style={{ width: `${member.performance}%` }}
+                              style={{ width: `${Math.min(member.performance, 100)}%` }}
                             />
                           </div>
                           <div className="flex items-center justify-between text-xs text-slate-500">
@@ -634,6 +692,31 @@ export default function SupervisionPage() {
                 >
                   Voir toutes les validations
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Top Products */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  Top Ventes Aujourd'hui
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {mockData.topProducts.map((product, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center text-sm font-bold text-amber-700 dark:text-amber-400">
+                        {idx + 1}
+                      </div>
+                      <span className="text-sm font-medium text-slate-900 dark:text-white">{product.name}</span>
+                    </div>
+                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                      {product.sales} {product.unit}
+                    </span>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
