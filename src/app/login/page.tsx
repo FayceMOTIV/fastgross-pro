@@ -429,11 +429,11 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-8 flex items-center justify-center gap-6 text-xs text-white/30">
-            <a href="#" className="hover:text-white/50 transition-colors">Confidentialité</a>
+            <Link href="/" className="hover:text-white/50 transition-colors">Accueil</Link>
             <span>•</span>
-            <a href="#" className="hover:text-white/50 transition-colors">CGU</a>
+            <a href="/portail" className="hover:text-white/50 transition-colors">Portail B2B</a>
             <span>•</span>
-            <a href="#" className="hover:text-white/50 transition-colors">Support</a>
+            <a href="mailto:support@facemedia.fr" className="hover:text-white/50 transition-colors">Support</a>
           </div>
         </div>
       </div>

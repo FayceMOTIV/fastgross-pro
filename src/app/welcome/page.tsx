@@ -1431,28 +1431,28 @@ export default function WelcomePage() {
             <div>
               <h4 className="font-semibold mb-4">Ressources</h4>
               <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="/scan-menu" className="hover:text-white transition-colors">Scan Menu IA</a></li>
                 <li><a href="#faq" className="hover:text-white transition-colors">FAQ</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+                <li><a href="/analytics" className="hover:text-white transition-colors">Analytics</a></li>
+                <li><a href="/portail" className="hover:text-white transition-colors">Portail B2B</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Ventes</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Partenaires</a></li>
+                <li><a href="mailto:support@facemedia.fr" className="hover:text-white transition-colors">Support</a></li>
+                <li><a href="mailto:commercial@facemedia.fr" className="hover:text-white transition-colors">Ventes</a></li>
+                <li><a href="/referral" className="hover:text-white transition-colors">Parrainage</a></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
             <div className="flex gap-6">
-              <a href="#" className="hover:text-white transition-colors">Mentions légales</a>
-              <a href="#" className="hover:text-white transition-colors">Confidentialité</a>
-              <a href="#" className="hover:text-white transition-colors">CGU</a>
+              <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
+              <Link href="/login" className="hover:text-white transition-colors">Connexion</Link>
+              <Link href="/register" className="hover:text-white transition-colors">Inscription</Link>
             </div>
-            <p>Fait avec passion par Face Media</p>
+            <p>© 2025 DISTRAM by Face Media</p>
           </div>
         </div>
       </footer>

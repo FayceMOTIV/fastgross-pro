@@ -25,15 +25,15 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const mainNav = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Clients', href: '/clients', icon: Users },
-  { name: 'Commandes', href: '/commandes', icon: ShoppingCart },
+  { name: 'Commandes', href: '/orders', icon: ShoppingCart },
   { name: 'Tracking', href: '/tracking', icon: MapPin },
 ];
 
 const aiNav = [
   { name: 'Scan Menu', href: '/scan-menu', icon: Camera },
-  { name: 'Prospection', href: '/prospection', icon: Target },
+  { name: 'Prospection', href: '/prospects', icon: Target },
   { name: 'Anti-Churn', href: '/anti-churn', icon: Shield },
   { name: 'Tournées', href: '/tournees', icon: Route },
   { name: 'Stocks', href: '/stocks', icon: Package },
@@ -57,8 +57,8 @@ export default function Sidebar() {
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0">
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-100">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-orange-600">FastGross Pro</span>
+        <Link href="/" className="flex items-center gap-2">
+          <span className="text-xl font-bold text-orange-600">DISTRAM</span>
         </Link>
       </div>
 

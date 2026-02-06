@@ -439,9 +439,9 @@ export default function RegisterPage() {
           </div>
 
           <div className="mt-6 flex items-center justify-center gap-6 text-xs text-white/30">
-            <a href="#" className="hover:text-white/50 transition-colors">Confidentialité</a>
+            <Link href="/" className="hover:text-white/50 transition-colors">Accueil</Link>
             <span>•</span>
-            <a href="#" className="hover:text-white/50 transition-colors">CGU</a>
+            <Link href="/portail" className="hover:text-white/50 transition-colors">Portail B2B</Link>
           </div>
         </div>
       </div>

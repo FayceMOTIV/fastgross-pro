@@ -26,7 +26,7 @@ export default function Error({
   }, [error]);
 
   const handleGoHome = () => {
-    window.location.href = '/dashboard';
+    window.location.href = '/';
   };
 
   const handleReportBug = () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   CheckCircle2, Star, Phone, Building2,
@@ -574,11 +575,11 @@ export default function LandingPageClient({
       {/* Footer */}
       <footer className="py-8 px-4 border-t">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© 2025 FastGross Pro. Tous droits réservés.</p>
+          <p>© 2025 DISTRAM by Face Media. Tous droits réservés.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-foreground">Mentions légales</a>
-            <a href="#" className="hover:text-foreground">Politique de confidentialité</a>
-            <a href="#" className="hover:text-foreground">Contact</a>
+            <Link href="/" className="hover:text-foreground">Accueil</Link>
+            <a href="/portail" className="hover:text-foreground">Espace Client</a>
+            <a href="mailto:contact@facemedia.fr" className="hover:text-foreground">Contact</a>
           </div>
         </div>
       </footer>
