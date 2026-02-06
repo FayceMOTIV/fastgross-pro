@@ -31,6 +31,7 @@ import {
 import { AppLayout } from "@/components/layout/app-layout";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PhonePreviewButton } from "@/components/ui/phone-preview";
+import { ModeSelector } from "@/components/vitrine/ModeSelector";
 
 // Types
 interface StatCard {
@@ -422,6 +423,9 @@ export default function DashboardPage() {
           </button>
         </div>
       </div>
+
+      {/* Mode Selector */}
+      <ModeSelector />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
