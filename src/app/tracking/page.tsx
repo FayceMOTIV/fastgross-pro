@@ -36,8 +36,8 @@ const mockDeliveries: Delivery[] = [
   },
   {
     id: "del2",
-    driverName: "Sophie Bernard",
-    driverInitials: "SB",
+    driverName: "Fatima Lahlou",
+    driverInitials: "FL",
     driverColor: "from-blue-500 to-cyan-600",
     clientName: "Marie Dubois",
     address: "45 Avenue des Champs, Lyon",

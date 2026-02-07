@@ -170,7 +170,7 @@ const USERS: User[] = [
 
 const MOCK_MESSAGES: Record<string, Message[]> = {
   commerciaux: [
-    { id: "m1", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "Bonjour l'équipe ! J'ai décroché un nouveau client ce matin : Pizza Express à Lyon. Commande de 2500€/semaine 🎉", time: "09:15", date: "Aujourd'hui", replyCount: 3 },
+    { id: "m1", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "Bonjour l'équipe ! J'ai décroché un nouveau client ce matin : Napoli Pizza à Lyon. Commande de 2500€/semaine 🎉", time: "09:15", date: "Aujourd'hui", replyCount: 3 },
     { id: "m2", channelId: "commerciaux", userId: "u3", userName: "Thomas Bernard", userColor: "bg-cyan-500", content: "Bravo Sophie ! C'est énorme ! Tu as utilisé quelle approche ?", time: "09:18", date: "Aujourd'hui", threadId: "m1" },
     { id: "m3", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "J'ai montré le scan menu avec l'IA, ils ont été bluffés par la rapidité du devis. Je peux vous faire une démo si vous voulez.", time: "09:20", date: "Aujourd'hui" },
     { id: "m4", channelId: "commerciaux", userId: "u1", userName: "Hamza Directeur", userColor: "bg-purple-500", content: "Excellent travail Sophie ! @Thomas tu devrais essayer cette approche avec tes prospects. On peut organiser un call demain pour partager les best practices ?", time: "09:25", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 4, users: ["Thomas", "Karim", "Julie", "Emma"] }, { emoji: "🚀", count: 2, users: ["Sophie", "Lucas"] }], isPinned: true },

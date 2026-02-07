@@ -18,10 +18,10 @@ const mockInsights: AIInsight[] = [
     id: "1",
     type: "risk",
     title: "3 clients inactifs depuis 30+ jours",
-    description: "Snack Gourmet, La Friterie et Burger Express n'ont pas commandé. Risque de perte: 90 000€/an",
+    description: "Tacos Avenue, La Friterie et Burger Express n'ont pas commandé. Risque de perte: 90 000€/an",
     impact: "high",
     suggestedActions: [
-      "Appeler Snack Gourmet pour comprendre la situation",
+      "Appeler Tacos Avenue pour comprendre la situation",
       "Proposer une remise exceptionnelle de 15%",
       "Planifier une visite commerciale cette semaine",
     ],
@@ -31,7 +31,7 @@ const mockInsights: AIInsight[] = [
   {
     id: "2",
     type: "opportunity",
-    title: "Upsell potentiel: Pizza Express",
+    title: "Upsell potentiel: Napoli Pizza",
     description: "Ce client commande régulièrement des produits italiens mais pas d'huile d'olive premium. Potentiel +350€/mois",
     impact: "medium",
     suggestedActions: [
@@ -39,7 +39,7 @@ const mockInsights: AIInsight[] = [
       "Créer un bundle 'Pack Italien' avec remise",
       "Offrir un échantillon gratuit",
     ],
-    relatedData: { clientName: "Pizza Express", monthlyPotential: 350 },
+    relatedData: { clientName: "Napoli Pizza", monthlyPotential: 350 },
     createdAt: new Date(),
   },
   {

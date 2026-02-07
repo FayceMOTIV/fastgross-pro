@@ -76,10 +76,10 @@ interface OrderData {
 function generateMockOrders(): OrderData[] {
   const clients = [
     { id: "client_1", name: "Kebab du Coin", type: "kebab" },
-    { id: "client_2", name: "Pizza Express", type: "pizza" },
+    { id: "client_2", name: "Napoli Pizza", type: "pizza" },
     { id: "client_3", name: "Burger King Local", type: "burger" },
     { id: "client_4", name: "Tacos Master", type: "tacos" },
-    { id: "client_5", name: "Snack Gourmet", type: "snack" },
+    { id: "client_5", name: "Tacos Avenue", type: "snack" },
   ];
 
   const products = [
@@ -639,7 +639,7 @@ export async function analyzeWithAI(anomalies: BehaviorAnomaly[]): Promise<{
     return {
       insights: [
         "3 clients présentent des signes de désengagement nécessitant une action immédiate",
-        "La baisse des commandes de frites chez Pizza Express pourrait indiquer un changement de menu",
+        "La baisse des commandes de frites chez Napoli Pizza pourrait indiquer un changement de menu",
         "Burger King Local est complètement inactif - risque de perte définitive",
         "Tacos Master a considérablement réduit sa fréquence - possible problème de trésorerie",
       ],

@@ -171,7 +171,7 @@ const mockDeliveries: DeliveryStop[] = [
     sequence: 2,
     client: {
       id: 'cli-002',
-      name: 'Pizza Express',
+      name: 'Napoli Pizza',
       address: '45 Avenue du Prado',
       city: 'Marseille',
       postalCode: '13008',
@@ -197,7 +197,7 @@ const mockDeliveries: DeliveryStop[] = [
     sequence: 3,
     client: {
       id: 'cli-003',
-      name: 'Burger House',
+      name: 'Brooklyn Burger',
       address: '12 Rue de la Paix',
       city: 'Marseille',
       postalCode: '13001',
@@ -222,7 +222,7 @@ const mockDeliveries: DeliveryStop[] = [
     sequence: 4,
     client: {
       id: 'cli-004',
-      name: 'Snack Gourmet',
+      name: 'Tacos Avenue',
       address: '45 Avenue des Fleurs',
       city: 'Marseille',
       postalCode: '13005',
@@ -355,7 +355,7 @@ const mockMessages: Message[] = [
   {
     id: 'msg-003',
     from: 'dispatch',
-    content: 'Client Burger House a appelé - ils attendent la livraison avant 15h si possible',
+    content: 'Client Brooklyn Burger a appelé - ils attendent la livraison avant 15h si possible',
     timestamp: new Date(new Date().setHours(13, 45)),
     read: true,
     type: 'text',

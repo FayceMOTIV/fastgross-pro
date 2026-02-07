@@ -78,7 +78,7 @@ export async function detectInactiveClients(days: number = 30): Promise<AIInsigh
     // For now, we'll generate mock insights based on the analysis pattern
 
     const mockInactiveClients = [
-      { name: "Snack Gourmet", lastOrder: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000), avgMonthlyRevenue: 2500 },
+      { name: "Tacos Avenue", lastOrder: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000), avgMonthlyRevenue: 2500 },
       { name: "La Friterie", lastOrder: new Date(Date.now() - 42 * 24 * 60 * 60 * 1000), avgMonthlyRevenue: 1800 },
       { name: "Burger Express", lastOrder: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), avgMonthlyRevenue: 3200 },
     ];
@@ -197,14 +197,14 @@ export async function identifyUpsellOpportunities(): Promise<AIInsight[]> {
   // Mock analysis data
   const opportunities = [
     {
-      client: "Pizza Express",
+      client: "Napoli Pizza",
       currentProducts: ["Mozzarella", "Sauce tomate", "Farine"],
       suggestedProducts: ["Huile d'olive premium", "Jambon italien"],
       reason: "Commande régulièrement des produits italiens",
       estimatedIncrease: 350,
     },
     {
-      client: "Burger House",
+      client: "Brooklyn Burger",
       currentProducts: ["Steaks", "Pain burger", "Cheddar"],
       suggestedProducts: ["Bacon premium", "Sauce BBQ maison"],
       reason: "Panier moyen inférieur à la catégorie",

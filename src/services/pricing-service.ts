@@ -759,7 +759,7 @@ const MOCK_CLIENTS: ClientPricing[] = [
   },
   {
     clientId: "client_2",
-    clientName: "Pizza Express",
+    clientName: "Napoli Pizza",
     priceGridId: "premium",
     priceGridName: "Premium",
     globalDiscountPercent: 5,
@@ -784,7 +784,7 @@ const MOCK_CLIENTS: ClientPricing[] = [
   },
   {
     clientId: "client_3",
-    clientName: "Burger House",
+    clientName: "Brooklyn Burger",
     priceGridId: "gold",
     priceGridName: "Gold",
     globalDiscountPercent: 10,

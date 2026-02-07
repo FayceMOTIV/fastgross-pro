@@ -77,10 +77,10 @@ const NOMS_RESTAURANTS = [
   // Pizza
   'Pizza Napoli', 'Bella Pizza', 'La Romana', 'Pizza San Marco', 'Pizzeria del Sol',
   'Da Luigi', 'Pizza Presto', 'Mamma Mia', 'Pizza Venise', 'Napolitano',
-  'Pizza Express', 'La Dolce Vita', 'Gusto Pizza', 'Milano Pizza', 'Pizza Roma',
+  'Napoli Pizza', 'La Dolce Vita', 'Gusto Pizza', 'Milano Pizza', 'Pizza Roma',
   // Burger
   'Burger Factory', 'Big Burger', 'Smash Burger', 'Urban Burger', 'Classic Burger',
-  'Burger House', 'Premium Burger', 'Gourmet Burger', 'Burger Lounge', 'Burger Time',
+  'Brooklyn Burger', 'Premium Burger', 'Gourmet Burger', 'Burger Lounge', 'Burger Time',
   'American Burger', 'Fresh Burger', 'King Burger', 'Mega Burger', 'Best Burger',
   // Snack
   'Quick Snack', 'Express Snack', 'Snack du Coin', 'Le Petit Snack', 'Snack Royal',

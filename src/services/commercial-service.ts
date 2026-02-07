@@ -168,7 +168,7 @@ export interface RouteStop {
 const MOCK_CLIENTS: CommercialClient[] = [
   {
     id: 'c1',
-    name: 'Burger House',
+    name: 'Brooklyn Burger',
     type: 'Fast-food',
     status: 'active',
     priceGrid: 'gold',
@@ -180,7 +180,7 @@ const MOCK_CLIENTS: CommercialClient[] = [
       {
         id: 'a1',
         clientId: 'c1',
-        clientName: 'Burger House',
+        clientName: 'Brooklyn Burger',
         type: 'overdue_invoice',
         severity: 'high',
         title: 'Facture impayée',
@@ -207,7 +207,7 @@ const MOCK_CLIENTS: CommercialClient[] = [
   },
   {
     id: 'c2',
-    name: 'Pizza Express',
+    name: 'Napoli Pizza',
     type: 'Pizzeria',
     status: 'active',
     priceGrid: 'premium',
@@ -280,7 +280,7 @@ const MOCK_CLIENTS: CommercialClient[] = [
   },
   {
     id: 'c4',
-    name: 'Snack Gourmet',
+    name: 'Tacos Avenue',
     type: 'Snack',
     status: 'inactive',
     priceGrid: 'standard',
@@ -292,7 +292,7 @@ const MOCK_CLIENTS: CommercialClient[] = [
       {
         id: 'a4',
         clientId: 'c4',
-        clientName: 'Snack Gourmet',
+        clientName: 'Tacos Avenue',
         type: 'inactive',
         severity: 'high',
         title: 'Client inactif',
@@ -465,7 +465,7 @@ export async function getCommercialDashboard(
       id: 'inv1',
       invoiceNumber: 'F-892',
       clientId: 'c1',
-      clientName: 'Burger House',
+      clientName: 'Brooklyn Burger',
       amount: 890,
       dueDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
       daysOverdue: 15,
@@ -497,7 +497,7 @@ export async function getCommercialDashboard(
       id: 'act1',
       type: 'order',
       clientId: 'c2',
-      clientName: 'Pizza Express',
+      clientName: 'Napoli Pizza',
       description: 'Commande validée',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
       amount: 458,
@@ -506,7 +506,7 @@ export async function getCommercialDashboard(
       id: 'act2',
       type: 'call',
       clientId: 'c1',
-      clientName: 'Burger House',
+      clientName: 'Brooklyn Burger',
       description: 'Appel relance facture',
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
     },
@@ -763,9 +763,9 @@ export async function getCommercialAgenda(
     {
       id: 'ev1',
       type: 'visit',
-      title: 'Visite Burger House',
+      title: 'Visite Brooklyn Burger',
       clientId: 'c1',
-      clientName: 'Burger House',
+      clientName: 'Brooklyn Burger',
       start: new Date(Date.now() + 2 * 60 * 60 * 1000),
       end: new Date(Date.now() + 3 * 60 * 60 * 1000),
       notes: 'Récupérer paiement facture',
@@ -802,7 +802,7 @@ export async function getCommercialAgenda(
     },
     {
       id: 'task2',
-      title: 'Envoyer catalogue Snack Gourmet',
+      title: 'Envoyer catalogue Tacos Avenue',
       dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000),
       completed: false,
       priority: 'low',

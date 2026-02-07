@@ -38,7 +38,7 @@ async function askAI(question: string): Promise<string> {
   if (!OPENAI_API_KEY) {
     // Fallback responses for demo
     const responses: Record<string, string> = {
-      "client": "Vos 3 clients prioritaires aujourd'hui sont: 1) Snack Gourmet (30 jours sans commande), 2) La Friterie (commande en attente), 3) Burger Express (relance planifiée).",
+      "client": "Vos 3 clients prioritaires aujourd'hui sont: 1) Tacos Avenue (30 jours sans commande), 2) La Friterie (commande en attente), 3) Burger Express (relance planifiée).",
       "livr": "Le livreur Ahmed est le plus proche de votre position, à 2.3km. Il termine sa tournée dans environ 45 minutes.",
       "chiffre": "CA du jour: 4 520€ (+12% vs hier). 8 commandes validées, 2 en attente de confirmation.",
       "stock": "Alertes stock: Huile de friture (niveau bas, réappro suggérée), Viande kebab (stock OK pour 5 jours).",
@@ -341,7 +341,7 @@ export function QuickActions() {
       bgColor: "bg-green-100",
       onClick: () => {
         // In production, trigger call to next client
-        alert("Appel du prochain client: Snack Gourmet - 06 12 34 56 78");
+        alert("Appel du prochain client: Tacos Avenue - 06 12 34 56 78");
       },
     },
     {

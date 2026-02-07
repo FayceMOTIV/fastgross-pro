@@ -263,7 +263,7 @@ const mockTeamMembers: TeamMember[] = [
       successRate: 99.2,
     },
     currentLocation: { lat: 43.2955, lng: 5.3745, address: 'Rue de la Paix, Marseille' },
-    currentTask: 'Livraison Burger House',
+    currentTask: 'Livraison Brooklyn Burger',
   },
   {
     id: 'drv-002',
@@ -287,7 +287,7 @@ const mockTeamMembers: TeamMember[] = [
       successRate: 98.5,
     },
     currentLocation: { lat: 43.2895, lng: 5.3912, address: 'Avenue des Fleurs, Marseille' },
-    currentTask: 'Livraison Snack Gourmet',
+    currentTask: 'Livraison Tacos Avenue',
   },
   {
     id: 'drv-003',
@@ -375,7 +375,7 @@ const mockIssues: Issue[] = [
     type: 'churn_risk',
     severity: 'critical',
     title: '2 clients à risque de churn',
-    description: 'Pizza Express et Sushi Corner - inactifs depuis 2 semaines',
+    description: 'Napoli Pizza et Sushi Corner - inactifs depuis 2 semaines',
     timestamp: new Date(),
     relatedType: 'client',
   },
@@ -503,8 +503,8 @@ export async function getTeamMemberDetails(memberId: string): Promise<TeamMember
         id: 'act-001',
         type: isCommercial ? 'order' : 'delivery',
         description: isCommercial
-          ? 'Commande #924 (Burger House) - 458€'
-          : 'Livraison effectuée - Burger House',
+          ? 'Commande #924 (Brooklyn Burger) - 458€'
+          : 'Livraison effectuée - Brooklyn Burger',
         timestamp: new Date(Date.now() - 30 * 60 * 1000),
       },
       {
@@ -512,14 +512,14 @@ export async function getTeamMemberDetails(memberId: string): Promise<TeamMember
         type: isCommercial ? 'visit' : 'delivery',
         description: isCommercial
           ? 'Visite Kebab Istanbul'
-          : 'Livraison effectuée - Pizza Express',
+          : 'Livraison effectuée - Napoli Pizza',
         timestamp: new Date(Date.now() - 90 * 60 * 1000),
       },
       {
         id: 'act-003',
         type: isCommercial ? 'order' : 'status_change',
         description: isCommercial
-          ? 'Commande #923 (Pizza Express) - 612€'
+          ? 'Commande #923 (Napoli Pizza) - 612€'
           : 'Statut: En livraison',
         timestamp: new Date(Date.now() - 150 * 60 * 1000),
       },

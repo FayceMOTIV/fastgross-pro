@@ -96,12 +96,12 @@ export const USERS = [
   },
   {
     id: "livreur-2",
-    email: "lucas@medifresh.fr",
-    name: "Lucas Petit",
+    email: "mehdi@medifresh.fr",
+    name: "Mehdi Touzani",
     role: "livreur",
     phone: "06 30 00 00 02",
     vehicule: "Mercedes Sprinter - EF-456-GH",
-    zone: "Marseille Nord",
+    zone: "Lyon Centre",
     createdAt: "2024-02-10",
   },
   {
@@ -2082,7 +2082,7 @@ export const DRIVER_LOCATIONS = [
   },
   {
     id: "livreur-2",
-    name: "Lucas Petit",
+    name: "Mehdi Touzani",
     vehicule: "Mercedes Sprinter - EF-456-GH",
     status: "delivering",
     currentOrderId: "order-16",

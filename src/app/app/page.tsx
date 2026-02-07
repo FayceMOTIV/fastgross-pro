@@ -732,13 +732,13 @@ export default function DashboardPage() {
             </div>
             <div>
               <h3 className="text-2xl font-black">Objectif du mois</h3>
-              <p className="text-white/80">Vous êtes à 78% de votre objectif de €60,000</p>
+              <p className="text-white/80">Vous êtes à 78% de votre objectif de €500,000</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-4xl font-black">€46,800</p>
-              <p className="text-white/80">sur €60,000</p>
+              <p className="text-4xl font-black">€390,000</p>
+              <p className="text-white/80">sur €500,000</p>
             </div>
             <div className="w-32 h-32 relative">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
