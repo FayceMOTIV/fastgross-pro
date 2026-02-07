@@ -19,10 +19,10 @@ export default function Footer() {
               6 IAs spécialisées pour optimiser votre activité.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-orange-600 transition-colors">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-orange-600 transition-colors">
                 <Linkedin className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-orange-600 transition-colors">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-orange-600 transition-colors">
                 <Twitter className="w-5 h-5" />
               </a>
             </div>
@@ -123,15 +123,15 @@ export default function Footer() {
             © {new Date().getFullYear()} Face Media × DISTRAM. Tous droits réservés.
           </p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="text-gray-500 hover:text-white transition-colors">
+            <span className="text-gray-500 cursor-default">
               Mentions légales
-            </a>
-            <a href="#" className="text-gray-500 hover:text-white transition-colors">
+            </span>
+            <span className="text-gray-500 cursor-default">
               CGV
-            </a>
-            <a href="#" className="text-gray-500 hover:text-white transition-colors">
+            </span>
+            <span className="text-gray-500 cursor-default">
               Politique de confidentialité
-            </a>
+            </span>
           </div>
         </div>
       </div>

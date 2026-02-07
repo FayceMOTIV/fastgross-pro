@@ -306,7 +306,7 @@ export default function PortailHomePage() {
             </Card>
           </Link>
 
-          <Link href="/portail/support">
+          <Link href="/chat">
             <Card className="border-2 hover:border-orange-500 hover:shadow-xl transition-all hover:scale-105 cursor-pointer">
               <CardContent className="p-6 text-center">
                 <MessageSquare className="h-12 w-12 text-gray-600 dark:text-gray-400 mx-auto mb-3" />

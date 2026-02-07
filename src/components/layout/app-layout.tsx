@@ -72,7 +72,8 @@ const navigation: NavSection[] = [
   {
     title: "Gestion",
     items: [
-      { icon: BarChart3, label: "Analytics", href: "/analytics", color: "text-purple-500" },
+      { icon: BarChart3, label: "Supervision", href: "/supervision", color: "text-purple-500" },
+      { icon: BarChart3, label: "Analytics", href: "/analytics", color: "text-violet-500" },
       { icon: Zap, label: "Alertes", href: "/alerts", color: "text-red-500" },
       { icon: Settings, label: "Paramètres", href: "/settings", color: "text-slate-500" },
     ],

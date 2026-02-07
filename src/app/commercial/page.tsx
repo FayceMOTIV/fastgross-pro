@@ -505,7 +505,7 @@ export default function CommercialPage() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/commercial/prospects/new">
+            <Link href="/commercial/prospects">
               <Card className="hover:shadow-lg transition-all cursor-pointer border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -521,7 +521,7 @@ export default function CommercialPage() {
               </Card>
             </Link>
 
-            <Link href="/commercial/scan">
+            <Link href="/scan-menu">
               <Card className="hover:shadow-lg transition-all cursor-pointer border-violet-200 dark:border-violet-900 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -537,7 +537,7 @@ export default function CommercialPage() {
               </Card>
             </Link>
 
-            <Link href="/commercial/quotes/new">
+            <Link href="/devis/nouveau">
               <Card className="hover:shadow-lg transition-all cursor-pointer border-emerald-200 dark:border-emerald-900 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/50 dark:to-green-950/50">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
