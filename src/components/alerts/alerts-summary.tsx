@@ -200,7 +200,7 @@ export function AlertsBadge() {
 
 // Task Summary for sidebar
 export function TasksSummaryMini() {
-  const [pendingCount, _setPendingCount] = useState(3); // Mock
+  const [pendingCount] = useState(3); // Mock
 
   return (
     <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-50 text-amber-800">

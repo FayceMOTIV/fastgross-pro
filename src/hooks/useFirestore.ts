@@ -57,7 +57,8 @@ export function useFirestoreCollection<T>(
       };
       fetchData();
     }
-  }, [collectionName, realtime, JSON.stringify(filters)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collectionName, realtime]);
 
   const refresh = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true }));

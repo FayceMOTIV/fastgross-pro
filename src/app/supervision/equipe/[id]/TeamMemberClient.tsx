@@ -36,6 +36,7 @@ export default function TeamMemberClient() {
 
   useEffect(() => {
     loadMember();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [memberId]);
 
   const loadMember = async () => {

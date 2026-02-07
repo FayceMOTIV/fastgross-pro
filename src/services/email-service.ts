@@ -298,7 +298,7 @@ DISTRAM - Lyon • Montpellier • Bordeaux
  * Envoyer un devis par email
  */
 export async function sendDevisEmail(data: DevisEmailData): Promise<EmailResult> {
-  const { devis, lienDevis } = data;
+  const { devis } = data;
 
   // Vérifier les prérequis
   if (!SENDGRID_API_KEY) {

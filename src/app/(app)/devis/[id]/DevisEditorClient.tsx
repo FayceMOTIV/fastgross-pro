@@ -10,9 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import Header from '@/components/layout/Header';
 import {
-  Save, Send, FileText, Plus, Trash2,
-  ArrowLeft, Download, Copy, Mail, Loader2,
-  Check, X, Clock, ShoppingCart, Package, Store
+  Save, Mail, Loader2,
+  Check, X, Clock, ShoppingCart, Package, Store,
+  ArrowLeft, Download, Copy, Plus, Trash2, FileText, Send
 } from 'lucide-react';
 import { Devis, LigneDevis, DevisStatus } from '@/types/devis';
 import { CATALOGUE_DISTRAM } from '@/data/catalogue-distram-complet';
@@ -50,6 +50,31 @@ export default function DevisEditorClient({ devisId }: DevisEditorClientProps) {
   const isNew = devisId === 'nouveau';
 
   useEffect(() => {
+    const loadDevis = async () => {
+      try {
+        const docRef = doc(db, 'devis', devisId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setDevis({
+            id: docSnap.id,
+            ...data,
+            dateCreation: data.dateCreation?.toDate?.() || new Date(data.dateCreation),
+            dateExpiration: data.dateExpiration?.toDate?.() || new Date(data.dateExpiration),
+          } as Devis);
+        } else {
+          showToast('Devis non trouve');
+          router.push('/devis');
+        }
+      } catch (error) {
+        console.error('Erreur chargement devis:', error);
+        showToast('Erreur de chargement');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (isNew) {
       // Check for scan menu data in localStorage
       const scanData = localStorage.getItem('scanMenuDevisData');
@@ -133,32 +158,8 @@ export default function DevisEditorClient({ devisId }: DevisEditorClientProps) {
     } else {
       loadDevis();
     }
-  }, [devisId, isNew, user]);
-
-  const loadDevis = async () => {
-    try {
-      const docRef = doc(db, 'devis', devisId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setDevis({
-          id: docSnap.id,
-          ...data,
-          dateCreation: data.dateCreation?.toDate?.() || new Date(data.dateCreation),
-          dateExpiration: data.dateExpiration?.toDate?.() || new Date(data.dateExpiration),
-        } as Devis);
-      } else {
-        showToast('Devis non trouve');
-        router.push('/devis');
-      }
-    } catch (error) {
-      console.error('Erreur chargement devis:', error);
-      showToast('Erreur de chargement');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devisId, isNew]);
 
   const showToast = (message: string) => {
     setToast(message);

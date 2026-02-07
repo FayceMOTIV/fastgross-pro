@@ -35,6 +35,7 @@ export default function PerformancesPage() {
 
   useEffect(() => {
     loadPerformances();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period]);
 
   const loadPerformances = async () => {

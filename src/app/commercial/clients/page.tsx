@@ -66,6 +66,7 @@ export default function CommercialClientsPage() {
 
   useEffect(() => {
     loadClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, activeFilter, searchQuery]);
 
   const handleRefresh = () => {

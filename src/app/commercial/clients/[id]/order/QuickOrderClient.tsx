@@ -50,7 +50,6 @@ export default function QuickOrderClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [clientName, setClientName] = useState('');
   const [clientDiscount, setClientDiscount] = useState(0);
-  const [_usualProducts, setUsualProducts] = useState<UsualProduct[]>([]);
   const [deliverySlots, setDeliverySlots] = useState<{ id: string; label: string }[]>([]);
   const [orderLines, setOrderLines] = useState<OrderLine[]>([]);
   const [selectedDeliverySlot, setSelectedDeliverySlot] = useState('');
@@ -64,7 +63,6 @@ export default function QuickOrderClient() {
         const data = await getQuickOrderData(clientId);
         setClientName(data.client?.name || 'Client');
         setClientDiscount(data.clientDiscount);
-        setUsualProducts(data.usualProducts);
         setDeliverySlots(data.deliverySlots);
         setSelectedDeliverySlot(data.deliverySlots[0]?.id || '');
         setOrderLines(

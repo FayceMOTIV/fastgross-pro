@@ -12,15 +12,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   BarChart3,
-  TrendingUp,
-  TrendingDown,
   Users,
   ShoppingCart,
   Euro,
   Package,
   Target,
   PieChart as PieChartIcon,
-  Calendar,
   Building2,
   ArrowUpRight,
   ArrowDownRight,
@@ -28,8 +25,6 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -86,7 +81,6 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function AnalyticsPage() {
-  const [selectedDepot, setSelectedDepot] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
   return (

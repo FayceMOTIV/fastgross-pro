@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { useTrackingStore } from '@/stores';
 import type { DriverLocation } from '@/types';
@@ -206,8 +206,8 @@ export function useDriverTracking() {
       const { ref, onValue, off } = await import('firebase/database');
       
       const locationsRef = ref(realtimeDb, 'locations');
-      
-      const _unsubscribe = onValue(locationsRef, (snapshot) => {
+
+      onValue(locationsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
           Object.entries(data).forEach(([id, location]) => {

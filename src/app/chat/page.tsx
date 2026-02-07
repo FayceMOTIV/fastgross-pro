@@ -29,40 +29,28 @@ import {
   Star,
   MessageSquare,
   Bell,
-  Clock,
   Bookmark,
-  Reply,
+
   Forward,
-  Trash2,
+
   Edit3,
-  Copy,
+
   X,
   Home,
   ChevronLeft,
   Filter,
-  ArrowUp,
+
   Mic,
   Paperclip,
   Command,
   Zap,
-  Circle,
-  CheckCircle2,
-  AlertCircle,
+
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { PhonePreviewButton } from "@/components/ui/phone-preview";
 
 // Types
-interface Thread {
-  id: string;
-  parentId: string;
-  replies: Message[];
-  lastReply?: string;
-  replyCount: number;
-  participants: string[];
-}
-
 interface Channel {
   id: string;
   name: string;
@@ -249,16 +237,16 @@ export default function ChatPage() {
   const [expandedCategories, setExpandedCategories] = useState<string[]>(["favoris", "direction", "equipes", "operations", "support"]);
   const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES.commerciaux || []);
   const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [showMembers, setShowMembers] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [activeThread, setActiveThread] = useState<Message | null>(null);
   const [showMessageActions, setShowMessageActions] = useState<string | null>(null);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickSwitcher, setShowQuickSwitcher] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_showSearch, _setShowSearch] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -344,8 +332,8 @@ export default function ChatPage() {
   };
 
   const currentChannel = CHANNELS.find(c => c.id === activeChannel);
-  const currentCategory = CHANNEL_CATEGORIES.find(cat => cat.id === currentChannel?.category);
-  const pinnedChannels = CHANNELS.filter(c => c.pinned);
+  // const _currentCategory = CHANNEL_CATEGORIES.find(cat => cat.id === currentChannel?.category);
+  // const _pinnedChannels = CHANNELS.filter(c => c.pinned);
   const totalUnread = CHANNELS.reduce((sum, c) => sum + c.unread, 0) + DIRECT_MESSAGES.reduce((sum, dm) => sum + dm.unread, 0);
   const unreadActivities = ACTIVITIES.filter(a => !a.read).length;
 
@@ -358,14 +346,6 @@ export default function ChatPage() {
     }
   };
 
-  const getStatusIcon = (status: User["status"]) => {
-    switch (status) {
-      case "online": return <Circle className="h-2 w-2 fill-green-500 text-green-500" />;
-      case "away": return <Clock className="h-2.5 w-2.5 text-yellow-500" />;
-      case "busy": return <AlertCircle className="h-2.5 w-2.5 text-red-500" />;
-      default: return <Circle className="h-2 w-2 text-slate-400" />;
-    }
-  };
 
   return (
     <div className="h-screen flex flex-col bg-[#1a1d21] text-white overflow-hidden">
@@ -703,7 +683,8 @@ export default function ChatPage() {
                   {isExpanded && (
                     <div className="mt-0.5 space-y-0.5">
                       {categoryChannels.map(channel => {
-                        const Icon = channel.icon;
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const _Icon = channel.icon;
                         const isActive = currentView === "channel" && activeChannel === channel.id;
 
                         return (

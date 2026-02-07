@@ -9,7 +9,7 @@ import {
   Check,
   CheckCheck,
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+// import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';

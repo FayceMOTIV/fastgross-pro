@@ -10,18 +10,14 @@ import { Input } from '@/components/ui/input';
 import {
   Camera,
   Search,
-  Filter,
-  Calendar,
   TrendingUp,
   FileText,
   ShoppingCart,
   Eye,
-  MoreHorizontal,
   ChevronRight,
   Clock,
   MapPin,
   Phone,
-  ArrowLeft,
   Loader2,
   BarChart3,
   Target,
@@ -53,10 +49,10 @@ export default function ScanHistoriquePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string | null>(null);
   const [filterDepot, setFilterDepot] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterType, filterDepot]);
 
   const loadData = async () => {

@@ -134,7 +134,6 @@ export default function ReferralPage() {
   const [newReferralEmail, setNewReferralEmail] = useState("");
   const [newReferralName, setNewReferralName] = useState("");
   const [copied, setCopied] = useState(false);
-  const [_showInviteForm, setShowInviteForm] = useState(false);
 
   // Generate referral link
   const referralCode = "PARRAIN-USER1";

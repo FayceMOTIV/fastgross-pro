@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -429,7 +429,7 @@ export default function MarketingPage() {
   const totalConversions = mockCampaigns.reduce((sum, c) => sum + c.performance.conversions, 0);
   const totalClicks = mockCampaigns.reduce((sum, c) => sum + c.performance.clicks, 0);
   const avgConversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
-  const totalBudget = mockCampaigns.reduce((sum, c) => sum + c.budget, 0);
+  // const _totalBudget = mockCampaigns.reduce((sum, c) => sum + c.budget, 0);
   const totalSpent = mockCampaigns.reduce((sum, c) => sum + c.spent, 0);
   const roi = totalSpent > 0 ? ((totalConversions * 50 - totalSpent) / totalSpent) * 100 : 0; // Assuming avg order value of 50€
 

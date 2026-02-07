@@ -14,8 +14,7 @@ import {
   Sparkles,
   Loader2,
   BarChart3,
-  RefreshCw,
-  CheckCircle
+  RefreshCw
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { CATALOGUE_DISTRAM } from '@/data/catalogue-distram';

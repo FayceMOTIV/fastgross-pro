@@ -1,6 +1,4 @@
 'use client';
-
-import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,18 +9,16 @@ import {
   TrendingDown,
   Phone,
   Mail,
-  Calendar,
   CheckCircle,
   Clock,
   Users,
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { formatCurrency, formatRelativeDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { DEMO_CLIENTS } from '@/data/demo-clients';
 
 export default function AntiChurnPage() {
-  const [selectedClient, setSelectedClient] = useState<string | null>(null);
 
   // Clients à risque (score > 50)
   const clientsAtRisk = DEMO_CLIENTS

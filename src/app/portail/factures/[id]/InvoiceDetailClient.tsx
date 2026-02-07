@@ -35,6 +35,7 @@ export default function InvoiceDetailClient() {
 
   useEffect(() => {
     loadInvoice();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceId]);
 
   const loadInvoice = async () => {

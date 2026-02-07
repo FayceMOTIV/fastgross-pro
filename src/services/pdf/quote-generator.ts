@@ -226,7 +226,7 @@ export function generateQuoteHTML(quote: QuoteData): string {
 }
 
 // Créer les données de base pour un nouveau devis
-export function createEmptyQuote(clientId?: string): QuoteData {
+export function createEmptyQuote(_clientId?: string): QuoteData {
   const now = new Date();
   const validite = new Date(now);
   validite.setDate(validite.getDate() + 15); // Validité 15 jours

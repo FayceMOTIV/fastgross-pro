@@ -10,15 +10,12 @@ import {
   MapPin,
   Clock,
   Truck,
-  Plus,
-  Play,
   CheckCircle,
   Navigation,
   Sparkles,
   Loader2,
   Package
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
 
 interface DeliveryStop {
   position: number;
@@ -32,7 +29,6 @@ interface DeliveryStop {
 
 export default function TourneesPage() {
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [optimizedRoute, setOptimizedRoute] = useState<DeliveryStop[] | null>(null);
 
   const todayDeliveries: DeliveryStop[] = [
     { position: 1, client: "O'Tacos Lyon 7", adresse: '128 Avenue Jean Jaurès, 69007 Lyon', heureArriveeEstimee: '09:15', dureeArret: 15, poids: 85, status: 'completed' },
@@ -47,7 +43,6 @@ export default function TourneesPage() {
     setIsOptimizing(true);
     await new Promise(resolve => setTimeout(resolve, 2000));
     // In production, this would call the AI optimization service
-    setOptimizedRoute(todayDeliveries);
     setIsOptimizing(false);
   };
 

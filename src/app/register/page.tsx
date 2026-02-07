@@ -13,7 +13,6 @@ import {
   User,
   Phone,
   Building2,
-  Users,
   AlertCircle,
   CheckCircle,
 } from "lucide-react";

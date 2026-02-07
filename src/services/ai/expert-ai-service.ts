@@ -570,7 +570,7 @@ export async function getSalesAssistance(context: SalesContext): Promise<SalesAd
   const systemPrompt = `Tu es un coach commercial expert en vente B2B pour grossistes alimentaires.
 
 CATALOGUE DISTRAM:
-${Object.entries(CATALOGUE_DISTRAM).map(([k, v]) => `- ${v.nom}: ${v.prix}€`).join('\n')}
+${Object.entries(CATALOGUE_DISTRAM).map(([_k, v]) => `- ${v.nom}: ${v.prix}€`).join('\n')}
 
 TECHNIQUES DE VENTE SECTEUR:
 1. Cross-selling par association (kebab → sauces → boissons)

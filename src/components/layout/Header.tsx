@@ -18,7 +18,6 @@ interface HeaderProps {
 
 export default function Header({ title, subtitle, actions }: HeaderProps) {
   const { user } = useAuth();
-  const [_showSearch, _setShowSearch] = useState(false);
   const [notifications] = useState([
     { id: 1, title: 'Alerte churn: Kebab Istanbul', type: 'warning' },
     { id: 2, title: 'Stock faible: Sauce blanche', type: 'danger' },

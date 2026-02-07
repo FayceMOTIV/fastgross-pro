@@ -32,6 +32,7 @@ export default function EquipePage() {
 
   useEffect(() => {
     loadMembers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleFilter]);
 
   const loadMembers = async () => {

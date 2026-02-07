@@ -36,6 +36,7 @@ export default function CataloguePage() {
   useEffect(() => {
     loadProducts();
     loadCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   const loadProducts = async () => {

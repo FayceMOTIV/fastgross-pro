@@ -48,8 +48,6 @@ const devisEmailSchema = z.object({
   includeDetails: z.boolean().optional().default(true),
 });
 
-type DevisEmailInput = z.infer<typeof devisEmailSchema>;
-
 // ============================================
 // API HANDLER
 // ============================================

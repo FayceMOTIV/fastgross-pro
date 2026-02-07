@@ -59,7 +59,7 @@ export function useAuth() {
       await firebaseLogout();
       setState({ user: null, loading: false, error: null });
       router.push('/login');
-    } catch (error: any) {
+    } catch {
       setState(prev => ({ ...prev, loading: false, error: 'Erreur lors de la déconnexion' }));
     }
   }, [router]);

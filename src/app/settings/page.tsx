@@ -122,7 +122,7 @@ export default function SettingsPage() {
   });
 
   // Integration settings
-  const [integrations, setIntegrations] = useState({
+  const [integrations] = useState({
     sage: { connected: false, lastSync: null },
     stripe: { connected: true, lastSync: "2024-01-15" },
     slack: { connected: false, lastSync: null },

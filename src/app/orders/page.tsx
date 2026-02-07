@@ -295,11 +295,11 @@ export default function OrdersPage() {
     setSelectedOrder(null);
   };
 
-  const _handleDelete = (orderId: string) => {
-    setOrders(prev => prev.filter(o => o.id !== orderId));
-    setShowDeleteModal(null);
-    toast.success('Commande supprimée');
-  };
+  // const handleDelete = (orderId: string) => {
+  //   setOrders(prev => prev.filter(o => o.id !== orderId));
+  //   setShowDeleteModal(null);
+  //   toast.success('Commande supprimée');
+  // };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('fr-FR', {

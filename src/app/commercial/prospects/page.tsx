@@ -15,7 +15,6 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores';
 import { getMyProspects } from '@/services/commercial-service';
@@ -57,6 +56,7 @@ export default function CommercialProspectsPage() {
 
   useEffect(() => {
     loadProspects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const handleRefresh = () => {

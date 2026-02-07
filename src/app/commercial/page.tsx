@@ -1,12 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import {
   TrendingUp,
   Target,
   Calendar,
-  Users,
   Award,
   Zap,
   Phone,
@@ -17,7 +15,6 @@ import {
   Trophy,
   Star,
   ArrowUpRight,
-  ArrowDownRight,
   Activity,
   BarChart3,
   Flame,
@@ -205,7 +202,6 @@ const MOCK_DATA = {
 };
 
 export default function CommercialPage() {
-  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
 
   const { salesRep, performance, objectives, visits, prospects, leaderboard } = MOCK_DATA;
 

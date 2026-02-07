@@ -160,7 +160,6 @@ export default function ScanMenuPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [currentScanId, setCurrentScanId] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -202,7 +201,7 @@ export default function ScanMenuPage() {
     return 'snack';
   };
 
-  const generateProductRecommendations = (menuType: string, plats: string[]): ProduitRecommande[] => {
+  const generateProductRecommendations = (menuType: string, _plats: string[]): ProduitRecommande[] => {
     const recommendations: ProduitRecommande[] = [];
     const baseProducts: string[] = [];
 
@@ -344,7 +343,7 @@ export default function ScanMenuPage() {
       // Sauvegarder dans l'historique Firebase
       try {
         const base64Data = selectedImage.split(',')[1];
-        const scanId = await saveScanToHistory({
+        await saveScanToHistory({
           tempsAnalyse: result.tempsAnalyse,
           restaurant: result.restaurant,
           platsDetectes: result.platsDetectes.map(p => ({
@@ -365,9 +364,6 @@ export default function ScanMenuPage() {
           depot: user?.depot || 'lyon',
           source: /mobile|android|iphone/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
         }, base64Data);
-
-        setCurrentScanId(scanId);
-        console.log('Scan sauvegardé:', scanId);
       } catch (saveError) {
         console.warn('Erreur sauvegarde historique (non-bloquant):', saveError);
       }

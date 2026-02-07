@@ -53,7 +53,6 @@ export default function CataloguesPage() {
   const [selectedCategory, setSelectedCategory] = useState<DistramCategory | 'all'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('name');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [_showFilters, _setShowFilters] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<DistramProduct | null>(null);
   const [showOnlyPromo, setShowOnlyPromo] = useState(false);
   const [showOnlyLowStock, setShowOnlyLowStock] = useState(false);
@@ -119,16 +118,6 @@ export default function CataloguesPage() {
       [product.id]: (prev[product.id] || 0) + qty,
     }));
     toast.success(`${qty}x ${product.name} ajouté au panier`);
-  };
-
-  const getStockStatus = (product: DistramProduct) => {
-    if (product.stock === 0) return { label: 'Rupture', color: 'bg-red-500', textColor: 'text-red-600' };
-    if (product.stock <= product.stockMin) return { label: 'Stock bas', color: 'bg-amber-500', textColor: 'text-amber-600' };
-    return { label: 'En stock', color: 'bg-green-500', textColor: 'text-green-600' };
-  };
-
-  const getCategoryInfo = (categoryId: DistramCategory) => {
-    return DISTRAM_CATEGORIES.find(c => c.id === categoryId) || DISTRAM_CATEGORIES[0];
   };
 
   const cartTotal = useMemo(() => {

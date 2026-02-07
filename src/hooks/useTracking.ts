@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
+  // getLivreurPosition,
   updateLivreurPosition,
-  getLivreurPosition,
   subscribeToAllPositions,
   subscribeToLivreurPosition,
   updateDeliveryStatus,
@@ -84,12 +84,12 @@ export function useLivreurTracking(livreurId: string, livreurNom: string) {
             status: 'en_route',
           });
           setError(null);
-        } catch (err: any) {
+        } catch {
           setError('Erreur de mise à jour position');
         }
       },
-      (err) => {
-        setError(`Erreur GPS: ${err.message}`);
+      (_err) => {
+        setError(`Erreur GPS: ${_err.message}`);
       },
       {
         enableHighAccuracy: true,
@@ -113,7 +113,7 @@ export function useLivreurTracking(livreurId: string, livreurNom: string) {
   const updateStatus = useCallback(async (status: LivreurPosition['status'], currentDelivery?: string) => {
     try {
       await updateLivreurPosition(livreurId, { status, currentDelivery });
-    } catch (err: any) {
+    } catch {
       setError('Erreur de mise à jour statut');
     }
   }, [livreurId]);
@@ -145,7 +145,7 @@ export function useDeliveryStatus(deliveryId: string) {
     setError(null);
     try {
       await updateDeliveryStatus(deliveryId, status);
-    } catch (err: any) {
+    } catch {
       setError('Erreur de mise à jour');
     } finally {
       setUpdating(false);

@@ -9,7 +9,6 @@ import {
   MapPin,
   Phone,
   AlertTriangle,
-  Clock,
   ChevronRight,
   Loader2,
   Route,
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
   SheetContent,
@@ -122,6 +120,7 @@ export default function CommercialMapPage() {
         }
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Charger les données

@@ -92,6 +92,7 @@ export default function AttributionPage() {
   const [timeToConversion, setTimeToConversion] = useState<{ days: number; stages: { stage: string; avgDays: number }[] }>({ days: 0, stages: [] });
   const [roi, setRoi] = useState<{ channel: string; spend: number; revenue: number; roi: number }[]>([]);
   const [period, setPeriod] = useState("30d");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

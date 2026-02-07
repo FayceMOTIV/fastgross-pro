@@ -51,6 +51,7 @@ export default function OrderDetailClient() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('leaflet/dist/leaflet.css');
     setMapReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const loadOrder = async () => {

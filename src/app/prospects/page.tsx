@@ -5,8 +5,6 @@ import {
   Plus,
   Search,
   Phone,
-  Mail,
-  Calendar,
   Flame,
   Snowflake,
   Thermometer,
@@ -383,7 +381,7 @@ export default function ProspectsPage() {
 
   // Render prospect card
   const renderProspectCard = (prospect: Prospect, compact = false) => {
-    const StatusIcon = statusConfig[prospect.status].icon;
+    // const _StatusIcon = statusConfig[prospect.status].icon;
     const ScoreIcon = scoreConfig[prospect.score].icon;
 
     return (

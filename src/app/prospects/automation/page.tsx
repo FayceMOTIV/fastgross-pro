@@ -108,7 +108,7 @@ const templateVariables = [
 ];
 
 export default function AutomationPage() {
-  const { sidebarOpen, setSidebarOpen, toggleSidebar } = useUIStore();
+  const { } = useUIStore();
   const [sequences, setSequences] = useState<EmailSequence[]>(mockSequences);
   const [selectedSequence, setSelectedSequence] = useState<EmailSequence | null>(null);
   const [isEditing, setIsEditing] = useState(false);

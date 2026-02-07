@@ -5,8 +5,8 @@ import {
   update,
   remove,
   onValue,
-  push,
-  child,
+
+
   DataSnapshot
 } from 'firebase/database';
 import { realtimeDb } from './config';

@@ -6,7 +6,6 @@
 
 import { useState, useEffect } from 'react';
 import Joyride, { Step, CallBackProps, STATUS, EVENTS } from 'react-joyride';
-import { useRouter } from 'next/navigation';
 
 // ============================================
 // TYPES
@@ -210,7 +209,7 @@ export default function OnboardingTour({
   onSkip,
   autoStart = true,
 }: OnboardingTourProps) {
-  const router = useRouter();
+  // const _router = useRouter();
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -322,7 +321,8 @@ export function StartTourButton({
   className?: string;
 }) {
   const { reset } = useOnboarding(tourType);
-  const [showTour, setShowTour] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_showTour, setShowTour] = useState(false);
 
   const handleClick = () => {
     reset();

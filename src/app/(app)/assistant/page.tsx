@@ -5,7 +5,6 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   MessageCircle,
   Send,
@@ -19,7 +18,6 @@ import {
   Users,
   HelpCircle
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
 
 interface Message {
   id: string;

@@ -31,7 +31,7 @@ export default function DemoForm() {
       });
       setSuccess(true);
       setFormData({ nom: '', entreprise: '', email: '', telephone: '', message: '' });
-    } catch (err) {
+    } catch {
       setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);

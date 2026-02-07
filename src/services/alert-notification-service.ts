@@ -315,17 +315,17 @@ export async function sendPushNotification(
   console.log("Push notification:", { userId, ...notification });
 
   // Log notification (would be stored in production)
-  const _log: Omit<NotificationLog, "id"> = {
-    alertId: (notification.data?.id as string) || "",
-    alertType: (notification.data?.type as AlertType) || "product_missing",
-    recipientId: userId,
-    recipientType: userId.startsWith("mgr") ? "manager" : "commercial",
-    channel: "push",
-    title: notification.title,
-    body: notification.body,
-    sentAt: new Date(),
-    metadata: notification.data,
-  };
+  // const _log: Omit<NotificationLog, "id"> = {
+  //   alertId: (notification.data?.id as string) || "",
+  //   alertType: (notification.data?.type as AlertType) || "product_missing",
+  //   recipientId: userId,
+  //   recipientType: userId.startsWith("mgr") ? "manager" : "commercial",
+  //   channel: "push",
+  //   title: notification.title,
+  //   body: notification.body,
+  //   sentAt: new Date(),
+  //   metadata: notification.data,
+  // };
 
   // Store in Firestore (mock)
   return { success: true, id: `notif_${Date.now()}` };

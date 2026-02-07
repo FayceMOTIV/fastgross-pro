@@ -47,6 +47,7 @@ export default function DeliveryDetailClient() {
 
   useEffect(() => {
     loadDelivery();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deliveryId]);
 
   const loadDelivery = async () => {

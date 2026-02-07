@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordReset(email);
       setSuccess(true);
-    } catch (err) {
+    } catch {
       // Error handled by hook
     }
   };

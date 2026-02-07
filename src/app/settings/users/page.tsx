@@ -140,7 +140,8 @@ const MOCK_USERS: UserWithRole[] = [
 ];
 
 // Icône par rôle
-const ROLE_ICONS: Record<UserRole, typeof Shield> = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _ROLE_ICONS: Record<UserRole, typeof Shield> = {
   admin: Shield,
   manager: BarChart3,
   commercial: Briefcase,
@@ -157,7 +158,6 @@ export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
-  const [_isLoading, _setIsLoading] = useState(false);
 
   // Filtrer les utilisateurs
   useEffect(() => {
@@ -341,7 +341,7 @@ export default function UsersPage() {
               ) : (
                 filteredUsers.map((user) => {
                   const roleInfo = ROLE_LABELS[user.role];
-                  const _RoleIcon = ROLE_ICONS[user.role];
+                  // const __RoleIcon = ROLE_ICONS[user.role];
                   const zone = DEFAULT_ZONES.find((z) => z.id === user.assignedZone);
 
                   return (
@@ -585,7 +585,7 @@ function UserFormModal({ open, onOpenChange, user, onSave }: UserFormModalProps)
 
   const showZoneField = formData.role === 'commercial' || formData.role === 'livreur';
   const showVehicleFields = formData.role === 'livreur';
-  const _showManagerField = formData.role === 'commercial' || formData.role === 'livreur';
+  // const __showManagerField = formData.role === 'commercial' || formData.role === 'livreur';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -5,7 +5,6 @@ import {
   BarChart3,
   TrendingUp,
   TrendingDown,
-  Euro,
   ShoppingCart,
   Users,
   Target,
