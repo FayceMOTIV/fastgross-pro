@@ -53,9 +53,9 @@ export default function InvoiceDetailClient() {
   const handleDownload = async () => {
     if (!invoice) return;
     try {
-      const url = await downloadInvoicePDF(invoice.id);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _url = await downloadInvoicePDF(invoice.id);
       // In real app, would trigger download
-      console.log('Download URL:', url);
     } catch (error) {
       console.error('Erreur téléchargement:', error);
     }
@@ -65,9 +65,9 @@ export default function InvoiceDetailClient() {
     if (!invoice) return;
     setIsProcessingPayment(true);
     try {
-      const result = await initiatePayment(invoice.id, method);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _result = await initiatePayment(invoice.id, method);
       // In real app, would redirect to payment page
-      console.log('Payment redirect:', result.redirectUrl);
       // Simulate payment success
       setTimeout(() => {
         setInvoice(prev => prev ? { ...prev, status: 'paid', paidAt: new Date() } : null);

@@ -374,10 +374,9 @@ export default function LandingPageClient({
     }
   }, [slug]);
 
-  const handleFormSubmit = (data: Record<string, string>) => {
+  const handleFormSubmit = (_data: Record<string, string>) => {
     // Track form submission
     trackFormSubmit(`landing_${slug}`, undefined, 0);
-    console.log("Form submitted:", data);
     // In production, send to CRM/email service
   };
 

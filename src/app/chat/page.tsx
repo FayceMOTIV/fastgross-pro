@@ -246,7 +246,7 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [showQuickSwitcher, setShowQuickSwitcher] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_showSearch, _setShowSearch] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 

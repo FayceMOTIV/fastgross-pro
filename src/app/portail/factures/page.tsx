@@ -50,9 +50,9 @@ function FacturesContent() {
 
   const handleDownload = async (invoiceId: string) => {
     try {
-      const url = await downloadInvoicePDF(invoiceId);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _url = await downloadInvoicePDF(invoiceId);
       // In real app, would trigger download
-      console.log('Download URL:', url);
     } catch (error) {
       console.error('Erreur téléchargement:', error);
     }

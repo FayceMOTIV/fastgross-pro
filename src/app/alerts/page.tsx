@@ -228,7 +228,7 @@ export default function AlertsPage() {
   };
 
   const handleAction = (alert: Alert) => {
-    console.log("Action triggered for alert:", alert.id);
+    // console.log("Action triggered for alert:", alert.id);
     handleMarkAsRead(alert.id);
   };
 

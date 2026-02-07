@@ -410,8 +410,7 @@ export function ContactWidget({ config = defaultConfig }: { config?: ContactWidg
     setCurrentView("menu");
   };
 
-  const handleFormSubmit = (data: Record<string, string>) => {
-    console.log("Form submitted:", data);
+  const handleFormSubmit = (_data: Record<string, string>) => {
     // In production, send to backend/CRM
   };
 

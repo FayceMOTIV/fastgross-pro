@@ -261,9 +261,8 @@ export function AIInsightsPanel() {
     setInsights((prev) => prev.filter((i) => i.id !== id));
   };
 
-  const handleAction = (action: string) => {
+  const handleAction = (_action: string) => {
     // In production, this would trigger the action
-    console.log("Action triggered:", action);
   };
 
   const insightCounts = {

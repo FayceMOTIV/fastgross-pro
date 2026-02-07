@@ -759,16 +759,16 @@ export default function ClientsPage() {
     window.location.href = `mailto:${email}`;
   };
 
-  const handleView = (clientId: string) => {
-    console.log("View client:", clientId);
+  const handleView = (_clientId: string) => {
+    // In production, navigate to client detail
   };
 
-  const handleEdit = (clientId: string) => {
-    console.log("Edit client:", clientId);
+  const handleEdit = (_clientId: string) => {
+    // In production, open edit modal
   };
 
   const handleAddClient = () => {
-    console.log("Add new client");
+    // console.log("Add new client");
   };
 
   return (

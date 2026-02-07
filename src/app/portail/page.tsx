@@ -152,8 +152,9 @@ export default function PortailHomePage() {
   };
 
   const handleAddToCart = (productId: string) => {
-    const qty = quantities[productId] || 1;
-    console.log(`Adding ${qty} of product ${productId} to cart`);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _qty = quantities[productId] || 1;
+    // In production, add to cart with quantity
     // Reset quantity after adding
     setQuantities(prev => ({ ...prev, [productId]: 0 }));
   };

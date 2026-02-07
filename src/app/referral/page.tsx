@@ -176,10 +176,10 @@ export default function ReferralPage() {
   const handleInvite = () => {
     if (newReferralEmail && newReferralName) {
       // In production, send invitation email
-      console.log("Inviting:", { email: newReferralEmail, name: newReferralName });
+      // console.log("Inviting:", { email: newReferralEmail, name: newReferralName });
       setNewReferralEmail("");
       setNewReferralName("");
-      setShowInviteForm(false);
+      // setShowInviteForm(false);
     }
   };
 
