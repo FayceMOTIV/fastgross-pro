@@ -286,11 +286,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
               <button className="flex items-center gap-3 p-1.5 pr-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <span className="text-sm font-bold text-white">MD</span>
+                  <span className="text-sm font-bold text-white">HB</span>
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">Hamza B.</p>
-                  <p className="text-xs text-slate-500">Directeur</p>
+                  <p className="text-xs text-slate-500">Directeur Général</p>
                 </div>
               </button>
             </div>
