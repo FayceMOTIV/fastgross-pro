@@ -40,9 +40,9 @@ export function useAuth() {
 
       // Redirection selon le rôle
       if (user.role === 'livreur') {
-        router.push('/livraisons');
+        router.push('/livreur');
       } else {
-        router.push('/dashboard');
+        router.push('/');
       }
 
       return user;
