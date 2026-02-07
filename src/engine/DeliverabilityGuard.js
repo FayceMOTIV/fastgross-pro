@@ -172,7 +172,6 @@ export const canSend = async (account, prospect, orgId) => {
  */
 export const waitBeforeSend = async () => {
   const delay = getRandomDelay();
-  console.log(`Attente de ${Math.round(delay)} secondes avant envoi...`);
   await sleep(delay * 1000);
   return delay;
 };

@@ -11,6 +11,7 @@ import Layout from '@/components/Layout'
 import { OnboardingProvider } from '@/components/OnboardingTour'
 import { TooltipProvider } from '@/components/Tooltip'
 import PageLoader from '@/components/PageLoader'
+import CookieBanner from '@/components/CookieBanner'
 
 // Lazy loaded pages - Public
 const Landing = lazy(() => import('@/pages/Landing'))
@@ -143,6 +144,7 @@ export default function App() {
               <OrgProvider>
                 <NotificationProvider>
                 <Suspense fallback={<PageLoader />}>
+                  <CookieBanner />
                   <Routes>
                     {/* ============================================ */}
                     {/* PUBLIC ROUTES */}

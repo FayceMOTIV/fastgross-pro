@@ -1,12 +1,16 @@
 {
   "name": "Face Media Factory",
   "short_name": "FMF",
-  "description": "Growth Intelligence Platform — Transformez votre prospection en machine à leads",
+  "description": "Plateforme de prospection B2B multicanale propulsee par l'IA",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#0d0d1a",
   "theme_color": "#00d49a",
   "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -20,5 +24,46 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Voir le tableau de bord",
+      "url": "/app",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Prospects",
+      "short_name": "Prospects",
+      "description": "Gerer les prospects",
+      "url": "/app/prospects",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sequences",
+      "short_name": "Sequences",
+      "description": "Voir les sequences",
+      "url": "/app/sequences",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Stats",
+      "description": "Voir les statistiques",
+      "url": "/app/analytics",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Face Media Factory Dashboard"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

@@ -1,4 +1,4 @@
-# Face Media Factory v1.6.0 - Instructions Claude Code
+# Face Media Factory v2.0.0 - Instructions Claude Code
 
 ## Vue d'ensemble
 

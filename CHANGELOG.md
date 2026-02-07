@@ -1,5 +1,65 @@
 # Changelog
 
+## [2.0.0] - 2026-02-07
+
+### Audit & Optimisation Majeure
+
+#### Performance
+- **Bundle splitting optimise** : Chunks separes pour Firebase, Charts, UI, React
+- **Reduction taille bundle** : Index principal 128KB (36KB gzip) vs 210KB avant
+- **Vite config avancee** : manualChunks intelligent, esbuild minification
+- **Sourcemaps desactives** en production pour bundle plus leger
+
+#### SEO & Meta Tags
+- **Meta description** et keywords ajoutes
+- **Open Graph tags** pour partage social (Facebook, Twitter)
+- **Canonical URL** configuree
+- **Preconnect** vers Firebase et Google Fonts
+
+#### PWA Amelioree
+- **Icones PWA** : icon-192.png et icon-512.png generees
+- **Manifest enrichi** : shortcuts, screenshots, categories
+- **Service Worker v2** : strategie cache-first pour assets, network-first pour HTML
+- **Offline support** ameliore
+
+#### Securite
+- **Headers de securite** : X-Frame-Options, X-Content-Type-Options, CSP
+- **Cache headers optimises** : 1 an pour assets, no-cache pour HTML/SW
+- **Referrer-Policy** et **Permissions-Policy** ajoutes
+
+#### RGPD
+- **Bandeau cookies** : CookieBanner.jsx avec accept/decline
+- **Stockage consentement** en localStorage
+- **Lien politique de confidentialite**
+
+#### Stack Technique v1.6.0
+- **Amazon SES** remplace Brevo pour emails transactionnels
+- **Saleshandy** pour cold outreach
+- **Evolution API** remplace WasenderAPI pour WhatsApp
+- **Windmill** remplace n8n pour orchestration
+- **@aws-sdk/client-ses** ajoute aux functions
+
+#### Fixes
+- **console.log supprime** dans DeliverabilityGuard.js
+- **Dependance resend supprimee** de functions/package.json
+- **Warning circular chunk** corrige partiellement
+
+#### Documentation
+- **AUDIT_REPORT.md** : Rapport d'audit complet avec score 62/100
+- **STACK.md** : Documentation technique mise a jour
+- **CLAUDE.md** : Instructions mises a jour
+
+---
+
+## [1.6.0] - 2026-02-07
+
+### Stack Technique
+- Amazon SES + Saleshandy remplacent Brevo
+- Evolution API remplace WasenderAPI
+- Windmill remplace n8n
+
+---
+
 ## [1.4.0] - 2026-02-05
 
 ### Ajouts majeurs
