@@ -158,45 +158,45 @@ const CHANNELS: Channel[] = [
 ];
 
 const USERS: User[] = [
-  { id: "u1", name: "Mohamed Directeur", role: "PDG", status: "online", color: "bg-purple-500", statusMessage: "Disponible" },
+  { id: "u1", name: "Hamza Directeur", role: "PDG", status: "online", color: "bg-purple-500", statusMessage: "Disponible" },
   { id: "u2", name: "Sophie Martin", role: "Commerciale", status: "online", color: "bg-blue-500", statusMessage: "En réunion jusqu'à 14h" },
   { id: "u3", name: "Thomas Bernard", role: "Commercial", status: "away", color: "bg-cyan-500", statusMessage: "Pause déjeuner" },
-  { id: "u4", name: "Marc Dupont", role: "Livreur", status: "online", color: "bg-green-500", statusMessage: "En tournée" },
+  { id: "u4", name: "Karim Mansouri", role: "Livreur", status: "online", color: "bg-green-500", statusMessage: "En tournée" },
   { id: "u5", name: "Julie Lambert", role: "Comptable", status: "busy", color: "bg-violet-500", statusMessage: "Ne pas déranger" },
-  { id: "u6", name: "Pierre Durand", role: "Livreur", status: "online", color: "bg-teal-500" },
+  { id: "u6", name: "Youssef Benali", role: "Livreur", status: "online", color: "bg-teal-500" },
   { id: "u7", name: "Emma Wilson", role: "Commerciale", status: "offline", color: "bg-pink-500" },
   { id: "u8", name: "Lucas Martin", role: "Préparateur", status: "online", color: "bg-orange-500" },
 ];
 
 const MOCK_MESSAGES: Record<string, Message[]> = {
   commerciaux: [
-    { id: "m1", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "Bonjour l'équipe ! J'ai décroché un nouveau client ce matin : Pizza Express à Vannes. Commande de 2500€/semaine 🎉", time: "09:15", date: "Aujourd'hui", replyCount: 3 },
+    { id: "m1", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "Bonjour l'équipe ! J'ai décroché un nouveau client ce matin : Pizza Express à Lyon. Commande de 2500€/semaine 🎉", time: "09:15", date: "Aujourd'hui", replyCount: 3 },
     { id: "m2", channelId: "commerciaux", userId: "u3", userName: "Thomas Bernard", userColor: "bg-cyan-500", content: "Bravo Sophie ! C'est énorme ! Tu as utilisé quelle approche ?", time: "09:18", date: "Aujourd'hui", threadId: "m1" },
     { id: "m3", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "J'ai montré le scan menu avec l'IA, ils ont été bluffés par la rapidité du devis. Je peux vous faire une démo si vous voulez.", time: "09:20", date: "Aujourd'hui" },
-    { id: "m4", channelId: "commerciaux", userId: "u1", userName: "Mohamed Directeur", userColor: "bg-purple-500", content: "Excellent travail Sophie ! @Thomas tu devrais essayer cette approche avec tes prospects. On peut organiser un call demain pour partager les best practices ?", time: "09:25", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 4, users: ["Thomas", "Marc", "Julie", "Emma"] }, { emoji: "🚀", count: 2, users: ["Sophie", "Lucas"] }], isPinned: true },
+    { id: "m4", channelId: "commerciaux", userId: "u1", userName: "Hamza Directeur", userColor: "bg-purple-500", content: "Excellent travail Sophie ! @Thomas tu devrais essayer cette approche avec tes prospects. On peut organiser un call demain pour partager les best practices ?", time: "09:25", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 4, users: ["Thomas", "Karim", "Julie", "Emma"] }, { emoji: "🚀", count: 2, users: ["Sophie", "Lucas"] }], isPinned: true },
     { id: "m5", channelId: "commerciaux", userId: "u7", userName: "Emma Wilson", userColor: "bg-pink-500", content: "Je vais voir le Kebab Royal cet après-midi, je vais tester ça aussi ! @Sophie tu peux m'envoyer ta présentation ?", time: "09:30", date: "Aujourd'hui" },
     { id: "m6", channelId: "commerciaux", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "Bien sûr ! Je te l'envoie en DM avec les supports. Tu verras c'est assez simple.", time: "09:32", date: "Aujourd'hui", attachments: [{ type: "pdf", name: "Présentation_DISTRAM_2025.pdf", url: "#", size: "2.4 MB" }] },
   ],
   livreurs: [
-    { id: "l1", channelId: "livreurs", userId: "u4", userName: "Marc Dupont", userColor: "bg-green-500", content: "Tournée du matin terminée ✅ 12 livraisons, tout est OK. RAS sur le secteur Est.", time: "11:45", date: "Aujourd'hui", reactions: [{ emoji: "✅", count: 3, users: [] }] },
-    { id: "l2", channelId: "livreurs", userId: "u6", userName: "Pierre Durand", userColor: "bg-teal-500", content: "🚨 Je suis bloqué sur la rocade, accident important. Retard de 20min sur mes prochaines livraisons. J'ai prévenu les clients.", time: "11:50", date: "Aujourd'hui", replyCount: 2 },
-    { id: "l3", channelId: "livreurs", userId: "system", userName: "Système DISTRAM", userColor: "bg-slate-500", content: "📍 Pierre Durand a partagé sa position en temps réel", time: "11:51", date: "Aujourd'hui", isSystem: true },
-    { id: "l4", channelId: "livreurs", userId: "u4", userName: "Marc Dupont", userColor: "bg-green-500", content: "@Pierre je peux prendre ta livraison chez Délice Kebab si tu veux, je suis à 5 min. Envoie-moi les infos.", time: "11:52", date: "Aujourd'hui" },
-    { id: "l5", channelId: "livreurs", userId: "u6", userName: "Pierre Durand", userColor: "bg-teal-500", content: "Ce serait top Marc, merci beaucoup ! Je te transfère le bon de livraison.", time: "11:53", date: "Aujourd'hui", reactions: [{ emoji: "🙏", count: 1, users: ["Pierre"] }, { emoji: "💪", count: 2, users: ["Marc", "Lucas"] }] },
+    { id: "l1", channelId: "livreurs", userId: "u4", userName: "Karim Mansouri", userColor: "bg-green-500", content: "Tournée du matin terminée ✅ 12 livraisons, tout est OK. RAS sur le secteur Est.", time: "11:45", date: "Aujourd'hui", reactions: [{ emoji: "✅", count: 3, users: [] }] },
+    { id: "l2", channelId: "livreurs", userId: "u6", userName: "Youssef Benali", userColor: "bg-teal-500", content: "🚨 Je suis bloqué sur la rocade, accident important. Retard de 20min sur mes prochaines livraisons. J'ai prévenu les clients.", time: "11:50", date: "Aujourd'hui", replyCount: 2 },
+    { id: "l3", channelId: "livreurs", userId: "system", userName: "Système DISTRAM", userColor: "bg-slate-500", content: "📍 Youssef Benali a partagé sa position en temps réel", time: "11:51", date: "Aujourd'hui", isSystem: true },
+    { id: "l4", channelId: "livreurs", userId: "u4", userName: "Karim Mansouri", userColor: "bg-green-500", content: "@Youssef je peux prendre ta livraison chez Délice Kebab si tu veux, je suis à 5 min. Envoie-moi les infos.", time: "11:52", date: "Aujourd'hui" },
+    { id: "l5", channelId: "livreurs", userId: "u6", userName: "Youssef Benali", userColor: "bg-teal-500", content: "Ce serait top Karim, merci beaucoup ! Je te transfère le bon de livraison.", time: "11:53", date: "Aujourd'hui", reactions: [{ emoji: "🙏", count: 1, users: ["Youssef"] }, { emoji: "💪", count: 2, users: ["Karim", "Lucas"] }] },
   ],
   annonces: [
-    { id: "a1", channelId: "annonces", userId: "u1", userName: "Mohamed Directeur", userColor: "bg-purple-500", content: "📢 IMPORTANT : Réunion générale vendredi 14h pour présenter les nouveaux objectifs Q2. Présence obligatoire pour tous. Ordre du jour en pièce jointe.", time: "08:00", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 18, users: [] }, { emoji: "📅", count: 5, users: [] }], isPinned: true, attachments: [{ type: "doc", name: "ODJ_Reunion_Q2.docx", url: "#", size: "156 KB" }] },
-    { id: "a2", channelId: "annonces", userId: "u1", userName: "Mohamed Directeur", userColor: "bg-purple-500", content: "🎉 Félicitations à toute l'équipe ! Nous avons dépassé nos objectifs de 15% ce mois-ci. Prime exceptionnelle pour tous, détails à venir vendredi !", time: "17:30", date: "Hier", reactions: [{ emoji: "🎉", count: 35, users: [] }, { emoji: "❤️", count: 28, users: [] }, { emoji: "🚀", count: 15, users: [] }] },
+    { id: "a1", channelId: "annonces", userId: "u1", userName: "Hamza Directeur", userColor: "bg-purple-500", content: "📢 IMPORTANT : Réunion générale vendredi 14h pour présenter les nouveaux objectifs Q2. Présence obligatoire pour tous. Ordre du jour en pièce jointe.", time: "08:00", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 18, users: [] }, { emoji: "📅", count: 5, users: [] }], isPinned: true, attachments: [{ type: "doc", name: "ODJ_Reunion_Q2.docx", url: "#", size: "156 KB" }] },
+    { id: "a2", channelId: "annonces", userId: "u1", userName: "Hamza Directeur", userColor: "bg-purple-500", content: "🎉 Félicitations à toute l'équipe ! Nous avons dépassé nos objectifs de 15% ce mois-ci. Prime exceptionnelle pour tous, détails à venir vendredi !", time: "17:30", date: "Hier", reactions: [{ emoji: "🎉", count: 35, users: [] }, { emoji: "❤️", count: 28, users: [] }, { emoji: "🚀", count: 15, users: [] }] },
   ],
   urgences: [
-    { id: "ur1", channelId: "urgences", userId: "u6", userName: "Pierre Durand", userColor: "bg-teal-500", content: "🚨 URGENT : Client Le Régal refuse la livraison - produits non conformes selon lui (dates OK pourtant). Besoin d'un commercial sur place SVP", time: "14:20", date: "Aujourd'hui", replyCount: 4 },
+    { id: "ur1", channelId: "urgences", userId: "u6", userName: "Youssef Benali", userColor: "bg-teal-500", content: "🚨 URGENT : Client Le Régal refuse la livraison - produits non conformes selon lui (dates OK pourtant). Besoin d'un commercial sur place SVP", time: "14:20", date: "Aujourd'hui", replyCount: 4 },
     { id: "ur2", channelId: "urgences", userId: "u2", userName: "Sophie Martin", userColor: "bg-blue-500", content: "J'y vais immédiatement, je suis à 10 min. @Pierre tu restes sur place ? Je t'appelle en arrivant.", time: "14:22", date: "Aujourd'hui" },
-    { id: "ur3", channelId: "urgences", userId: "u6", userName: "Pierre Durand", userColor: "bg-teal-500", content: "Oui je t'attends. Le gérant est énervé mais reste correct. Il veut parler à quelqu'un de la direction.", time: "14:23", date: "Aujourd'hui" },
-    { id: "ur4", channelId: "urgences", userId: "u1", userName: "Mohamed Directeur", userColor: "bg-purple-500", content: "@Sophie je te laisse gérer en premier. Si besoin, appelle-moi directement sur mon portable. Tiens-moi au courant.", time: "14:25", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 2, users: [] }] },
+    { id: "ur3", channelId: "urgences", userId: "u6", userName: "Youssef Benali", userColor: "bg-teal-500", content: "Oui je t'attends. Le gérant est énervé mais reste correct. Il veut parler à quelqu'un de la direction.", time: "14:23", date: "Aujourd'hui" },
+    { id: "ur4", channelId: "urgences", userId: "u1", userName: "Hamza Directeur", userColor: "bg-purple-500", content: "@Sophie je te laisse gérer en premier. Si besoin, appelle-moi directement sur mon portable. Tiens-moi au courant.", time: "14:25", date: "Aujourd'hui", reactions: [{ emoji: "👍", count: 2, users: [] }] },
   ],
   compta: [
-    { id: "c1", channelId: "compta", userId: "u5", userName: "Julie Lambert", userColor: "bg-violet-500", content: "Rappel : 5 factures en attente de validation pour Le Kebab du Port, total 3 250€. @Mohamed tu peux checker et valider aujourd'hui ?", time: "10:00", date: "Aujourd'hui", attachments: [{ type: "xlsx", name: "Factures_KebabPort.xlsx", url: "#", size: "45 KB" }] },
-    { id: "c2", channelId: "compta", userId: "u1", userName: "Mohamed Directeur", userColor: "bg-purple-500", content: "Je regarde ça dans l'heure. Tu peux m'envoyer le récap des impayés également ?", time: "10:15", date: "Aujourd'hui" },
+    { id: "c1", channelId: "compta", userId: "u5", userName: "Julie Lambert", userColor: "bg-violet-500", content: "Rappel : 5 factures en attente de validation pour Le Kebab du Port, total 3 250€. @Hamza tu peux checker et valider aujourd'hui ?", time: "10:00", date: "Aujourd'hui", attachments: [{ type: "xlsx", name: "Factures_KebabPort.xlsx", url: "#", size: "45 KB" }] },
+    { id: "c2", channelId: "compta", userId: "u1", userName: "Hamza Directeur", userColor: "bg-purple-500", content: "Je regarde ça dans l'heure. Tu peux m'envoyer le récap des impayés également ?", time: "10:15", date: "Aujourd'hui" },
     { id: "c3", channelId: "compta", userId: "u5", userName: "Julie Lambert", userColor: "bg-violet-500", content: "Voilà le récap complet. 3 clients à relancer cette semaine.", time: "10:20", date: "Aujourd'hui", attachments: [{ type: "xlsx", name: "Recap_Impayes_Fevrier.xlsx", url: "#", size: "78 KB" }] },
   ],
 };
@@ -204,16 +204,16 @@ const MOCK_MESSAGES: Record<string, Message[]> = {
 // Messages directs simulés
 const DIRECT_MESSAGES: { id: string; user: User; lastMessage: string; time: string; unread: number }[] = [
   { id: "dm1", user: USERS[1], lastMessage: "Voici la présentation comme promis !", time: "09:35", unread: 1 },
-  { id: "dm2", user: USERS[3], lastMessage: "Merci pour le coup de main Marc 👍", time: "11:55", unread: 0 },
+  { id: "dm2", user: USERS[3], lastMessage: "Merci pour le coup de main Karim 👍", time: "11:55", unread: 0 },
   { id: "dm3", user: USERS[4], lastMessage: "Factures validées, merci !", time: "10:45", unread: 0 },
   { id: "dm4", user: USERS[2], lastMessage: "On fait le point demain ?", time: "Hier", unread: 2 },
 ];
 
 // Activités récentes
 const ACTIVITIES: Activity[] = [
-  { id: "act1", type: "mention", user: "Sophie Martin", userColor: "bg-blue-500", channel: "commerciaux", message: "@Mohamed tu devrais essayer cette approche", time: "09:25", read: false },
+  { id: "act1", type: "mention", user: "Sophie Martin", userColor: "bg-blue-500", channel: "commerciaux", message: "@Hamza tu devrais essayer cette approche", time: "09:25", read: false },
   { id: "act2", type: "reaction", user: "Thomas Bernard", userColor: "bg-cyan-500", channel: "commerciaux", message: "a réagi 👍 à votre message", time: "09:26", read: false },
-  { id: "act3", type: "reply", user: "Pierre Durand", userColor: "bg-teal-500", channel: "urgences", message: "a répondu dans le fil de discussion", time: "14:23", read: true },
+  { id: "act3", type: "reply", user: "Youssef Benali", userColor: "bg-teal-500", channel: "urgences", message: "a répondu dans le fil de discussion", time: "14:23", read: true },
   { id: "act4", type: "dm", user: "Julie Lambert", userColor: "bg-violet-500", message: "Factures validées, merci !", time: "10:45", read: true },
   { id: "act5", type: "mention", user: "Emma Wilson", userColor: "bg-pink-500", channel: "commerciaux", message: "@Sophie tu peux m'envoyer ta présentation ?", time: "09:30", read: true },
 ];
@@ -228,7 +228,7 @@ const SAVED_MESSAGES: Message[] = [
 // Current user
 const CURRENT_USER: User = {
   id: "u1",
-  name: "Mohamed Directeur",
+  name: "Hamza Directeur",
   role: "PDG",
   status: "online",
   color: "bg-purple-500",

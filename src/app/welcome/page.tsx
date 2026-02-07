@@ -158,7 +158,7 @@ export default function WelcomePage() {
       visual: (
         <div className="bg-white rounded-xl p-4 shadow-lg border border-slate-200">
           <div className="flex gap-2 mb-3">
-            <div className="flex-1 px-3 py-2 bg-slate-100 rounded-lg text-sm">Vannes</div>
+            <div className="flex-1 px-3 py-2 bg-slate-100 rounded-lg text-sm">Lyon</div>
             <div className="px-3 py-2 bg-slate-100 rounded-lg text-sm">20km</div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -527,7 +527,7 @@ export default function WelcomePage() {
                 <div className="p-4 space-y-4 h-80 overflow-y-auto">
                   {[
                     { user: "Sophie M.", avatar: "SM", color: "from-violet-500 to-purple-600", time: "09:34", msg: "J'ai décroché le contrat avec Le Gourmet ! 🎉", isMe: false },
-                    { user: "Marc D.", avatar: "MD", color: "from-blue-500 to-cyan-600", time: "09:35", msg: "Bravo Sophie ! C'est le restaurant qu'on avait trouvé avec le sourcing IA ?", isMe: false },
+                    { user: "Karim M.", avatar: "KM", color: "from-blue-500 to-cyan-600", time: "09:35", msg: "Bravo Sophie ! C'est le restaurant qu'on avait trouvé avec le sourcing IA ?", isMe: false },
                     { user: "Sophie M.", avatar: "SM", color: "from-violet-500 to-purple-600", time: "09:36", msg: "Exactement ! Score de 94%, email vérifié. Le rdv s'est super bien passé.", isMe: false },
                     { user: "Vous", avatar: "FM", color: "from-emerald-500 to-teal-600", time: "09:38", msg: "Super travail ! J'assigne la livraison à Ahmed. @Ahmed tu peux passer demain 9h ?", isMe: true },
                     { user: "Ahmed K.", avatar: "AK", color: "from-amber-500 to-orange-600", time: "09:40", msg: "Parfait, c'est noté ! J'ai vu l'adresse sur le tracking 👍", isMe: false },
@@ -1123,7 +1123,7 @@ export default function WelcomePage() {
                 <div className="space-y-4 font-mono text-sm">
                   <div className="bg-white/5 rounded-lg p-3">
                     <p className="text-slate-400 text-xs mb-1">Analyse du prospect...</p>
-                    <p className="text-amber-400">{"> "}Restaurant italien • 45 couverts • Centre-ville Vannes</p>
+                    <p className="text-amber-400">{"> "}Restaurant italien • 45 couverts • Centre-ville Lyon</p>
                   </div>
 
                   <div className="bg-white/5 rounded-lg p-3">

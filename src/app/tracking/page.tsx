@@ -24,8 +24,8 @@ interface Delivery {
 const mockDeliveries: Delivery[] = [
   {
     id: "del1",
-    driverName: "Marc Dupont",
-    driverInitials: "MD",
+    driverName: "Karim Mansouri",
+    driverInitials: "KM",
     driverColor: "from-violet-500 to-purple-600",
     clientName: "Jean Martin",
     address: "123 Rue de la Paix, Paris",

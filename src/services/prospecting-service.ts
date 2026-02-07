@@ -433,7 +433,7 @@ export async function detectCompetitorClients(): Promise<ScrapedProspect[]> {
       updatedAt: new Date(),
     },
     {
-      name: "Chez Mohamed",
+      name: "Chez Ali",
       type: "kebab",
       address: "156 Avenue des Chartreux, 13004 Marseille",
       city: "Marseille",

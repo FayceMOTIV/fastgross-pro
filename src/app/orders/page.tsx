@@ -105,7 +105,7 @@ function generateMockOrders(): Order[] {
     { id: 'CLI-008', name: 'Fast & Fresh', type: 'Burger', address: '67 Rue Garibaldi, 69006 Lyon', phone: '04 78 89 01 23' },
   ];
 
-  const commerciaux = ['Mohamed K.', 'Sarah L.', 'Karim B.', 'Fatima Z.'];
+  const commerciaux = ['Hamza K.', 'Sarah L.', 'Karim B.', 'Fatima Z.'];
   const livreurs = ['Ahmed B.', 'Omar S.', 'Youssef M.', 'Hassan T.'];
   const depots: Array<'Lyon' | 'Montpellier' | 'Bordeaux'> = ['Lyon', 'Lyon', 'Lyon', 'Montpellier', 'Bordeaux'];
   const statuses: OrderStatus[] = ['pending', 'confirmed', 'preparing', 'shipped', 'delivering', 'delivered', 'delivered', 'delivered'];

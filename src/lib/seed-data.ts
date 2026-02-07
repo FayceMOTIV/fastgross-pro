@@ -431,7 +431,7 @@ export const CLIENTS = [
     postalCode: "13004",
     phone: "04 91 88 88 88",
     email: "chickenexpress@email.com",
-    contactName: "Mohamed Kacem",
+    contactName: "Karim Zouini",
     commercialId: "commercial-1",
     creditLimit: 4500,
     currentBalance: 980,

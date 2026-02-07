@@ -39,7 +39,7 @@ const mockData = {
     memberSince: '2023-03-15',
     address: '15 Rue de la République, 69001 Lyon',
     phone: '04 72 12 34 56',
-    commercial: 'Mohamed K.',
+    commercial: 'Hamza K.',
     remise: 10,
   },
   stats: {

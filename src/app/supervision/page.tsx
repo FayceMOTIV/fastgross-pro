@@ -52,7 +52,7 @@ const mockData = {
   teamPerformance: [
     {
       id: 1,
-      name: 'Mohamed Khelifi',
+      name: 'Hamza Khelifi',
       role: 'Commercial Senior',
       avatar: 'MK',
       depot: 'Lyon',
@@ -164,7 +164,7 @@ const mockData = {
       title: 'Nouveau client à valider',
       description: "Le Sultan d'Orient - Lyon 7ème - Demande crédit",
       time: '1h',
-      assignee: 'Mohamed K.',
+      assignee: 'Hamza K.',
     },
   ],
   pendingApprovals: [
@@ -174,7 +174,7 @@ const mockData = {
       title: 'Remise fidélité 12%',
       client: 'Chez Momo Kebab',
       amount: 380,
-      requestedBy: 'Mohamed K.',
+      requestedBy: 'Hamza K.',
       time: '15 min',
     },
     {
@@ -200,7 +200,7 @@ const mockData = {
     {
       id: 1,
       type: 'order',
-      user: 'Mohamed K.',
+      user: 'Hamza K.',
       action: 'a créé une commande',
       target: '#DIS-2024-1867',
       amount: 890,

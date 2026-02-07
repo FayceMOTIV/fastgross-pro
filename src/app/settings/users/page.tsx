@@ -101,8 +101,8 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '4',
-    email: 'mohamed@fastgross.pro',
-    displayName: 'Mohamed Karim',
+    email: 'hamza@fastgross.pro',
+    displayName: 'Hamza Karim',
     role: 'commercial',
     permissions: ROLE_PERMISSIONS.commercial,
     assignedZone: 'marseille-sud',
@@ -127,8 +127,8 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '6',
-    email: 'pierre@fastgross.pro',
-    displayName: 'Pierre Durand',
+    email: 'youssef@fastgross.pro',
+    displayName: 'Youssef Benali',
     role: 'livreur',
     permissions: ROLE_PERMISSIONS.livreur,
     assignedZone: 'marseille-centre',

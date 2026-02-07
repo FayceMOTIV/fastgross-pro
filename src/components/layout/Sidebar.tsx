@@ -56,9 +56,12 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0">
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-100">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100">
+        <Link href="/app" className="flex items-center gap-2">
           <span className="text-xl font-bold text-orange-600">DISTRAM</span>
+        </Link>
+        <Link href="/" className="text-xs text-gray-400 hover:text-orange-600 transition-colors">
+          ← Site
         </Link>
       </div>
 

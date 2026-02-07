@@ -37,7 +37,7 @@ const DEMO_USERS = [
   {
     email: 'commercial@distram.fr',
     password: 'Demo2024!',
-    displayName: 'Mohamed Commercial',
+    displayName: 'Hamza Commercial',
     role: 'commercial',
     depot: 'lyon',
     telephone: '06 00 00 00 02',

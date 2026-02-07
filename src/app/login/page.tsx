@@ -37,7 +37,7 @@ const FEATURES = [
 ];
 
 const TESTIMONIALS = [
-  { quote: "DISTRAM a transformé notre logistique", author: "Mohamed B.", role: "CEO" },
+  { quote: "DISTRAM a transformé notre logistique", author: "Hamza B.", role: "CEO" },
   { quote: "ROI visible dès le premier mois", author: "Sophie M.", role: "Directrice" },
 ];
 

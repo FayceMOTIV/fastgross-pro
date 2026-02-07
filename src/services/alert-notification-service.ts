@@ -173,7 +173,7 @@ const COMMERCIALS = [
 
 // Mock managers
 const MANAGERS = [
-  { id: "mgr_1", name: "Pierre Dupont", email: "pierre@fastgross.pro", phone: "06 55 66 77 88" },
+  { id: "mgr_1", name: "Hamza Bouazza", email: "hamza@fastgross.pro", phone: "06 55 66 77 88" },
 ];
 
 // Get assigned commercial for a client

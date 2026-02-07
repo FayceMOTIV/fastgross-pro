@@ -80,7 +80,7 @@ const mockReferrals: Referral[] = [
     id: "ref_2",
     referrerId: "user_1",
     referredEmail: "contact@burgerexpress.fr",
-    referredName: "Mohamed Burger",
+    referredName: "Ali Burger",
     referredBusiness: "Burger Express",
     status: "contacted",
     code: "PARRAIN-DEF456",

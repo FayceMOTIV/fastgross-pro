@@ -153,7 +153,7 @@ export default function LivreurPage() {
   const [driverStatus, setDriverStatus] = useState<DriverStatus>('available');
   const [deliveries, setDeliveries] = useState<Delivery[]>(mockDeliveries);
 
-  const driverName = 'Mohamed';
+  const driverName = 'Hamza';
   const today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',

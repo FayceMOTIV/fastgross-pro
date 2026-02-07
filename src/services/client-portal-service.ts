@@ -185,7 +185,7 @@ const mockClient: ClientProfile = {
   paymentTerms: 30,
   creditLimit: 5000,
   commercialId: 'com-001',
-  commercialName: 'Mohamed Karim',
+  commercialName: 'Hamza Karim',
   commercialPhone: '06 12 34 56 78',
   createdAt: new Date('2023-06-15'),
 };

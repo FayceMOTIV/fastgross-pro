@@ -126,7 +126,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/app" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
               <span className="text-white font-bold text-lg">D</span>
             </div>
@@ -139,6 +139,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </Link>
+          {!collapsed && (
+            <Link href="/" className="text-xs text-slate-400 hover:text-violet-600 transition-colors">
+              ← Site
+            </Link>
+          )}
           <button
             onClick={() => setMobileOpen(false)}
             className="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
@@ -284,7 +289,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <span className="text-sm font-bold text-white">MD</span>
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">Mohamed D.</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">Hamza B.</p>
                   <p className="text-xs text-slate-500">Directeur</p>
                 </div>
               </button>

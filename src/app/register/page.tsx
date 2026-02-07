@@ -254,7 +254,7 @@ export default function RegisterPage() {
                     value={formData.firstName}
                     onChange={(e) => updateField("firstName", e.target.value)}
                     className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all"
-                    placeholder="Mohamed"
+                    placeholder="Hamza"
                     required
                     disabled={isLoading}
                   />

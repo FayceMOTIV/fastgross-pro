@@ -153,8 +153,8 @@ export interface Report {
 const mockTeamMembers: TeamMember[] = [
   {
     id: 'com-001',
-    name: 'Mohamed Karim',
-    email: 'mohamed.k@fastgross.pro',
+    name: 'Hamza Karim',
+    email: 'hamza.k@fastgross.pro',
     phone: '06 12 34 56 78',
     role: 'commercial',
     status: 'on_field',
@@ -199,8 +199,8 @@ const mockTeamMembers: TeamMember[] = [
   },
   {
     id: 'com-003',
-    name: 'Pierre Durand',
-    email: 'pierre.d@fastgross.pro',
+    name: 'Youssef Benali',
+    email: 'youssef.b@fastgross.pro',
     phone: '06 34 56 78 90',
     role: 'commercial',
     status: 'absent',
@@ -319,7 +319,7 @@ const mockValidations: PendingValidation[] = [
     id: 'val-001',
     type: 'order',
     createdAt: new Date(Date.now() - 15 * 60 * 1000),
-    requestedBy: { id: 'com-001', name: 'Mohamed Karim' },
+    requestedBy: { id: 'com-001', name: 'Hamza Karim' },
     data: {
       orderId: 'CMD-2024-0925',
       clientName: 'Mega Burger',
@@ -349,7 +349,7 @@ const mockValidations: PendingValidation[] = [
     id: 'val-003',
     type: 'new_client',
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    requestedBy: { id: 'com-001', name: 'Mohamed Karim' },
+    requestedBy: { id: 'com-001', name: 'Hamza Karim' },
     data: {
       clientName: 'Fast Chicken',
       type: 'Fast-food',

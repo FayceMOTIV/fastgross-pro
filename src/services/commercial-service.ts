@@ -310,7 +310,7 @@ const MOCK_CLIENTS: CommercialClient[] = [
       lng: 5.3956,
     },
     contact: {
-      name: 'Pierre Martin',
+      name: 'Ahmed Rahimi',
       phone: '06 23 45 67 89',
     },
   },
