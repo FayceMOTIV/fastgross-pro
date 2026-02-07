@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { OrgProvider } from '@/contexts/OrgContext'
+import { OrgProvider, useOrg } from '@/contexts/OrgContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { DemoProvider, useDemo } from '@/contexts/DemoContext'
 
 // Components (not lazy - needed immediately)
 import Layout from '@/components/Layout'
@@ -11,25 +12,57 @@ import { OnboardingProvider } from '@/components/OnboardingTour'
 import { TooltipProvider } from '@/components/Tooltip'
 import PageLoader from '@/components/PageLoader'
 
-// Lazy loaded pages
+// Lazy loaded pages - Public
 const Landing = lazy(() => import('@/pages/Landing'))
 const Login = lazy(() => import('@/pages/Login'))
 const Signup = lazy(() => import('@/pages/Signup'))
-const Onboarding = lazy(() => import('@/pages/Onboarding'))
-const Dashboard = lazy(() => import('@/pages/Dashboard'))
-const Scanner = lazy(() => import('@/pages/Scanner'))
-const Forgeur = lazy(() => import('@/pages/Forgeur'))
-const Radar = lazy(() => import('@/pages/Radar'))
-const Proof = lazy(() => import('@/pages/Proof'))
-const Clients = lazy(() => import('@/pages/Clients'))
-const ClientDetail = lazy(() => import('@/pages/ClientDetail'))
-const Settings = lazy(() => import('@/pages/Settings'))
-const Analytics = lazy(() => import('@/pages/Analytics'))
 const Legal = lazy(() => import('@/pages/Legal'))
+const Unsubscribe = lazy(() => import('@/pages/Unsubscribe'))
 
-// Auth guard
+// Lazy loaded pages - Onboarding
+const OnboardingChat = lazy(() => import('@/pages/OnboardingChat'))
+const OnboardingPlan = lazy(() => import('@/pages/OnboardingPlan'))
+const OnboardingSequence = lazy(() => import('@/pages/OnboardingSequence'))
+
+// Lazy loaded pages - App (v2.0)
+const Dashboard = lazy(() => import('@/pages/Dashboard'))
+const Prospects = lazy(() => import('@/pages/Prospects'))
+const Templates = lazy(() => import('@/pages/Templates'))
+const Sequences = lazy(() => import('@/pages/Sequences'))
+const Interactions = lazy(() => import('@/pages/Interactions'))
+const Analytics = lazy(() => import('@/pages/Analytics'))
+const Team = lazy(() => import('@/pages/Team'))
+const Integrations = lazy(() => import('@/pages/Integrations'))
+const Settings = lazy(() => import('@/pages/Settings'))
+
+
+// Auth guard with onboarding check
 function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, needsOnboarding } = useAuth()
+  const location = useLocation()
+  const { isDemo } = useDemo()
+
+  // Show loader while checking auth
+  if (loading) {
+    return <PageLoader />
+  }
+
+  // Allow access if user is authenticated OR in demo mode
+  if (user || isDemo) {
+    // Check if user needs to complete onboarding (skip for demo)
+    if (!isDemo && needsOnboarding && !location.pathname.startsWith('/onboarding')) {
+      return <Navigate to="/onboarding" replace />
+    }
+    return children
+  }
+
+  // Redirect to login if not authenticated and not in demo mode
+  return <Navigate to="/login" state={{ from: location }} replace />
+}
+
+// Onboarding route guard
+function OnboardingRoute({ children }) {
+  const { user, loading, needsOnboarding } = useAuth()
 
   if (loading) {
     return <PageLoader />
@@ -39,18 +72,62 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />
   }
 
+  // If onboarding is complete, redirect to app
+  if (!needsOnboarding) {
+    return <Navigate to="/app" replace />
+  }
+
   return children
 }
 
+// Public route - redirects authenticated users to app
 function PublicRoute({ children }) {
-  const { user, loading } = useAuth()
+  const { user, loading, needsOnboarding } = useAuth()
+  const { isDemo } = useDemo()
+
+  // Show loader while checking auth
+  if (loading) {
+    return <PageLoader />
+  }
+
+  // If user is logged in (and not in demo mode), redirect appropriately
+  if (user && !isDemo) {
+    if (needsOnboarding) {
+      return <Navigate to="/onboarding" replace />
+    }
+    return <Navigate to="/app" replace />
+  }
+
+  return children
+}
+
+// Organization guard - ensures user has an org selected
+function OrgGuard({ children }) {
+  const { currentOrg, loading, orgs } = useOrg()
+  const { isDemo } = useDemo()
+
+  if (isDemo) {
+    return children
+  }
 
   if (loading) {
     return <PageLoader />
   }
 
-  if (user) {
-    return <Navigate to="/app" replace />
+  // If no orgs at all, redirect to create one
+  if (!loading && orgs.length === 0) {
+    return <Navigate to="/onboarding" replace />
+  }
+
+  return children
+}
+
+// Permission guard component
+function PermissionGuard({ permission, fallback = null, children }) {
+  const { can } = useOrg()
+
+  if (permission && !can(permission)) {
+    return fallback || <Navigate to="/app" replace />
   }
 
   return children
@@ -61,44 +138,103 @@ export default function App() {
     <ThemeProvider>
       <TooltipProvider>
         <BrowserRouter>
-          <AuthProvider>
-            <OrgProvider>
-              <NotificationProvider>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+          <DemoProvider>
+            <AuthProvider>
+              <OrgProvider>
+                <NotificationProvider>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* ============================================ */}
+                    {/* PUBLIC ROUTES */}
+                    {/* ============================================ */}
 
-                {/* Onboarding */}
-                <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                    {/* Landing page */}
+                    <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
 
-                {/* App routes (protected) */}
-                <Route path="/app" element={<ProtectedRoute><OnboardingProvider><Layout /></OnboardingProvider></ProtectedRoute>}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="clients" element={<Clients />} />
-                  <Route path="clients/:clientId" element={<ClientDetail />} />
-                  <Route path="scanner" element={<Scanner />} />
-                  <Route path="forgeur" element={<Forgeur />} />
-                  <Route path="radar" element={<Radar />} />
-                  <Route path="proof" element={<Proof />} />
-                  <Route path="analytics" element={<Analytics />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
+                    {/* Auth pages */}
+                    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                    <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
 
-                {/* Landing page (public) */}
-                <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
+                    {/* Legal pages */}
+                    <Route path="/legal" element={<Legal />} />
+                    <Route path="/legal/:page" element={<Legal />} />
 
-                {/* Legal pages (public) */}
-                <Route path="/legal" element={<Legal />} />
+                    {/* Unsubscribe (public, no auth) */}
+                    <Route path="/unsubscribe" element={<Unsubscribe />} />
+                    <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
 
-                {/* Redirect */}
-                <Route path="*" element={<Navigate to="/app" replace />} />
-                </Routes>
-              </Suspense>
-            </NotificationProvider>
+                    {/* ============================================ */}
+                    {/* ONBOARDING ROUTES */}
+                    {/* ============================================ */}
+                    <Route path="/onboarding" element={<OnboardingRoute><OnboardingChat /></OnboardingRoute>} />
+                    <Route path="/onboarding/chat" element={<OnboardingRoute><OnboardingChat /></OnboardingRoute>} />
+                    <Route path="/onboarding/plan" element={<OnboardingRoute><OnboardingPlan /></OnboardingRoute>} />
+                    <Route path="/onboarding/sequence" element={<OnboardingRoute><OnboardingSequence /></OnboardingRoute>} />
+
+                    {/* ============================================ */}
+                    {/* APP ROUTES (Protected + Org Required) */}
+                    {/* ============================================ */}
+                    <Route
+                      path="/app"
+                      element={
+                        <ProtectedRoute>
+                          <OrgGuard>
+                            <OnboardingProvider>
+                              <Layout />
+                            </OnboardingProvider>
+                          </OrgGuard>
+                        </ProtectedRoute>
+                      }
+                    >
+                      {/* Dashboard */}
+                      <Route index element={<Dashboard />} />
+
+                      {/* Core v2.0 Pages */}
+                      <Route path="prospects" element={<Prospects />} />
+                      <Route path="prospects/:prospectId" element={<Prospects />} />
+                      <Route path="templates" element={<Templates />} />
+                      <Route path="templates/:templateId" element={<Templates />} />
+                      <Route path="sequences" element={<Sequences />} />
+                      <Route path="sequences/:sequenceId" element={<Sequences />} />
+                      <Route path="interactions" element={<Interactions />} />
+                      <Route path="analytics" element={<Analytics />} />
+
+                      {/* Team Management (requires permission) */}
+                      <Route
+                        path="team"
+                        element={
+                          <PermissionGuard permission="team:read">
+                            <Team />
+                          </PermissionGuard>
+                        }
+                      />
+
+                      {/* Integrations (requires admin) */}
+                      <Route
+                        path="integrations"
+                        element={
+                          <PermissionGuard permission="integrations:read">
+                            <Integrations />
+                          </PermissionGuard>
+                        }
+                      />
+
+                      {/* Settings */}
+                      <Route path="settings" element={<Settings />} />
+                      <Route path="settings/:section" element={<Settings />} />
+
+                    </Route>
+
+                    {/* ============================================ */}
+                    {/* CATCH-ALL REDIRECT */}
+                    {/* ============================================ */}
+                    <Route path="*" element={<Navigate to="/app" replace />} />
+                  </Routes>
+                </Suspense>
+              </NotificationProvider>
             </OrgProvider>
           </AuthProvider>
+          </DemoProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

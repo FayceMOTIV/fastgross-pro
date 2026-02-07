@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { Zap, ArrowRight, Loader2 } from 'lucide-react'
+import { Zap, ArrowRight, Loader2, Sparkles } from 'lucide-react'
 
 export default function Login() {
   const { signIn, signInWithGoogle } = useAuth()
@@ -40,6 +40,10 @@ export default function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDemo = () => {
+    navigate('/app?demo=true')
   }
 
   return (
@@ -183,10 +187,19 @@ export default function Login() {
             Continuer avec Google
           </button>
 
+          {/* Demo Button */}
+          <button
+            onClick={handleDemo}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-500/10 to-purple-500/10 border border-brand-500/30 text-brand-400 hover:from-brand-500/20 hover:to-purple-500/20 transition-all font-medium"
+          >
+            <Sparkles className="w-5 h-5" />
+            Tester la demo gratuitement
+          </button>
+
           <p className="text-center text-sm text-dark-500">
             Pas encore de compte ?{' '}
             <Link to="/signup" className="text-brand-400 hover:text-brand-300 font-medium">
-              Créer un compte
+              Creer un compte
             </Link>
           </p>
         </div>

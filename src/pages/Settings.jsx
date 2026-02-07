@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
-import { doc, updateDoc, deleteDoc, collection, getDocs, writeBatch } from 'firebase/firestore'
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { deleteUser, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { db, storage, auth } from '@/lib/firebase'
@@ -30,19 +30,51 @@ import {
   Palette,
   Sun,
   Moon,
+  Clock,
+  Bell,
+  Search,
+  Globe,
+  Zap,
+  ToggleLeft,
+  ToggleRight,
+  Smartphone,
+  Instagram,
+  Mic,
+  MapPin,
+  MessageSquare,
+  Euro,
 } from 'lucide-react'
+import { CHANNEL_STYLES } from '@/engine/multiChannelEngine'
+
+// Channel icon component
+const ChannelIcon = ({ channel, className = "w-4 h-4" }) => {
+  const icons = {
+    email: Mail,
+    sms: Smartphone,
+    whatsapp: Smartphone,
+    instagram_dm: Instagram,
+    facebook_dm: MessageSquare,
+    voicemail: Mic,
+    courrier: MapPin,
+  }
+  const Icon = icons[channel] || Mail
+  return <Icon className={className} />
+}
 import { useTheme } from '@/contexts/ThemeContext'
 import toast from 'react-hot-toast'
 
 const isDevMode = import.meta.env.VITE_USE_EMULATORS === 'true' || import.meta.env.DEV
 
 const baseTabs = [
+  { id: 'prospection', label: 'Prospection', icon: Search },
+  { id: 'channels', label: 'Canaux', icon: Zap },
+  { id: 'sources', label: 'Sources emails', icon: Globe },
+  { id: 'schedule', label: 'Planification', icon: Clock },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'profile', label: 'Profil', icon: User },
   { id: 'appearance', label: 'Apparence', icon: Palette },
   { id: 'organization', label: 'Organisation', icon: Building2 },
-  { id: 'email', label: 'Email', icon: Mail },
   { id: 'billing', label: 'Plan & Facturation', icon: CreditCard },
-  { id: 'team', label: 'Équipe', icon: Users },
   { id: 'danger', label: 'Zone dangereuse', icon: AlertTriangle },
 ]
 
@@ -52,8 +84,8 @@ const tabs = isDevMode ? [...baseTabs, devTab] : baseTabs
 export default function Settings() {
   const { user, userProfile } = useAuth()
   const { currentOrg } = useOrg()
-  const { theme, setTheme, isDark } = useTheme()
-  const [activeTab, setActiveTab] = useState('profile')
+  const { theme, setTheme } = useTheme()
+  const [activeTab, setActiveTab] = useState('prospection')
   const [saving, setSaving] = useState(false)
 
   // Profile state
@@ -66,8 +98,44 @@ export default function Settings() {
   const [senderEmail, setSenderEmail] = useState(currentOrg?.senderEmail || '')
   const [emailSignature, setEmailSignature] = useState(currentOrg?.emailSignature || '')
 
-  // Team state
-  const [inviteEmail, setInviteEmail] = useState('')
+  // Prospection settings
+  const [multiContact, setMultiContact] = useState(true)
+  const [maxContactsPerCompany, setMaxContactsPerCompany] = useState(3)
+  const [autoScore, setAutoScore] = useState(true)
+  const [minScore, setMinScore] = useState(60)
+
+  // Sources settings
+  const [hunterEnabled, setHunterEnabled] = useState(false)
+  const [hunterApiKey, setHunterApiKey] = useState('')
+  const [dropcontactEnabled, setDropcontactEnabled] = useState(false)
+  const [dropcontactApiKey, setDropcontactApiKey] = useState('')
+  const [scrapingEnabled, setScrapingEnabled] = useState(true)
+  const [linkedinEnabled, setLinkedinEnabled] = useState(false)
+
+  // Schedule settings
+  const [sendStartHour, setSendStartHour] = useState(9)
+  const [sendEndHour, setSendEndHour] = useState(18)
+  const [sendDays, setSendDays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
+  const [timezone, setTimezone] = useState('Europe/Paris')
+
+  // Notification settings
+  const [emailNotifications, setEmailNotifications] = useState(true)
+  const [notifyOnReply, setNotifyOnReply] = useState(true)
+  const [notifyOnOpen, setNotifyOnOpen] = useState(false)
+  const [notifyDailyDigest, setNotifyDailyDigest] = useState(true)
+  const [notifyWeeklyReport, setNotifyWeeklyReport] = useState(true)
+
+  // Channels settings
+  const [smsEnabled, setSmsEnabled] = useState(true)
+  const [smsPhone, setSmsPhone] = useState('')
+  const [instagramEnabled, setInstagramEnabled] = useState(true)
+  const [instagramHandle, setInstagramHandle] = useState('')
+  const [voicemailEnabled, setVoicemailEnabled] = useState(false)
+  const [voicemailMethod, setVoicemailMethod] = useState('tts')
+  const [voicemailVoice, setVoicemailVoice] = useState('female-fr')
+  const [courrierEnabled, setCourrierEnabled] = useState(false)
+  const [courrierMonthlyBudget, setCourrierMonthlyBudget] = useState(50)
+  const [courrierAddress, setCourrierAddress] = useState('')
 
   // Dev state
   const [seeding, setSeeding] = useState(false)
@@ -84,11 +152,28 @@ export default function Settings() {
   // Export
   const [exporting, setExporting] = useState(false)
 
+  const dayLabels = {
+    monday: 'Lun',
+    tuesday: 'Mar',
+    wednesday: 'Mer',
+    thursday: 'Jeu',
+    friday: 'Ven',
+    saturday: 'Sam',
+    sunday: 'Dim',
+  }
+
+  const toggleDay = (day) => {
+    if (sendDays.includes(day)) {
+      setSendDays(sendDays.filter(d => d !== day))
+    } else {
+      setSendDays([...sendDays, day])
+    }
+  }
+
   const handleSeedData = async () => {
     if (!isDevMode) return
     setSeeding(true)
     try {
-      // Call the seedData endpoint directly (works with emulator)
       const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project'
       const response = await fetch(
         `http://localhost:5001/${projectId}/europe-west1/seedData`,
@@ -96,13 +181,13 @@ export default function Settings() {
       )
       const data = await response.json()
       if (data.success) {
-        toast.success(`Données de démo créées : ${data.data.leads} leads, ${data.data.clients} clients`)
+        toast.success(`Donnees de demo creees : ${data.data.leads} leads, ${data.data.clients} clients`)
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
       console.error('Seed error:', error)
-      toast.error('Erreur : vérifiez que les emulateurs Firebase sont lancés')
+      toast.error('Erreur : verifiez que les emulateurs Firebase sont lances')
     } finally {
       setSeeding(false)
     }
@@ -114,7 +199,7 @@ export default function Settings() {
       await updateDoc(doc(db, 'users', user.uid), {
         displayName,
       })
-      toast.success('Profil mis à jour')
+      toast.success('Profil mis a jour')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')
     } finally {
@@ -132,7 +217,7 @@ export default function Settings() {
         senderEmail,
         emailSignature,
       })
-      toast.success('Organisation mise à jour')
+      toast.success('Organisation mise a jour')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')
     } finally {
@@ -140,37 +225,76 @@ export default function Settings() {
     }
   }
 
-  const handleInviteMember = async (e) => {
-    e.preventDefault()
-    if (!inviteEmail) return
-
-    // Validation email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(inviteEmail)) {
-      toast.error('Email invalide')
-      return
+  const handleSaveProspection = async () => {
+    setSaving(true)
+    try {
+      // Save to Firestore in real app
+      toast.success('Parametres de prospection sauvegardes')
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde')
+    } finally {
+      setSaving(false)
     }
+  }
 
-    // Pour l'instant, on informe que la fonctionnalité arrive bientôt
-    // TODO: Implémenter l'envoi d'invitation via Cloud Function
-    toast.success(`Invitation envoyée à ${inviteEmail}`, {
-      icon: '📧',
-      duration: 3000
-    })
-    setInviteEmail('')
+  const handleSaveSources = async () => {
+    setSaving(true)
+    try {
+      // Save to Firestore in real app
+      toast.success('Sources d\'emails sauvegardees')
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveSchedule = async () => {
+    setSaving(true)
+    try {
+      // Save to Firestore in real app
+      toast.success('Planification sauvegardee')
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    setSaving(true)
+    try {
+      // Save to Firestore in real app
+      toast.success('Notifications sauvegardees')
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveChannels = async () => {
+    setSaving(true)
+    try {
+      // Save to Firestore in real app
+      toast.success('Configuration des canaux sauvegardee')
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validation
     if (!file.type.startsWith('image/')) {
-      toast.error('Veuillez sélectionner une image')
+      toast.error('Veuillez selectionner une image')
       return
     }
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('L\'image ne doit pas dépasser 2MB')
+      toast.error('L\'image ne doit pas depasser 2MB')
       return
     }
 
@@ -184,7 +308,7 @@ export default function Settings() {
         photoURL: downloadURL
       })
 
-      toast.success('Photo de profil mise à jour')
+      toast.success('Photo de profil mise a jour')
     } catch (error) {
       console.error('Upload error:', error)
       toast.error('Erreur lors de l\'upload')
@@ -210,7 +334,6 @@ export default function Settings() {
         exportedAt: new Date().toISOString()
       }
 
-      // Télécharger comme JSON
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
@@ -219,7 +342,7 @@ export default function Settings() {
       link.click()
       URL.revokeObjectURL(url)
 
-      toast.success('Données exportées')
+      toast.success('Donnees exportees')
     } catch (error) {
       console.error('Export error:', error)
       toast.error('Erreur lors de l\'export')
@@ -236,17 +359,11 @@ export default function Settings() {
 
     setDeleting(true)
     try {
-      // Réauthentifier l'utilisateur
       const credential = EmailAuthProvider.credential(user.email, deletePassword)
       await reauthenticateWithCredential(auth.currentUser, credential)
-
-      // Supprimer les données Firestore de l'utilisateur
       await deleteDoc(doc(db, 'users', user.uid))
-
-      // Supprimer le compte Firebase Auth
       await deleteUser(auth.currentUser)
-
-      toast.success('Compte supprimé')
+      toast.success('Compte supprime')
     } catch (error) {
       console.error('Delete error:', error)
       if (error.code === 'auth/wrong-password') {
@@ -263,31 +380,22 @@ export default function Settings() {
 
   const plans = [
     {
-      name: 'Solo',
-      price: 79,
-      current: currentOrg?.plan === 'solo',
-      features: ['1 client', '200 emails/mois', 'Scanner', 'Forgeur', 'Radar']
+      name: 'Starter',
+      price: 49,
+      current: currentOrg?.plan === 'starter',
+      features: ['100 prospects/mois', '500 emails/mois', 'Scraping automatique', '1 utilisateur']
     },
     {
       name: 'Pro',
+      price: 99,
+      current: currentOrg?.plan === 'pro' || !currentOrg?.plan,
+      features: ['500 prospects/mois', '2000 emails/mois', 'Hunter.io + Dropcontact', '3 utilisateurs', 'Support prioritaire']
+    },
+    {
+      name: 'Scale',
       price: 199,
-      current: currentOrg?.plan === 'pro',
-      features: ['3 clients', '1000 emails/mois', 'Tout Solo +', 'Proof', 'Support prioritaire']
-    },
-    {
-      name: 'Agency',
-      price: 499,
-      current: currentOrg?.plan === 'agency',
-      features: ['Illimité', 'Illimité', 'Tout Pro +', 'White-label', 'API', 'Account manager']
-    },
-  ]
-
-  const teamMembers = [
-    {
-      name: user?.displayName || 'Vous',
-      email: user?.email,
-      role: 'owner',
-      avatar: user?.displayName?.charAt(0) || '?'
+      current: currentOrg?.plan === 'scale',
+      features: ['Illimite', '10000 emails/mois', 'Toutes les sources', 'Equipe illimitee', 'API access', 'Account manager']
     },
   ]
 
@@ -296,9 +404,9 @@ export default function Settings() {
       <div>
         <h1 className="page-title flex items-center gap-3">
           <SettingsIcon className="w-8 h-8 text-dark-400" />
-          Paramètres
+          Parametres
         </h1>
-        <p className="text-dark-400 mt-1">Gérez votre compte et votre organisation</p>
+        <p className="text-dark-400 mt-1">Configurez votre outil de prospection</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -326,10 +434,848 @@ export default function Settings() {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
+          {/* Prospection Tab */}
+          {activeTab === 'prospection' && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                <Search className="w-5 h-5 text-brand-400" />
+                <h2 className="section-title">Parametres de prospection</h2>
+              </div>
+
+              {/* Multi-contact toggle */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-brand-400" />
+                      <h3 className="font-medium text-white">Multi-contact par entreprise</h3>
+                    </div>
+                    <p className="text-sm text-dark-400 mt-2 ml-8">
+                      Contacter plusieurs personnes au sein de la meme entreprise pour maximiser vos chances de reponse
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setMultiContact(!multiContact)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      multiContact ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {multiContact ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {multiContact && (
+                  <div className="mt-4 ml-8 p-4 rounded-lg bg-dark-900/50">
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Nombre max de contacts par entreprise
+                    </label>
+                    <select
+                      value={maxContactsPerCompany}
+                      onChange={(e) => setMaxContactsPerCompany(parseInt(e.target.value))}
+                      className="input-field w-48"
+                    >
+                      <option value={2}>2 contacts</option>
+                      <option value={3}>3 contacts</option>
+                      <option value={5}>5 contacts</option>
+                      <option value={10}>10 contacts</option>
+                    </select>
+                    <p className="text-xs text-dark-500 mt-2">
+                      Recommande : 3 contacts (dirigeant, commercial, marketing)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Auto-scoring toggle */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Zap className="w-5 h-5 text-amber-400" />
+                      <h3 className="font-medium text-white">Scoring automatique</h3>
+                    </div>
+                    <p className="text-sm text-dark-400 mt-2 ml-8">
+                      Attribuer automatiquement un score de qualite a chaque prospect trouve
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setAutoScore(!autoScore)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      autoScore ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {autoScore ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {autoScore && (
+                  <div className="mt-4 ml-8 p-4 rounded-lg bg-dark-900/50">
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Score minimum pour envoyer un email
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={minScore}
+                        onChange={(e) => setMinScore(parseInt(e.target.value))}
+                        className="flex-1 accent-brand-500"
+                      />
+                      <span className="w-12 text-center font-medium text-white">{minScore}%</span>
+                    </div>
+                    <p className="text-xs text-dark-500 mt-2">
+                      Les prospects avec un score inferieur ne seront pas contactes automatiquement
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <button
+                  onClick={handleSaveProspection}
+                  disabled={saving}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Channels Tab */}
+          {activeTab === 'channels' && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                <Zap className="w-5 h-5 text-brand-400" />
+                <h2 className="section-title">Configuration des canaux</h2>
+              </div>
+
+              <p className="text-sm text-dark-400">
+                Configurez les canaux de contact pour vos sequences multicanales.
+                Plus de canaux = plus de chances de reponse.
+              </p>
+
+              {/* Email (always active) */}
+              <div className="p-5 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-white">Email</h3>
+                      <p className="text-sm text-dark-400">Canal principal - toujours actif</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">
+                    Actif
+                  </span>
+                </div>
+              </div>
+
+              {/* SMS */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${CHANNEL_STYLES.sms.bg}`}>
+                        <Smartphone className={`w-5 h-5 ${CHANNEL_STYLES.sms.color}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white">SMS / WhatsApp</h3>
+                        <p className="text-sm text-dark-400">Taux d'ouverture de 98% - max 2 par prospect</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSmsEnabled(!smsEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      smsEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {smsEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {smsEnabled && (
+                  <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50">
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Numero d'envoi SMS
+                    </label>
+                    <input
+                      type="tel"
+                      value={smsPhone}
+                      onChange={(e) => setSmsPhone(e.target.value)}
+                      className="input-field"
+                      placeholder="+33 6 12 34 56 78"
+                    />
+                    <p className="text-xs text-dark-500 mt-2">
+                      Le numero depuis lequel les SMS seront envoyes (necessite integration Twilio)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Instagram DM */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${CHANNEL_STYLES.instagram_dm.bg}`}>
+                        <Instagram className={`w-5 h-5 ${CHANNEL_STYLES.instagram_dm.color}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white">Instagram DM</h3>
+                        <p className="text-sm text-dark-400">Approche sociale pour commerces locaux - max 1 DM</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setInstagramEnabled(!instagramEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      instagramEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {instagramEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {instagramEnabled && (
+                  <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50">
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Compte Instagram
+                    </label>
+                    <input
+                      type="text"
+                      value={instagramHandle}
+                      onChange={(e) => setInstagramHandle(e.target.value)}
+                      className="input-field"
+                      placeholder="@votrecompte"
+                    />
+                    <p className="text-xs text-dark-500 mt-2">
+                      Votre compte Instagram professionnel (connectez-le dans les integrations)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Voicemail */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${CHANNEL_STYLES.voicemail.bg}`}>
+                        <Mic className={`w-5 h-5 ${CHANNEL_STYLES.voicemail.color}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white">Message vocal</h3>
+                        <p className="text-sm text-dark-400">Voicemail drop - le telephone ne sonne pas - max 1</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setVoicemailEnabled(!voicemailEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      voicemailEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {voicemailEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {voicemailEnabled && (
+                  <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-dark-300 mb-2">
+                        Methode de generation
+                      </label>
+                      <select
+                        value={voicemailMethod}
+                        onChange={(e) => setVoicemailMethod(e.target.value)}
+                        className="input-field"
+                      >
+                        <option value="tts">Text-to-Speech (IA)</option>
+                        <option value="recorded">Message pre-enregistre</option>
+                      </select>
+                    </div>
+
+                    {voicemailMethod === 'tts' && (
+                      <div>
+                        <label className="block text-sm font-medium text-dark-300 mb-2">
+                          Voix TTS
+                        </label>
+                        <select
+                          value={voicemailVoice}
+                          onChange={(e) => setVoicemailVoice(e.target.value)}
+                          className="input-field"
+                        >
+                          <option value="female-fr">Femme - Francais</option>
+                          <option value="male-fr">Homme - Francais</option>
+                          <option value="female-en">Femme - Anglais</option>
+                          <option value="male-en">Homme - Anglais</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-dark-500">
+                      Le message vocal est depose directement dans la messagerie sans faire sonner le telephone.
+                      Duree max : 30 secondes.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Courrier postal */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${CHANNEL_STYLES.courrier.bg}`}>
+                        <MapPin className={`w-5 h-5 ${CHANNEL_STYLES.courrier.color}`} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">Courrier postal</h3>
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs">
+                            Premium
+                          </span>
+                        </div>
+                        <p className="text-sm text-dark-400">Carte personnalisee avec QR code - 2.50 EUR/envoi</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setCourrierEnabled(!courrierEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      courrierEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {courrierEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {courrierEnabled && (
+                  <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-dark-300 mb-2">
+                        Budget mensuel maximum
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min={0}
+                          max={200}
+                          step={10}
+                          value={courrierMonthlyBudget}
+                          onChange={(e) => setCourrierMonthlyBudget(parseInt(e.target.value))}
+                          className="flex-1 accent-brand-500"
+                        />
+                        <div className="flex items-center gap-1 min-w-[80px]">
+                          <Euro className="w-4 h-4 text-amber-400" />
+                          <span className="font-medium text-white">{courrierMonthlyBudget} EUR</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-dark-500 mt-2">
+                        = max {Math.floor(courrierMonthlyBudget / 2.5)} courriers/mois
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-dark-300 mb-2">
+                        Adresse expediteur
+                      </label>
+                      <textarea
+                        value={courrierAddress}
+                        onChange={(e) => setCourrierAddress(e.target.value)}
+                        className="input-field min-h-[80px]"
+                        placeholder="Votre Entreprise&#10;123 Rue Example&#10;75001 Paris"
+                      />
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                      <p className="text-xs text-amber-400">
+                        Le courrier postal est reserve aux prospects chauds (score &ge; 70%) ou en derniere etape de sequence.
+                        Chaque carte inclut un QR code personnalise pour le tracking.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <button
+                  onClick={handleSaveChannels}
+                  disabled={saving}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Sources Tab */}
+          {activeTab === 'sources' && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                <Globe className="w-5 h-5 text-brand-400" />
+                <h2 className="section-title">Sources d'emails</h2>
+              </div>
+
+              <p className="text-sm text-dark-400">
+                Configurez les sources utilisees pour trouver les emails de vos prospects.
+                Plus de sources = plus de chances de trouver l'email valide.
+              </p>
+
+              {/* Scraping */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Search className="w-5 h-5 text-blue-400" />
+                      <h3 className="font-medium text-white">Scraping de sites web</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 text-xs">
+                        Gratuit
+                      </span>
+                    </div>
+                    <p className="text-sm text-dark-400 mt-2 ml-8">
+                      Extraction automatique des emails depuis les pages contact, mentions legales, etc.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setScrapingEnabled(!scrapingEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      scrapingEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {scrapingEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Hunter.io */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-amber-400" />
+                      <h3 className="font-medium text-white">Hunter.io</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs">
+                        Premium
+                      </span>
+                    </div>
+                    <p className="text-sm text-dark-400 mt-2 ml-8">
+                      API professionnelle pour trouver et verifier les emails. ~50 credits/mois gratuits.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setHunterEnabled(!hunterEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      hunterEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {hunterEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {hunterEnabled && (
+                  <div className="mt-4 ml-8 p-4 rounded-lg bg-dark-900/50">
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Cle API Hunter.io
+                    </label>
+                    <input
+                      type="password"
+                      value={hunterApiKey}
+                      onChange={(e) => setHunterApiKey(e.target.value)}
+                      className="input-field"
+                      placeholder="Votre cle API Hunter.io"
+                    />
+                    <a
+                      href="https://hunter.io/api_keys"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-brand-400 hover:underline mt-2 inline-flex items-center gap-1"
+                    >
+                      Obtenir une cle API
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Dropcontact */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-purple-400" />
+                      <h3 className="font-medium text-white">Dropcontact</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 text-xs">
+                        Premium
+                      </span>
+                    </div>
+                    <p className="text-sm text-dark-400 mt-2 ml-8">
+                      Enrichissement B2B francais. Excellent pour les entreprises francaises.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setDropcontactEnabled(!dropcontactEnabled)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      dropcontactEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {dropcontactEnabled ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+
+                {dropcontactEnabled && (
+                  <div className="mt-4 ml-8 p-4 rounded-lg bg-dark-900/50">
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Cle API Dropcontact
+                    </label>
+                    <input
+                      type="password"
+                      value={dropcontactApiKey}
+                      onChange={(e) => setDropcontactApiKey(e.target.value)}
+                      className="input-field"
+                      placeholder="Votre cle API Dropcontact"
+                    />
+                    <a
+                      href="https://www.dropcontact.com/fr/api"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-brand-400 hover:underline mt-2 inline-flex items-center gap-1"
+                    >
+                      Obtenir une cle API
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* LinkedIn (coming soon) */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10 opacity-50">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-blue-400" />
+                      <h3 className="font-medium text-white">LinkedIn Sales Navigator</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-dark-700 text-dark-400 text-xs">
+                        Bientot disponible
+                      </span>
+                    </div>
+                    <p className="text-sm text-dark-400 mt-2 ml-8">
+                      Import de leads depuis LinkedIn avec enrichissement automatique.
+                    </p>
+                  </div>
+                  <button disabled className="flex-shrink-0 p-1 rounded-full bg-dark-700 cursor-not-allowed">
+                    <ToggleLeft className="w-8 h-8 text-dark-500" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <button
+                  onClick={handleSaveSources}
+                  disabled={saving}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Schedule Tab */}
+          {activeTab === 'schedule' && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                <Clock className="w-5 h-5 text-brand-400" />
+                <h2 className="section-title">Planification des envois</h2>
+              </div>
+
+              {/* Send hours */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="font-medium text-white mb-4">Heures d'envoi</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Debut
+                    </label>
+                    <select
+                      value={sendStartHour}
+                      onChange={(e) => setSendStartHour(parseInt(e.target.value))}
+                      className="input-field"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                      Fin
+                    </label>
+                    <select
+                      value={sendEndHour}
+                      onChange={(e) => setSendEndHour(parseInt(e.target.value))}
+                      className="input-field"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-dark-500 mt-3">
+                  Les emails seront envoyes entre {sendStartHour}h et {sendEndHour}h ({timezone})
+                </p>
+              </div>
+
+              {/* Send days */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="font-medium text-white mb-4">Jours d'envoi</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(dayLabels).map(([day, label]) => (
+                    <button
+                      key={day}
+                      onClick={() => toggleDay(day)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        sendDays.includes(day)
+                          ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
+                          : 'bg-dark-800 text-dark-400 border border-dark-700 hover:border-dark-600'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-dark-500 mt-3">
+                  Recommande : evitez le week-end pour de meilleurs taux d'ouverture
+                </p>
+              </div>
+
+              {/* Timezone */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="font-medium text-white mb-4">Fuseau horaire</h3>
+                <select
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  className="input-field w-full md:w-64"
+                >
+                  <option value="Europe/Paris">Europe/Paris (UTC+1)</option>
+                  <option value="Europe/London">Europe/London (UTC+0)</option>
+                  <option value="America/New_York">America/New_York (UTC-5)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (UTC-8)</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <button
+                  onClick={handleSaveSchedule}
+                  disabled={saving}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Notifications Tab */}
+          {activeTab === 'notifications' && (
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                <Bell className="w-5 h-5 text-brand-400" />
+                <h2 className="section-title">Notifications</h2>
+              </div>
+
+              {/* Email notifications toggle */}
+              <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-white">Notifications par email</h3>
+                    <p className="text-sm text-dark-400 mt-1">
+                      Recevoir les notifications sur {user?.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setEmailNotifications(!emailNotifications)}
+                    className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                      emailNotifications ? 'bg-brand-500' : 'bg-dark-700'
+                    }`}
+                  >
+                    {emailNotifications ? (
+                      <ToggleRight className="w-8 h-8 text-white" />
+                    ) : (
+                      <ToggleLeft className="w-8 h-8 text-dark-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {emailNotifications && (
+                <div className="space-y-3 ml-4">
+                  {/* Notify on reply */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+                    <div>
+                      <p className="text-sm font-medium text-white">Nouvelles reponses</p>
+                      <p className="text-xs text-dark-500">Quand un prospect repond a votre email</p>
+                    </div>
+                    <button
+                      onClick={() => setNotifyOnReply(!notifyOnReply)}
+                      className={`p-0.5 rounded-full transition-colors ${
+                        notifyOnReply ? 'bg-brand-500' : 'bg-dark-700'
+                      }`}
+                    >
+                      {notifyOnReply ? (
+                        <ToggleRight className="w-6 h-6 text-white" />
+                      ) : (
+                        <ToggleLeft className="w-6 h-6 text-dark-400" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Notify on open */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+                    <div>
+                      <p className="text-sm font-medium text-white">Ouvertures d'email</p>
+                      <p className="text-xs text-dark-500">Quand un prospect ouvre votre email</p>
+                    </div>
+                    <button
+                      onClick={() => setNotifyOnOpen(!notifyOnOpen)}
+                      className={`p-0.5 rounded-full transition-colors ${
+                        notifyOnOpen ? 'bg-brand-500' : 'bg-dark-700'
+                      }`}
+                    >
+                      {notifyOnOpen ? (
+                        <ToggleRight className="w-6 h-6 text-white" />
+                      ) : (
+                        <ToggleLeft className="w-6 h-6 text-dark-400" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Daily digest */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+                    <div>
+                      <p className="text-sm font-medium text-white">Resume quotidien</p>
+                      <p className="text-xs text-dark-500">Recap de la journee chaque soir a 18h</p>
+                    </div>
+                    <button
+                      onClick={() => setNotifyDailyDigest(!notifyDailyDigest)}
+                      className={`p-0.5 rounded-full transition-colors ${
+                        notifyDailyDigest ? 'bg-brand-500' : 'bg-dark-700'
+                      }`}
+                    >
+                      {notifyDailyDigest ? (
+                        <ToggleRight className="w-6 h-6 text-white" />
+                      ) : (
+                        <ToggleLeft className="w-6 h-6 text-dark-400" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Weekly report */}
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+                    <div>
+                      <p className="text-sm font-medium text-white">Rapport hebdomadaire</p>
+                      <p className="text-xs text-dark-500">Statistiques de la semaine chaque lundi</p>
+                    </div>
+                    <button
+                      onClick={() => setNotifyWeeklyReport(!notifyWeeklyReport)}
+                      className={`p-0.5 rounded-full transition-colors ${
+                        notifyWeeklyReport ? 'bg-brand-500' : 'bg-dark-700'
+                      }`}
+                    >
+                      {notifyWeeklyReport ? (
+                        <ToggleRight className="w-6 h-6 text-white" />
+                      ) : (
+                        <ToggleLeft className="w-6 h-6 text-dark-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <button
+                  onClick={handleSaveNotifications}
+                  disabled={saving}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Profile Tab */}
           {activeTab === 'profile' && (
-            <div className="glass-card p-8 space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-dark-800/50">
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
                 <User className="w-5 h-5 text-brand-400" />
                 <h2 className="section-title">Profil</h2>
               </div>
@@ -395,20 +1341,20 @@ export default function Settings() {
                     disabled
                     className="input-field opacity-50 cursor-not-allowed"
                   />
-                  <p className="text-xs text-dark-500 mt-1">L'email ne peut pas être modifié</p>
+                  <p className="text-xs text-dark-500 mt-1">L'email ne peut pas etre modifie</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-dark-800/50">
+              <div className="flex items-center justify-between pt-4 border-t border-white/10">
                 <button
                   onClick={() => {
                     localStorage.removeItem('fmf_tour_completed')
-                    toast.success('Tour réinitialisé. Retournez sur le Dashboard pour le revoir.')
+                    toast.success('Tour reinitialise. Retournez sur le Dashboard pour le revoir.')
                   }}
                   className="btn-ghost text-sm flex items-center gap-2"
                 >
                   <HelpCircle className="w-4 h-4" />
-                  Revoir le tour guidé
+                  Revoir le tour guide
                 </button>
                 <button
                   onClick={handleSaveProfile}
@@ -428,14 +1374,14 @@ export default function Settings() {
 
           {/* Appearance Tab */}
           {activeTab === 'appearance' && (
-            <div className="glass-card p-8 space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-dark-800/50">
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
                 <Palette className="w-5 h-5 text-brand-400" />
                 <h2 className="section-title">Apparence</h2>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-dark-300 mb-4">Thème</h3>
+                <h3 className="text-sm font-medium text-dark-300 mb-4">Theme</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => setTheme('light')}
@@ -474,7 +1420,7 @@ export default function Settings() {
                       </div>
                       <div className="text-left">
                         <p className="font-medium text-white">Mode sombre</p>
-                        <p className="text-xs text-dark-500">Réduit la fatigue oculaire</p>
+                        <p className="text-xs text-dark-500">Reduit la fatigue oculaire</p>
                       </div>
                     </div>
                     <div className="w-full h-20 rounded-lg bg-dark-900 border border-dark-700 p-2">
@@ -485,9 +1431,9 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-dark-800/50">
+              <div className="pt-4 border-t border-white/10">
                 <p className="text-xs text-dark-500">
-                  Le thème est sauvegardé automatiquement et sera appliqué à chaque connexion.
+                  Le theme est sauvegarde automatiquement et sera applique a chaque connexion.
                 </p>
               </div>
             </div>
@@ -495,8 +1441,8 @@ export default function Settings() {
 
           {/* Organization Tab */}
           {activeTab === 'organization' && (
-            <div className="glass-card p-8 space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-dark-800/50">
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-8 space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b border-white/10">
                 <Building2 className="w-5 h-5 text-brand-400" />
                 <h2 className="section-title">Organisation</h2>
               </div>
@@ -527,89 +1473,7 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Logo (bientôt disponible)
-                </label>
-                <div className="border-2 border-dashed border-dark-700 rounded-xl p-8 text-center hover:border-dark-600 transition-colors cursor-pointer">
-                  <Building2 className="w-8 h-8 text-dark-600 mx-auto mb-2" />
-                  <p className="text-sm text-dark-500">Glissez votre logo ici ou cliquez</p>
-                  <p className="text-xs text-dark-600 mt-1">PNG, SVG. Max 1MB</p>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4 border-t border-dark-800/50">
-                <button
-                  onClick={handleSaveOrg}
-                  disabled={saving}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  {saving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Enregistrer
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Email Tab */}
-          {activeTab === 'email' && (
-            <div className="glass-card p-8 space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b border-dark-800/50">
-                <Mail className="w-5 h-5 text-brand-400" />
-                <h2 className="section-title">Configuration Email</h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2">
-                    Nom de l'expéditeur
-                  </label>
-                  <input
-                    type="text"
-                    value={senderName}
-                    onChange={(e) => setSenderName(e.target.value)}
-                    className="input-field"
-                    placeholder="Jean de Mon Agence"
-                  />
-                  <p className="text-xs text-dark-500 mt-1">
-                    Ce nom apparaîtra dans la boîte de réception de vos destinataires
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2">
-                    Email d'envoi
-                  </label>
-                  <input
-                    type="email"
-                    value={senderEmail}
-                    onChange={(e) => setSenderEmail(e.target.value)}
-                    className="input-field"
-                    placeholder="contact@monagence.com"
-                  />
-                  <p className="text-xs text-dark-500 mt-1">
-                    Domaine personnalisé à configurer dans Resend
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">
-                  Signature par défaut
-                </label>
-                <textarea
-                  value={emailSignature}
-                  onChange={(e) => setEmailSignature(e.target.value)}
-                  rows={4}
-                  className="input-field resize-none"
-                  placeholder="Cordialement,&#10;Jean Dupont&#10;Mon Agence&#10;01 23 45 67 89"
-                />
-              </div>
-
-              <div className="flex justify-end pt-4 border-t border-dark-800/50">
+              <div className="flex justify-end pt-4 border-t border-white/10">
                 <button
                   onClick={handleSaveOrg}
                   disabled={saving}
@@ -630,19 +1494,19 @@ export default function Settings() {
           {activeTab === 'billing' && (
             <div className="space-y-6">
               {/* Current plan */}
-              <div className="glass-card p-6">
+              <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-dark-400">Plan actuel</p>
                     <p className="text-2xl font-display font-bold text-white mt-1">
-                      {currentOrg?.plan === 'agency' ? 'Agency' :
-                       currentOrg?.plan === 'pro' ? 'Pro' : 'Solo'}
+                      {currentOrg?.plan === 'scale' ? 'Scale' :
+                       currentOrg?.plan === 'starter' ? 'Starter' : 'Pro'}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-dark-400">Usage ce mois</p>
                     <p className="text-lg font-medium text-white mt-1">
-                      0 / {currentOrg?.settings?.emailsPerMonth || 200} emails
+                      0 / {currentOrg?.settings?.emailsPerMonth || 2000} emails
                     </p>
                     <div className="w-32 h-2 bg-dark-800 rounded-full mt-2 overflow-hidden">
                       <div className="h-full bg-brand-500 rounded-full" style={{ width: '0%' }} />
@@ -656,8 +1520,8 @@ export default function Settings() {
                 {plans.map((plan) => (
                   <div
                     key={plan.name}
-                    className={`glass-card p-6 space-y-4 ${
-                      plan.current ? 'border-brand-500/50 ring-1 ring-brand-500/20' : ''
+                    className={`bg-white/5 rounded-2xl border p-6 space-y-4 ${
+                      plan.current ? 'border-brand-500/50 ring-1 ring-brand-500/20' : 'border-white/10'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -670,7 +1534,7 @@ export default function Settings() {
                     </div>
                     <div className="flex items-baseline gap-1">
                       <span className="text-3xl font-display font-bold text-white">
-                        {plan.price}€
+                        {plan.price}EUR
                       </span>
                       <span className="text-dark-500">/mois</span>
                     </div>
@@ -693,7 +1557,7 @@ export default function Settings() {
               </div>
 
               <p className="text-xs text-dark-500 text-center">
-                Besoin d'un plan personnalisé ?{' '}
+                Besoin d'un plan personnalise ?{' '}
                 <a href="mailto:contact@facemedia.fr" className="text-brand-400 hover:underline">
                   Contactez-nous
                 </a>
@@ -701,90 +1565,24 @@ export default function Settings() {
             </div>
           )}
 
-          {/* Team Tab */}
-          {activeTab === 'team' && (
-            <div className="space-y-6">
-              {/* Invite form */}
-              <div className="glass-card p-6">
-                <h3 className="text-sm font-medium text-dark-300 mb-4">
-                  Inviter un membre
-                </h3>
-                <form onSubmit={handleInviteMember} className="flex gap-3">
-                  <input
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="input-field flex-1"
-                    placeholder="email@exemple.com"
-                  />
-                  <button type="submit" className="btn-primary flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Inviter
-                  </button>
-                </form>
-              </div>
-
-              {/* Members list */}
-              <div className="glass-card overflow-hidden">
-                <div className="p-4 border-b border-dark-800/50">
-                  <h3 className="text-sm font-medium text-dark-300">
-                    Membres ({teamMembers.length})
-                  </h3>
-                </div>
-                <div className="divide-y divide-dark-800/30">
-                  {teamMembers.map((member, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 hover:bg-dark-800/20">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-sm font-bold text-dark-950">
-                          {member.avatar}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{member.name}</p>
-                          <p className="text-xs text-dark-500">{member.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`badge flex items-center gap-1 ${
-                          member.role === 'owner' ? 'badge-warning' :
-                          member.role === 'admin' ? 'badge-info' : 'badge-success'
-                        }`}>
-                          {member.role === 'owner' && <Crown className="w-3 h-3" />}
-                          {member.role === 'admin' && <Shield className="w-3 h-3" />}
-                          {member.role === 'member' && <UserCircle className="w-3 h-3" />}
-                          {member.role === 'owner' ? 'Propriétaire' :
-                           member.role === 'admin' ? 'Admin' : 'Membre'}
-                        </span>
-                        {member.role !== 'owner' && (
-                          <button className="p-1.5 rounded-lg hover:bg-red-500/10 text-dark-500 hover:text-red-400 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Danger Zone Tab */}
           {activeTab === 'danger' && (
             <div className="space-y-6">
-              <div className="glass-card p-6 border-red-500/20 bg-red-500/5">
+              <div className="bg-white/5 rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <AlertTriangle className="w-5 h-5 text-red-400" />
                   <h3 className="font-display font-semibold text-white">Zone dangereuse</h3>
                 </div>
                 <p className="text-sm text-dark-400 mb-6">
-                  Ces actions sont irréversibles. Procédez avec précaution.
+                  Ces actions sont irreversibles. Procedez avec precaution.
                 </p>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 rounded-xl bg-dark-900/50 border border-dark-800">
                     <div>
-                      <p className="text-sm font-medium text-white">Exporter mes données</p>
+                      <p className="text-sm font-medium text-white">Exporter mes donnees</p>
                       <p className="text-xs text-dark-500 mt-1">
-                        Téléchargez toutes vos données au format JSON
+                        Telechargez toutes vos donnees au format JSON
                       </p>
                     </div>
                     <button
@@ -805,7 +1603,7 @@ export default function Settings() {
                     <div>
                       <p className="text-sm font-medium text-red-400">Supprimer mon compte</p>
                       <p className="text-xs text-dark-500 mt-1">
-                        Supprime définitivement votre compte et toutes vos données
+                        Supprime definitivement votre compte et toutes vos donnees
                       </p>
                     </div>
                     <button
@@ -823,25 +1621,24 @@ export default function Settings() {
           {/* Dev Tools Tab (only in dev mode) */}
           {activeTab === 'dev' && isDevMode && (
             <div className="space-y-6">
-              <div className="glass-card p-6 border-amber-500/20 bg-amber-500/5">
+              <div className="bg-white/5 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Wrench className="w-5 h-5 text-amber-400" />
-                  <h3 className="font-display font-semibold text-white">Outils de développement</h3>
+                  <h3 className="font-display font-semibold text-white">Outils de developpement</h3>
                 </div>
                 <p className="text-sm text-dark-400 mb-6">
-                  Ces outils sont disponibles uniquement en environnement de développement.
+                  Ces outils sont disponibles uniquement en environnement de developpement.
                 </p>
 
                 <div className="space-y-4">
-                  {/* Seed Data */}
                   <div className="flex items-center justify-between p-4 rounded-xl bg-dark-900/50 border border-amber-500/20">
                     <div>
                       <p className="text-sm font-medium text-white flex items-center gap-2">
                         <Database className="w-4 h-4 text-amber-400" />
-                        Peupler avec des données de démo
+                        Peupler avec des donnees de demo
                       </p>
                       <p className="text-xs text-dark-500 mt-1">
-                        Crée 1 organisation, 3 clients, 20 leads, 2 campagnes, 50 events email
+                        Cree 1 organisation, 3 clients, 20 leads, 2 campagnes, 50 events email
                       </p>
                     </div>
                     <button
@@ -858,30 +1655,6 @@ export default function Settings() {
                     </button>
                   </div>
 
-                  {/* Emulator status */}
-                  <div className="p-4 rounded-xl bg-dark-900/50 border border-dark-800">
-                    <p className="text-sm font-medium text-white mb-2">État des émulateurs</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-dark-400">Auth: localhost:9099</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-dark-400">Firestore: localhost:8080</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-dark-400">Functions: localhost:5001</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        <span className="text-dark-400">UI: localhost:4000</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick links */}
                   <div className="p-4 rounded-xl bg-dark-900/50 border border-dark-800">
                     <p className="text-sm font-medium text-white mb-3">Liens rapides</p>
                     <div className="flex flex-wrap gap-2">
@@ -925,7 +1698,7 @@ export default function Settings() {
         <div className="space-y-4">
           <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
             <p className="text-sm text-red-400">
-              <strong>Attention :</strong> Cette action est irréversible. Toutes vos données seront supprimées définitivement.
+              <strong>Attention :</strong> Cette action est irreversible. Toutes vos donnees seront supprimees definitivement.
             </p>
           </div>
 

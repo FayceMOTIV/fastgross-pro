@@ -11,5 +11,10 @@ export { generateSequence } from './forgeur/generateSequence.js'
 export { sendCampaignEmail, handleEmailWebhook } from './email/sendEmail.js'
 export { generateReport } from './proof/generateReport.js'
 
+// AutoPilot functions (Phase 4)
+export { sendProspectEmail, testSmtpConnection } from './autopilot/sendProspectEmail.js'
+export { dailyAutoPilot, runAutoPilotManual } from './autopilot/scheduler.js'
+export { handleUnsubscribe, handleProspectEmailWebhook } from './autopilot/unsubscribe.js'
+
 // Dev functions (only available in development/emulator)
 export { seedData } from './dev/seedData.js'

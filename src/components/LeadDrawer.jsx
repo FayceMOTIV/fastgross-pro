@@ -16,15 +16,38 @@ import {
   Edit3,
   Trash2,
   ExternalLink,
+  Smartphone,
+  Instagram,
+  Mic,
+  MapPin,
+  Check,
+  XCircle,
 } from 'lucide-react'
+import { CHANNEL_STYLES } from '@/engine/multiChannelEngine'
 
 const statusLabels = {
   new: { label: 'Nouveau', class: 'badge-info' },
-  contacted: { label: 'Contacté', class: 'badge-warning' },
+  contacted: { label: 'Contacte', class: 'badge-warning' },
   opened: { label: 'A ouvert', class: 'badge-warning' },
-  replied: { label: 'A répondu', class: 'badge-success' },
+  replied: { label: 'A repondu', class: 'badge-success' },
   converted: { label: 'Converti', class: 'badge-success' },
   lost: { label: 'Perdu', class: 'badge-danger' },
+  archived: { label: 'Archive', class: 'badge-danger' },
+}
+
+// Channel icon component
+const ChannelIcon = ({ channel, className = "w-4 h-4" }) => {
+  const icons = {
+    email: Mail,
+    sms: Smartphone,
+    whatsapp: Smartphone,
+    instagram_dm: Instagram,
+    facebook_dm: MessageSquare,
+    voicemail: Mic,
+    courrier: MapPin,
+  }
+  const Icon = icons[channel] || Mail
+  return <Icon className={className} />
 }
 
 const scoreColor = (score) => {
@@ -164,6 +187,42 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                 </div>
               </div>
 
+              {/* Channels available */}
+              {lead.channels && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                    Canaux disponibles
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(lead.channels).map(([channel, config]) => {
+                      const style = CHANNEL_STYLES[channel]
+                      if (!style) return null
+                      const isAvailable = config?.available
+                      return (
+                        <div
+                          key={channel}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+                            isAvailable
+                              ? `${style.bg} ${style.border}`
+                              : 'bg-dark-800/30 border-dark-700'
+                          }`}
+                        >
+                          <ChannelIcon channel={channel} className={`w-4 h-4 ${isAvailable ? style.color : 'text-dark-500'}`} />
+                          <span className={`text-xs font-medium ${isAvailable ? 'text-white' : 'text-dark-500'}`}>
+                            {style.label}
+                          </span>
+                          {isAvailable ? (
+                            <Check className="w-3 h-3 text-brand-400" />
+                          ) : (
+                            <XCircle className="w-3 h-3 text-dark-500" />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Quick actions */}
               <div className="flex gap-2">
                 <button className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm">
@@ -172,49 +231,157 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                 </button>
               </div>
 
-              {/* Timeline */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
-                  Historique
-                </h3>
-                <div className="space-y-4">
-                  {timeline.map((event, i) => {
-                    const eventIcons = {
-                      created: Calendar,
-                      email_sent: Send,
-                      email_opened: Eye,
-                      email_clicked: MousePointerClick,
-                      email_replied: MessageSquare,
-                    }
-                    const Icon = eventIcons[event.type] || Calendar
-
-                    return (
-                      <div key={i} className="flex gap-3">
-                        <div className="relative">
-                          <div className="w-8 h-8 rounded-lg bg-dark-800 flex items-center justify-center">
-                            <Icon className="w-4 h-4 text-dark-500" />
-                          </div>
-                          {i < timeline.length - 1 && (
-                            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-px h-6 bg-dark-700" />
-                          )}
-                        </div>
-                        <div className="flex-1 pb-4">
-                          <p className="text-sm text-white">{event.label}</p>
-                          {event.date && (
-                            <p className="text-xs text-dark-500 mt-0.5">
-                              {event.date?.toDate
-                                ? formatDistanceToNow(event.date.toDate(), { addSuffix: true, locale: fr })
-                                : event.date instanceof Date
-                                ? formatDistanceToNow(event.date, { addSuffix: true, locale: fr })
-                                : 'Date inconnue'}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
+              {/* Reply received */}
+              {lead.reply && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-brand-400" />
+                    Reponse recue
+                  </h3>
+                  <div className={`p-4 rounded-xl border ${CHANNEL_STYLES[lead.reply.channel]?.bg || 'bg-brand-500/10'} ${CHANNEL_STYLES[lead.reply.channel]?.border || 'border-brand-500/20'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <ChannelIcon
+                        channel={lead.reply.channel}
+                        className={`w-4 h-4 ${CHANNEL_STYLES[lead.reply.channel]?.color || 'text-brand-400'}`}
+                      />
+                      <span className={`text-sm font-medium ${CHANNEL_STYLES[lead.reply.channel]?.color || 'text-brand-400'}`}>
+                        Via {CHANNEL_STYLES[lead.reply.channel]?.label || 'Email'}
+                      </span>
+                      <span className="text-xs text-dark-500 ml-auto">{lead.reply.timeAgo}</span>
+                    </div>
+                    <p className="text-sm text-white italic">"{lead.reply.content}"</p>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Multichannel Sequence Timeline */}
+              {lead.sequence?.steps && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                    Sequence multicanale
+                  </h3>
+                  <div className="relative">
+                    {lead.sequence.steps.map((step, i) => {
+                      const channelStyle = CHANNEL_STYLES[step.channel] || CHANNEL_STYLES.email
+                      const isSent = step.status === 'sent'
+                      const isCancelled = step.status === 'cancelled_reply'
+                      const isPending = step.status === 'pending'
+
+                      return (
+                        <div key={i} className="flex gap-3 relative">
+                          {/* Vertical line */}
+                          {i < lead.sequence.steps.length - 1 && (
+                            <div
+                              className={`absolute top-10 left-4 w-0.5 h-8 ${
+                                isSent ? channelStyle.bg.replace('/10', '/40') : 'bg-dark-700'
+                              }`}
+                            />
+                          )}
+
+                          {/* Icon */}
+                          <div className="relative z-10">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              isSent ? channelStyle.bg :
+                              isCancelled ? 'bg-dark-800 opacity-50' :
+                              'bg-dark-800 border border-dashed border-dark-600'
+                            } ${isSent ? `border ${channelStyle.border}` : ''}`}>
+                              <ChannelIcon
+                                channel={step.channel}
+                                className={`w-4 h-4 ${
+                                  isSent ? channelStyle.color :
+                                  isCancelled ? 'text-dark-500' :
+                                  'text-dark-500'
+                                }`}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className={`flex-1 pb-6 ${isCancelled ? 'opacity-50' : ''}`}>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm font-medium ${isSent ? 'text-white' : 'text-dark-400'}`}>
+                                {channelStyle.label}
+                              </span>
+                              <span className="text-xs text-dark-500">J+{step.day}</span>
+                              {isSent && step.tracking?.opened && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs">
+                                  Lu
+                                </span>
+                              )}
+                              {isSent && step.tracking?.delivered && (
+                                <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-xs">
+                                  Livre
+                                </span>
+                              )}
+                              {isCancelled && (
+                                <span className="px-1.5 py-0.5 rounded bg-dark-700 text-dark-400 text-xs line-through">
+                                  Annule
+                                </span>
+                              )}
+                            </div>
+                            {step.label && (
+                              <p className={`text-xs mt-0.5 ${isSent ? 'text-dark-400' : 'text-dark-500'}`}>
+                                {step.label}
+                              </p>
+                            )}
+                            {step.sentAt && (
+                              <p className="text-xs text-dark-500 mt-1">
+                                Envoye le {format(new Date(step.sentAt), 'd MMM yyyy', { locale: fr })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Legacy Timeline (fallback) */}
+              {!lead.sequence?.steps && timeline.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                    Historique
+                  </h3>
+                  <div className="space-y-4">
+                    {timeline.map((event, i) => {
+                      const eventIcons = {
+                        created: Calendar,
+                        email_sent: Send,
+                        email_opened: Eye,
+                        email_clicked: MousePointerClick,
+                        email_replied: MessageSquare,
+                      }
+                      const Icon = eventIcons[event.type] || Calendar
+
+                      return (
+                        <div key={i} className="flex gap-3">
+                          <div className="relative">
+                            <div className="w-8 h-8 rounded-lg bg-dark-800 flex items-center justify-center">
+                              <Icon className="w-4 h-4 text-dark-500" />
+                            </div>
+                            {i < timeline.length - 1 && (
+                              <div className="absolute top-8 left-1/2 -translate-x-1/2 w-px h-6 bg-dark-700" />
+                            )}
+                          </div>
+                          <div className="flex-1 pb-4">
+                            <p className="text-sm text-white">{event.label}</p>
+                            {event.date && (
+                              <p className="text-xs text-dark-500 mt-0.5">
+                                {event.date?.toDate
+                                  ? formatDistanceToNow(event.date.toDate(), { addSuffix: true, locale: fr })
+                                  : event.date instanceof Date
+                                  ? formatDistanceToNow(event.date, { addSuffix: true, locale: fr })
+                                  : 'Date inconnue'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Notes */}
               {lead.notes && (

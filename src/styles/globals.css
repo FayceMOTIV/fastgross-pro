@@ -68,6 +68,12 @@
     @apply rounded-2xl;
   }
 
+  /* Force dark mode glass card for app pages */
+  [data-theme="dark"] .glass-card,
+  :root:not([data-theme="light"]) .glass-card {
+    @apply bg-white/5 border-white/10;
+  }
+
   .glass-card-hover {
     @apply glass-card transition-all duration-300 hover:border-brand-500/30 hover:shadow-lg hover:shadow-brand-500/5;
   }

@@ -242,10 +242,11 @@ export default function Legal() {
                 <h2>5. Destinataires</h2>
                 <p>Vos données peuvent être partagées avec :</p>
                 <ul>
-                  <li><strong>Firebase/Google</strong> : hébergement</li>
+                  <li><strong>Firebase/Google</strong> : hebergement</li>
                   <li><strong>Stripe</strong> : paiements</li>
-                  <li><strong>Resend</strong> : envoi d'emails</li>
-                  <li><strong>Anthropic</strong> : IA, pour l'analyse et la génération</li>
+                  <li><strong>Amazon SES</strong> : envoi d'emails transactionnels</li>
+                  <li><strong>Saleshandy</strong> : prospection email</li>
+                  <li><strong>Anthropic</strong> : IA, pour l'analyse et la generation</li>
                 </ul>
                 <p>Ces prestataires sont conformes au RGPD.</p>
 
@@ -329,23 +330,19 @@ export default function Legal() {
                   Dernière mise à jour : {lastUpdate}
                 </p>
 
-                <h2>Éditeur</h2>
-                {/* ⚠️ TODO: COMPLÉTER AVANT MISE EN PRODUCTION - Informations légales obligatoires */}
+                <h2>Editeur</h2>
                 <p>
                   <strong>Face Media Factory</strong><br />
-                  Société par Actions Simplifiée (SAS)<br />
-                  Capital social : 10 000€<br />
+                  Entreprise Individuelle<br />
                   <br />
-                  Siège social :<br />
-                  <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
+                  <strong>Editeur responsable :</strong> Faical Kriouar<br />
                   <br />
-                  SIRET : <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
-                  RCS Paris : <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
-                  TVA Intracommunautaire : FR <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
+                  <strong>Siege social :</strong><br />
+                  Septemes-les-Vallons<br />
+                  13240 Bouches-du-Rhone<br />
+                  France<br />
                   <br />
-                  Directeur de la publication : <span className="text-amber-400">[À COMPLÉTER AVANT PRODUCTION]</span><br />
-                  <br />
-                  Contact :{' '}
+                  <strong>Contact :</strong>{' '}
                   <a href="mailto:contact@facemediafactory.com" className="text-brand-400 hover:underline">
                     contact@facemediafactory.com
                   </a>

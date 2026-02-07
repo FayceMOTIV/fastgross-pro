@@ -1,0 +1,1328 @@
+// Demo Data - Donnees realistes pour la demonstration MULTICANALE
+// Ces donnees racontent une histoire credible de prospection automatisee multicanale
+
+// Canaux par type de prospect
+const CHANNEL_CONFIGS = {
+  restaurant: { email: true, sms: true, instagram: true, voicemail: true, courrier: true },
+  cabinet: { email: true, sms: true, voicemail: true, courrier: true },
+  salon: { email: true, sms: true, instagram: true, voicemail: false },
+  artisan: { email: true, sms: true, voicemail: true, courrier: false },
+  boutique: { email: true, sms: true, instagram: true, voicemail: false },
+  hotel: { email: true, sms: true, instagram: true, voicemail: true, courrier: true },
+  service: { email: true, sms: true, voicemail: true, courrier: false },
+}
+
+// Helper pour generer les canaux d'un prospect
+const generateChannels = (type, phone, instagram, address) => ({
+  email: { available: true },
+  sms: { available: CHANNEL_CONFIGS[type]?.sms || false, phone, whatsapp: Math.random() > 0.5 },
+  instagram: { available: CHANNEL_CONFIGS[type]?.instagram || false, handle: instagram },
+  facebook: { available: Math.random() > 0.6, page: instagram?.replace('@', '') },
+  voicemail: { available: CHANNEL_CONFIGS[type]?.voicemail || false, phone },
+  courrier: { available: CHANNEL_CONFIGS[type]?.courrier || false, address },
+})
+
+export const demoClients = [
+  // === REPLIED (7) - Ont repondu via differents canaux ===
+  {
+    id: 'demo-1',
+    name: "Restaurant Le Comptoir du Marche",
+    email: "contact@comptoirdumarche.fr",
+    contactName: "Marie Dubois",
+    firstName: "Marie",
+    lastName: "Dubois",
+    sector: "Restaurant gastronomique",
+    city: "Paris 3e",
+    status: "replied",
+    score: 95,
+    notes: "A repondu via Instagram ! RDV prevu le 8 fevrier.",
+    createdAt: new Date('2025-01-10'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('restaurant', '+33 6 12 34 56 78', '@comptoirdumarche', '12 rue des Arts, 75003 Paris'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 3,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-28T09:15:00Z', status: 'sent', tracking: { opened: true, openCount: 3, clicked: true } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-31T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, sentAt: '2025-02-04T14:03:00Z', status: 'sent', tracking: { seen: true, seenAt: '2025-02-04T18:30:00Z' } },
+        { number: 4, channel: 'email', day: 12, status: 'cancelled_reply' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'instagram_dm',
+      receivedAt: '2025-02-04T19:12:00Z',
+      content: "Oui ca m'interesse, appelez-moi demain matin !",
+      preview: "Oui ca m'interesse...",
+      timeAgo: '2h',
+    },
+  },
+  {
+    id: 'demo-2',
+    name: "Agence Immobiliere Prestige & Co",
+    email: "a.moreau@prestige-immo.fr",
+    contactName: "Antoine Moreau",
+    firstName: "Antoine",
+    lastName: "Moreau",
+    sector: "Agence immobiliere",
+    city: "Neuilly-sur-Seine",
+    status: "replied",
+    score: 93,
+    notes: "A repondu par email. Tres interesse.",
+    createdAt: new Date('2024-12-15'),
+    lastContactedAt: new Date('2025-02-03'),
+    channels: generateChannels('service', '+33 6 23 45 67 89', null, '45 Avenue Charles de Gaulle, 92200 Neuilly'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 2,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-30T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 5, clicked: true } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-02-02T10:30:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 7, status: 'cancelled_reply' },
+        { number: 4, channel: 'voicemail', day: 12, status: 'cancelled_reply' },
+        { number: 5, channel: 'courrier', day: 20, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'email',
+      receivedAt: '2025-02-03T14:22:00Z',
+      content: "Bonjour, votre proposition m'interesse. Pouvons-nous organiser un appel cette semaine ?",
+      preview: "Votre proposition m'interesse...",
+      timeAgo: 'hier',
+    },
+  },
+  {
+    id: 'demo-3',
+    name: "Salon Elegance & Style",
+    email: "contact@elegance-style.fr",
+    contactName: "Sandrine Michel",
+    firstName: "Sandrine",
+    lastName: "Michel",
+    sector: "Salon de coiffure",
+    city: "Lyon 6e",
+    status: "replied",
+    score: 91,
+    notes: "A repondu par SMS ! Tres reactive.",
+    createdAt: new Date('2025-01-15'),
+    lastContactedAt: new Date('2025-02-05'),
+    channels: generateChannels('salon', '+33 6 34 56 78 90', '@elegancestyle', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 2,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-02-01T09:15:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'sms', day: 4, sentAt: '2025-02-05T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 10, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'sms',
+      receivedAt: '2025-02-05T10:45:00Z',
+      content: "Oui je suis interessee ! Rappelez-moi cet aprem",
+      preview: "Oui je suis interessee...",
+      timeAgo: '5h',
+    },
+  },
+  {
+    id: 'demo-4',
+    name: "Cabinet d'Avocats Dufresne",
+    email: "m.dufresne@cabinet-dufresne.fr",
+    contactName: "Marc Dufresne",
+    firstName: "Marc",
+    lastName: "Dufresne",
+    sector: "Cabinet d'avocats",
+    city: "Bordeaux",
+    status: "replied",
+    score: 89,
+    notes: "A rappele suite au vocal ! RDV prevu.",
+    createdAt: new Date('2024-12-22'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('cabinet', '+33 6 45 67 89 01', null, '8 Place Gambetta, 33000 Bordeaux'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 4,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-20T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 4, clicked: true } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-23T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 8, sentAt: '2025-01-28T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 4, channel: 'voicemail', day: 12, sentAt: '2025-02-01T14:00:00Z', status: 'sent', tracking: { listened: true } },
+        { number: 5, channel: 'courrier', day: 20, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'voicemail',
+      receivedAt: '2025-02-04T09:30:00Z',
+      content: "Rappel telephonique suite au message vocal",
+      preview: "A rappele suite au vocal",
+      timeAgo: '1j',
+    },
+  },
+  {
+    id: 'demo-5',
+    name: "Boutique Bio Nature & Saveurs",
+    email: "contact@nature-saveurs.fr",
+    contactName: "Claire Dupont",
+    firstName: "Claire",
+    lastName: "Dupont",
+    sector: "Epicerie bio",
+    city: "Paris 11e",
+    status: "replied",
+    score: 87,
+    notes: "A repondu par email apres 2eme relance.",
+    createdAt: new Date('2025-01-05'),
+    lastContactedAt: new Date('2025-02-02'),
+    channels: generateChannels('boutique', '+33 6 56 78 90 12', '@naturesaveurs', '23 rue Oberkampf, 75011 Paris'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 3,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-20T09:15:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 2, channel: 'instagram_dm', day: 3, sentAt: '2025-01-23T14:00:00Z', status: 'sent', tracking: { seen: true } },
+        { number: 3, channel: 'email', day: 7, sentAt: '2025-01-27T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 3, clicked: true } },
+        { number: 4, channel: 'sms', day: 12, status: 'cancelled_reply' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'email',
+      receivedAt: '2025-02-02T16:45:00Z',
+      content: "Merci pour votre suivi. Je suis interessee, envoyez-moi plus d'infos.",
+      preview: "Je suis interessee...",
+      timeAgo: '3j',
+    },
+  },
+  {
+    id: 'demo-6',
+    name: "Hotel & Spa Le Domaine",
+    email: "reservation@domaine-pins.fr",
+    contactName: "Jean-Pierre Blanc",
+    firstName: "Jean-Pierre",
+    lastName: "Blanc",
+    sector: "Hotellerie",
+    city: "Saint-Tropez",
+    status: "replied",
+    score: 94,
+    notes: "A scanne le QR code du courrier ! Ultra qualifie.",
+    createdAt: new Date('2024-12-08'),
+    lastContactedAt: new Date('2025-01-30'),
+    channels: generateChannels('hotel', '+33 4 94 00 00 00', '@domainelepins', 'Route des Pins, 83990 Saint-Tropez'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 7,
+      currentStep: 7,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2024-12-20T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'instagram_dm', day: 2, sentAt: '2024-12-22T14:00:00Z', status: 'sent', tracking: { seen: true } },
+        { number: 3, channel: 'sms', day: 5, sentAt: '2024-12-25T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 4, channel: 'email', day: 8, sentAt: '2024-12-28T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 5, channel: 'voicemail', day: 12, sentAt: '2025-01-01T14:00:00Z', status: 'sent', tracking: { listened: true } },
+        { number: 6, channel: 'email', day: 16, sentAt: '2025-01-05T09:00:00Z', status: 'sent', tracking: { opened: false } },
+        { number: 7, channel: 'courrier', day: 22, sentAt: '2025-01-11T00:00:00Z', status: 'sent', tracking: { scanned: true, scannedAt: '2025-01-30T11:00:00Z' } },
+      ],
+    },
+    reply: {
+      channel: 'courrier',
+      receivedAt: '2025-01-30T11:00:00Z',
+      content: "A scanne le QR code de la carte postale",
+      preview: "QR code scanne",
+      timeAgo: '6j',
+    },
+  },
+  {
+    id: 'demo-7',
+    name: "Garage Meca Pro Services",
+    email: "g.lambert@mecapro.fr",
+    contactName: "Guillaume Lambert",
+    firstName: "Guillaume",
+    lastName: "Lambert",
+    sector: "Garage mecanique",
+    city: "Nantes",
+    status: "replied",
+    score: 88,
+    notes: "A repondu par SMS. RDV telephonique vendredi.",
+    createdAt: new Date('2025-01-12'),
+    lastContactedAt: new Date('2025-02-03'),
+    channels: generateChannels('artisan', '+33 6 67 89 01 23', null, null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 2,
+      status: 'replied',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-28T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 4, clicked: true } },
+        { number: 2, channel: 'sms', day: 4, sentAt: '2025-02-01T10:30:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 10, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'sms',
+      receivedAt: '2025-02-03T11:15:00Z',
+      content: "Ok pour un appel. Vendredi 14h ca marche ?",
+      preview: "Ok pour un appel...",
+      timeAgo: '2j',
+    },
+  },
+
+  // === OPENED (5) - Mix de canaux actifs ===
+  {
+    id: 'demo-8',
+    name: "Clinique Veterinaire des Alpes",
+    email: "dr.bernard@clinique-alpes.fr",
+    contactName: "Dr. Claire Bernard",
+    firstName: "Claire",
+    lastName: "Bernard",
+    sector: "Clinique veterinaire",
+    city: "Grenoble",
+    status: "opened",
+    score: 85,
+    notes: "Email ouvert 5 fois. Vocal depose hier.",
+    createdAt: new Date('2025-01-02'),
+    lastContactedAt: new Date('2025-02-05'),
+    channels: generateChannels('cabinet', '+33 6 78 90 12 34', null, '15 Avenue Jean Perrot, 38100 Grenoble'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 4,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-20T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 5, clicked: true } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-23T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 8, sentAt: '2025-01-28T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 3 } },
+        { number: 4, channel: 'voicemail', day: 12, sentAt: '2025-02-05T14:00:00Z', status: 'sent', tracking: { listened: false } },
+        { number: 5, channel: 'courrier', day: 20, status: 'pending', scheduledFor: '2025-02-09' },
+      ],
+    },
+  },
+  {
+    id: 'demo-9',
+    name: "FitZone Club Premium",
+    email: "manager@fitzone-club.fr",
+    contactName: "Thomas Girard",
+    firstName: "Thomas",
+    lastName: "Girard",
+    sector: "Salle de sport",
+    city: "Montpellier",
+    status: "opened",
+    score: 80,
+    notes: "DM Instagram vu. En attente de reponse.",
+    createdAt: new Date('2025-01-15'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('service', '+33 6 89 01 23 45', '@fitzoneclub', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 3,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-25T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-28T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, sentAt: '2025-02-01T14:00:00Z', status: 'sent', tracking: { seen: true, seenAt: '2025-02-04T16:00:00Z' } },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-06' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-14' },
+      ],
+    },
+  },
+  {
+    id: 'demo-10',
+    name: "Spa Zen & Harmonie",
+    email: "reservation@spa-zen.fr",
+    contactName: "Amelie Roux",
+    firstName: "Amelie",
+    lastName: "Roux",
+    sector: "Spa bien-etre",
+    city: "Aix-en-Provence",
+    status: "opened",
+    score: 84,
+    notes: "SMS delivre. Email ouvert 3 fois.",
+    createdAt: new Date('2025-01-20'),
+    lastContactedAt: new Date('2025-02-03'),
+    channels: generateChannels('salon', '+33 6 90 12 34 56', '@spazenharmonie', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 2,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-30T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 3 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-02-02T10:30:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, status: 'pending', scheduledFor: '2025-02-06' },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-11' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-19' },
+      ],
+    },
+  },
+  {
+    id: 'demo-11',
+    name: "Restaurant Japonais Sakura",
+    email: "manager@sakura-resto.fr",
+    contactName: "Kenji Tanaka",
+    firstName: "Kenji",
+    lastName: "Tanaka",
+    sector: "Restaurant japonais",
+    city: "Paris 1er",
+    status: "opened",
+    score: 81,
+    notes: "Email ouvert mais pas de reponse. Relance DM prevue.",
+    createdAt: new Date('2025-01-29'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('restaurant', '+33 6 01 23 45 67', '@sakuraparis', '5 rue de Rivoli, 75001 Paris'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 2,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-30T09:15:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'instagram_dm', day: 3, sentAt: '2025-02-02T14:00:00Z', status: 'sent', tracking: { seen: false } },
+        { number: 3, channel: 'sms', day: 7, status: 'pending', scheduledFor: '2025-02-06' },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-11' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-19' },
+      ],
+    },
+  },
+  {
+    id: 'demo-12',
+    name: "Boulangerie La Tradition",
+    email: "contact@boulangerie-tradition.fr",
+    contactName: "Pierre Lefebvre",
+    firstName: "Pierre",
+    lastName: "Lefebvre",
+    sector: "Boulangerie artisanale",
+    city: "Strasbourg",
+    status: "opened",
+    score: 76,
+    notes: "Email ouvert. Sequence en cours.",
+    createdAt: new Date('2025-01-18'),
+    lastContactedAt: new Date('2025-02-01'),
+    channels: generateChannels('artisan', '+33 6 12 34 56 78', null, null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 1,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-02-01T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 2, channel: 'sms', day: 4, status: 'pending', scheduledFor: '2025-02-05' },
+        { number: 3, channel: 'email', day: 10, status: 'pending', scheduledFor: '2025-02-11' },
+      ],
+    },
+  },
+
+  // === CONTACTED (8) - A differentes etapes de la sequence ===
+  {
+    id: 'demo-13',
+    name: "Garage Auto Premium",
+    email: "direction@auto-premium.fr",
+    contactName: "Philippe Durand",
+    firstName: "Philippe",
+    lastName: "Durand",
+    sector: "Garage automobile",
+    city: "Marseille",
+    status: "contacted",
+    score: 82,
+    notes: "SMS envoye J+3. Attente de reponse.",
+    createdAt: new Date('2024-12-25'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('artisan', '+33 6 23 45 67 89', null, null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 2,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-02-01T09:00:00Z', status: 'sent', tracking: { opened: false } },
+        { number: 2, channel: 'sms', day: 4, sentAt: '2025-02-04T10:30:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 10, status: 'pending', scheduledFor: '2025-02-11' },
+      ],
+    },
+  },
+  {
+    id: 'demo-14',
+    name: "Institut de Beaute L'Eclat",
+    email: "contact@institut-eclat.fr",
+    contactName: "Sophie Martin",
+    firstName: "Sophie",
+    lastName: "Martin",
+    sector: "Institut de beaute",
+    city: "Lyon 6e",
+    status: "contacted",
+    score: 85,
+    notes: "DM Instagram envoye. Attente reponse.",
+    createdAt: new Date('2024-12-20'),
+    lastContactedAt: new Date('2025-02-03'),
+    channels: generateChannels('salon', '+33 6 34 56 78 90', '@instituteclat', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 3,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-24T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-27T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, sentAt: '2025-01-31T14:00:00Z', status: 'sent', tracking: { seen: false } },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-05' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-13' },
+      ],
+    },
+  },
+  {
+    id: 'demo-15',
+    name: "Opticien Vision Plus",
+    email: "direction@vision-plus.fr",
+    contactName: "Patrick Simon",
+    firstName: "Patrick",
+    lastName: "Simon",
+    sector: "Opticien",
+    city: "Rennes",
+    status: "contacted",
+    score: 72,
+    notes: "Premier email envoye. Attente de retour.",
+    createdAt: new Date('2025-01-27'),
+    lastContactedAt: new Date('2025-02-02'),
+    channels: generateChannels('boutique', '+33 6 45 67 89 01', null, null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 1,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-02-02T09:00:00Z', status: 'sent', tracking: { opened: false } },
+        { number: 2, channel: 'sms', day: 4, status: 'pending', scheduledFor: '2025-02-06' },
+        { number: 3, channel: 'email', day: 10, status: 'pending', scheduledFor: '2025-02-12' },
+      ],
+    },
+  },
+  {
+    id: 'demo-16',
+    name: "Ecole de Musique Harmonia",
+    email: "contact@harmonia-musique.fr",
+    contactName: "Claire Dupont",
+    firstName: "Claire",
+    lastName: "Dupont",
+    sector: "Ecole de musique",
+    city: "Bordeaux",
+    status: "contacted",
+    score: 74,
+    notes: "2eme email envoye hier. Sequence en cours.",
+    createdAt: new Date('2025-01-28'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('service', '+33 6 56 78 90 12', '@harmonia_musique', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 2,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-28T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-31T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, status: 'pending', scheduledFor: '2025-02-04' },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-09' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-17' },
+      ],
+    },
+  },
+  {
+    id: 'demo-17',
+    name: "Cabinet Dentaire du Centre",
+    email: "secretariat@dentaire-centre.fr",
+    contactName: "Dr. Nicolas Petit",
+    firstName: "Nicolas",
+    lastName: "Petit",
+    sector: "Cabinet dentaire",
+    city: "Lille",
+    status: "contacted",
+    score: 78,
+    notes: "Vocal programme pour demain.",
+    createdAt: new Date('2025-01-22'),
+    lastContactedAt: new Date('2025-02-03'),
+    channels: generateChannels('cabinet', '+33 6 67 89 01 23', null, '12 rue de la Sante, 59000 Lille'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 3,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-22T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-25T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 8, sentAt: '2025-01-30T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 4, channel: 'voicemail', day: 12, status: 'pending', scheduledFor: '2025-02-06' },
+        { number: 5, channel: 'courrier', day: 20, status: 'pending', scheduledFor: '2025-02-14' },
+      ],
+    },
+  },
+  {
+    id: 'demo-18',
+    name: "Agence de Voyages Horizons",
+    email: "info@voyages-horizons.fr",
+    contactName: "Julien Mercier",
+    firstName: "Julien",
+    lastName: "Mercier",
+    sector: "Agence de voyages",
+    city: "Paris 8e",
+    status: "contacted",
+    score: 75,
+    notes: "Premier email envoye. Attente de reponse.",
+    createdAt: new Date('2025-01-26'),
+    lastContactedAt: new Date('2025-02-02'),
+    channels: generateChannels('service', '+33 6 78 90 12 34', '@horizonsvoyages', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 1,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-02-02T09:15:00Z', status: 'sent', tracking: { opened: false } },
+        { number: 2, channel: 'sms', day: 3, status: 'pending', scheduledFor: '2025-02-05' },
+        { number: 3, channel: 'instagram_dm', day: 7, status: 'pending', scheduledFor: '2025-02-09' },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-14' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-22' },
+      ],
+    },
+  },
+  {
+    id: 'demo-19',
+    name: "Centre de Formation ProSkills",
+    email: "info@proskills-formation.fr",
+    contactName: "Nathalie Richard",
+    firstName: "Nathalie",
+    lastName: "Richard",
+    sector: "Centre de formation",
+    city: "Toulouse",
+    status: "contacted",
+    score: 77,
+    notes: "Interesse par notre offre. Suivi en cours.",
+    createdAt: new Date('2025-01-30'),
+    lastContactedAt: new Date('2025-02-04'),
+    channels: generateChannels('service', '+33 6 89 01 23 45', null, null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 1,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-02-04T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 1 } },
+        { number: 2, channel: 'sms', day: 4, status: 'pending', scheduledFor: '2025-02-08' },
+        { number: 3, channel: 'email', day: 10, status: 'pending', scheduledFor: '2025-02-14' },
+      ],
+    },
+  },
+  {
+    id: 'demo-20',
+    name: "Restaurant Le Petit Bistrot",
+    email: "chef@lepetitbistrot.fr",
+    contactName: "Laurent Petit",
+    firstName: "Laurent",
+    lastName: "Petit",
+    sector: "Restaurant",
+    city: "Nice",
+    status: "contacted",
+    score: 79,
+    notes: "Email + SMS envoyes. DM Instagram prevu.",
+    createdAt: new Date('2024-12-28'),
+    lastContactedAt: new Date('2025-02-01'),
+    channels: generateChannels('restaurant', '+33 6 90 12 34 56', '@lepetitbistrot_nice', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 2,
+      status: 'active',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-25T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-28T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, status: 'pending', scheduledFor: '2025-02-01' },
+        { number: 4, channel: 'email', day: 12, status: 'pending', scheduledFor: '2025-02-06' },
+        { number: 5, channel: 'voicemail', day: 20, status: 'pending', scheduledFor: '2025-02-14' },
+      ],
+    },
+  },
+
+  // === NEW (4) - Nouveaux prospects pas encore contactes ===
+  {
+    id: 'demo-21',
+    name: "Boulangerie Fournil & Terroir",
+    email: "contact@fournil-terroir.fr",
+    contactName: "Jean-Marc Leroy",
+    firstName: "Jean-Marc",
+    lastName: "Leroy",
+    sector: "Boulangerie patisserie",
+    city: "Paris 11e",
+    status: "new",
+    score: 78,
+    notes: "Trouve ce matin. Fort potentiel de conversion.",
+    createdAt: new Date('2025-02-05'),
+    lastContactedAt: null,
+    channels: generateChannels('artisan', '+33 6 01 23 45 67', null, '45 rue de Charonne, 75011 Paris'),
+  },
+  {
+    id: 'demo-22',
+    name: "Fleuriste Les Jardins d'Alice",
+    email: "alice@jardins-alice.fr",
+    contactName: "Alice Bouquet",
+    firstName: "Alice",
+    lastName: "Bouquet",
+    sector: "Fleuriste",
+    city: "Versailles",
+    status: "new",
+    score: 65,
+    notes: "Nouveau prospect. Belle boutique, fort potentiel.",
+    createdAt: new Date('2025-02-05'),
+    lastContactedAt: null,
+    channels: generateChannels('boutique', '+33 6 12 34 56 78', '@jardinsdalice', null),
+  },
+  {
+    id: 'demo-23',
+    name: "Studio Yoga Serenite",
+    email: "hello@yoga-serenite.fr",
+    contactName: "Marie-Anne Laurent",
+    firstName: "Marie-Anne",
+    lastName: "Laurent",
+    sector: "Studio de yoga",
+    city: "Cannes",
+    status: "new",
+    score: 71,
+    notes: "Prospect interessant. Instagram actif, audience engagee.",
+    createdAt: new Date('2025-02-04'),
+    lastContactedAt: null,
+    channels: generateChannels('service', '+33 6 23 45 67 89', '@yoga_serenite', null),
+  },
+  {
+    id: 'demo-24',
+    name: "Pizzeria Napoli Vera",
+    email: "ciao@napoli-vera.fr",
+    contactName: "Marco Rossi",
+    firstName: "Marco",
+    lastName: "Rossi",
+    sector: "Pizzeria",
+    city: "Marseille",
+    status: "new",
+    score: 68,
+    notes: "Restaurant populaire sur TripAdvisor. Bon potentiel.",
+    createdAt: new Date('2025-02-04'),
+    lastContactedAt: null,
+    channels: generateChannels('restaurant', '+33 6 34 56 78 90', '@napolivera', null),
+  },
+
+  // === CONVERTED (3) - Clients signes avec historique multicanal ===
+  {
+    id: 'demo-25',
+    name: "Ecole de Danse Elegance",
+    email: "info@danse-elegance.fr",
+    contactName: "Isabelle Fontaine",
+    firstName: "Isabelle",
+    lastName: "Fontaine",
+    sector: "Ecole de danse",
+    city: "Toulouse",
+    status: "converted",
+    score: 96,
+    revenue: 1200,
+    notes: "Contrat signe ! Campagne inscriptions. Budget : 1 200 EUR",
+    createdAt: new Date('2025-01-05'),
+    lastContactedAt: new Date('2025-02-01'),
+    channels: generateChannels('service', '+33 6 45 67 89 01', '@danse_elegance', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 5,
+      status: 'converted',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-05T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 4, clicked: true } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-08T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, sentAt: '2025-01-12T14:00:00Z', status: 'sent', tracking: { seen: true } },
+        { number: 4, channel: 'email', day: 12, sentAt: '2025-01-17T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 5, channel: 'voicemail', day: 20, sentAt: '2025-01-25T14:00:00Z', status: 'sent', tracking: { listened: true } },
+      ],
+    },
+    reply: {
+      channel: 'voicemail',
+      receivedAt: '2025-01-28T10:00:00Z',
+      content: "A rappele et signe le contrat",
+      preview: "Contrat signe !",
+    },
+  },
+  {
+    id: 'demo-26',
+    name: "Traiteur Saveurs & Traditions",
+    email: "commande@saveurs-traditions.fr",
+    contactName: "Catherine Dubois",
+    firstName: "Catherine",
+    lastName: "Dubois",
+    sector: "Traiteur evenementiel",
+    city: "Lyon",
+    status: "converted",
+    score: 94,
+    revenue: 1800,
+    notes: "Contrat signe ! Pack complet. Budget : 1 800 EUR",
+    createdAt: new Date('2025-01-03'),
+    lastContactedAt: new Date('2025-01-25'),
+    channels: generateChannels('service', '+33 6 56 78 90 12', '@saveurs_traditions', null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 3,
+      currentStep: 3,
+      status: 'converted',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-03T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 3, clicked: true } },
+        { number: 2, channel: 'sms', day: 4, sentAt: '2025-01-07T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 10, sentAt: '2025-01-13T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 5, clicked: true } },
+      ],
+    },
+    reply: {
+      channel: 'email',
+      receivedAt: '2025-01-20T14:30:00Z',
+      content: "Tres interesse, signons !",
+      preview: "Contrat signe !",
+    },
+  },
+  {
+    id: 'demo-27',
+    name: "Cave a Vins Terroirs de France",
+    email: "contact@terroirs-france.fr",
+    contactName: "Philippe Vignon",
+    firstName: "Philippe",
+    lastName: "Vignon",
+    sector: "Cave a vins",
+    city: "Bordeaux",
+    status: "converted",
+    score: 92,
+    revenue: 950,
+    notes: "Contrat signe ! Pack starter. Budget : 950 EUR",
+    createdAt: new Date('2025-01-10'),
+    lastContactedAt: new Date('2025-02-01'),
+    channels: generateChannels('boutique', '+33 6 67 89 01 23', '@terroirsdefrance', '18 cours du Chapeau Rouge, 33000 Bordeaux'),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 4,
+      status: 'converted',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2025-01-10T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 2 } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2025-01-13T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'instagram_dm', day: 7, sentAt: '2025-01-17T14:00:00Z', status: 'sent', tracking: { seen: true } },
+        { number: 4, channel: 'email', day: 12, sentAt: '2025-01-22T09:00:00Z', status: 'sent', tracking: { opened: true, openCount: 4, clicked: true } },
+        { number: 5, channel: 'voicemail', day: 20, status: 'cancelled_reply' },
+      ],
+    },
+    reply: {
+      channel: 'instagram_dm',
+      receivedAt: '2025-01-28T16:00:00Z',
+      content: "Super, ca m'interesse !",
+      preview: "Contrat signe !",
+    },
+  },
+
+  // === ARCHIVED (1) ===
+  {
+    id: 'demo-28',
+    name: "Librairie Le Livre Qui Parle",
+    email: "contact@livre-qui-parle.fr",
+    contactName: "Francois Martin",
+    firstName: "Francois",
+    lastName: "Martin",
+    sector: "Librairie independante",
+    city: "Nantes",
+    status: "archived",
+    score: 45,
+    notes: "Pas interesse. Archive apres sequence complete sans reponse.",
+    createdAt: new Date('2024-12-01'),
+    lastContactedAt: new Date('2025-01-15'),
+    channels: generateChannels('boutique', '+33 6 78 90 12 34', null, null),
+    sequence: {
+      type: 'multicanal',
+      totalSteps: 5,
+      currentStep: 5,
+      status: 'completed_no_reply',
+      steps: [
+        { number: 1, channel: 'email', day: 0, sentAt: '2024-12-01T09:00:00Z', status: 'sent', tracking: { opened: false } },
+        { number: 2, channel: 'sms', day: 3, sentAt: '2024-12-04T10:00:00Z', status: 'sent', tracking: { delivered: true } },
+        { number: 3, channel: 'email', day: 8, sentAt: '2024-12-09T09:00:00Z', status: 'sent', tracking: { opened: false } },
+        { number: 4, channel: 'voicemail', day: 12, sentAt: '2024-12-13T14:00:00Z', status: 'sent', tracking: { listened: false } },
+        { number: 5, channel: 'email', day: 20, sentAt: '2024-12-21T09:00:00Z', status: 'sent', tracking: { opened: false } },
+      ],
+    },
+  },
+]
+
+// Campagnes avec resultats multicanaux
+export const demoCampaigns = [
+  {
+    id: 'camp-1',
+    name: "Restaurants Paris - Janvier",
+    sector: "Restauration",
+    region: "Paris",
+    sentCount: 45,
+    openRate: 68,
+    replyRate: 22,
+    convertedCount: 3,
+    revenue: "4 200 EUR",
+    status: "completed",
+    createdAt: new Date('2025-01-05'),
+    byChannel: { email: 25, sms: 12, instagram_dm: 6, voicemail: 2 },
+    repliesByChannel: { email: 6, sms: 3, instagram_dm: 1 },
+  },
+  {
+    id: 'camp-2',
+    name: "Salons de coiffure Lyon - Janvier",
+    sector: "Beaute",
+    region: "Lyon",
+    sentCount: 28,
+    openRate: 54,
+    replyRate: 14,
+    convertedCount: 1,
+    revenue: "950 EUR",
+    status: "completed",
+    createdAt: new Date('2025-01-08'),
+    byChannel: { email: 18, sms: 8, instagram_dm: 2 },
+    repliesByChannel: { email: 2, sms: 2 },
+  },
+  {
+    id: 'camp-3',
+    name: "Agences immobilieres IDF - Fevrier",
+    sector: "Immobilier",
+    region: "Ile-de-France",
+    sentCount: 12,
+    openRate: 72,
+    replyRate: 25,
+    convertedCount: 0,
+    revenue: "0 EUR",
+    status: "active",
+    createdAt: new Date('2025-02-01'),
+    byChannel: { email: 8, sms: 4 },
+    repliesByChannel: { email: 2, sms: 1 },
+  },
+  {
+    id: 'camp-4',
+    name: "Hotels Cote d'Azur - Decembre",
+    sector: "Hotellerie",
+    region: "PACA",
+    sentCount: 58,
+    openRate: 71,
+    replyRate: 29,
+    convertedCount: 4,
+    revenue: "8 600 EUR",
+    status: "completed",
+    createdAt: new Date('2024-12-01'),
+    byChannel: { email: 28, sms: 14, instagram_dm: 8, voicemail: 5, courrier: 3 },
+    repliesByChannel: { email: 10, sms: 4, instagram_dm: 2, voicemail: 1, courrier: 1 },
+  },
+  {
+    id: 'camp-5',
+    name: "Garages automobiles - Janvier",
+    sector: "Automobile",
+    region: "National",
+    sentCount: 32,
+    openRate: 58,
+    replyRate: 16,
+    convertedCount: 2,
+    revenue: "2 400 EUR",
+    status: "completed",
+    createdAt: new Date('2025-01-15'),
+    byChannel: { email: 20, sms: 10, voicemail: 2 },
+    repliesByChannel: { email: 3, sms: 2 },
+  },
+  {
+    id: 'camp-6',
+    name: "Spas et bien-etre - Fevrier",
+    sector: "Bien-etre",
+    region: "National",
+    sentCount: 22,
+    openRate: 65,
+    replyRate: 18,
+    convertedCount: 0,
+    revenue: "0 EUR",
+    status: "active",
+    createdAt: new Date('2025-02-03'),
+    byChannel: { email: 14, sms: 6, instagram_dm: 2 },
+    repliesByChannel: { email: 2, sms: 1, instagram_dm: 1 },
+  },
+]
+
+// Stats globales MULTICANALES
+export const demoStats = {
+  totalProspects: 234,
+  totalMessages: 312,
+  byChannel: {
+    email: 187,
+    sms: 68,
+    instagram_dm: 42,
+    voicemail: 15,
+    courrier: 3,
+  },
+  totalReplies: 42,
+  repliesByChannel: {
+    email: 24,
+    sms: 11,
+    instagram_dm: 5,
+    voicemail: 2,
+    courrier: 1,
+  },
+  totalConverted: 8,
+  totalRevenue: "13 750 EUR",
+  totalRevenueNum: 13750,
+  avgOpenRate: 64,
+  avgReplyRate: 22,
+  avgConversionRate: 4.3,
+  avgDealSize: 1719,
+  thisMonth: {
+    prospects: 47,
+    messages: 52,
+    byChannel: { email: 32, sms: 12, instagram_dm: 6, voicemail: 2 },
+    replied: 8,
+    repliesByChannel: { email: 5, sms: 2, instagram_dm: 1 },
+    converted: 1,
+    revenue: "2 400 EUR",
+    revenueNum: 2400,
+  },
+  lastMonth: {
+    prospects: 38,
+    messages: 45,
+    byChannel: { email: 28, sms: 10, instagram_dm: 5, voicemail: 2 },
+    replied: 6,
+    repliesByChannel: { email: 4, sms: 2 },
+    converted: 2,
+    revenue: "3 200 EUR",
+    revenueNum: 3200,
+  },
+}
+
+// Generer 30 jours de stats quotidiennes avec tendance CROISSANTE
+const generateDailyStats = () => {
+  const stats = []
+  const today = new Date()
+
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+
+    const weekNumber = Math.floor((29 - i) / 7)
+    const baseProspects = 3 + weekNumber * 3
+    const variation = Math.random() * 3 - 1
+
+    const prospects = Math.max(1, Math.round(baseProspects + variation))
+    const emails = Math.round(prospects * (0.6 + Math.random() * 0.2))
+    const sms = Math.round(prospects * (0.2 + Math.random() * 0.1))
+    const instagram = Math.round(prospects * (0.1 + Math.random() * 0.1))
+    const opened = Math.round(emails * (0.55 + Math.random() * 0.2))
+    const replied = Math.round(opened * (0.15 + Math.random() * 0.15))
+    const converted = Math.random() > 0.85 ? 1 : 0
+    const revenue = converted ? Math.round(800 + Math.random() * 2000) : 0
+
+    stats.push({
+      date: date.toISOString().split('T')[0],
+      dayLabel: date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+      prospects,
+      emails,
+      sms,
+      instagram,
+      opened,
+      replied,
+      converted,
+      revenue,
+    })
+  }
+
+  return stats
+}
+
+export const demoDailyStats = generateDailyStats()
+
+// Emails generes pour demo Forgeur
+export const demoGeneratedEmails = [
+  {
+    subject: "Question rapide sur {entreprise}",
+    body: `Bonjour {prenom},
+
+J'ai decouvert {entreprise} en cherchant des professionnels de {secteur} a {ville}, et j'ai ete impressionne par la qualite de vos services.
+
+J'accompagne des entreprises comme la votre a developper leur clientele grace a des strategies personnalisees. Seriez-vous ouvert a un echange de 15 minutes pour en discuter ?
+
+Cordialement,
+{signature}`,
+    delay: "Jour 1",
+    psychology: "Accroche personnalisee + proposition claire",
+  },
+  {
+    subject: "Re: 3 observations sur {secteur}",
+    body: `{prenom},
+
+Je me permets de revenir vers vous suite a mon premier message.
+
+En analysant des dizaines d'entreprises de {secteur}, j'ai identifie 3 leviers souvent sous-exploites :
+
+1. Prospection systematique = flux constant de nouveaux clients
+2. Suivi automatise = aucun prospect oublie
+3. Multi-canal = presence la ou sont vos clients
+
+{entreprise} a tous les ingredients pour reussir. Il manque juste cette structure.
+
+Voulez-vous que je vous envoie 2-3 exemples de ce qui fonctionne dans votre secteur ?
+
+{signature}`,
+    delay: "Jour 3",
+    psychology: "Valeur ajoutee + curiosite",
+  },
+  {
+    subject: "J'ai prepare quelque chose pour {entreprise}",
+    body: `Bonjour {prenom},
+
+Comme promis, j'ai pris le temps d'analyser {entreprise} plus en detail.
+
+J'ai identifie 3 actions qui fonctionnent parfaitement pour {secteur} :
+
+- Sequence email personnalisee : pour convertir vos prospects
+- Suivi multi-contacts : plusieurs interlocuteurs par entreprise
+- Reporting mensuel : pour mesurer votre ROI
+
+Je peux vous montrer des exemples concrets en 15 min. Quel creneau vous conviendrait cette semaine ?
+
+{signature}`,
+    delay: "Jour 6",
+    psychology: "Concret + proposition claire",
+  },
+  {
+    subject: "Derniere relance - je ne vais pas insister",
+    body: `{prenom},
+
+Je comprends que votre agenda est charge. C'est mon dernier message sur ce sujet.
+
+Si notre accompagnement pour {entreprise} ne vous interesse pas maintenant, aucun souci.
+
+Mais si vous voulez en discuter dans les prochaines semaines, repondez simplement "plus tard" et je vous recontacterai au moment qui vous convient.
+
+Belle continuation,
+{signature}`,
+    delay: "Jour 10",
+    psychology: "Breakup email + porte ouverte",
+  },
+]
+
+// Activite recente pour Dashboard - MULTICANALE
+export const demoRecentActivity = [
+  {
+    id: 'act-1',
+    type: 'reply',
+    channel: 'instagram_dm',
+    message: "Marie Dubois a repondu via Instagram !",
+    details: "Restaurant Le Comptoir du Marche - 'Oui ca m'interesse...'",
+    timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 min ago
+    icon: 'message',
+    color: 'pink',
+  },
+  {
+    id: 'act-2',
+    type: 'sent',
+    channel: 'multi',
+    message: "6 emails + 3 SMS envoyes",
+    details: "Campagne Spas et bien-etre - Fevrier",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1h ago
+    icon: 'mail',
+    color: 'blue',
+  },
+  {
+    id: 'act-3',
+    type: 'reply',
+    channel: 'sms',
+    message: "Guillaume Lambert a repondu par SMS !",
+    details: "Garage Meca Pro - 'Ok pour un appel vendredi'",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2h ago
+    icon: 'phone',
+    color: 'blue',
+  },
+  {
+    id: 'act-4',
+    type: 'voicemail',
+    channel: 'voicemail',
+    message: "1 message vocal depose",
+    details: "Clinique Veterinaire des Alpes",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3h ago
+    icon: 'mic',
+    color: 'purple',
+  },
+  {
+    id: 'act-5',
+    type: 'opened',
+    channel: 'email',
+    message: "Thomas Girard a vu votre DM Instagram",
+    details: "FitZone Club Premium",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4h ago
+    icon: 'eye',
+    color: 'pink',
+  },
+  {
+    id: 'act-6',
+    type: 'prospect',
+    channel: 'scan',
+    message: "12 nouveaux prospects trouves",
+    details: "AutoPilot - Restaurants Paris",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5h ago
+    icon: 'users',
+    color: 'brand',
+  },
+  {
+    id: 'act-7',
+    type: 'converted',
+    channel: 'voicemail',
+    message: "Marc Dufresne a rappele suite au vocal !",
+    details: "Cabinet Dufresne - RDV confirme",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8h ago
+    icon: 'check',
+    color: 'brand',
+  },
+  {
+    id: 'act-8',
+    type: 'courrier',
+    channel: 'courrier',
+    message: "1 courrier postal genere",
+    details: "Hotel Le Domaine - Envoi prevu demain",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 10), // 10h ago
+    icon: 'mail',
+    color: 'amber',
+  },
+]
+
+// Notifications simulees
+export const demoNotifications = [
+  {
+    id: 'notif-1',
+    type: 'reply',
+    channel: 'instagram_dm',
+    title: "Marie Dubois a repondu !",
+    message: "Restaurant Le Comptoir du Marche (Instagram)",
+    timestamp: new Date(Date.now() - 1000 * 60 * 15),
+    read: false,
+  },
+  {
+    id: 'notif-2',
+    type: 'reply',
+    channel: 'sms',
+    title: "Guillaume Lambert a repondu !",
+    message: "Garage Meca Pro (SMS)",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    read: false,
+  },
+  {
+    id: 'notif-3',
+    type: 'callback',
+    channel: 'voicemail',
+    title: "Marc Dufresne vous a rappele !",
+    message: "Suite au message vocal",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8),
+    read: false,
+  },
+  {
+    id: 'notif-4',
+    type: 'prospect',
+    channel: 'scan',
+    title: "12 nouveaux prospects trouves",
+    message: "AutoPilot - Restaurants Paris",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
+    read: true,
+  },
+]
+
+// AutoPilot status
+export const demoAutoPilotStatus = {
+  isActive: true,
+  lastRun: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2h ago
+  nextRun: new Date(Date.now() + 1000 * 60 * 60 * 7), // 7h from now (9h tomorrow)
+  todayStats: {
+    prospectsFound: 18,
+    messagesSent: 18,
+    byChannel: { email: 12, sms: 4, instagram_dm: 2 },
+    opened: 5,
+    replies: 2,
+    repliesByChannel: { email: 1, sms: 1 },
+  },
+  config: {
+    sector: "Restauration, Beaute, Bien-etre",
+    cities: "Paris, Lyon, Marseille",
+    dailyLimit: 50,
+    warmupDay: 15,
+    channels: ['email', 'sms', 'instagram_dm', 'voicemail'],
+  },
+}
+
+// Niche config pour demo
+export const demoNicheConfig = {
+  sectors: ["Restaurant", "Salon de coiffure", "Institut de beaute", "Spa", "Hotel"],
+  cities: ["Paris", "Lyon", "Marseille", "Bordeaux", "Nice", "Toulouse"],
+  keywords: ["recherche clients", "developpement", "croissance"],
+  excludeKeywords: ["ferme", "a vendre"],
+  minScore: 60,
+  maxProspectsPerDay: 50,
+  emailTemplate: "expert",
+  channels: {
+    email: { enabled: true, always: true },
+    sms: { enabled: true },
+    instagram_dm: { enabled: true },
+    voicemail: { enabled: false },
+    courrier: { enabled: false, premium: true },
+  },
+}
+
+// Rapport Proof demo
+export const demoProofReport = {
+  clientName: "Hotel & Spa Le Domaine des Pins",
+  period: "Janvier 2025",
+  periodLabel: "Janvier 2025",
+  stats: {
+    messagesSent: 58,
+    byChannel: { email: 28, sms: 14, instagram_dm: 8, voicemail: 5, courrier: 3 },
+    openRate: 71,
+    clickRate: 24,
+    replyRate: 29,
+    replied: 18,
+    repliesByChannel: { email: 10, sms: 4, instagram_dm: 2, voicemail: 1, courrier: 1 },
+    meetings: 4,
+    converted: 1,
+  },
+  estimatedValue: 3800,
+  highlights: [
+    "Taux d'ouverture 71% - superieur a la moyenne du secteur (45%)",
+    "18 reponses obtenues via 5 canaux differents",
+    "1 client signe par scan QR code courrier (!)",
+    "ROI campagne : 10x le cout de l'abonnement",
+  ],
+}
+
+// Helper pour obtenir les prospects avec reponse (pour Dashboard)
+export const getHotProspects = () => {
+  return demoClients
+    .filter(c => c.reply && (c.status === 'replied' || c.status === 'converted'))
+    .sort((a, b) => new Date(b.reply.receivedAt) - new Date(a.reply.receivedAt))
+    .slice(0, 5)
+}
+
+// Helper pour transformer les prospects en leads pour le Radar
+export const transformProspectsToLeads = (prospects) => {
+  return prospects.map(p => ({
+    id: p.id,
+    firstName: p.firstName,
+    lastName: p.lastName,
+    email: p.email,
+    company: p.name,
+    jobTitle: p.contactName,
+    status: p.status === 'converted' ? 'converted' :
+            p.status === 'replied' ? 'replied' :
+            p.status === 'opened' ? 'opened' :
+            p.status === 'contacted' ? 'contacted' : 'new',
+    score: p.score / 10,
+    lastContactedAt: p.lastContactedAt,
+    revenue: p.revenue,
+    notes: p.notes,
+    channels: p.channels,
+    sequence: p.sequence,
+    reply: p.reply,
+  }))
+}

@@ -4,9 +4,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ============================================
-    // HELPER FUNCTIONS
+    // HELPER FUNCTIONS - RBAC Multi-tenant v2.0
     // ============================================
-    
+
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -15,24 +15,70 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Vérifie que l'utilisateur appartient à l'organisation
+    // Get member document for the current user in an org
+    function getMemberData(orgId) {
+      return get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data;
+    }
+
+    // Check if user is a member of the organization
     function isMemberOf(orgId) {
-      return isAuthenticated() && 
+      return isAuthenticated() &&
         exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
     }
 
-    // Vérifie le rôle dans l'organisation
-    function hasRole(orgId, role) {
-      return isMemberOf(orgId) && 
-        get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.role == role;
+    // Get the role of the current user in an org
+    function getRole(orgId) {
+      return getMemberData(orgId).role;
     }
 
-    function isAdmin(orgId) {
-      return hasRole(orgId, 'admin') || hasRole(orgId, 'owner');
+    // Check if user has a specific role
+    function hasRole(orgId, role) {
+      return isMemberOf(orgId) && getRole(orgId) == role;
+    }
+
+    // RBAC Role hierarchy: owner > admin > manager > member > viewer
+    function isOwnerRole(orgId) {
+      return hasRole(orgId, 'owner');
+    }
+
+    function isAdminOrAbove(orgId) {
+      return isMemberOf(orgId) && getRole(orgId) in ['owner', 'admin'];
+    }
+
+    function isManagerOrAbove(orgId) {
+      return isMemberOf(orgId) && getRole(orgId) in ['owner', 'admin', 'manager'];
+    }
+
+    function isMemberOrAbove(orgId) {
+      return isMemberOf(orgId) && getRole(orgId) in ['owner', 'admin', 'manager', 'member'];
+    }
+
+    function isViewer(orgId) {
+      return hasRole(orgId, 'viewer');
+    }
+
+    // Can read (all members can read)
+    function canRead(orgId) {
+      return isMemberOf(orgId);
+    }
+
+    // Can write (member and above, not viewer)
+    function canWrite(orgId) {
+      return isMemberOrAbove(orgId);
+    }
+
+    // Can manage (manager and above)
+    function canManage(orgId) {
+      return isManagerOrAbove(orgId);
+    }
+
+    // Can admin (admin and owner only)
+    function canAdmin(orgId) {
+      return isAdminOrAbove(orgId);
     }
 
     // ============================================
-    // USERS - Profil utilisateur
+    // USERS - Profil utilisateur global
     // ============================================
     match /users/{userId} {
       allow read: if isOwner(userId);
@@ -42,102 +88,209 @@ service cloud.firestore {
     }
 
     // ============================================
-    // ORGANIZATIONS - Multi-tenant
+    // ORGANIZATIONS - Multi-tenant Root
     // ============================================
     match /organizations/{orgId} {
-      allow read: if isMemberOf(orgId);
+      // Any authenticated user can read org they're member of
+      allow read: if canRead(orgId);
+      // Any authenticated user can create an org
       allow create: if isAuthenticated();
-      allow update: if isAdmin(orgId);
-      allow delete: if hasRole(orgId, 'owner');
+      // Only admin+ can update org settings
+      allow update: if canAdmin(orgId);
+      // Only owner can delete org
+      allow delete: if isOwnerRole(orgId);
 
-      // Members sub-collection
+      // ------------------------------------------
+      // MEMBERS - Team members with roles
+      // ------------------------------------------
       match /members/{memberId} {
-        allow read: if isMemberOf(orgId);
-        allow write: if isAdmin(orgId);
+        // All members can see team
+        allow read: if canRead(orgId);
+        // Admin+ can invite/manage members
+        allow create: if canAdmin(orgId);
+        allow update: if canAdmin(orgId);
+        // Owner only can remove members (or self-remove)
+        allow delete: if isOwnerRole(orgId) || request.auth.uid == memberId;
+      }
+
+      // ------------------------------------------
+      // INVITATIONS - Pending invites
+      // ------------------------------------------
+      match /invitations/{inviteId} {
+        allow read: if canRead(orgId) || resource.data.email == request.auth.token.email;
+        allow create: if canAdmin(orgId);
+        allow update: if canAdmin(orgId);
+        allow delete: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // PROSPECTS - Leads/Contacts
+      // ------------------------------------------
+      match /prospects/{prospectId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+
+        // Prospect activities (opens, clicks, replies)
+        match /activities/{activityId} {
+          allow read: if canRead(orgId);
+          allow write: if false; // Only Cloud Functions (webhooks)
+        }
+
+        // Prospect notes
+        match /notes/{noteId} {
+          allow read: if canRead(orgId);
+          allow create: if canWrite(orgId);
+          allow update: if canWrite(orgId) && resource.data.authorId == request.auth.uid;
+          allow delete: if canManage(orgId) || resource.data.authorId == request.auth.uid;
+        }
+      }
+
+      // ------------------------------------------
+      // TEMPLATES - Email/SMS/DM templates
+      // ------------------------------------------
+      match /templates/{templateId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // SEQUENCES - Multi-channel sequences
+      // ------------------------------------------
+      match /sequences/{sequenceId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+
+        // Sequence steps
+        match /steps/{stepId} {
+          allow read: if canRead(orgId);
+          allow write: if canWrite(orgId);
+        }
+
+        // Enrolled prospects in this sequence
+        match /enrollments/{enrollmentId} {
+          allow read: if canRead(orgId);
+          allow write: if canWrite(orgId);
+        }
+      }
+
+      // ------------------------------------------
+      // INTERACTIONS - All channel interactions
+      // ------------------------------------------
+      match /interactions/{interactionId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if false; // Audit trail
+      }
+
+      // ------------------------------------------
+      // CHANNELS - Channel configurations
+      // ------------------------------------------
+      match /channels/{channelId} {
+        allow read: if canRead(orgId);
+        allow write: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // INTEGRATIONS - API keys, webhooks
+      // ------------------------------------------
+      match /integrations/{integrationId} {
+        allow read: if canAdmin(orgId);
+        allow write: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // SETTINGS - Org-level settings
+      // ------------------------------------------
+      match /settings/{settingId} {
+        allow read: if canRead(orgId);
+        allow write: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // ANALYTICS - Aggregated stats
+      // ------------------------------------------
+      match /analytics/{docId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // BLACKLIST - RGPD opt-outs
+      // ------------------------------------------
+      match /blacklist/{email} {
+        // Public write for unsubscribe
+        allow create: if true;
+        allow read: if canRead(orgId);
+        allow update, delete: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // AUDIT LOG - Activity log
+      // ------------------------------------------
+      match /auditLog/{logId} {
+        allow read: if canAdmin(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // CAMPAIGNS - Legacy support
+      // ------------------------------------------
+      match /campaigns/{campaignId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // EMAIL ACCOUNTS - Connected email accounts
+      // ------------------------------------------
+      match /emailAccounts/{accountId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // DOMAIN CONTACTS - Anti-spam cooldown
+      // ------------------------------------------
+      match /domainContacts/{domain} {
+        allow read: if canRead(orgId);
+        allow write: if canWrite(orgId);
+      }
+
+      // ------------------------------------------
+      // WEBHOOK EVENTS - Incoming webhook data
+      // ------------------------------------------
+      match /webhookEvents/{eventId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
       }
     }
 
     // ============================================
-    // CLIENTS - Les clients de l'utilisateur
+    // GLOBAL UNSUBSCRIBE - Cross-org RGPD
     // ============================================
-    match /clients/{clientId} {
-      allow read: if isMemberOf(resource.data.orgId);
-      allow create: if isMemberOf(request.resource.data.orgId);
-      allow update: if isMemberOf(resource.data.orgId);
-      allow delete: if isAdmin(resource.data.orgId);
-
-      // Scanner results
-      match /scans/{scanId} {
-        allow read: if isMemberOf(
-          get(/databases/$(database)/documents/clients/$(clientId)).data.orgId
-        );
-        allow write: if false; // Only Cloud Functions can write
-      }
+    match /globalBlacklist/{email} {
+      allow create: if true; // Anyone can unsubscribe
+      allow read: if isAuthenticated();
+      allow update, delete: if false; // Immutable
     }
 
     // ============================================
-    // CAMPAIGNS - Séquences email
+    // SYSTEM CONFIG - App-wide settings
     // ============================================
-    match /campaigns/{campaignId} {
-      allow read: if isMemberOf(resource.data.orgId);
-      allow create: if isMemberOf(request.resource.data.orgId);
-      allow update: if isMemberOf(resource.data.orgId);
-      allow delete: if isAdmin(resource.data.orgId);
-
-      // Individual emails in the sequence
-      match /emails/{emailId} {
-        allow read: if isMemberOf(
-          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.orgId
-        );
-        allow create: if isMemberOf(
-          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.orgId
-        );
-        allow update: if isMemberOf(
-          get(/databases/$(database)/documents/campaigns/$(campaignId)).data.orgId
-        );
-      }
-    }
-
-    // ============================================
-    // LEADS - Prospects
-    // ============================================
-    match /leads/{leadId} {
-      allow read: if isMemberOf(resource.data.orgId);
-      allow create: if isMemberOf(request.resource.data.orgId);
-      allow update: if isMemberOf(resource.data.orgId);
-      allow delete: if isAdmin(resource.data.orgId);
-
-      // Lead activity (opens, clicks, replies)
-      match /activities/{activityId} {
-        allow read: if isMemberOf(
-          get(/databases/$(database)/documents/leads/$(leadId)).data.orgId
-        );
-        allow write: if false; // Only Cloud Functions (webhooks)
-      }
-    }
-
-    // ============================================
-    // EMAIL EVENTS - Tracking (written by webhooks)
-    // ============================================
-    match /emailEvents/{eventId} {
-      allow read: if isMemberOf(resource.data.orgId);
-      allow write: if false; // Only Cloud Functions
-    }
-
-    // ============================================
-    // REPORTS - Rapports de valeur (Proof)
-    // ============================================
-    match /reports/{reportId} {
-      allow read: if isMemberOf(resource.data.orgId);
-      allow write: if false; // Only Cloud Functions
-    }
-
-    // ============================================
-    // SUBSCRIPTIONS - Billing
-    // ============================================
-    match /subscriptions/{subId} {
-      allow read: if isMemberOf(resource.data.orgId);
-      allow write: if false; // Only backend
+    match /system/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console
     }
   }
 }

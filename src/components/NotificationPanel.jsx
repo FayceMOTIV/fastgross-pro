@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNotifications } from '@/contexts/NotificationContext'
+import { useDemo } from '@/hooks/useDemo'
+import { demoNotifications } from '@/data/demoData'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
@@ -12,6 +14,9 @@ import {
   XCircle,
   Trash2,
   CheckCheck,
+  MessageSquare,
+  Users,
+  Euro,
 } from 'lucide-react'
 
 const typeConfig = {
@@ -35,13 +40,29 @@ const typeConfig = {
     color: 'text-red-400',
     bg: 'bg-red-500/10',
   },
+  reply: {
+    icon: MessageSquare,
+    color: 'text-brand-400',
+    bg: 'bg-brand-500/10',
+  },
+  prospect: {
+    icon: Users,
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/10',
+  },
+  converted: {
+    icon: Euro,
+    color: 'text-brand-400',
+    bg: 'bg-brand-500/10',
+  },
 }
 
 export default function NotificationPanel() {
   const navigate = useNavigate()
+  const { isDemo } = useDemo()
   const {
-    notifications,
-    unreadCount,
+    notifications: realNotifications,
+    unreadCount: realUnreadCount,
     markAsRead,
     markAllAsRead,
     removeNotification,
@@ -49,6 +70,16 @@ export default function NotificationPanel() {
   } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
   const panelRef = useRef(null)
+
+  // Use demo or real notifications
+  const demoFormattedNotifications = demoNotifications.map(n => ({
+    ...n,
+    createdAt: n.timestamp,
+    read: n.read,
+  }))
+
+  const notifications = isDemo ? demoFormattedNotifications : realNotifications
+  const unreadCount = isDemo ? demoNotifications.filter(n => !n.read).length : realUnreadCount
 
   // Close panel when clicking outside
   useEffect(() => {

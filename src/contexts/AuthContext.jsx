@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -7,8 +7,12 @@ import {
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   updateProfile,
+  sendPasswordResetEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
 } from 'firebase/auth'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 
 const AuthContext = createContext(null)
@@ -17,6 +21,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   // Listen to auth state changes
   useEffect(() => {
@@ -24,9 +29,17 @@ export function AuthProvider({ children }) {
       if (firebaseUser) {
         setUser(firebaseUser)
         // Fetch user profile from Firestore
-        const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-        if (profileDoc.exists()) {
-          setUserProfile(profileDoc.data())
+        try {
+          const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+          if (profileDoc.exists()) {
+            setUserProfile(profileDoc.data())
+          } else {
+            // Create profile if it doesn't exist
+            await createUserProfile(firebaseUser)
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err)
+          setError(err.message)
         }
       } else {
         setUser(null)
@@ -45,10 +58,31 @@ export function AuthProvider({ children }) {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       displayName: firebaseUser.displayName || extraData.displayName || '',
+      firstName: extraData.firstName || firebaseUser.displayName?.split(' ')[0] || '',
+      lastName: extraData.lastName || firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
       photoURL: firebaseUser.photoURL || '',
+      phone: extraData.phone || null,
+
+      // Onboarding
+      onboardingComplete: false,
+      onboardingStep: 0,
+
+      // Preferences
+      preferences: {
+        language: 'fr',
+        timezone: 'Europe/Paris',
+        emailNotifications: true,
+        pushNotifications: true,
+        weeklyReport: true,
+      },
+
+      // Default org (set during onboarding)
+      defaultOrgId: null,
+
+      // Metadata
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      onboardingComplete: false,
+      lastLoginAt: serverTimestamp(),
       ...extraData,
     }
     await setDoc(userRef, profile, { merge: true })
@@ -56,50 +90,200 @@ export function AuthProvider({ children }) {
     return profile
   }
 
+  // Update user profile
+  const updateUserProfile = useCallback(async (updates) => {
+    if (!user) throw new Error('Not authenticated')
+
+    const userRef = doc(db, 'users', user.uid)
+    await updateDoc(userRef, {
+      ...updates,
+      updatedAt: serverTimestamp(),
+    })
+
+    setUserProfile((prev) => ({ ...prev, ...updates }))
+  }, [user])
+
+  // Update last login
+  const updateLastLogin = useCallback(async () => {
+    if (!user) return
+
+    try {
+      await updateDoc(doc(db, 'users', user.uid), {
+        lastLoginAt: serverTimestamp(),
+      })
+    } catch (err) {
+      console.error('Error updating last login:', err)
+    }
+  }, [user])
+
   // Sign up with email/password
-  const signUp = async (email, password, displayName) => {
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    await updateProfile(result.user, { displayName })
-    await createUserProfile(result.user, { displayName })
-    return result.user
+  const signUp = async (email, password, userData = {}) => {
+    setError(null)
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password)
+
+      const displayName = userData.firstName && userData.lastName
+        ? `${userData.firstName} ${userData.lastName}`
+        : userData.displayName || email.split('@')[0]
+
+      await updateProfile(result.user, { displayName })
+      await createUserProfile(result.user, {
+        displayName,
+        ...userData,
+      })
+
+      return result.user
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
   }
 
   // Sign in with email/password
   const signIn = async (email, password) => {
-    const result = await signInWithEmailAndPassword(auth, email, password)
-    return result.user
+    setError(null)
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      await updateLastLogin()
+      return result.user
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
   }
 
   // Sign in with Google
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider()
-    provider.addScope('email')
-    provider.addScope('profile')
-    const result = await signInWithPopup(auth, provider)
+    setError(null)
+    try {
+      const provider = new GoogleAuthProvider()
+      provider.addScope('email')
+      provider.addScope('profile')
+      const result = await signInWithPopup(auth, provider)
 
-    // Create profile if it doesn't exist
-    const profileDoc = await getDoc(doc(db, 'users', result.user.uid))
-    if (!profileDoc.exists()) {
-      await createUserProfile(result.user)
+      // Create profile if it doesn't exist
+      const profileDoc = await getDoc(doc(db, 'users', result.user.uid))
+      if (!profileDoc.exists()) {
+        await createUserProfile(result.user)
+      } else {
+        await updateLastLogin()
+      }
+
+      return result.user
+    } catch (err) {
+      setError(err.message)
+      throw err
     }
-
-    return result.user
   }
 
   // Sign out
   const signOut = async () => {
-    await firebaseSignOut(auth)
+    setError(null)
+    try {
+      await firebaseSignOut(auth)
+      localStorage.removeItem('fmf_current_org')
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
   }
 
+  // Send password reset email
+  const resetPassword = async (email) => {
+    setError(null)
+    try {
+      await sendPasswordResetEmail(auth, email)
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  // Change password (requires recent login)
+  const changePassword = async (currentPassword, newPassword) => {
+    setError(null)
+    if (!user) throw new Error('Not authenticated')
+
+    try {
+      // Re-authenticate
+      const credential = EmailAuthProvider.credential(user.email, currentPassword)
+      await reauthenticateWithCredential(user, credential)
+
+      // Update password
+      await updatePassword(user, newPassword)
+    } catch (err) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  // Complete onboarding step
+  const completeOnboardingStep = useCallback(async (step, data = {}) => {
+    if (!user) throw new Error('Not authenticated')
+
+    const updates = {
+      onboardingStep: step,
+      ...data,
+    }
+
+    // Mark complete if final step
+    if (step >= 3) {
+      updates.onboardingComplete = true
+    }
+
+    await updateUserProfile(updates)
+  }, [user, updateUserProfile])
+
+  // Set default organization
+  const setDefaultOrg = useCallback(async (orgId) => {
+    if (!user) throw new Error('Not authenticated')
+
+    await updateUserProfile({ defaultOrgId: orgId })
+  }, [user, updateUserProfile])
+
+  // Check if onboarding needed
+  const needsOnboarding = userProfile && !userProfile.onboardingComplete
+
+  // Full name helper
+  const fullName = userProfile?.displayName ||
+    (userProfile?.firstName && userProfile?.lastName
+      ? `${userProfile.firstName} ${userProfile.lastName}`
+      : user?.email?.split('@')[0] || 'Utilisateur')
+
+  // Initials helper
+  const initials = fullName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
   const value = {
+    // User data
     user,
     userProfile,
     loading,
+    error,
+
+    // Computed
+    fullName,
+    initials,
+    needsOnboarding,
+    isAuthenticated: !!user,
+
+    // Auth actions
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
+    resetPassword,
+    changePassword,
+
+    // Profile actions
+    updateUserProfile,
     createUserProfile,
+    completeOnboardingStep,
+    setDefaultOrg,
   }
 
   return (

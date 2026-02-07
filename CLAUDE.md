@@ -1,129 +1,171 @@
-# Face Media Factory - Instructions Claude Code
+# Face Media Factory v1.6.0 - Instructions Claude Code
 
 ## Vue d'ensemble
 
-Face Media Factory est un SaaS multi-tenant de prospection intelligente propulsé par l'IA Claude.
-Stack : 100% Firebase + React/Vite + Tailwind CSS.
+Face Media Factory est un SaaS multi-tenant de prospection intelligente multicanale propulse par l'IA.
 
-## Architecture
+### Stack Principal
+- **Frontend** : React 18 + Vite + Tailwind CSS
+- **Backend** : Firebase (Auth, Firestore, Functions, Hosting)
+- **Orchestration** : Windmill (self-hosted, code-first)
+
+### Services Externes
+| Canal | Service | Notes |
+|-------|---------|-------|
+| Email Transactionnel | Amazon SES | $0.10/1000 emails |
+| Cold Outreach | Saleshandy | $25/mois, comptes illimites |
+| SMS | BudgetSMS | Meilleur rapport qualite/prix Europe |
+| WhatsApp | Evolution API | Open-source, self-hosted gratuit |
+| Instagram DM | ManyChat | Limites API strictes |
+| Voicemail | Ringover | VoIP + voicemail drop |
+| Courrier | Merci Facteur | Lettres recommandees |
+
+Voir `STACK.md` pour la documentation technique complete.
+
+## Architecture v2.0
 
 ```
 face-media-factory/
-├── src/                          # Frontend React
-│   ├── App.jsx                   # Router + Auth guards
+├── src/
+│   ├── App.jsx                   # Router + Auth/Org guards + permissions
 │   ├── main.jsx                  # Entry point + Toast config
-│   ├── components/               # Composants réutilisables
-│   │   ├── Layout.jsx            # Sidebar + navigation
-│   │   ├── StatsCard.jsx         # Carte statistique
-│   │   ├── LeadTable.jsx         # Table des leads
-│   │   ├── Modal.jsx             # Modal animé
-│   │   ├── Tabs.jsx              # Composant tabs
-│   │   ├── EmptyState.jsx        # État vide
-│   │   ├── ActivityFeed.jsx      # Feed d'activité
-│   │   ├── KanbanBoard.jsx       # Board Kanban
-│   │   ├── LeadDrawer.jsx        # Panneau lead
-│   │   ├── ProgressSteps.jsx     # Steps animés
-│   │   └── EmailPreview.jsx      # Preview email Gmail-like
+│   │
+│   ├── components/               # Composants reutilisables
+│   │   ├── Layout.jsx            # Sidebar dark + TopBar + org switcher
+│   │   ├── LeadDrawer.jsx        # Panneau prospect multicanal
+│   │   ├── LeadTable.jsx         # Table prospects avec filtres
+│   │   ├── Modal.jsx             # Modal anime
+│   │   ├── CommandPalette.jsx    # Cmd+K search
+│   │   ├── NotificationPanel.jsx # Panneau notifications
+│   │   └── ...                   # Autres composants
+│   │
 │   ├── contexts/
-│   │   ├── AuthContext.jsx       # Firebase Auth state
-│   │   └── OrgContext.jsx        # Multi-tenant org state
+│   │   ├── AuthContext.jsx       # Firebase Auth + profil + onboarding
+│   │   └── OrgContext.jsx        # Multi-tenant + RBAC + limites plan
+│   │
 │   ├── hooks/
 │   │   ├── useFirestore.js       # CRUD + real-time listeners
+│   │   ├── usePermissions.jsx    # Hooks RBAC (can, canAction, isRoleAtLeast)
 │   │   └── useCloudFunctions.js  # Hooks Cloud Functions
-│   ├── lib/
-│   │   └── firebase.js           # Firebase init + emulators
-│   ├── pages/
+│   │
+│   ├── services/                 # Logique metier v2.0
+│   │   ├── permissions.js        # RBAC (5 roles: owner > admin > manager > member > viewer)
+│   │   ├── organization.js       # Org CRUD, members, invitations, plans
+│   │   ├── prospects.js          # Prospects multicanaux
+│   │   ├── sequences.js          # Sequences multicanales orchestrees
+│   │   ├── templates.js          # Templates par canal
+│   │   └── interactions.js       # Timeline interactions
+│   │
+│   ├── engine/
+│   │   └── multiChannelEngine.js # Orchestration 5 canaux
+│   │
+│   ├── pages/                    # Pages v2.0
 │   │   ├── Landing.jsx           # Page d'accueil publique
 │   │   ├── Login.jsx             # Connexion
 │   │   ├── Signup.jsx            # Inscription
-│   │   ├── Onboarding.jsx        # Onboarding 3 étapes
-│   │   ├── Dashboard.jsx         # Vue d'ensemble
-│   │   ├── Scanner.jsx           # Module 1: Analyse
-│   │   ├── Forgeur.jsx           # Module 2: Séquences
-│   │   ├── Radar.jsx             # Module 3: Scoring
-│   │   ├── Proof.jsx             # Module 4: Rapports
-│   │   ├── Clients.jsx           # Liste clients
-│   │   ├── ClientDetail.jsx      # Détail client
-│   │   └── Settings.jsx          # Paramètres
+│   │   ├── Dashboard.jsx         # KPIs temps reel multicanaux
+│   │   ├── Prospects.jsx         # Gestion prospects
+│   │   ├── Templates.jsx         # Templates par canal
+│   │   ├── Sequences.jsx         # Sequences multicanales
+│   │   ├── Interactions.jsx      # Timeline interactions
+│   │   ├── Analytics.jsx         # Analytics avances
+│   │   ├── Team.jsx              # Gestion equipe RBAC
+│   │   └── Settings.jsx          # Parametres multi-tabs
+│   │
+│   ├── lib/
+│   │   └── firebase.js           # Firebase init + emulators
+│   │
 │   └── styles/
 │       └── globals.css           # Tailwind + composants CSS
+│
 ├── functions/                    # Firebase Cloud Functions
-│   └── src/
-│       ├── index.js              # Entry point + exports
-│       ├── scanner/              # analyzeWebsite.js
-│       ├── forgeur/              # generateSequence.js
-│       ├── email/                # sendEmail.js + webhooks
-│       ├── proof/                # generateReport.js
-│       └── dev/                  # seedData.js
+├── firestore.rules               # Securite multi-tenant RBAC
 ├── firebase.json                 # Config Firebase + emulators
-├── firestore.rules               # Sécurité multi-tenant
-└── tailwind.config.js            # Thème personnalisé
+└── tailwind.config.js            # Theme personnalise
+```
+
+## RBAC (5 roles)
+
+| Role    | Niveau | Permissions                              |
+|---------|--------|------------------------------------------|
+| owner   | 100    | Tout + facturation + suppression org     |
+| admin   | 80     | Gestion equipe, integrations, parametres |
+| manager | 60     | Gestion prospects, sequences, templates  |
+| member  | 40     | Creation/modification, pas suppression   |
+| viewer  | 20     | Lecture seule                            |
+
+### Utilisation dans les composants
+
+```jsx
+// Hook usePermissions
+const { can, canAction, isRoleAtLeast, isAdmin } = usePermissions()
+
+// Verifier une permission
+if (can('prospects:delete')) { ... }
+
+// Verifier un role minimum
+if (isRoleAtLeast('manager')) { ... }
+
+// Composant conditionnel
+<RoleGuard minRole="admin">
+  <AdminContent />
+</RoleGuard>
+```
+
+## Canaux de prospection
+
+| Canal        | Couleur  | Max/sequence | Delai min |
+|--------------|----------|--------------|-----------|
+| email        | emerald  | 5            | 1 jour    |
+| sms          | blue     | 2            | 3 jours   |
+| whatsapp     | green    | 2            | 3 jours   |
+| instagram_dm | pink     | 1            | 5 jours   |
+| voicemail    | purple   | 1            | 7 jours   |
+| courrier     | amber    | 1            | 14 jours  |
+
+## Firestore Structure v2.0
+
+```
+/organizations/{orgId}
+├── name, slug, logo, plan, billing{}, limits{}, usage{}
+├── /members/{userId}
+│   └── uid, email, role, joinedAt, status
+├── /prospects/{prospectId}
+│   └── firstName, lastName, email, phone, company, status, score
+│   └── channels{email{}, sms{}, instagram_dm{}, ...}
+│   └── /activities/{activityId}
+├── /templates/{templateId}
+│   └── name, channel, category, subject, content, stats{}
+├── /sequences/{sequenceId}
+│   └── name, status, channels[], config{}, stats{}
+│   └── /steps/{stepId}
+│   └── /enrollments/{enrollmentId}
+├── /interactions/{interactionId}
+│   └── type, channel, direction, prospectId, content
+├── /channels/{channelId}
+│   └── enabled, provider, config{}
+└── /settings/{settingId}
 ```
 
 ## Design System
 
 ### Couleurs
-- **Brand** : Vert émeraude `#00d49a` (brand-500)
+- **Brand** : Vert emeraude `#00d49a` (brand-500)
 - **Dark** : Base `#0d0d1a` (dark-950)
-- **Accent** : Utilisés pour les modules (blue, amber, purple)
+- **Accent** : blue, amber, purple, pink, emerald
 
-### Classes CSS utilitaires
+### Classes CSS
 ```css
 .glass-card        /* Card avec blur et bordure subtile */
-.glass-card-hover  /* Card avec effet hover */
 .btn-primary       /* Bouton brand vert */
 .btn-secondary     /* Bouton dark avec bordure */
 .btn-ghost         /* Bouton transparent */
 .input-field       /* Input avec focus vert */
 .badge-success     /* Badge vert */
 .badge-warning     /* Badge orange */
-.badge-danger      /* Badge rouge */
-.badge-info        /* Badge bleu */
-.stat-value        /* Grande valeur stats */
-.stat-label        /* Label stats */
-.section-title     /* Titre de section */
 .page-title        /* Titre de page */
-.gradient-text     /* Texte dégradé brand */
+.section-title     /* Titre de section */
 ```
-
-### Fonts
-- **Display** : Outfit (titres)
-- **Body** : DM Sans (corps)
-- **Mono** : JetBrains Mono (code)
-
-## Conventions
-
-### Nommage fichiers
-- Pages : `PascalCase.jsx` (ex: `ClientDetail.jsx`)
-- Composants : `PascalCase.jsx` (ex: `LeadTable.jsx`)
-- Hooks : `camelCase.js` avec préfixe `use` (ex: `useFirestore.js`)
-
-### Structure page
-```jsx
-export default function PageName() {
-  // 1. Hooks (auth, org, data)
-  // 2. State local
-  // 3. Handlers
-
-  return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="page-title">...</h1>
-        <p className="text-dark-400 mt-1">...</p>
-      </div>
-
-      {/* Content */}
-      ...
-    </div>
-  )
-}
-```
-
-### Multi-tenant
-- Toute donnée doit avoir un champ `orgId`
-- Utiliser `useCollection()` avec `orgFilter: true` (défaut)
-- Les mutations ajoutent automatiquement `orgId`
 
 ## Commandes
 
@@ -132,36 +174,18 @@ export default function PageName() {
 npm run dev              # Frontend (http://localhost:5173)
 firebase emulators:start # Emulators Firebase
 
-# Build
+# Build & Deploy
 npm run build            # Production build
-
-# Deploy
-npm run deploy           # Build + déploie tout
-npm run deploy:hosting   # Frontend seul
-npm run deploy:functions # Cloud Functions seul
-
-# Seed data (en dev)
-# Appeler http://localhost:5001/[project]/europe-west1/seedData
+firebase deploy --only hosting  # Deploy frontend
 ```
 
-## Ajouter une nouvelle page
-
-1. Créer `src/pages/MaPage.jsx`
-2. Ajouter la route dans `App.jsx`
-3. Ajouter le lien dans `Layout.jsx` (navItems)
-
-## Ajouter une Cloud Function
-
-1. Créer le fichier dans `functions/src/[module]/maFonction.js`
-2. Exporter dans `functions/src/index.js`
-3. Créer le hook dans `src/hooks/useCloudFunctions.js`
-
-## Règles absolues
+## Regles absolues
 
 - **Ne jamais supprimer** de code sans remplacement
 - **Toujours tester** avec `npm run build` avant commit
 - **Utiliser le design system** existant
 - **Pas de TODO** ni de placeholder dans le code final
-- **UI en français**
-- **Gestion d'erreurs** partout (toast pour feedback utilisateur)
+- **UI en francais** (sans accents dans le code)
+- **Gestion d'erreurs** partout (toast pour feedback)
 - **Responsive** sur toutes les pages
+- **RBAC** : toujours verifier les permissions
