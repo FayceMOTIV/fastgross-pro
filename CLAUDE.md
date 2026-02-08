@@ -1,18 +1,19 @@
-# Face Media Factory v2.0.0 - Instructions Claude Code
+# Face Media Factory v4.0.0 - Instructions Claude Code
 
 ## Vue d'ensemble
 
 Face Media Factory est un SaaS multi-tenant de prospection intelligente multicanale propulse par l'IA.
 
 ### Stack Principal
-- **Frontend** : React 18 + Vite + Tailwind CSS
+- **Frontend** : React 18 + Vite 6 + Tailwind CSS
 - **Backend** : Firebase (Auth, Firestore, Functions, Hosting)
-- **Orchestration** : Windmill (self-hosted, code-first)
+- **IA** : Gemini 1.5 Flash (gratuit) avec Claude en fallback
+- **Charts** : Recharts pour les graphiques
 
 ### Services Externes
 | Canal | Service | Notes |
 |-------|---------|-------|
-| Email Transactionnel | Amazon SES | $0.10/1000 emails |
+| Email Transactionnel | Amazon SES / Nodemailer | $0.10/1000 emails |
 | Cold Outreach | Saleshandy | $25/mois, comptes illimites |
 | SMS | BudgetSMS | Meilleur rapport qualite/prix Europe |
 | WhatsApp | Evolution API | Open-source, self-hosted gratuit |
@@ -20,9 +21,7 @@ Face Media Factory est un SaaS multi-tenant de prospection intelligente multican
 | Voicemail | Ringover | VoIP + voicemail drop |
 | Courrier | Merci Facteur | Lettres recommandees |
 
-Voir `STACK.md` pour la documentation technique complete.
-
-## Architecture v2.0
+## Architecture v4.0
 
 ```
 face-media-factory/
@@ -30,141 +29,134 @@ face-media-factory/
 │   ├── App.jsx                   # Router + Auth/Org guards + permissions
 │   ├── main.jsx                  # Entry point + Toast config
 │   │
-│   ├── components/               # Composants reutilisables
-│   │   ├── Layout.jsx            # Sidebar dark + TopBar + org switcher
-│   │   ├── LeadDrawer.jsx        # Panneau prospect multicanal
-│   │   ├── LeadTable.jsx         # Table prospects avec filtres
-│   │   ├── Modal.jsx             # Modal anime
-│   │   ├── CommandPalette.jsx    # Cmd+K search
-│   │   ├── NotificationPanel.jsx # Panneau notifications
+│   ├── components/
+│   │   ├── Layout.jsx            # Sidebar light + TopBar + org switcher
+│   │   ├── pricing/              # Composants page tarification
+│   │   │   ├── PricingCard.jsx
+│   │   │   └── PricingToggle.jsx
+│   │   ├── settings/             # Sous-composants Settings (11 fichiers)
 │   │   └── ...                   # Autres composants
 │   │
 │   ├── contexts/
-│   │   ├── AuthContext.jsx       # Firebase Auth + profil + onboarding
-│   │   └── OrgContext.jsx        # Multi-tenant + RBAC + limites plan
+│   │   ├── AuthContext.jsx       # Firebase Auth + profil
+│   │   ├── OrgContext.jsx        # Multi-tenant + RBAC
+│   │   ├── ThemeContext.jsx      # Theme clair/sombre
+│   │   └── NotificationContext.jsx
 │   │
-│   ├── hooks/
-│   │   ├── useFirestore.js       # CRUD + real-time listeners
-│   │   ├── usePermissions.jsx    # Hooks RBAC (can, canAction, isRoleAtLeast)
-│   │   └── useCloudFunctions.js  # Hooks Cloud Functions
+│   ├── services/
+│   │   ├── plans.js              # Configuration forfaits + canaux
+│   │   ├── quotas.js             # Gestion quotas + usage
+│   │   ├── permissions.js        # RBAC
+│   │   └── ...
 │   │
-│   ├── services/                 # Logique metier v2.0
-│   │   ├── permissions.js        # RBAC (5 roles: owner > admin > manager > member > viewer)
-│   │   ├── organization.js       # Org CRUD, members, invitations, plans
-│   │   ├── prospects.js          # Prospects multicanaux
-│   │   ├── sequences.js          # Sequences multicanales orchestrees
-│   │   ├── templates.js          # Templates par canal
-│   │   └── interactions.js       # Timeline interactions
-│   │
-│   ├── engine/
-│   │   └── multiChannelEngine.js # Orchestration 5 canaux
-│   │
-│   ├── pages/                    # Pages v2.0
-│   │   ├── Landing.jsx           # Page d'accueil publique
-│   │   ├── Login.jsx             # Connexion
-│   │   ├── Signup.jsx            # Inscription
-│   │   ├── Dashboard.jsx         # KPIs temps reel multicanaux
+│   ├── pages/
+│   │   ├── Landing.jsx           # Page d'accueil marketing
+│   │   ├── Pricing.jsx           # Page tarification 3 forfaits
+│   │   ├── Scanner.jsx           # Analyse sites web IA
+│   │   ├── Forgeur.jsx           # Generation sequences IA
+│   │   ├── Radar.jsx             # Lead scoring IA
+│   │   ├── Campaigns.jsx         # Gestion campagnes multicanales
+│   │   ├── Proof.jsx             # Rapports ROI + graphiques
+│   │   ├── Dashboard.jsx         # KPIs temps reel
 │   │   ├── Prospects.jsx         # Gestion prospects
-│   │   ├── Templates.jsx         # Templates par canal
-│   │   ├── Sequences.jsx         # Sequences multicanales
-│   │   ├── Interactions.jsx      # Timeline interactions
-│   │   ├── Analytics.jsx         # Analytics avances
-│   │   ├── Team.jsx              # Gestion equipe RBAC
-│   │   └── Settings.jsx          # Parametres multi-tabs
-│   │
-│   ├── lib/
-│   │   └── firebase.js           # Firebase init + emulators
+│   │   └── Settings.jsx          # Parametres (thin router vers settings/)
 │   │
 │   └── styles/
-│       └── globals.css           # Tailwind + composants CSS
+│       └── globals.css           # Tailwind + theme light
 │
-├── functions/                    # Firebase Cloud Functions
+├── functions/src/
+│   ├── index.js                  # Exports Cloud Functions
+│   ├── scanner/
+│   │   └── analyzeWebsite.js     # Scraping + analyse IA
+│   ├── forgeur/
+│   │   └── generateSequence.js   # Generation sequences IA
+│   ├── radar/
+│   │   └── scoreLeads.js         # Lead scoring IA
+│   ├── campaigns/
+│   │   └── processSequence.js    # Orchestration envois multicanaux
+│   ├── utils/
+│   │   ├── gemini.js             # Wrapper Gemini + Claude fallback
+│   │   ├── quotas.js             # Verification quotas
+│   │   └── resetUsage.js         # Reset mensuel quotas
+│   └── ...
+│
 ├── firestore.rules               # Securite multi-tenant RBAC
-├── firebase.json                 # Config Firebase + emulators
-└── tailwind.config.js            # Theme personnalise
+├── firebase.json                 # Config Firebase
+└── tailwind.config.js            # Theme light personnalise
 ```
 
-## RBAC (5 roles)
+## Systeme de Forfaits v4.0
 
-| Role    | Niveau | Permissions                              |
-|---------|--------|------------------------------------------|
-| owner   | 100    | Tout + facturation + suppression org     |
-| admin   | 80     | Gestion equipe, integrations, parametres |
-| manager | 60     | Gestion prospects, sequences, templates  |
-| member  | 40     | Creation/modification, pas suppression   |
-| viewer  | 20     | Lecture seule                            |
+| Forfait | Prix | Prospects | Emails | SMS | WhatsApp | Canaux |
+|---------|------|-----------|--------|-----|----------|--------|
+| Starter | 97€/mois | 500 | 1000 | - | - | 1 |
+| Pro | 297€/mois | 2500 | 5000 | 500 | 200 | 3 |
+| Enterprise | 697€/mois | 10000 | 20000 | 2000 | 1000 | 6 |
 
-### Utilisation dans les composants
+### Canaux par forfait
+- **Starter** : Email uniquement
+- **Pro** : Email, SMS, WhatsApp
+- **Enterprise** : Tous (Email, SMS, WhatsApp, Instagram DM, Voicemail, Courrier)
 
-```jsx
-// Hook usePermissions
-const { can, canAction, isRoleAtLeast, isAdmin } = usePermissions()
+## Modules v4.0
 
-// Verifier une permission
-if (can('prospects:delete')) { ... }
+### Scanner
+- Analyse de sites web avec IA (Gemini/Claude)
+- Extraction : entreprise, contacts, pain points, accroches personnalisees
+- Historique des scans
 
-// Verifier un role minimum
-if (isRoleAtLeast('manager')) { ... }
+### Forgeur
+- Generation de sequences multicanales
+- Selection prospect, canaux, objectif, ton, nombre d'etapes
+- Edition inline des messages generes
 
-// Composant conditionnel
-<RoleGuard minRole="admin">
-  <AdminContent />
-</RoleGuard>
-```
+### Radar
+- Lead scoring IA (0-100)
+- Categories : Hot (80+), Warm (50-79), Cold (25-49), Ice (<25)
+- Breakdown : Profil, Taille, Engagement, Signaux, Recence
 
-## Canaux de prospection
+### Campaigns
+- Gestion campagnes d'envoi multicanal
+- Suivi temps reel (envoyes, ouverts, reponses, bounces)
+- Programmation et pause
 
-| Canal        | Couleur  | Max/sequence | Delai min |
-|--------------|----------|--------------|-----------|
-| email        | emerald  | 5            | 1 jour    |
-| sms          | blue     | 2            | 3 jours   |
-| whatsapp     | green    | 2            | 3 jours   |
-| instagram_dm | pink     | 1            | 5 jours   |
-| voicemail    | purple   | 1            | 7 jours   |
-| courrier     | amber    | 1            | 14 jours  |
+### Proof
+- Rapports ROI avec graphiques Recharts
+- Evolution hebdomadaire, funnel conversion, repartition canaux
+- Calcul ROI automatique
 
-## Firestore Structure v2.0
+## Cloud Functions
 
-```
-/organizations/{orgId}
-├── name, slug, logo, plan, billing{}, limits{}, usage{}
-├── /members/{userId}
-│   └── uid, email, role, joinedAt, status
-├── /prospects/{prospectId}
-│   └── firstName, lastName, email, phone, company, status, score
-│   └── channels{email{}, sms{}, instagram_dm{}, ...}
-│   └── /activities/{activityId}
-├── /templates/{templateId}
-│   └── name, channel, category, subject, content, stats{}
-├── /sequences/{sequenceId}
-│   └── name, status, channels[], config{}, stats{}
-│   └── /steps/{stepId}
-│   └── /enrollments/{enrollmentId}
-├── /interactions/{interactionId}
-│   └── type, channel, direction, prospectId, content
-├── /channels/{channelId}
-│   └── enabled, provider, config{}
-└── /settings/{settingId}
-```
+| Function | Description |
+|----------|-------------|
+| `scanWebsite` | Scrape + analyse IA site web |
+| `generateSequence` | Generation sequences IA |
+| `scoreLeads` | Scoring batch de leads |
+| `getLeadInsights` | Insights detailles lead |
+| `processSequence` | Traitement etapes campagne |
+| `scheduledCampaignProcessor` | Scheduler 15min |
+| `resetMonthlyUsage` | Reset quotas 1er du mois |
 
-## Design System
+## Design System v4.0 (Light Theme)
 
 ### Couleurs
-- **Brand** : Vert emeraude `#00d49a` (brand-500)
-- **Dark** : Base `#0d0d1a` (dark-950)
-- **Accent** : blue, amber, purple, pink, emerald
+- **Background** : `#FAFBFE` (bg)
+- **Surface** : `#FFFFFF` (cards)
+- **Accent** : `#4F6EF7` (indigo)
+- **Text** : `#111827` (gray-900)
+
+### Typographie
+- **Titres** : Outfit
+- **Corps** : Plus Jakarta Sans
 
 ### Classes CSS
 ```css
-.glass-card        /* Card avec blur et bordure subtile */
-.btn-primary       /* Bouton brand vert */
-.btn-secondary     /* Bouton dark avec bordure */
-.btn-ghost         /* Bouton transparent */
-.input-field       /* Input avec focus vert */
-.badge-success     /* Badge vert */
-.badge-warning     /* Badge orange */
-.page-title        /* Titre de page */
-.section-title     /* Titre de section */
+.card                /* Card blanche avec bordure subtile */
+.card-hover          /* Card avec hover effet */
+.btn-primary         /* Bouton gradient violet */
+.btn-secondary       /* Bouton outline */
+.btn-ghost           /* Bouton transparent */
+.input-field         /* Input avec focus violet */
 ```
 
 ## Commandes
@@ -172,20 +164,43 @@ if (isRoleAtLeast('manager')) { ... }
 ```bash
 # Dev
 npm run dev              # Frontend (http://localhost:5173)
-firebase emulators:start # Emulators Firebase
+npm run test             # Tests Vitest
+npm run lint             # ESLint
 
 # Build & Deploy
 npm run build            # Production build
 firebase deploy --only hosting  # Deploy frontend
+firebase deploy --only functions # Deploy functions
+```
+
+## Variables d'environnement
+
+### Frontend (.env.local)
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+```
+
+### Functions (Firebase Config)
+```
+GEMINI_API_KEY=...
+SMTP_HOST=...
+SMTP_USER=...
+SMTP_PASS=...
+BUDGETSMS_API_KEY=...
+EVOLUTION_API_URL=...
+EVOLUTION_API_KEY=...
 ```
 
 ## Regles absolues
 
 - **Ne jamais supprimer** de code sans remplacement
 - **Toujours tester** avec `npm run build` avant commit
-- **Utiliser le design system** existant
+- **Utiliser le design system** light theme
 - **Pas de TODO** ni de placeholder dans le code final
 - **UI en francais** (sans accents dans le code)
+- **Mode mock** pour toutes les pages (fonctionnel sans API)
 - **Gestion d'erreurs** partout (toast pour feedback)
 - **Responsive** sur toutes les pages
-- **RBAC** : toujours verifier les permissions
+- **Quotas** : toujours verifier avant operations
