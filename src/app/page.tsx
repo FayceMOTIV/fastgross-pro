@@ -1,63 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useState, useEffect } from "react";
-import {
-  Camera,
-  ShoppingCart,
-  Truck,
-  BarChart3,
-  MessageSquare,
-  Settings,
-  Target,
-  Shield,
-  Package,
-  Map,
-  Check,
-  ArrowRight,
-  Zap,
-  TrendingUp,
-  Phone,
-  Mail,
-  Lock,
-  Smartphone,
-  Brain,
-  Timer,
-  UserPlus,
-  Boxes,
-  Route,
-  MessageCircle,
-  Store,
-  CalendarCheck,
-  ChevronDown,
-} from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-// Animated counter component
-function AnimatedCounter({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) {
-  const [count, setCount] = useState(0);
+// Scroll reveal hook
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const duration = 2000;
-    const steps = 60;
-    const increment = value / steps;
-    let current = 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+    );
 
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setCount(value);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
 
-    return () => clearInterval(timer);
-  }, [value]);
+    return () => observer.disconnect();
+  }, []);
 
-  return <span>{prefix}{count.toLocaleString('fr-FR')}{suffix}</span>;
+  return { ref, isVisible };
+}
+
+// Reveal wrapper component
+function Reveal({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { ref, isVisible } = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "transition-all duration-700 ease-out",
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export default function LandingPage() {
@@ -65,660 +51,591 @@ export default function LandingPage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans antialiased">
-      {/* Navbar */}
-      <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled ? "bg-white/95 backdrop-blur-xl shadow-lg shadow-slate-200/50" : "bg-transparent"
-      )}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 relative">
-                <Image
-                  src="https://www.distram.com/img/ditram-logo-1648546954.jpg"
-                  alt="DISTRAM"
-                  width={48}
-                  height={48}
-                  className="rounded-lg object-contain"
-                  unoptimized
-                />
-              </div>
-              <div className="hidden sm:block">
-                <span className="text-lg font-bold text-slate-900">DISTRAM</span>
-                <span className="text-xs text-slate-500 block -mt-1">L'art du Snacking depuis 1993</span>
-              </div>
+    <div className="min-h-screen bg-white text-gray-900 font-sans antialiased">
+      {/* ===================== NAV ===================== */}
+      <nav
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 px-8 py-4 transition-all duration-300",
+          isScrolled && "bg-white/95 backdrop-blur-xl shadow-sm"
+        )}
+      >
+        <div className="max-w-[1200px] mx-auto flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 font-extrabold text-xl text-gray-900">
+            <div className="w-9 h-9 bg-[#FF6B2C] rounded-xl flex items-center justify-center text-white font-black text-lg">
+              F
             </div>
-
-            <div className="hidden md:flex items-center gap-6">
-              <a href="#situation" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Votre situation</a>
-              <a href="#scan-ia" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Scan IA</a>
-              <a href="#gains" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Gains</a>
-              <a href="#roi" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">ROI</a>
-              <a href="#tarif" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">Tarif</a>
-            </div>
-
-            <Link
-              href="/app"
-              className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/25 flex items-center gap-2"
-            >
-              <span className="hidden sm:inline">Voir votre plateforme</span>
-              <span className="sm:hidden">Démo</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+            FASTGROSS PRO
+          </Link>
+          <ul className="hidden md:flex items-center gap-8">
+            <li><a href="#results" className="text-gray-600 font-medium hover:text-[#FF6B2C] transition-colors">Résultats</a></li>
+            <li><a href="#how" className="text-gray-600 font-medium hover:text-[#FF6B2C] transition-colors">Comment ça marche</a></li>
+            <li><a href="#ia" className="text-gray-600 font-medium hover:text-[#FF6B2C] transition-colors">L&apos;IA embarquée</a></li>
+            <li><a href="#pricing" className="text-gray-600 font-medium hover:text-[#FF6B2C] transition-colors">Tarifs</a></li>
+            <li>
+              <Link
+                href="/app"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF6B2C] text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 hover:bg-[#E55A1F] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-500/40 transition-all"
+              >
+                Voir la démo
+              </Link>
+            </li>
+          </ul>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-violet-500/30 rounded-full blur-[150px]"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-400/30 rounded-full blur-[100px]"></div>
+      {/* ===================== HERO ===================== */}
+      <section className="pt-40 pb-24 px-8 text-center relative overflow-hidden">
+        <div className="absolute -top-1/2 -left-1/5 w-[140%] h-full bg-[radial-gradient(ellipse_at_center_top,rgba(255,107,44,0.07)_0%,transparent_60%)] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full mb-8">
-              <Target className="h-4 w-4 text-amber-400" />
-              <span className="text-sm text-white font-medium">Proposition exclusive pour DISTRAM</span>
+        <div className="animate-fadeUp">
+          <div className="inline-flex items-center gap-2 px-5 py-2 bg-orange-50 text-[#FF6B2C] rounded-full font-semibold text-sm mb-8">
+            <span>⚡</span> Déjà adopté par des grossistes en France
+          </div>
+        </div>
+
+        <h1 className="text-4xl md:text-6xl font-black text-gray-900 max-w-[850px] mx-auto mb-6 leading-tight animate-fadeUp animation-delay-100">
+          Vos commerciaux vendent plus.
+          <br />
+          <span className="text-[#FF6B2C] relative">
+            Sans effort supplémentaire.
+            <span className="absolute bottom-0.5 left-0 right-0 h-1.5 bg-orange-200 rounded-full -z-10" />
+          </span>
+        </h1>
+
+        <p className="text-xl text-gray-500 max-w-[620px] mx-auto mb-10 leading-relaxed animate-fadeUp animation-delay-200">
+          La plateforme qui transforme vos commerciaux terrain en machines à vendre, optimise vos livraisons au kilomètre près, et laisse vos clients commander tout seuls.
+        </p>
+
+        <div className="flex gap-4 justify-center flex-wrap animate-fadeUp animation-delay-300">
+          <Link
+            href="/app"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF6B2C] text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 hover:bg-[#E55A1F] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-500/40 transition-all"
+          >
+            Voir la démo en direct →
+          </Link>
+          <a
+            href="#results"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-transparent text-gray-900 font-semibold rounded-xl border-2 border-gray-300 hover:border-[#FF6B2C] hover:text-[#FF6B2C] transition-all"
+          >
+            Découvrir les résultats
+          </a>
+        </div>
+
+        <div className="flex justify-center gap-12 mt-16 pt-12 border-t border-gray-100 animate-fadeUp animation-delay-400">
+          {[
+            { number: "30", suffix: "sec", label: "Pour savoir quoi vendre\nà un nouveau restaurant" },
+            { number: "3", suffix: "×", label: "Plus de visites\nproductives par jour" },
+            { number: "0", suffix: "h", label: "Passées à planifier\nles tournées" },
+          ].map((stat, i) => (
+            <div key={i} className="text-center">
+              <div className="text-4xl font-extrabold text-gray-900">
+                {stat.number}<span className="text-[#FF6B2C]">{stat.suffix}</span>
+              </div>
+              <div className="text-gray-500 text-sm mt-1 whitespace-pre-line">{stat.label}</div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 text-white">
-              DISTRAM, vos 8 commerciaux méritent mieux que des{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-400">devis papier.</span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto mb-8">
-              On a créé votre plateforme IA sur-mesure. <strong className="text-white">300 restaurants, 3 dépôts, 98 produits</strong> — tout est déjà configuré pour vous.
-            </p>
-
-            {/* Stats */}
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-10">
+      {/* ===================== PROBLEM ===================== */}
+      <section id="problem" className="py-24 px-8 bg-gray-900 text-white">
+        <Reveal>
+          <div className="max-w-[1100px] mx-auto">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">Le problème</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-12 leading-tight">
+              Votre équipe perd du temps.
+              <br />
+              Beaucoup de temps.
+            </h2>
+            <div className="grid md:grid-cols-3 gap-6">
               {[
-                { value: "300+", label: "Restaurants" },
-                { value: "3", label: "Dépôts" },
-                { value: "5", label: "IAs" },
-                { value: "30s", label: "par devis" },
-              ].map((stat, i) => (
-                <div key={i} className="text-center px-4">
-                  <p className="text-2xl md:text-3xl font-black text-white">{stat.value}</p>
-                  <p className="text-sm text-blue-200">{stat.label}</p>
+                {
+                  icon: "🕐",
+                  title: "Des visites commerciales qui traînent",
+                  desc: "Votre commercial arrive chez un restaurateur. Il feuillette son catalogue, hésite, propose au hasard. Le rendez-vous dure 1h. Le restaurateur dit \"je réfléchis\".",
+                },
+                {
+                  icon: "🗺️",
+                  title: "Des livreurs qui tournent en rond",
+                  desc: "Vos chauffeurs font leurs tournées \"à l'habitude\". Personne n'a optimisé les routes depuis des mois. Résultat : du gasoil brûlé, des retards, des clients mécontents.",
+                },
+                {
+                  icon: "📞",
+                  title: "Des commandes qui passent au téléphone",
+                  desc: "Vos clients appellent, envoient des SMS, des WhatsApp. Les erreurs s'accumulent, les commandes se perdent, et votre équipe passe ses journées à décrocher.",
+                },
+              ].map((card, i) => (
+                <div
+                  key={i}
+                  className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-orange-500/30 transition-all"
+                >
+                  <div className="text-3xl mb-4">{card.icon}</div>
+                  <h3 className="text-lg font-bold mb-3">{card.title}</h3>
+                  <p className="text-white/60 leading-relaxed text-sm">{card.desc}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </Reveal>
+      </section>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/app"
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-900 font-bold rounded-xl transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2"
-              >
-                Découvrir votre plateforme
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-              <a
-                href="#roi"
-                className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
-              >
-                Voir l'impact financier
-                <ChevronDown className="h-5 w-5" />
-              </a>
+      {/* ===================== BEFORE / AFTER ===================== */}
+      <section className="py-20 px-8 bg-gray-100">
+        <Reveal>
+          <div className="max-w-[900px] mx-auto grid md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+            <div className="bg-white border border-gray-300 rounded-2xl p-10">
+              <h3 className="text-sm uppercase tracking-widest font-bold text-gray-500 mb-6">Aujourd&apos;hui</h3>
+              <ul className="space-y-4">
+                {[
+                  "1h par visite commerciale, résultat incertain",
+                  "Catalogue papier ou PDF de 30 pages",
+                  "Tournées planifiées au feeling",
+                  "Commandes par téléphone et WhatsApp",
+                  "Aucune vision en temps réel",
+                  "Tout repose sur la mémoire de chacun",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                    <span className="text-red-500 font-bold shrink-0">✗</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="text-3xl text-[#FF6B2C] md:rotate-0 rotate-90 text-center">→</div>
+
+            <div className="bg-gray-900 text-white rounded-2xl p-10">
+              <h3 className="text-sm uppercase tracking-widest font-bold text-[#FF6B2C] mb-6">Avec FASTGROSS PRO</h3>
+              <ul className="space-y-4">
+                {[
+                  "30 secondes pour la bonne recommandation",
+                  "L'IA analyse le menu et propose les bons produits",
+                  "Routes optimisées automatiquement chaque matin",
+                  "Portail en ligne : vos clients commandent seuls, 24h/24",
+                  "Dashboard en temps réel par dépôt, par commercial",
+                  "L'IA retient tout et s'améliore avec le temps",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-white/80">
+                    <span className="text-green-500 font-bold shrink-0">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
+        </Reveal>
+      </section>
+
+      {/* ===================== TRANSFORMATION ===================== */}
+      <section id="results" className="py-28 px-8">
+        <div className="max-w-[1100px] mx-auto">
+          <Reveal className="text-center mb-16">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">Les résultats concrets</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4">Ce que ça change au quotidien</h2>
+            <p className="text-gray-500 text-lg max-w-[600px] mx-auto">
+              Pas de la théorie. Des résultats visibles dès la première semaine.
+            </p>
+          </Reveal>
+
+          {/* Benefit rows */}
+          {[
+            {
+              color: "orange",
+              bg: "bg-orange-50",
+              number: "30s",
+              label: "au lieu de 45 minutes",
+              tag: "📸 Scan Menu IA",
+              title: "Votre commercial photographie la carte. L'IA fait le reste.",
+              desc: "Il entre dans un restaurant, prend en photo le menu affiché au mur. En 30 secondes, l'intelligence artificielle a analysé chaque plat et propose exactement les produits de votre catalogue qui correspondent.",
+              bullets: [
+                "Fini les \"je vais vérifier et je vous rappelle\"",
+                "Recommandations personnalisées, pas un catalogue générique",
+                "Le devis est prêt avant même que le café refroidisse",
+              ],
+            },
+            {
+              color: "green",
+              bg: "bg-green-50",
+              number: "-30%",
+              label: "de kilomètres par jour",
+              tag: "🚛 Routes intelligentes",
+              title: "Vos livreurs font plus de livraisons en moins de temps.",
+              desc: "Chaque matin, les tournées sont calculées automatiquement. Le bon ordre, les bonnes routes, les bonnes fenêtres horaires. Vos chauffeurs suivent l'itinéraire et livrent plus de clients dans la journée.",
+              bullets: [
+                "Moins de gasoil, moins de retards",
+                "Multi-dépôts : Lyon, Montpellier, Bordeaux… tout est géré",
+                "Les clients reçoivent leurs livraisons à l'heure",
+              ],
+              reverse: true,
+            },
+            {
+              color: "blue",
+              bg: "bg-blue-50",
+              number: "24/7",
+              label: "vos clients commandent seuls",
+              tag: "🛒 Portail de commande",
+              title: "Vos clients passent commande à 2h du matin. Vous dormez. Le CA tombe.",
+              desc: "Un espace dédié pour chaque restaurant client. Il voit votre catalogue, vos prix, passe commande en 3 clics. Plus besoin d'appeler, d'envoyer un SMS ou d'attendre lundi matin.",
+              bullets: [
+                "Moins d'erreurs : le client choisit lui-même",
+                "Historique de commandes : réappro en un clic",
+                "Notifications automatiques à chaque étape",
+              ],
+            },
+            {
+              color: "amber",
+              bg: "bg-amber-50",
+              number: "100%",
+              label: "de visibilité sur votre activité",
+              tag: "📊 Vision complète",
+              title: "Vous savez exactement où vous en êtes. À tout moment.",
+              desc: "Chiffre d'affaires par dépôt, performance de chaque commercial, top clients, alertes sur les objectifs… tout est là, en temps réel, sans attendre le reporting de fin de mois.",
+              bullets: [
+                "Un dashboard par ville, par équipe, par commercial",
+                "Alertes automatiques si un objectif décroche",
+                "Demandez à l'IA : \"Comment va Montpellier ce mois-ci ?\"",
+              ],
+              reverse: true,
+            },
+          ].map((benefit, i) => (
+            <Reveal key={i} className={cn("grid md:grid-cols-2 gap-16 items-center mb-20 pb-20 border-b border-gray-100 last:border-b-0 last:mb-0 last:pb-0", benefit.reverse && "md:[direction:rtl]")}>
+              <div className={cn(benefit.bg, "rounded-2xl p-12 min-h-[320px] flex items-center justify-center", benefit.reverse && "md:[direction:ltr]")}>
+                <div className="text-center">
+                  <div className={cn("text-7xl font-black leading-none", {
+                    "text-[#FF6B2C]": benefit.color === "orange",
+                    "text-green-500": benefit.color === "green",
+                    "text-blue-500": benefit.color === "blue",
+                    "text-amber-500": benefit.color === "amber",
+                  })}>
+                    {benefit.number}
+                  </div>
+                  <div className={cn("text-lg font-semibold mt-2", {
+                    "text-[#FF6B2C]": benefit.color === "orange",
+                    "text-green-600": benefit.color === "green",
+                    "text-blue-600": benefit.color === "blue",
+                    "text-amber-600": benefit.color === "amber",
+                  })}>
+                    {benefit.label}
+                  </div>
+                </div>
+              </div>
+              <div className={cn(benefit.reverse && "md:[direction:ltr]")}>
+                <div className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold mb-4", {
+                  "bg-orange-50 text-[#FF6B2C]": benefit.color === "orange",
+                  "bg-green-50 text-green-600": benefit.color === "green",
+                  "bg-blue-50 text-blue-600": benefit.color === "blue",
+                  "bg-amber-50 text-amber-600": benefit.color === "amber",
+                })}>
+                  {benefit.tag}
+                </div>
+                <h3 className="text-2xl font-extrabold text-gray-900 mb-4 leading-tight">{benefit.title}</h3>
+                <p className="text-gray-500 leading-relaxed mb-6">{benefit.desc}</p>
+                <ul className="space-y-3">
+                  {benefit.bullets.map((bullet, j) => (
+                    <li key={j} className="flex items-start gap-3 text-gray-700 text-sm">
+                      <span className="text-green-500 font-bold shrink-0 mt-0.5">✓</span>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      {/* Section 3 - Situation actuelle */}
-      <section id="situation" className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Ce que vos <span className="text-blue-600">8 commerciaux</span> vivent chaque jour
-            </h2>
-          </div>
+      {/* ===================== HOW IT WORKS ===================== */}
+      <section id="how" className="py-28 px-8 bg-gray-100">
+        <div className="max-w-[1100px] mx-auto">
+          <Reveal className="text-center mb-16">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">Simple comme bonjour</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4">Prêt en 2 semaines. Pas en 6 mois.</h2>
+            <p className="text-gray-500 text-lg">On s&apos;occupe de tout. Votre équipe n&apos;a rien à installer.</p>
+          </Reveal>
 
-          {/* Problèmes */}
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            {[
-              {
-                icon: Timer,
-                title: "Devis manuels",
-                desc: "Vos commerciaux passent 1h30 par devis. Calculer les prix, vérifier le stock, recopier dans Excel...",
-                stat: "3 devis/jour maximum",
-                color: "red"
-              },
-              {
-                icon: Phone,
-                title: "Commandes au téléphone",
-                desc: "Vos 300 restaurants appellent pour commander. Erreurs de saisie, lignes occupées, zéro commande après 18h.",
-                stat: "-20% de commandes perdues",
-                color: "red"
-              },
-              {
-                icon: Route,
-                title: "Tournées approximatives",
-                desc: "3 dépôts, des dizaines de livraisons/jour. Itinéraires au feeling, carburant gaspillé.",
-                stat: "+36K€/an de trop",
-                color: "red"
-              }
-            ].map((item, i) => (
-              <div key={i} className="bg-red-50 border border-red-200 rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-red-100 rounded-xl">
-                    <item.icon className="h-6 w-6 text-red-600" />
-                  </div>
-                  <h3 className="font-bold text-red-800">{item.title}</h3>
-                </div>
-                <p className="text-red-700/80 text-sm mb-4">{item.desc}</p>
-                <p className="text-red-600 font-bold text-sm">{item.stat}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Flèche de transition */}
-          <div className="flex justify-center my-8">
-            <div className="flex items-center gap-4">
-              <div className="h-px w-16 bg-gradient-to-r from-red-300 to-transparent"></div>
-              <ChevronDown className="h-8 w-8 text-green-500 animate-bounce" />
-              <div className="h-px w-16 bg-gradient-to-l from-green-300 to-transparent"></div>
-            </div>
-          </div>
-
-          {/* Solutions */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Camera,
-                title: "Scan Menu IA : 30 secondes",
-                desc: "Photo du menu → GPT-4o analyse → devis auto avec vos 98 produits et vos prix. Le prospect n'en revient pas.",
-                stat: "20 devis/jour, ×7 plus",
-                color: "green"
-              },
-              {
-                icon: ShoppingCart,
-                title: "Portail B2B 24h/24",
-                desc: "Vos clients commandent en ligne depuis mobile, jour et nuit. Catalogue, panier, historique. Zéro erreur.",
-                stat: "+20% de commandes",
-                color: "green"
-              },
-              {
-                icon: Map,
-                title: "IA Tournées optimisées",
-                desc: "L'IA calcule les meilleurs itinéraires pour Lyon, Montpellier, Bordeaux. GPS temps réel, ETAs précises.",
-                stat: "-30% km, -36K€/an",
-                color: "green"
-              }
-            ].map((item, i) => (
-              <div key={i} className="bg-green-50 border border-green-200 rounded-2xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-green-100 rounded-xl">
-                    <item.icon className="h-6 w-6 text-green-600" />
-                  </div>
-                  <h3 className="font-bold text-green-800">{item.title}</h3>
-                </div>
-                <p className="text-green-700/80 text-sm mb-4">{item.desc}</p>
-                <p className="text-green-600 font-bold text-sm">{item.stat}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 4 - Scan Menu IA */}
-      <section id="scan-ia" className="py-16 md:py-24 bg-gradient-to-br from-violet-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-100 border border-violet-200 rounded-full mb-6">
-              <Brain className="h-4 w-4 text-violet-600" />
-              <span className="text-sm text-violet-700 font-semibold">Exclusivité — Aucun de vos concurrents ne l'a</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              Le <span className="text-violet-600">Scan Menu IA</span>. La raison pour laquelle vos commerciaux vont vous remercier.
-            </h2>
-          </div>
-
-          {/* Timeline */}
-          <div className="max-w-3xl mx-auto mb-12">
-            {[
-              { num: 1, icon: Camera, title: "Le commercial photographie le menu", desc: "Directement depuis l'app mobile" },
-              { num: 2, icon: Brain, title: "GPT-4o Vision analyse chaque plat", desc: "Détecte fromage bleu, chèvre, bacon, viande kebab..." },
-              { num: 3, icon: Package, title: "Matching automatique", desc: "Avec vos 98 références DISTRAM, vrais prix grossiste, refs SAGE" },
-              { num: 4, icon: Mail, title: "Devis envoyé en 1 clic", desc: "Par email ou SMS. Le prospect signe sur place." },
-            ].map((step, i) => (
-              <div key={i} className="flex gap-4 mb-6 last:mb-0">
-                <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-violet-500/30">
+          <Reveal>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  num: "1",
+                  title: "On importe votre catalogue",
+                  desc: "Vos produits, vos prix, vos références. On configure la plateforme avec vos données réelles. Pas de la démo, du concret.",
+                },
+                {
+                  num: "2",
+                  title: "Votre équipe se connecte",
+                  desc: "Chacun son accès : les commerciaux sur le terrain depuis leur téléphone, les livreurs avec leur app, les managers sur leur dashboard.",
+                },
+                {
+                  num: "3",
+                  title: "L'IA apprend et s'améliore",
+                  desc: "Plus vos commerciaux l'utilisent, plus les recommandations deviennent précises. L'IA retient les corrections et s'adapte à vos clients.",
+                },
+              ].map((step, i) => (
+                <div key={i} className="bg-white rounded-2xl p-10 text-center hover:-translate-y-1 hover:shadow-xl transition-all">
+                  <div className="w-14 h-14 rounded-2xl bg-[#FF6B2C] text-white text-2xl font-extrabold flex items-center justify-center mx-auto mb-6">
                     {step.num}
                   </div>
-                  {i < 3 && <div className="w-0.5 h-full bg-gradient-to-b from-violet-300 to-blue-300 my-2"></div>}
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                  <p className="text-gray-500 leading-relaxed text-sm">{step.desc}</p>
                 </div>
-                <div className="flex-1 bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-                  <div className="flex items-center gap-3 mb-1">
-                    <step.icon className="h-5 w-5 text-violet-600" />
-                    <h3 className="font-bold text-slate-900">{step.title}</h3>
-                  </div>
-                  <p className="text-slate-600 text-sm">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Comparaison */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 max-w-2xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-              <div className="text-center bg-red-50 rounded-xl p-6 w-full md:w-40">
-                <p className="text-4xl font-black text-red-500">1h30</p>
-                <p className="text-red-600/70 text-sm mt-1">Avant</p>
-              </div>
-              <div className="text-3xl font-bold text-slate-300">→</div>
-              <div className="text-center bg-green-50 rounded-xl p-6 w-full md:w-40">
-                <p className="text-4xl font-black text-green-500">30s</p>
-                <p className="text-green-600/70 text-sm mt-1">Après</p>
-              </div>
-              <div className="text-3xl font-bold text-slate-300">=</div>
-              <div className="text-center bg-violet-50 rounded-xl p-6 w-full md:w-40">
-                <p className="text-4xl font-black text-violet-600">×180</p>
-                <p className="text-violet-600/70 text-sm mt-1">Plus rapide</p>
-              </div>
+              ))}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Section 5 - 7 gains concrets */}
-      <section id="gains" className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              <span className="text-blue-600">7 impacts</span> mesurables sur votre activité
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Timer,
-                title: "Temps gagné",
-                color: "blue",
-                stats: [
-                  { label: "×180 plus rapide", desc: "pour un devis" },
-                  { label: "×7 devis/commercial", desc: "par jour (3 → 20)" },
-                  { label: "×2.5 prospects visités", desc: "par jour (4 → 10)" },
-                ],
-                footer: "Vos 8 commerciaux récupèrent 12h/jour au total"
-              },
-              {
-                icon: UserPlus,
-                title: "Nouveaux clients",
-                color: "green",
-                stats: [
-                  { label: "+15 clients/mois", desc: "grâce à la rapidité" },
-                  { label: "15% → 35%", desc: "conversion prospects (+133%)" },
-                ],
-                footer: "CA additionnel : +540K€/an"
-              },
-              {
-                icon: Shield,
-                title: "Clients existants suivis par IA",
-                color: "violet",
-                stats: [
-                  { label: "-60% churn", desc: "IA Anti-Churn" },
-                  { label: "30 clients sauvés", desc: "+1,08M€/an préservé" },
-                  { label: "+12% panier moyen", desc: "cross-sell IA" },
-                ],
-                footer: "+280K€/an supplémentaires"
-              },
-              {
-                icon: Boxes,
-                title: "Gestion des stocks intelligente",
-                color: "amber",
-                stats: [
-                  { label: "-85% ruptures", desc: "IA prédictive 2 semaines" },
-                  { label: "Ramadan, Aïd, été", desc: "saisonnalité intégrée" },
-                  { label: "-40% gaspillage", desc: "alertes DLC viandes" },
-                ],
-                footer: "Jamais en rupture, jamais de perte"
-              },
-              {
-                icon: Truck,
-                title: "Livraisons optimisées",
-                color: "emerald",
-                stats: [
-                  { label: "-30% kilomètres", desc: "IA Tournées 3 dépôts" },
-                  { label: "-36K€/an", desc: "économie carburant" },
-                  { label: "95% à l'heure", desc: "vs 75% avant" },
-                ],
-                footer: "GPS temps réel intégré"
-              },
-              {
-                icon: MessageCircle,
-                title: "Messagerie sécurisée",
-                color: "pink",
-                stats: [
-                  { label: "Fini WhatsApp", desc: "pour les prix et remises" },
-                  { label: "100% traçable", desc: "historique horodaté" },
-                ],
-                footer: "Quand un commercial part, rien ne se perd"
-              },
-              {
-                icon: Store,
-                title: "Portail B2B 24h/24",
-                color: "orange",
-                stats: [
-                  { label: "+20% commandes", desc: "jour et nuit" },
-                  { label: "98 produits", desc: "catalogue avec vos prix" },
-                  { label: "Zéro erreur", desc: "zéro appel téléphonique" },
-                ],
-                footer: "Vos restaurants commandent depuis mobile"
-              },
-            ].map((card, i) => {
-              const colorClasses: Record<string, { bg: string; border: string; text: string; icon: string }> = {
-                blue: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-600", icon: "bg-blue-100" },
-                green: { bg: "bg-green-50", border: "border-green-200", text: "text-green-600", icon: "bg-green-100" },
-                violet: { bg: "bg-violet-50", border: "border-violet-200", text: "text-violet-600", icon: "bg-violet-100" },
-                amber: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-600", icon: "bg-amber-100" },
-                emerald: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-600", icon: "bg-emerald-100" },
-                pink: { bg: "bg-pink-50", border: "border-pink-200", text: "text-pink-600", icon: "bg-pink-100" },
-                orange: { bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-600", icon: "bg-orange-100" },
-              };
-              const colors = colorClasses[card.color];
-
-              return (
-                <div key={i} className={cn("rounded-2xl p-6 border", colors.bg, colors.border)}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={cn("p-3 rounded-xl", colors.icon)}>
-                      <card.icon className={cn("h-6 w-6", colors.text)} />
-                    </div>
-                    <h3 className="font-bold text-slate-900">{card.title}</h3>
-                  </div>
-                  <div className="space-y-2 mb-4">
-                    {card.stats.map((stat, j) => (
-                      <div key={j} className="flex items-baseline gap-2">
-                        <span className={cn("font-bold", colors.text)}>{stat.label}</span>
-                        <span className="text-sm text-slate-500">{stat.desc}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-slate-600 pt-3 border-t border-slate-200">{card.footer}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 6 - ROI */}
-      <section id="roi" className="py-16 md:py-24 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-2">
-              L'impact financier pour <span className="text-green-600">DISTRAM</span>
-            </h2>
-            <p className="text-slate-600">Basé sur vos 300 restaurants, 3 dépôts et 8 commerciaux</p>
-          </div>
-
-          {/* Big number */}
-          <div className="text-center mb-12">
-            <p className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600">
-              +<AnimatedCounter value={1960000} suffix="€" />/an
+      {/* ===================== AI AGENTS ===================== */}
+      <section id="ia" className="py-28 px-8">
+        <div className="max-w-[1100px] mx-auto">
+          <Reveal className="text-center mb-16">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">L&apos;intelligence embarquée</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4">5 assistants IA qui travaillent pour vous</h2>
+            <p className="text-gray-500 text-lg max-w-[600px] mx-auto">
+              Ils ne dorment jamais, ne se trompent pas, et s&apos;améliorent chaque jour.
             </p>
-            <p className="text-slate-600 mt-2">d'impact total estimé</p>
-          </div>
+          </Reveal>
 
-          {/* Cards */}
-          <div className="grid md:grid-cols-4 gap-4 mb-12">
-            {[
-              { icon: UserPlus, value: "+540K€", label: "Nouveaux clients", desc: "+15/mois × 3K€" },
-              { icon: Shield, value: "+1,08M€", label: "Clients sauvés", desc: "30 clients × 36K€" },
-              { icon: TrendingUp, value: "+280K€", label: "Panier optimisé", desc: "+12% cross-sell" },
-              { icon: Truck, value: "+61K€", label: "Économies logistique", desc: "Carburant + stocks" },
-            ].map((item, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 text-center shadow-lg border border-green-100">
-                <div className="p-3 bg-green-100 rounded-xl w-fit mx-auto mb-3">
-                  <item.icon className="h-6 w-6 text-green-600" />
+          <Reveal>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  emoji: "🎯",
+                  role: "Pour vos commerciaux",
+                  title: "L'assistant de vente",
+                  desc: "Il connaît votre catalogue par cœur. Il analyse le menu du restaurant, identifie les besoins, et propose les bons produits aux bons prix. Votre commercial n'a plus qu'à valider.",
+                  color: "#FF6B2C",
+                },
+                {
+                  emoji: "📸",
+                  role: "Pour la prospection",
+                  title: "Le scanner de menus",
+                  desc: "Une photo du menu, et en 30 secondes vous savez exactement quoi proposer. Il détecte les viandes, les sauces, les fromages, les pains — et fait le lien avec vos produits.",
+                  color: "#10B981",
+                },
+                {
+                  emoji: "🛒",
+                  role: "Pour vos clients restaurateurs",
+                  title: "L'aide à la commande",
+                  desc: "Vos clients tapent \"j'ai besoin de viande pour kebab\", et l'IA leur montre les bons produits. Elle suggère aussi des réapprovisionnements basés sur leurs commandes passées.",
+                  color: "#3B82F6",
+                },
+                {
+                  emoji: "📊",
+                  role: "Pour vos managers",
+                  title: "L'analyste business",
+                  desc: "Posez-lui n'importe quelle question : \"Quel commercial a le meilleur taux de conversion ?\", \"Comment va le dépôt de Bordeaux ?\". Il répond en langage clair, avec des chiffres.",
+                  color: "#F59E0B",
+                },
+                {
+                  emoji: "🚛",
+                  role: "Pour vos livreurs",
+                  title: "Le copilote de livraison",
+                  desc: "Infos client en un coup d'œil, alertes sur les livraisons urgentes, instructions spéciales. Vos chauffeurs ont tout ce qu'il faut sans décrocher le téléphone.",
+                  color: "#8B5CF6",
+                },
+              ].map((agent, i) => (
+                <div key={i} className="border border-gray-100 rounded-2xl p-8 hover:border-transparent hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: agent.color }} />
+                  <div className="text-4xl mb-4">{agent.emoji}</div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{agent.role}</div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{agent.title}</h3>
+                  <p className="text-gray-500 leading-relaxed text-sm">{agent.desc}</p>
                 </div>
-                <p className="text-3xl font-black text-green-600 mb-1">{item.value}</p>
-                <p className="font-semibold text-slate-900 mb-1">{item.label}</p>
-                <p className="text-sm text-slate-500">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom metrics */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-green-200 max-w-3xl mx-auto">
-            <div className="grid grid-cols-3 divide-x divide-slate-200 text-center">
-              <div className="px-4">
-                <p className="text-2xl font-black text-slate-900">15 288€/an</p>
-                <p className="text-sm text-slate-500">Coût total</p>
-              </div>
-              <div className="px-4">
-                <p className="text-2xl font-black text-green-600">×128</p>
-                <p className="text-sm text-slate-500">ROI</p>
-              </div>
-              <div className="px-4">
-                <p className="text-2xl font-black text-blue-600">&lt; 1 semaine</p>
-                <p className="text-sm text-slate-500">Rentabilisé</p>
-              </div>
+              ))}
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Section 7 - 5 IAs */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-blue-50 to-violet-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              <span className="text-blue-600">5 intelligences artificielles</span> conçues pour DISTRAM
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: Camera, name: "Scan Menu", desc: "Analyse menus par photo, devis 30s avec vos 98 produits", impact: "×180 plus rapide" },
-              { icon: Target, name: "Prospection", desc: "Détecte nouveaux restaurants Lyon/Montpellier/Bordeaux", impact: "+15 clients/mois" },
-              { icon: Shield, name: "Anti-Churn", desc: "Analyse baisses de commandes, alerte avant départ client", impact: "-60% de perte" },
-              { icon: Boxes, name: "Stocks Prédictive", desc: "Anticipe ruptures, saisonnalité Ramadan/Aïd, alertes DLC", impact: "-85% ruptures" },
-              { icon: Route, name: "Tournées", desc: "Optimise routes 3 dépôts, réduit km et carburant", impact: "-36K€/an" },
-              { icon: MessageSquare, name: "Assistant Commercial", desc: "Aide terrain : objections, cross-sell, arguments personnalisés", impact: "+15% panier" },
-            ].map((ai, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 hover:shadow-xl transition-all">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-3 bg-gradient-to-br from-blue-500 to-violet-600 rounded-xl">
-                    <ai.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-bold text-slate-900">{ai.name}</h3>
-                </div>
-                <p className="text-slate-600 text-sm mb-3">{ai.desc}</p>
-                <p className="text-blue-600 font-bold text-sm">{ai.impact}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 8 - 6 modules */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              6 modules. Un seul outil. <span className="text-blue-600">Tout est prêt.</span>
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: Target, name: "Mode Commercial", desc: "CRM, scan menu IA, devis", href: "/commercial", stat: "+133% conversion", color: "from-blue-500 to-indigo-600" },
-              { icon: ShoppingCart, name: "Portail Client B2B", desc: "Commandes 24/7, catalogue", href: "/portail", stat: "+20% commandes", color: "from-orange-500 to-amber-600" },
-              { icon: Truck, name: "Mode Livreur", desc: "Tournées, GPS, validation", href: "/livreur", stat: "-30% km", color: "from-emerald-500 to-teal-600" },
-              { icon: BarChart3, name: "Mode Manager", desc: "Multi-dépôts, KPIs", href: "/supervision", stat: "Temps réel", color: "from-violet-500 to-purple-600" },
-              { icon: MessageSquare, name: "Messagerie", desc: "Canal pro sécurisé", href: "/chat", stat: "100% traçable", color: "from-pink-500 to-rose-600" },
-              { icon: Settings, name: "Admin", desc: "Users, catalogue, intégrations", href: "/settings", stat: "SAGE ready", color: "from-slate-500 to-slate-700" },
-            ].map((module, i) => (
-              <Link
-                key={i}
-                href={module.href}
-                className="group bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all"
-              >
-                <div className={cn("w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-4 shadow-lg", module.color)}>
-                  <module.icon className="h-7 w-7 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">{module.name}</h3>
-                <p className="text-slate-500 text-sm mb-3">{module.desc}</p>
-                <p className="text-green-600 text-sm font-semibold">{module.stat}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 9 - Sécurité */}
-      <section className="py-16 md:py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: Lock, title: "Données protégées", desc: "Firebase Google Cloud, 99.95% dispo, serveurs Europe" },
-              { icon: Zap, title: "Compatible SAGE", desc: "Refs SAGE, export, sync prête à activer" },
-              { icon: Smartphone, title: "Multi-support", desc: "PC manager, tablette commercial, mobile livreur" },
-            ].map((item, i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <div className="p-3 bg-slate-100 rounded-xl w-fit mb-4">
-                  <item.icon className="h-6 w-6 text-slate-700" />
-                </div>
-                <h3 className="font-bold text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-slate-600 text-sm">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section 10 - Tarif */}
-      <section id="tarif" className="py-16 md:py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 border border-amber-200 rounded-full mb-6">
-              <Zap className="h-4 w-4 text-amber-600" />
-              <span className="text-sm text-amber-700 font-semibold">Offre Premier Partenaire — Unique & Non Reproductible</span>
-            </div>
-            <p className="text-slate-600 max-w-2xl mx-auto">
-              DISTRAM est notre premier partenaire officiel. À ce titre, vous bénéficiez d'un tarif de lancement que nous ne pourrons plus jamais proposer.
+      {/* ===================== ROI ===================== */}
+      <section className="py-28 px-8 bg-gray-900 text-white text-center">
+        <Reveal>
+          <div className="max-w-[1100px] mx-auto">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">Le retour sur investissement</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Les chiffres parlent d&apos;eux-mêmes</h2>
+            <p className="text-white/60 text-lg max-w-[500px] mx-auto mb-16">
+              Calculé sur la base d&apos;un grossiste avec 300 clients restaurants et 8 commerciaux.
             </p>
-          </div>
-
-          {/* Pricing card */}
-          <div className="bg-gradient-to-br from-blue-50 to-violet-50 rounded-3xl p-1">
-            <div className="bg-white rounded-[22px] p-8">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Pack Enterprise Complet — DISTRAM</h3>
-                <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-slate-500">Setup :</span>
-                  <span className="text-3xl font-black text-slate-900">9 900€</span>
-                  <span className="text-slate-500">HT</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-[900px] mx-auto">
+              {[
+                { number: "×75", label: "Retour sur investissement moyen la première année" },
+                { number: "+40%", label: "De chiffre d'affaires par commercial terrain" },
+                { number: "-30%", label: "De kilomètres parcourus par livreur" },
+                { number: "85%", label: "Des commandes passent en self-service en 6 mois" },
+              ].map((item, i) => (
+                <div key={i} className="p-8 bg-white/5 border border-white/10 rounded-2xl">
+                  <div className="text-4xl md:text-5xl font-black text-[#FF6B2C] leading-none">{item.number}</div>
+                  <div className="text-white/70 text-sm mt-2 leading-relaxed">{item.label}</div>
                 </div>
-                <p className="text-sm text-slate-500 mb-4">Formation 8 commerciaux + config 3 dépôts + import 98 produits + personnalisation</p>
-                <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-slate-500">puis</span>
-                  <span className="text-4xl font-black text-blue-600">449€</span>
-                  <span className="text-slate-500">/mois HT</span>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ===================== TESTIMONIAL ===================== */}
+      <section className="py-28 px-8 bg-orange-50">
+        <Reveal>
+          <div className="max-w-[800px] mx-auto text-center">
+            <p className="text-xl md:text-2xl font-medium text-gray-900 leading-relaxed italic relative">
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-8xl text-[#FF6B2C] opacity-20 leading-none">&ldquo;</span>
+              Avant, mes commerciaux passaient une heure par visite à feuilleter un catalogue. Maintenant, ils prennent une photo du menu et en 30 secondes le devis est prêt. On a doublé le nombre de visites par jour.
+            </p>
+            <div className="mt-8">
+              <div className="font-bold text-gray-900">Hamza B.</div>
+              <div className="text-gray-500 text-sm">Directeur Général — Grossiste alimentaire halal, 300 restaurants</div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ===================== TARGETS ===================== */}
+      <section className="py-28 px-8">
+        <div className="max-w-[1100px] mx-auto">
+          <Reveal className="text-center mb-16">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">Pour qui ?</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900">Conçu pour les grossistes alimentaires</h2>
+          </Reveal>
+
+          <Reveal>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { emoji: "🥙", title: "Grossistes halal", desc: "Kebabs, burgers, pizzerias, tacos. Votre cœur de métier, notre spécialité." },
+                { emoji: "🏪", title: "Distributeurs régionaux", desc: "Plusieurs dépôts, plusieurs villes. Une seule plateforme pour tout piloter." },
+                { emoji: "📈", title: "Grossistes en croissance", desc: "Vous passez de 100 à 500 clients ? La plateforme grandit avec vous." },
+              ].map((target, i) => (
+                <div key={i} className="border border-gray-100 rounded-2xl p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
+                  <div className="text-5xl mb-4">{target.emoji}</div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{target.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{target.desc}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ===================== PRICING ===================== */}
+      <section id="pricing" className="py-28 px-8">
+        <div className="max-w-[1100px] mx-auto">
+          <Reveal className="text-center mb-16">
+            <div className="text-xs font-bold uppercase tracking-widest text-[#FF6B2C] mb-4">Investissement</div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4">Un prix clair. Un ROI immédiat.</h2>
+            <p className="text-gray-500 text-lg">Pas de surprise, pas de frais cachés.</p>
+          </Reveal>
+
+          <Reveal>
+            <div className="max-w-[580px] mx-auto bg-white border-2 border-[#FF6B2C] rounded-3xl p-12 relative overflow-hidden">
+              <div className="absolute top-5 -right-9 bg-[#FF6B2C] text-white px-12 py-1.5 text-xs font-bold uppercase tracking-wider rotate-45">
+                OFFRE PARTENAIRE
+              </div>
+
+              <div className="text-center mb-8 pb-8 border-b border-gray-100">
+                <div className="text-2xl font-bold text-gray-900 mb-2">FASTGROSS PRO</div>
+                <div className="text-gray-500 text-sm mb-6">Plateforme complète + 5 assistants IA + optimisation logistique</div>
+                <div className="flex items-center justify-center gap-8 flex-wrap">
+                  <div className="text-center">
+                    <div className="text-4xl font-extrabold text-gray-900">9 900€</div>
+                    <div className="text-gray-500 text-sm">Mise en place (une fois)</div>
+                  </div>
+                  <div className="text-gray-300 text-2xl hidden md:block">+</div>
+                  <div className="text-center">
+                    <div className="text-4xl font-extrabold text-gray-900">449€</div>
+                    <div className="text-gray-500 text-sm">/ mois</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Features grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+              <ul className="space-y-3 mb-8">
                 {[
-                  "Mode Commercial + CRM",
-                  "Scan Menu IA (GPT-4o)",
-                  "Portail Client B2B 24/7",
-                  "Mode Livreur + GPS",
-                  "Mode Manager 3 dépôts",
-                  "5 IAs embarquées",
-                  "Messagerie sécurisée",
-                  "Analytics & rapports",
-                  "Email + SMS",
-                  "Paiement Stripe",
-                  "Compatible SAGE",
+                  "5 assistants IA intégrés (vente, scan menu, commande, analyse, livraison)",
+                  "Optimisation automatique des tournées de livraison",
+                  "Portail de commande en ligne pour vos clients",
+                  "Application commerciaux + livreurs + managers",
+                  "Dashboard temps réel multi-dépôts",
+                  "Catalogue produits illimité avec vos références",
+                  "Notifications email + SMS automatiques",
+                  "Import de vos données existantes inclus",
+                  "Formation de votre équipe incluse",
                   "Support prioritaire",
                 ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                    <span className="text-sm text-slate-700">{feature}</span>
-                  </div>
+                  <li key={i} className="flex items-center gap-3 text-gray-700 text-sm">
+                    <span className="text-[#FF6B2C] font-bold">✓</span>
+                    {feature}
+                  </li>
                 ))}
-              </div>
+              </ul>
 
-              {/* ROI reminder */}
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-center">
-                <p className="text-green-800">
-                  <span className="font-bold">Pour 449€/mois</span> → <span className="font-black text-green-600">+163K€/mois</span> de CA additionnel. <span className="font-bold">ROI ×128.</span>
+              <div className="text-center">
+                <Link
+                  href="/app"
+                  className="inline-flex items-center justify-center w-full gap-2 px-6 py-4 bg-[#FF6B2C] text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 hover:bg-[#E55A1F] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-500/40 transition-all text-lg"
+                >
+                  Demander une démo personnalisée →
+                </Link>
+                <p className="text-gray-500 text-xs mt-4">
+                  Tous les prix sont HT. Engagement 12 mois. ROI moyen constaté : ×75.
                 </p>
               </div>
-
-              {/* CTA */}
-              <Link
-                href="/app"
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2"
-              >
-                Découvrir votre plateforme
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-
-              {/* Trust badges */}
-              <p className="text-center text-sm text-slate-500 mt-4">
-                Paiement en 3× sans frais • 14j essai • Satisfait ou remboursé 30j
-              </p>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* Section 11 - CTA Final */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-blue-900 via-blue-700 to-violet-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-            Votre plateforme est prête, Hamza.
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            300 restaurants, 3 dépôts, 98 produits — tout est configuré.<br />
-            Il ne manque plus que votre signature.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="mailto:contact@facemedia.fr?subject=RDV DISTRAM - Plateforme IA"
-              className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-slate-100 text-blue-700 font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
-            >
-              <CalendarCheck className="h-5 w-5" />
-              Planifier notre rendez-vous
-            </a>
+      {/* ===================== FINAL CTA ===================== */}
+      <section className="py-28 px-8 bg-gradient-to-br from-gray-900 to-gray-800 text-white text-center relative overflow-hidden">
+        <div className="absolute -top-1/2 -right-1/5 w-3/5 h-[200%] bg-[radial-gradient(circle,rgba(255,107,44,0.1)_0%,transparent_60%)] pointer-events-none" />
+        <Reveal>
+          <div className="max-w-[1100px] mx-auto relative z-10">
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-6 max-w-[700px] mx-auto">
+              Prêt à transformer votre façon de vendre ?
+            </h2>
+            <p className="text-white/60 text-lg mb-10 max-w-[500px] mx-auto">
+              Demandez une démo avec vos propres produits. En 15 minutes, vous verrez la différence.
+            </p>
             <Link
               href="/app"
-              className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+              className="inline-flex items-center gap-2 px-10 py-4 bg-[#FF6B2C] text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 hover:bg-[#E55A1F] hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-500/40 transition-all text-lg"
             >
-              Explorer votre plateforme
-              <ArrowRight className="h-5 w-5" />
+              Réserver ma démo →
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-slate-400 text-sm">
-            <span className="font-semibold text-white">DISTRAM</span> × <span className="text-slate-500">FACE MEDIA</span> — Votre plateforme IA sur-mesure
-          </p>
-          <p className="text-slate-500 text-xs mt-2">
-            Powered by Face Media • © 2026
+      {/* ===================== FOOTER ===================== */}
+      <footer className="py-12 px-8 bg-gray-900 text-white/40 text-center text-sm border-t border-white/5">
+        <div className="max-w-[1100px] mx-auto">
+          <p>
+            © 2026 FACE MEDIA — FASTGROSS PRO. Tous droits réservés. |{" "}
+            <a href="#" className="text-white/60 hover:text-[#FF6B2C]">Mentions légales</a> |{" "}
+            <a href="#" className="text-white/60 hover:text-[#FF6B2C]">CGV</a> |{" "}
+            <a href="mailto:contact@facemedia.fr" className="text-white/60 hover:text-[#FF6B2C]">contact@facemedia.fr</a>
           </p>
         </div>
       </footer>
+
+      <style jsx>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeUp {
+          animation: fadeUp 0.8s ease forwards;
+        }
+        .animation-delay-100 { animation-delay: 0.1s; }
+        .animation-delay-200 { animation-delay: 0.2s; }
+        .animation-delay-300 { animation-delay: 0.3s; }
+        .animation-delay-400 { animation-delay: 0.4s; }
+      `}</style>
     </div>
   );
 }
