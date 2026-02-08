@@ -3,7 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { DISTRAM_COLORS, DISTRAM_INFO } from "@/lib/theme-distram";
+import { DISTRAM_COLORS } from "@/lib/theme-distram";
+
+// Constante pour le numéro de Faiçal
+const FAICAL_PHONE = "06 02 10 07 74";
+const FAICAL_PHONE_LINK = "tel:+33602100774";
 import {
   CheckCircle,
   ArrowRight,
@@ -308,12 +312,12 @@ export default function OffreDistramPage() {
             </span>
           </div>
           <a
-            href="tel:0478200301"
+            href={FAICAL_PHONE_LINK}
             className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all"
             style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
           >
             <Phone className="w-4 h-4" />
-            <span className="hidden md:inline">{DISTRAM_INFO.phone}</span>
+            <span className="hidden md:inline">{FAICAL_PHONE}</span>
           </a>
         </div>
       </nav>
@@ -447,6 +451,73 @@ export default function OffreDistramPage() {
               />
             </Reveal>
           </div>
+        </div>
+      </section>
+
+      {/* ===================== SECTION FAIÇAL — PREUVE SOCIALE ===================== */}
+      <section className="py-16 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4">
+          <Reveal>
+            <div className="max-w-4xl mx-auto">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {/* Avatar Faiçal */}
+                <div className="flex-shrink-0">
+                  <div
+                    className="w-32 h-32 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${DISTRAM_COLORS.primary} 0%, ${DISTRAM_COLORS.primaryDark} 100%)`,
+                    }}
+                  >
+                    F
+                  </div>
+                </div>
+
+                {/* Texte */}
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">
+                    Pourquoi je comprends{" "}
+                    <span style={{ color: DISTRAM_COLORS.primary }}>votre métier</span>
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Je m&apos;appelle Faiçal. Avant de créer FACE MEDIA, j&apos;ai passé{" "}
+                    <span className="font-bold text-gray-900">8 ans dans le grossiste alimentaire</span> et{" "}
+                    <span className="font-bold text-gray-900">15 ans dans la restauration</span>.
+                  </p>
+                  <p className="text-gray-600 mb-4">
+                    Je connais vos galères : les devis qui prennent des heures, les clients qui appellent à 22h, les
+                    livreurs qui tournent en rond, les commerciaux qui perdent des prospects.{" "}
+                    <span className="font-bold">Je les ai vécues.</span>
+                  </p>
+                  <p className="text-gray-600">
+                    Cette plateforme, je l&apos;ai construite pour résoudre les problèmes que j&apos;aurais voulu
+                    résoudre quand j&apos;étais à votre place.
+                  </p>
+
+                  {/* Stats expérience */}
+                  <div className="flex gap-8 mt-6">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
+                        8 ans
+                      </p>
+                      <p className="text-sm text-gray-500">Grossiste alimentaire</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
+                        15 ans
+                      </p>
+                      <p className="text-sm text-gray-500">Restauration</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
+                        23 ans
+                      </p>
+                      <p className="text-sm text-gray-500">Dans votre secteur</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -748,30 +819,41 @@ export default function OffreDistramPage() {
               </div>
             </Reveal>
 
-            {/* Investissement */}
+            {/* Investissement — Sur mesure */}
             <Reveal className="delay-100">
-              <div className="bg-gray-100 rounded-2xl p-8 mb-8">
-                <h3 className="text-xl font-bold mb-6">Ce que vous INVESTISSEZ :</h3>
-                <div className="space-y-4">
-                  <ROILine label="Setup initial" value="9 900€" />
-                  <ROILine label="Abonnement annuel" detail="449€ × 12 mois" value="5 388€" />
-                  <div className="border-t-2 border-gray-300 pt-4 mt-4">
-                    <ROILine label="TOTAL INVESTISSEMENT ANNÉE 1" value="15 288€" />
-                  </div>
-                </div>
+              <div
+                className="rounded-2xl p-8 mb-8 text-center"
+                style={{ background: `${DISTRAM_COLORS.primary}20` }}
+              >
+                <p className="text-lg text-gray-600 mb-2">Investissement</p>
+                <p className="text-3xl font-bold mb-4" style={{ color: DISTRAM_COLORS.black }}>
+                  Sur mesure selon vos besoins
+                </p>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  Chaque grossiste est différent. On construit VOTRE solution selon vos équipes, vos dépôts, vos
+                  objectifs. Appelez Faiçal pour un devis gratuit en 24h.
+                </p>
+                <a
+                  href={FAICAL_PHONE_LINK}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-1"
+                  style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
+                >
+                  <Phone className="w-5 h-5" />
+                  {FAICAL_PHONE}
+                </a>
               </div>
             </Reveal>
 
             {/* ROI */}
             <Reveal className="delay-200">
               <div className="bg-[#1A1A1A] text-white rounded-2xl p-8 text-center">
-                <p className="text-gray-400 mb-2">Retour sur investissement</p>
-                <p className="text-6xl font-black mb-2" style={{ color: DISTRAM_COLORS.primary }}>
-                  x19
+                <p className="text-gray-400 mb-2">Ce que vous gagnez</p>
+                <p className="text-5xl font-black mb-2" style={{ color: DISTRAM_COLORS.primary }}>
+                  +291 000€/an
                 </p>
-                <p className="text-xl">Pour 1€ investi, vous en récupérez 19€</p>
+                <p className="text-xl text-gray-300">de gains potentiels avec la plateforme complète</p>
                 <p className="font-bold mt-4" style={{ color: DISTRAM_COLORS.primary }}>
-                  → Rentabilisé en 3 semaines
+                  → ROI garanti dès les premiers mois
                 </p>
               </div>
             </Reveal>
@@ -798,31 +880,42 @@ export default function OffreDistramPage() {
             >
               <div className="text-center mb-8">
                 <p className="font-bold text-lg mb-2" style={{ color: DISTRAM_COLORS.primary }}>
-                  Offre exclusive
+                  Offre sur mesure
                 </p>
                 <div className="flex items-center justify-center gap-4">
-                  <span className="text-5xl md:text-6xl font-black">9 900€</span>
-                  <span className="text-gray-400">HT</span>
+                  <span className="text-4xl md:text-5xl font-black">Devis personnalisé</span>
                 </div>
-                <p className="text-gray-400 mt-2">+ 449€ HT/mois</p>
+                <p className="text-gray-400 mt-4 max-w-md mx-auto">
+                  Chaque grossiste est différent. On construit VOTRE solution selon vos besoins, vos équipes, vos
+                  objectifs.
+                </p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div>
                   <h4 className="font-bold mb-4" style={{ color: DISTRAM_COLORS.primary }}>
-                    ✅ Inclus dans le setup
+                    📦 Modules disponibles
                   </h4>
                   <ul className="space-y-2 text-gray-300">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Plateforme complète (54 pages)
+                      Mode Commercial (CRM + Scan IA)
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />5 modes (Commercial, Livreur,
-                      Manager, Admin, Client)
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                      Mode Livreur (Tournées GPS)
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />6 intelligences artificielles
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                      Mode Manager (Dashboard multi-dépôts)
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                      Mode Admin (Paramètres)
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                      Portail Client B2B
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
@@ -830,31 +923,23 @@ export default function OffreDistramPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Intégration 98 produits DISTRAM
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Formation 8 commerciaux
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Personnalisation DISTRAM
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Import de vos 300 clients
+                      Intégrations (WhatsApp, SMS, Email)
                     </li>
                   </ul>
                 </div>
 
                 <div>
                   <h4 className="font-bold mb-4" style={{ color: DISTRAM_COLORS.primary }}>
-                    ✅ Inclus dans l&apos;abonnement
+                    ✅ Toujours inclus
                   </h4>
                   <ul className="space-y-2 text-gray-300">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Support 7j/7
+                      Support 7j/7 par Faiçal
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                      Formation de vos équipes
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
@@ -862,7 +947,11 @@ export default function OffreDistramPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Nouvelles fonctionnalités IA
+                      Personnalisation à vos couleurs
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                      Import de vos données
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
@@ -870,19 +959,7 @@ export default function OffreDistramPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Sauvegardes quotidiennes
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Rapports mensuels
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Sessions de formation continues
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Ligne directe avec Faiçal
+                      Accompagnement continu
                     </li>
                   </ul>
                 </div>
@@ -890,15 +967,18 @@ export default function OffreDistramPage() {
 
               <div className="text-center">
                 <a
-                  href="tel:0478200301"
+                  href={FAICAL_PHONE_LINK}
                   className="inline-flex items-center justify-center gap-2 w-full md:w-auto text-xl px-12 py-4 rounded-xl font-semibold transition-all hover:-translate-y-1"
                   style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
                 >
                   <Phone className="w-5 h-5" />
-                  Planifier la signature
+                  Demander mon devis gratuit →
                 </a>
                 <p className="text-gray-500 text-sm mt-4">
-                  ou appelez Faiçal directement : {DISTRAM_INFO.phone}
+                  Appelez Faiçal :{" "}
+                  <a href={FAICAL_PHONE_LINK} className="hover:underline" style={{ color: DISTRAM_COLORS.primary }}>
+                    {FAICAL_PHONE}
+                  </a>
                 </p>
               </div>
             </div>
