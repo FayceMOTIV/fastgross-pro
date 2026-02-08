@@ -1,8 +1,9 @@
-// Constantes de l'application
+// Constantes de l'application DISTRAM
 
-export const APP_NAME = 'FastGross Pro';
-export const APP_DESCRIPTION = 'Plateforme B2B pour grossistes alimentaires';
+export const APP_NAME = 'DISTRAM';
+export const APP_DESCRIPTION = "L'art du Snacking depuis 1993 - Distribution halal certifiée";
 export const COMPANY_NAME = 'DISTRAM';
+export const POWERED_BY = 'FACE MEDIA GROSSISTE';
 
 // Dépôts
 export const DEPOTS = [

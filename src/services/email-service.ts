@@ -241,7 +241,7 @@ const generateDevisEmailHTML = ({ devis, lienDevis, includeDetails = true }: Dev
 
         <!-- Footer Note -->
         <p style="margin: 24px 0 0; color: #999; font-size: 11px; text-align: center;">
-          Cet email a été envoyé automatiquement par FastGross Pro.<br>
+          Cet email a été envoyé automatiquement par DISTRAM.<br>
           Pour toute question, contactez votre commercial DISTRAM.
         </p>
       </td>
@@ -377,7 +377,7 @@ Client: ${devis.clientNom}
 Montant: ${formatPrice(devis.totalTTC)}
 Date: ${new Date().toLocaleString('fr-FR')}
 
-Connectez-vous à FastGross Pro pour suivre ce devis.
+Connectez-vous à la plateforme DISTRAM pour suivre ce devis.
       `.trim(),
       html: `
         <div style="font-family: sans-serif; padding: 20px;">
@@ -388,7 +388,7 @@ Connectez-vous à FastGross Pro pour suivre ce devis.
             <li><strong>Montant:</strong> ${formatPrice(devis.totalTTC)}</li>
             <li><strong>Date:</strong> ${new Date().toLocaleString('fr-FR')}</li>
           </ul>
-          <p>Connectez-vous à FastGross Pro pour suivre ce devis.</p>
+          <p>Connectez-vous à la plateforme DISTRAM pour suivre ce devis.</p>
         </div>
       `
     };

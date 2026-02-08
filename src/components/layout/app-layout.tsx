@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore, useNotificationStore } from "@/stores";
+import { DISTRAM_COLORS, DISTRAM_INFO, FACE_MEDIA_INFO } from "@/lib/theme-distram";
 
 interface NavItem {
   icon: React.ElementType;
@@ -124,23 +125,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo */}
+        {/* Logo DISTRAM */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800">
           <Link href="/app" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"
+              style={{
+                background: `linear-gradient(135deg, ${DISTRAM_COLORS.primary} 0%, ${DISTRAM_COLORS.primaryDark} 100%)`,
+                boxShadow: `0 10px 25px -5px rgba(245, 166, 35, 0.4)`
+              }}
+            >
               <span className="text-white font-bold text-lg">D</span>
             </div>
             {!collapsed && (
               <div className="flex flex-col">
-                <span className="font-bold text-lg bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-                  DISTRAM
+                <span className="font-bold text-lg" style={{ color: DISTRAM_COLORS.primary }}>
+                  {DISTRAM_INFO.name}
                 </span>
-                <span className="text-[10px] text-slate-400 -mt-1">by Face Media</span>
+                <span className="text-[10px] text-slate-400 -mt-1">{FACE_MEDIA_INFO.role} {FACE_MEDIA_INFO.name}</span>
               </div>
             )}
           </Link>
           {!collapsed && (
-            <Link href="/" className="text-xs text-slate-400 hover:text-violet-600 transition-colors">
+            <Link href="/" className="text-xs text-slate-400 hover:text-[#F5A623] transition-colors">
               ← Site
             </Link>
           )}
@@ -173,17 +180,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                         "group relative",
                         active
-                          ? "bg-gradient-to-r from-violet-500/10 to-indigo-500/10 text-violet-700 dark:text-violet-400"
+                          ? "bg-gradient-to-r from-[#F5A623]/10 to-[#E09000]/10 text-[#E09000] dark:text-[#F5A623]"
                           : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                       )}
                     >
                       {active && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-violet-500 to-indigo-500 rounded-r-full" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-[#F5A623] to-[#E09000] rounded-r-full" />
                       )}
                       <item.icon
                         className={cn(
                           "h-5 w-5 flex-shrink-0 transition-colors",
-                          active ? "text-violet-600 dark:text-violet-400" : item.color
+                          active ? "text-[#F5A623] dark:text-[#F5A623]" : item.color
                         )}
                       />
                       {!collapsed && (

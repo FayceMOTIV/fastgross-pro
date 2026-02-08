@@ -1,24 +1,31 @@
 @import "tailwindcss";
 
-/* Theme configuration for Tailwind v4 - DISTRAM by Face Media */
+/* Theme configuration for Tailwind v4 - DISTRAM */
 @theme inline {
-  /* Brand Colors - Vibrant & Modern */
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* DISTRAM Brand Colors - Orange/Noir */
+  --color-distram: #F5A623;
+  --color-distram-dark: #E09000;
+  --color-distram-light: #FFB84D;
+  --color-distram-black: #1A1A1A;
+  --color-distram-gray: #666666;
+
+  /* Primary = DISTRAM Orange */
+  --color-primary-50: #FFF8E6;
+  --color-primary-100: #FFEFC2;
+  --color-primary-200: #FFE099;
+  --color-primary-300: #FFD066;
+  --color-primary-400: #FFBF33;
+  --color-primary-500: #F5A623;
+  --color-primary-600: #E09000;
+  --color-primary-700: #CC8200;
+  --color-primary-800: #996100;
+  --color-primary-900: #664100;
 
   /* Accent Colors */
   --color-accent-cyan: #06b6d4;
   --color-accent-purple: #a855f7;
   --color-accent-pink: #ec4899;
-  --color-accent-orange: #f97316;
+  --color-accent-orange: #F5A623;
 
   /* Status Colors */
   --color-success-400: #4ade80;
@@ -79,9 +86,9 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Gradient backgrounds */
+/* Gradient backgrounds - DISTRAM */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  background: linear-gradient(135deg, #F5A623 0%, #E09000 50%, #CC8200 100%);
 }
 
 .bg-gradient-commercial {
@@ -113,9 +120,9 @@ body {
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* Glow effects */
+/* Glow effects - DISTRAM */
 .glow-primary {
-  box-shadow: 0 0 20px -5px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 20px -5px rgba(245, 166, 35, 0.5);
 }
 
 .glow-success {
@@ -208,9 +215,9 @@ body {
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
 }
 
-/* Badge styles */
+/* Badge styles - DISTRAM */
 .badge-gradient {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-accent-purple));
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
@@ -229,7 +236,7 @@ body {
 .btn-gradient:hover {
   background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 15px rgba(245, 166, 35, 0.4);
 }
 
 /* Mobile app feeling */
