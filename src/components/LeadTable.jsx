@@ -76,9 +76,7 @@ export default function LeadTable({ leads = [], onLeadClick, compact = false }) 
                   <td className="px-5 py-4">
                     <div>
                       <p className="text-sm text-dark-300">{lead.company}</p>
-                      {lead.jobTitle && (
-                        <p className="text-xs text-dark-500">{lead.jobTitle}</p>
-                      )}
+                      {lead.jobTitle && <p className="text-xs text-dark-500">{lead.jobTitle}</p>}
                     </div>
                   </td>
                   {!compact && (

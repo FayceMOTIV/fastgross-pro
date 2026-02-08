@@ -1,6 +1,8 @@
+import { memo } from 'react'
 import { FileQuestion } from 'lucide-react'
 
-export default function EmptyState({
+// Memoized - static content that rarely changes
+const EmptyState = memo(function EmptyState({
   icon: Icon = FileQuestion,
   title,
   description,
@@ -14,26 +16,17 @@ export default function EmptyState({
         <Icon className="w-8 h-8 text-dark-500" />
       </div>
 
-      {title && (
-        <h3 className="text-lg font-display font-semibold text-dark-400">
-          {title}
-        </h3>
-      )}
+      {title && <h3 className="text-lg font-display font-semibold text-dark-400">{title}</h3>}
 
-      {description && (
-        <p className="text-dark-500 text-sm mt-2 max-w-md mx-auto">
-          {description}
-        </p>
-      )}
+      {description && <p className="text-dark-500 text-sm mt-2 max-w-md mx-auto">{description}</p>}
 
       {action && actionLabel && (
-        <button
-          onClick={action}
-          className="btn-primary mt-6"
-        >
+        <button onClick={action} className="btn-primary mt-6">
           {actionLabel}
         </button>
       )}
     </div>
   )
-}
+})
+
+export default EmptyState

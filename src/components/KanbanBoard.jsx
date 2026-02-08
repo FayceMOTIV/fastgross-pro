@@ -64,9 +64,7 @@ export default function KanbanBoard({ leads = [], onLeadClick, onStatusChange })
             {/* Column header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <span
-                  className={`w-2.5 h-2.5 rounded-full ${column.dotColor}`}
-                />
+                <span className={`w-2.5 h-2.5 rounded-full ${column.dotColor}`} />
                 <h3 className="text-sm font-medium text-white">{column.label}</h3>
               </div>
               <span className="text-xs text-dark-500 bg-dark-800 px-2 py-0.5 rounded-full">
@@ -130,9 +128,7 @@ export default function KanbanBoard({ leads = [], onLeadClick, onStatusChange })
 
               {columnLeads.length === 0 && (
                 <div className="text-center py-8">
-                  <p className="text-xs text-dark-600">
-                    Glissez un lead ici
-                  </p>
+                  <p className="text-xs text-dark-600">Glissez un lead ici</p>
                 </div>
               )}
             </div>

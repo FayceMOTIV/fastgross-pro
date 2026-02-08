@@ -18,13 +18,15 @@ export default function ProgressSteps({ steps = [], currentStep = 0 }) {
             className="flex items-center gap-3"
           >
             {/* Status indicator */}
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-              isCompleted
-                ? 'bg-brand-500'
-                : isCurrent
-                ? 'bg-brand-500/20 border-2 border-brand-500'
-                : 'bg-dark-800 border border-dark-700'
-            }`}>
+            <div
+              className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                isCompleted
+                  ? 'bg-brand-500'
+                  : isCurrent
+                    ? 'bg-brand-500/20 border-2 border-brand-500'
+                    : 'bg-dark-800 border border-dark-700'
+              }`}
+            >
               {isCompleted ? (
                 <Check className="w-3.5 h-3.5 text-dark-950" />
               ) : isCurrent ? (
@@ -35,13 +37,11 @@ export default function ProgressSteps({ steps = [], currentStep = 0 }) {
             </div>
 
             {/* Step label */}
-            <span className={`text-sm ${
-              isCompleted
-                ? 'text-white'
-                : isCurrent
-                ? 'text-white font-medium'
-                : 'text-dark-500'
-            }`}>
+            <span
+              className={`text-sm ${
+                isCompleted ? 'text-white' : isCurrent ? 'text-white font-medium' : 'text-dark-500'
+              }`}
+            >
               {step.label || step}
             </span>
 

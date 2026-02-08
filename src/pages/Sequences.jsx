@@ -30,7 +30,12 @@ import {
 import { useOrg } from '@/contexts/OrgContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useSequences } from '@/hooks/useFirestore'
-import { SEQUENCE_STATUS, CHANNEL_CONFIG, updateSequence, deleteSequence } from '@/services/sequences'
+import {
+  SEQUENCE_STATUS,
+  CHANNEL_CONFIG,
+  updateSequence,
+  deleteSequence,
+} from '@/services/sequences'
 import toast from 'react-hot-toast'
 
 // Channel icons
@@ -45,7 +50,8 @@ const channelIcons = {
 
 export default function Sequences() {
   const { currentOrg, isChannelAvailable } = useOrg()
-  const { canCreateSequences, canEditSequences, canDeleteSequences, canActivateSequences } = usePermissions()
+  const { canCreateSequences, canEditSequences, canDeleteSequences, canActivateSequences } =
+    usePermissions()
   const { sequences: firestoreSequences, loading, error } = useSequences()
 
   // Use Firestore sequences
@@ -129,9 +135,7 @@ export default function Sequences() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Sequences</h1>
-          <p className="text-dark-400 mt-1">
-            Automatisez votre prospection multicanale
-          </p>
+          <p className="text-dark-400 mt-1">Automatisez votre prospection multicanale</p>
         </div>
         {canCreateSequences && (
           <button className="btn-primary flex items-center gap-2">
@@ -200,7 +204,9 @@ export default function Sequences() {
             >
               <option value="all">Tous les statuts</option>
               {Object.entries(SEQUENCE_STATUS).map(([key, status]) => (
-                <option key={key} value={key}>{status.label}</option>
+                <option key={key} value={key}>
+                  {status.label}
+                </option>
               ))}
             </select>
           </div>
@@ -210,16 +216,16 @@ export default function Sequences() {
       {/* Sequences Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredSequences.map((sequence) => {
-          const statusInfo = SEQUENCE_STATUS[sequence.status] || { label: sequence.status, bg: 'bg-dark-800', color: 'text-dark-400' }
+          const statusInfo = SEQUENCE_STATUS[sequence.status] || {
+            label: sequence.status,
+            bg: 'bg-dark-800',
+            color: 'text-dark-400',
+          }
           const enrolled = sequence.stats?.enrolled || 0
           const replied = sequence.stats?.replied || 0
           const converted = sequence.stats?.converted || 0
-          const replyRate = enrolled > 0
-            ? Math.round((replied / enrolled) * 100)
-            : 0
-          const conversionRate = replied > 0
-            ? Math.round((converted / replied) * 100)
-            : 0
+          const replyRate = enrolled > 0 ? Math.round((replied / enrolled) * 100) : 0
+          const conversionRate = replied > 0 ? Math.round((converted / replied) * 100) : 0
 
           return (
             <motion.div
@@ -236,7 +242,9 @@ export default function Sequences() {
                     <h3 className="font-medium text-white truncate group-hover:text-brand-400 transition-colors">
                       {sequence.name}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.color}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.color}`}
+                    >
                       {statusInfo.label}
                     </span>
                   </div>
@@ -262,7 +270,9 @@ export default function Sequences() {
                         className={`w-8 h-8 rounded-lg ${channelConfig?.bg || 'bg-dark-800'} border ${channelConfig?.border || 'border-dark-700'} flex items-center justify-center flex-shrink-0`}
                         title={`${channelConfig?.label} - J+${step.day}`}
                       >
-                        <ChannelIcon className={`w-4 h-4 ${channelConfig?.color || 'text-dark-400'}`} />
+                        <ChannelIcon
+                          className={`w-4 h-4 ${channelConfig?.color || 'text-dark-400'}`}
+                        />
                       </div>
                       {i < (sequence.steps?.length || 0) - 1 && (
                         <ArrowRight className="w-3 h-3 text-dark-600 mx-0.5" />

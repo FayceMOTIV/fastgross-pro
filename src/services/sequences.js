@@ -167,7 +167,9 @@ export async function createSequence(orgId, sequenceData, createdBy) {
     const batch = writeBatch(db)
 
     sequenceData.steps.forEach((step, index) => {
-      const stepRef = doc(collection(db, 'organizations', orgId, 'sequences', sequenceRef.id, 'steps'))
+      const stepRef = doc(
+        collection(db, 'organizations', orgId, 'sequences', sequenceRef.id, 'steps')
+      )
       batch.set(stepRef, {
         order: index,
         channel: step.channel || 'email',
@@ -506,7 +508,12 @@ export async function getSequenceEnrollments(orgId, sequenceId, status = 'active
  */
 export function subscribeToSequences(orgId, callback) {
   return onSnapshot(
-    query(sequencesRef(orgId), where('status', '!=', 'archived'), orderBy('status'), orderBy('updatedAt', 'desc')),
+    query(
+      sequencesRef(orgId),
+      where('status', '!=', 'archived'),
+      orderBy('status'),
+      orderBy('updatedAt', 'desc')
+    ),
     (snapshot) => {
       const sequences = snapshot.docs.map((doc) => ({
         id: doc.id,

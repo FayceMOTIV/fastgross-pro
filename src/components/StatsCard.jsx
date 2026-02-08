@@ -1,8 +1,10 @@
+import { memo } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
-export default function StatsCard({ label, value, change, icon: Icon, format = 'number' }) {
+// Memoized - only re-renders when stats data changes
+const StatsCard = memo(function StatsCard({ label, value, change, icon: Icon, format = 'number' }) {
   const formattedValue =
-    format === 'percent' ? `${value}%` : format === 'currency' ? `${value}€` : value
+    format === 'percent' ? `${value}%` : format === 'currency' ? `${value}EUR` : value
 
   const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
 
@@ -18,8 +20,8 @@ export default function StatsCard({ label, value, change, icon: Icon, format = '
                 trend === 'up'
                   ? 'text-brand-400'
                   : trend === 'down'
-                  ? 'text-red-400'
-                  : 'text-dark-400'
+                    ? 'text-red-400'
+                    : 'text-dark-400'
               }`}
             >
               {trend === 'up' && <TrendingUp className="w-3 h-3" />}
@@ -40,4 +42,6 @@ export default function StatsCard({ label, value, change, icon: Icon, format = '
       </div>
     </div>
   )
-}
+})
+
+export default StatsCard

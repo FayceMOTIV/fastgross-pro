@@ -93,7 +93,8 @@ export default function Interactions() {
         interaction.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         interaction.subject?.toLowerCase().includes(searchQuery.toLowerCase())
       const matchesChannel = channelFilter === 'all' || interaction.channel === channelFilter
-      const matchesDirection = directionFilter === 'all' || interaction.direction === directionFilter
+      const matchesDirection =
+        directionFilter === 'all' || interaction.direction === directionFilter
       return matchesSearch && matchesChannel && matchesDirection
     })
   }, [interactions, searchQuery, channelFilter, directionFilter])
@@ -230,18 +231,28 @@ export default function Interactions() {
             >
               <div className="flex items-start gap-4">
                 {/* Icon */}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  isInbound ? 'bg-brand-500/10 border border-brand-500/20' :
-                  interaction.direction === 'out' ? 'bg-blue-500/10 border border-blue-500/20' :
-                  interaction.direction === 'track' ? 'bg-amber-500/10 border border-amber-500/20' :
-                  'bg-dark-800 border border-dark-700'
-                }`}>
-                  <TypeIcon className={`w-5 h-5 ${
-                    isInbound ? 'text-brand-400' :
-                    interaction.direction === 'out' ? 'text-blue-400' :
-                    interaction.direction === 'track' ? 'text-amber-400' :
-                    'text-dark-400'
-                  }`} />
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    isInbound
+                      ? 'bg-brand-500/10 border border-brand-500/20'
+                      : interaction.direction === 'out'
+                        ? 'bg-blue-500/10 border border-blue-500/20'
+                        : interaction.direction === 'track'
+                          ? 'bg-amber-500/10 border border-amber-500/20'
+                          : 'bg-dark-800 border border-dark-700'
+                  }`}
+                >
+                  <TypeIcon
+                    className={`w-5 h-5 ${
+                      isInbound
+                        ? 'text-brand-400'
+                        : interaction.direction === 'out'
+                          ? 'text-blue-400'
+                          : interaction.direction === 'track'
+                            ? 'text-amber-400'
+                            : 'text-dark-400'
+                    }`}
+                  />
                 </div>
 
                 {/* Content */}
@@ -265,8 +276,12 @@ export default function Interactions() {
                   </p>
 
                   {interaction.content && (
-                    <p className={`text-sm mt-2 ${isReply ? 'text-white italic' : 'text-dark-400'} line-clamp-2`}>
-                      {isReply && '"'}{interaction.content}{isReply && '"'}
+                    <p
+                      className={`text-sm mt-2 ${isReply ? 'text-white italic' : 'text-dark-400'} line-clamp-2`}
+                    >
+                      {isReply && '"'}
+                      {interaction.content}
+                      {isReply && '"'}
                     </p>
                   )}
                 </div>
@@ -278,11 +293,15 @@ export default function Interactions() {
                 </div>
 
                 {/* Direction indicator */}
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  isInbound ? 'bg-brand-500/10' :
-                  interaction.direction === 'out' ? 'bg-blue-500/10' :
-                  'bg-dark-800'
-                }`}>
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    isInbound
+                      ? 'bg-brand-500/10'
+                      : interaction.direction === 'out'
+                        ? 'bg-blue-500/10'
+                        : 'bg-dark-800'
+                  }`}
+                >
                   {isInbound ? (
                     <ArrowDownLeft className="w-3 h-3 text-brand-400" />
                   ) : interaction.direction === 'out' ? (

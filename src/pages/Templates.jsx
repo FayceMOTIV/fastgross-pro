@@ -26,7 +26,14 @@ import {
 import { useOrg } from '@/contexts/OrgContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useTemplates } from '@/hooks/useFirestore'
-import { TEMPLATE_CATEGORIES, CHANNEL_CONSTRAINTS, TEMPLATE_VARIABLES, getTemplatePreview, duplicateTemplate, deleteTemplate } from '@/services/templates'
+import {
+  TEMPLATE_CATEGORIES,
+  CHANNEL_CONSTRAINTS,
+  TEMPLATE_VARIABLES,
+  getTemplatePreview,
+  duplicateTemplate,
+  deleteTemplate,
+} from '@/services/templates'
 import { CHANNEL_CONFIG } from '@/services/sequences'
 import toast from 'react-hot-toast'
 
@@ -121,9 +128,7 @@ export default function Templates() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Templates</h1>
-          <p className="text-dark-400 mt-1">
-            Gerez vos modeles de messages pour tous les canaux
-          </p>
+          <p className="text-dark-400 mt-1">Gerez vos modeles de messages pour tous les canaux</p>
         </div>
         {canCreateTemplates && (
           <button className="btn-primary flex items-center gap-2">
@@ -148,9 +153,15 @@ export default function Templates() {
             <span className="text-xs text-dark-400">Taux d'ouverture moyen</span>
           </div>
           <p className="text-2xl font-bold text-white">
-            {templates.filter(t => t.stats?.avgOpenRate).length > 0
-              ? Math.round(templates.filter(t => t.stats?.avgOpenRate).reduce((acc, t) => acc + t.stats.avgOpenRate, 0) / templates.filter(t => t.stats?.avgOpenRate).length)
-              : 0}%
+            {templates.filter((t) => t.stats?.avgOpenRate).length > 0
+              ? Math.round(
+                  templates
+                    .filter((t) => t.stats?.avgOpenRate)
+                    .reduce((acc, t) => acc + t.stats.avgOpenRate, 0) /
+                    templates.filter((t) => t.stats?.avgOpenRate).length
+                )
+              : 0}
+            %
           </p>
         </div>
         <div className="glass-card p-4">
@@ -160,8 +171,12 @@ export default function Templates() {
           </div>
           <p className="text-2xl font-bold text-white">
             {templates.length > 0
-              ? Math.round(templates.reduce((acc, t) => acc + (t.stats?.avgReplyRate || 0), 0) / templates.length)
-              : 0}%
+              ? Math.round(
+                  templates.reduce((acc, t) => acc + (t.stats?.avgReplyRate || 0), 0) /
+                    templates.length
+                )
+              : 0}
+            %
           </p>
         </div>
         <div className="glass-card p-4">
@@ -200,7 +215,9 @@ export default function Templates() {
             >
               <option value="all">Tous les canaux</option>
               {Object.entries(CHANNEL_CONFIG).map(([key, config]) => (
-                <option key={key} value={key}>{config.label}</option>
+                <option key={key} value={key}>
+                  {config.label}
+                </option>
               ))}
             </select>
           </div>
@@ -213,7 +230,9 @@ export default function Templates() {
           >
             <option value="all">Toutes categories</option>
             {Object.entries(TEMPLATE_CATEGORIES).map(([key, cat]) => (
-              <option key={key} value={key}>{cat.label}</option>
+              <option key={key} value={key}>
+                {cat.label}
+              </option>
             ))}
           </select>
         </div>
@@ -223,7 +242,9 @@ export default function Templates() {
       {Object.entries(groupedTemplates).map(([category, categoryTemplates]) => (
         <div key={category} className="space-y-4">
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${TEMPLATE_CATEGORIES[category]?.color.replace('text-', 'bg-')}`} />
+            <span
+              className={`w-2 h-2 rounded-full ${TEMPLATE_CATEGORIES[category]?.color.replace('text-', 'bg-')}`}
+            />
             <h2 className="text-sm font-medium text-dark-300">
               {TEMPLATE_CATEGORIES[category]?.label || category}
             </h2>
@@ -246,8 +267,12 @@ export default function Templates() {
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl ${channelConfig?.bg || 'bg-dark-800'} border ${channelConfig?.border || 'border-dark-700'} flex items-center justify-center`}>
-                        <ChannelIcon className={`w-5 h-5 ${channelConfig?.color || 'text-dark-400'}`} />
+                      <div
+                        className={`w-10 h-10 rounded-xl ${channelConfig?.bg || 'bg-dark-800'} border ${channelConfig?.border || 'border-dark-700'} flex items-center justify-center`}
+                      >
+                        <ChannelIcon
+                          className={`w-5 h-5 ${channelConfig?.color || 'text-dark-400'}`}
+                        />
                       </div>
                       <div>
                         <h3 className="font-medium text-white group-hover:text-brand-400 transition-colors">
@@ -262,9 +287,7 @@ export default function Templates() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-dark-400 mb-4 line-clamp-2">
-                    {template.description}
-                  </p>
+                  <p className="text-sm text-dark-400 mb-4 line-clamp-2">{template.description}</p>
 
                   {/* Subject (email only) */}
                   {template.subject && (
@@ -278,7 +301,9 @@ export default function Templates() {
                   <div className="flex items-center gap-4 text-xs text-dark-500">
                     <span>{template.stats?.usageCount || 0} utilisations</span>
                     {template.stats?.avgOpenRate && (
-                      <span className="text-emerald-400">{template.stats.avgOpenRate}% ouverture</span>
+                      <span className="text-emerald-400">
+                        {template.stats.avgOpenRate}% ouverture
+                      </span>
                     )}
                     {template.stats?.avgReplyRate && (
                       <span className="text-amber-400">{template.stats.avgReplyRate}% reponse</span>
@@ -423,10 +448,7 @@ export default function Templates() {
 
               {/* Footer */}
               <div className="flex items-center justify-end gap-3 p-6 border-t border-dark-800">
-                <button
-                  onClick={() => setPreviewOpen(false)}
-                  className="btn-ghost"
-                >
+                <button onClick={() => setPreviewOpen(false)} className="btn-ghost">
                   Fermer
                 </button>
                 {canEditTemplates && (

@@ -1,27 +1,32 @@
-import { TourProvider, useTour } from '@reactour/tour';
+import { TourProvider, useTour } from '@reactour/tour'
 
 const tourSteps = [
   {
     selector: '[data-tour="scanner"]',
-    content: '🔍 Scanner — Analysez le site web de vos clients pour générer leur profil de prospection en 30 secondes.',
+    content:
+      '🔍 Scanner — Analysez le site web de vos clients pour générer leur profil de prospection en 30 secondes.',
   },
   {
     selector: '[data-tour="forgeur"]',
-    content: '✉️ Forgeur — Générez des séquences email personnalisées par l\'IA. 4 tons disponibles : Expert, Amical, Challenger, Storyteller.',
+    content:
+      "✉️ Forgeur — Générez des séquences email personnalisées par l'IA. 4 tons disponibles : Expert, Amical, Challenger, Storyteller.",
   },
   {
     selector: '[data-tour="radar"]',
-    content: '📡 Radar — Suivez vos leads en temps réel. Chaque interaction est scorée pour identifier les prospects les plus chauds.',
+    content:
+      '📡 Radar — Suivez vos leads en temps réel. Chaque interaction est scorée pour identifier les prospects les plus chauds.',
   },
   {
     selector: '[data-tour="proof"]',
-    content: '📊 Proof — Générez des rapports de ROI automatiques pour prouver votre valeur à vos clients.',
+    content:
+      '📊 Proof — Générez des rapports de ROI automatiques pour prouver votre valeur à vos clients.',
   },
   {
     selector: '[data-tour="new-scan"]',
-    content: '🚀 Commencez par scanner le site d\'un de vos clients pour générer votre première séquence !',
+    content:
+      "🚀 Commencez par scanner le site d'un de vos clients pour générer votre première séquence !",
   },
-];
+]
 
 const tourStyles = {
   popover: (base) => ({
@@ -63,7 +68,7 @@ const tourStyles = {
     justifyContent: 'center',
     gap: '8px',
   }),
-};
+}
 
 export function OnboardingProvider({ children }) {
   return (
@@ -77,15 +82,15 @@ export function OnboardingProvider({ children }) {
       scrollSmooth={true}
       onClickMask={({ setCurrentStep, currentStep, steps, setIsOpen }) => {
         if (currentStep === steps.length - 1) {
-          setIsOpen(false);
+          setIsOpen(false)
         } else {
-          setCurrentStep((s) => s + 1);
+          setCurrentStep((s) => s + 1)
         }
       }}
     >
       {children}
     </TourProvider>
-  );
+  )
 }
 
-export { useTour };
+export { useTour }

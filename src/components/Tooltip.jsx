@@ -1,11 +1,7 @@
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 
 export function TooltipProvider({ children }) {
-  return (
-    <TooltipPrimitive.Provider delayDuration={200}>
-      {children}
-    </TooltipPrimitive.Provider>
-  );
+  return <TooltipPrimitive.Provider delayDuration={200}>{children}</TooltipPrimitive.Provider>
 }
 
 export function Tooltip({ children, content, side = 'top' }) {
@@ -23,5 +19,5 @@ export function Tooltip({ children, content, side = 'top' }) {
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>
-  );
+  )
 }

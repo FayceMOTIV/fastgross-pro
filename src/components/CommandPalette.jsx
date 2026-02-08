@@ -39,22 +39,92 @@ import {
 // Navigation items for v2.0
 const NAV_ITEMS = [
   { path: '/app', label: 'Dashboard', icon: LayoutDashboard, keywords: ['accueil', 'home', 'kpi'] },
-  { path: '/app/prospects', label: 'Prospects', icon: Users, keywords: ['leads', 'contacts', 'pipeline'] },
-  { path: '/app/templates', label: 'Templates', icon: FileText, keywords: ['modeles', 'email', 'sms'] },
-  { path: '/app/sequences', label: 'Sequences', icon: Workflow, keywords: ['campagnes', 'automation', 'workflow'] },
-  { path: '/app/interactions', label: 'Interactions', icon: MessageSquare, keywords: ['historique', 'timeline', 'reponses'] },
-  { path: '/app/analytics', label: 'Analytics', icon: BarChart3, keywords: ['stats', 'roi', 'performance'] },
-  { path: '/app/team', label: 'Equipe', icon: UserPlus, keywords: ['membres', 'roles', 'invitations'], permission: 'team:read' },
-  { path: '/app/integrations', label: 'Integrations', icon: Plug, keywords: ['amazon', 'ses', 'saleshandy', 'windmill', 'evolution', 'sms', 'whatsapp', 'api'], permission: 'integrations:read' },
-  { path: '/app/settings', label: 'Parametres', icon: Settings, keywords: ['config', 'profil', 'compte'] },
+  {
+    path: '/app/prospects',
+    label: 'Prospects',
+    icon: Users,
+    keywords: ['leads', 'contacts', 'pipeline'],
+  },
+  {
+    path: '/app/templates',
+    label: 'Templates',
+    icon: FileText,
+    keywords: ['modeles', 'email', 'sms'],
+  },
+  {
+    path: '/app/sequences',
+    label: 'Sequences',
+    icon: Workflow,
+    keywords: ['campagnes', 'automation', 'workflow'],
+  },
+  {
+    path: '/app/interactions',
+    label: 'Interactions',
+    icon: MessageSquare,
+    keywords: ['historique', 'timeline', 'reponses'],
+  },
+  {
+    path: '/app/analytics',
+    label: 'Analytics',
+    icon: BarChart3,
+    keywords: ['stats', 'roi', 'performance'],
+  },
+  {
+    path: '/app/team',
+    label: 'Equipe',
+    icon: UserPlus,
+    keywords: ['membres', 'roles', 'invitations'],
+    permission: 'team:read',
+  },
+  {
+    path: '/app/integrations',
+    label: 'Integrations',
+    icon: Plug,
+    keywords: ['amazon', 'ses', 'saleshandy', 'windmill', 'evolution', 'sms', 'whatsapp', 'api'],
+    permission: 'integrations:read',
+  },
+  {
+    path: '/app/settings',
+    label: 'Parametres',
+    icon: Settings,
+    keywords: ['config', 'profil', 'compte'],
+  },
 ]
 
 // Quick actions
 const QUICK_ACTIONS = [
-  { id: 'new-prospect', label: 'Nouveau prospect', icon: Plus, path: '/app/prospects', color: 'text-brand-400', keywords: ['ajouter', 'creer', 'lead'] },
-  { id: 'new-template', label: 'Nouveau template', icon: Plus, path: '/app/templates', color: 'text-blue-400', keywords: ['modele', 'email'] },
-  { id: 'new-sequence', label: 'Nouvelle sequence', icon: Zap, path: '/app/sequences', color: 'text-amber-400', keywords: ['campagne', 'workflow'] },
-  { id: 'view-analytics', label: 'Voir les stats', icon: TrendingUp, path: '/app/analytics', color: 'text-purple-400', keywords: ['roi', 'performance'] },
+  {
+    id: 'new-prospect',
+    label: 'Nouveau prospect',
+    icon: Plus,
+    path: '/app/prospects',
+    color: 'text-brand-400',
+    keywords: ['ajouter', 'creer', 'lead'],
+  },
+  {
+    id: 'new-template',
+    label: 'Nouveau template',
+    icon: Plus,
+    path: '/app/templates',
+    color: 'text-blue-400',
+    keywords: ['modele', 'email'],
+  },
+  {
+    id: 'new-sequence',
+    label: 'Nouvelle sequence',
+    icon: Zap,
+    path: '/app/sequences',
+    color: 'text-amber-400',
+    keywords: ['campagne', 'workflow'],
+  },
+  {
+    id: 'view-analytics',
+    label: 'Voir les stats',
+    icon: TrendingUp,
+    path: '/app/analytics',
+    color: 'text-purple-400',
+    keywords: ['roi', 'performance'],
+  },
 ]
 
 // Channel icons
@@ -111,11 +181,14 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
     return () => document.removeEventListener('keydown', down)
   }, [open, onOpenChange])
 
-  const runCommand = useCallback((command) => {
-    onOpenChange(false)
-    setSearch('')
-    command()
-  }, [onOpenChange])
+  const runCommand = useCallback(
+    (command) => {
+      onOpenChange(false)
+      setSearch('')
+      command()
+    },
+    [onOpenChange]
+  )
 
   // Reset search when closing
   useEffect(() => {
@@ -163,7 +236,10 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
 
             {/* Quick actions */}
             {!search && (
-              <Command.Group heading="Actions rapides" className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider">
+              <Command.Group
+                heading="Actions rapides"
+                className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider"
+              >
                 {QUICK_ACTIONS.map((action) => (
                   <CommandItem
                     key={action.id}
@@ -179,7 +255,10 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
             )}
 
             {/* Navigation */}
-            <Command.Group heading="Navigation" className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2">
+            <Command.Group
+              heading="Navigation"
+              className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2"
+            >
               {filteredNavItems.map((item) => (
                 <CommandItem
                   key={item.path}
@@ -194,7 +273,10 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
 
             {/* Prospects */}
             {prospects.length > 0 && (
-              <Command.Group heading={`Prospects (${prospects.length})`} className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2">
+              <Command.Group
+                heading={`Prospects (${prospects.length})`}
+                className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2"
+              >
                 {prospects.slice(0, 6).map((prospect) => (
                   <CommandItem
                     key={prospect.id}
@@ -204,15 +286,23 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
                     keywords={[prospect.email, prospect.company, prospect.status]}
                   >
                     <span className="flex-1 flex items-center gap-2">
-                      <span>{prospect.firstName} {prospect.lastName}</span>
+                      <span>
+                        {prospect.firstName} {prospect.lastName}
+                      </span>
                       {prospect.company && (
                         <span className="text-dark-500 text-xs">• {prospect.company}</span>
                       )}
                     </span>
                     {prospect.score !== undefined && (
-                      <span className={`text-xs font-medium ${
-                        prospect.score >= 70 ? 'text-brand-400' : prospect.score >= 40 ? 'text-amber-400' : 'text-dark-500'
-                      }`}>
+                      <span
+                        className={`text-xs font-medium ${
+                          prospect.score >= 70
+                            ? 'text-brand-400'
+                            : prospect.score >= 40
+                              ? 'text-amber-400'
+                              : 'text-dark-500'
+                        }`}
+                      >
                         {prospect.score}%
                       </span>
                     )}
@@ -224,7 +314,9 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
                     icon={Users}
                     iconColor="text-brand-400"
                   >
-                    <span className="text-brand-400">Voir tous les {prospects.length} prospects</span>
+                    <span className="text-brand-400">
+                      Voir tous les {prospects.length} prospects
+                    </span>
                   </CommandItem>
                 )}
               </Command.Group>
@@ -232,7 +324,10 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
 
             {/* Sequences */}
             {sequences.length > 0 && (
-              <Command.Group heading={`Sequences (${sequences.length})`} className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2">
+              <Command.Group
+                heading={`Sequences (${sequences.length})`}
+                className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2"
+              >
                 {sequences.slice(0, 4).map((sequence) => (
                   <CommandItem
                     key={sequence.id}
@@ -243,9 +338,13 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
                   >
                     <span className="flex-1 flex items-center gap-2">
                       <span>{sequence.name}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        sequence.status === 'active' ? 'bg-brand-500/10 text-brand-400' : 'bg-dark-800 text-dark-400'
-                      }`}>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded ${
+                          sequence.status === 'active'
+                            ? 'bg-brand-500/10 text-brand-400'
+                            : 'bg-dark-800 text-dark-400'
+                        }`}
+                      >
                         {sequence.status === 'active' ? 'Active' : 'Pause'}
                       </span>
                     </span>
@@ -259,14 +358,22 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
 
             {/* Templates */}
             {templates.length > 0 && (
-              <Command.Group heading={`Templates (${templates.length})`} className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2">
+              <Command.Group
+                heading={`Templates (${templates.length})`}
+                className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2"
+              >
                 {templates.slice(0, 4).map((template) => {
-                  const channelConfig = CHANNEL_ICONS[template.channel] || { icon: Mail, color: 'text-dark-400' }
+                  const channelConfig = CHANNEL_ICONS[template.channel] || {
+                    icon: Mail,
+                    color: 'text-dark-400',
+                  }
                   const ChannelIcon = channelConfig.icon
                   return (
                     <CommandItem
                       key={template.id}
-                      onSelect={() => runCommand(() => navigate(`/app/templates?id=${template.id}`))}
+                      onSelect={() =>
+                        runCommand(() => navigate(`/app/templates?id=${template.id}`))
+                      }
                       icon={ChannelIcon}
                       iconColor={channelConfig.color}
                       keywords={[template.subject, template.category]}
@@ -289,7 +396,10 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
             )}
 
             {/* Account actions */}
-            <Command.Group heading="Compte" className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2">
+            <Command.Group
+              heading="Compte"
+              className="px-2 py-1.5 text-xs font-medium text-dark-500 uppercase tracking-wider mt-2"
+            >
               <CommandItem
                 onSelect={() => runCommand(() => navigate('/app/settings/profile'))}
                 icon={User}
@@ -336,7 +446,13 @@ export default function CommandPalette({ open, onOpenChange, onSignOut }) {
   )
 }
 
-function CommandItem({ children, onSelect, icon: Icon, iconColor = 'text-dark-400', keywords = [] }) {
+function CommandItem({
+  children,
+  onSelect,
+  icon: Icon,
+  iconColor = 'text-dark-400',
+  keywords = [],
+}) {
   return (
     <Command.Item
       onSelect={onSelect}

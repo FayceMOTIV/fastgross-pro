@@ -46,7 +46,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProspects } from '@/hooks/useFirestore'
 import { usePermissions } from '@/hooks/usePermissions'
 import { CHANNEL_CONFIG } from '@/services/sequences'
-import { createProspect, updateProspect, updateProspectStatus, deleteProspect, bulkUpdateProspects } from '@/services/prospects'
+import {
+  createProspect,
+  updateProspect,
+  updateProspectStatus,
+  deleteProspect,
+  bulkUpdateProspects,
+} from '@/services/prospects'
 import toast from 'react-hot-toast'
 
 // Channel icons
@@ -59,20 +65,62 @@ const channelIcons = {
   courrier: MapPin,
 }
 
-const ChannelIcon = ({ channel, className = "w-4 h-4" }) => {
+const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
   const Icon = channelIcons[channel] || Mail
   return <Icon className={className} />
 }
 
 // Status configuration for Pipeline
 const PIPELINE_STAGES = {
-  new: { label: 'Nouveau', color: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400' },
-  enriched: { label: 'Enrichi', color: 'bg-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20', text: 'text-purple-400' },
-  qualified: { label: 'Qualifie', color: 'bg-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400' },
-  in_sequence: { label: 'En sequence', color: 'bg-cyan-500', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', text: 'text-cyan-400' },
-  replied: { label: 'Repondu', color: 'bg-brand-500', bg: 'bg-brand-500/10', border: 'border-brand-500/20', text: 'text-brand-400' },
-  converted: { label: 'Converti', color: 'bg-green-500', bg: 'bg-green-500/10', border: 'border-green-500/20', text: 'text-green-400' },
-  opted_out: { label: 'Desinscrit', color: 'bg-red-500', bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400' },
+  new: {
+    label: 'Nouveau',
+    color: 'bg-blue-500',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    text: 'text-blue-400',
+  },
+  enriched: {
+    label: 'Enrichi',
+    color: 'bg-purple-500',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/20',
+    text: 'text-purple-400',
+  },
+  qualified: {
+    label: 'Qualifie',
+    color: 'bg-amber-500',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    text: 'text-amber-400',
+  },
+  in_sequence: {
+    label: 'En sequence',
+    color: 'bg-cyan-500',
+    bg: 'bg-cyan-500/10',
+    border: 'border-cyan-500/20',
+    text: 'text-cyan-400',
+  },
+  replied: {
+    label: 'Repondu',
+    color: 'bg-brand-500',
+    bg: 'bg-brand-500/10',
+    border: 'border-brand-500/20',
+    text: 'text-brand-400',
+  },
+  converted: {
+    label: 'Converti',
+    color: 'bg-green-500',
+    bg: 'bg-green-500/10',
+    border: 'border-green-500/20',
+    text: 'text-green-400',
+  },
+  opted_out: {
+    label: 'Desinscrit',
+    color: 'bg-red-500',
+    bg: 'bg-red-500/10',
+    border: 'border-red-500/20',
+    text: 'text-red-400',
+  },
 }
 
 // Format date helper
@@ -138,17 +186,24 @@ function ProspectDrawer({ prospect, onClose, onUpdate, onDelete }) {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">{prospect.company || 'Sans nom'}</h2>
-                <p className="text-sm text-dark-400">{prospect.firstName} {prospect.lastName}</p>
+                <p className="text-sm text-dark-400">
+                  {prospect.firstName} {prospect.lastName}
+                </p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Status & Score */}
           <div className="flex items-center gap-3">
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.text} border ${statusInfo.border}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.text} border ${statusInfo.border}`}
+            >
               {statusInfo.label}
             </span>
             {prospect.score && (
@@ -187,19 +242,31 @@ function ProspectDrawer({ prospect, onClose, onUpdate, onDelete }) {
                 {prospect.email && (
                   <div className="flex items-center gap-3 text-sm">
                     <Mail className="w-4 h-4 text-dark-500" />
-                    <a href={`mailto:${prospect.email}`} className="text-white hover:text-brand-400">{prospect.email}</a>
+                    <a
+                      href={`mailto:${prospect.email}`}
+                      className="text-white hover:text-brand-400"
+                    >
+                      {prospect.email}
+                    </a>
                   </div>
                 )}
                 {prospect.phone && (
                   <div className="flex items-center gap-3 text-sm">
                     <Phone className="w-4 h-4 text-dark-500" />
-                    <a href={`tel:${prospect.phone}`} className="text-white hover:text-brand-400">{prospect.phone}</a>
+                    <a href={`tel:${prospect.phone}`} className="text-white hover:text-brand-400">
+                      {prospect.phone}
+                    </a>
                   </div>
                 )}
                 {prospect.linkedinUrl && (
                   <div className="flex items-center gap-3 text-sm">
                     <Globe className="w-4 h-4 text-dark-500" />
-                    <a href={prospect.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline flex items-center gap-1">
+                    <a
+                      href={prospect.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-400 hover:underline flex items-center gap-1"
+                    >
                       LinkedIn <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
@@ -212,7 +279,14 @@ function ProspectDrawer({ prospect, onClose, onUpdate, onDelete }) {
                 {prospect.website && (
                   <div className="flex items-center gap-3 text-sm">
                     <Globe className="w-4 h-4 text-dark-500" />
-                    <a href={prospect.website} target="_blank" rel="noopener noreferrer" className="text-brand-400 hover:underline">{prospect.website}</a>
+                    <a
+                      href={prospect.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-400 hover:underline"
+                    >
+                      {prospect.website}
+                    </a>
                   </div>
                 )}
                 {prospect.enrichment?.industry && (
@@ -235,7 +309,10 @@ function ProspectDrawer({ prospect, onClose, onUpdate, onDelete }) {
                   <h3 className="text-sm font-medium text-dark-300">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {prospect.tags.map((tag, i) => (
-                      <span key={i} className="px-2 py-1 rounded-lg bg-dark-800 text-xs text-dark-300">
+                      <span
+                        key={i}
+                        className="px-2 py-1 rounded-lg bg-dark-800 text-xs text-dark-300"
+                      >
                         {tag}
                       </span>
                     ))}
@@ -247,17 +324,22 @@ function ProspectDrawer({ prospect, onClose, onUpdate, onDelete }) {
               <div className="space-y-2 pt-4 border-t border-dark-800">
                 <h3 className="text-sm font-medium text-dark-300">Canaux disponibles</h3>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(prospect.channels || { email: { available: true } }).map(([channel, data]) => {
-                    if (!data?.available) return null
-                    const config = CHANNEL_CONFIG[channel]
-                    if (!config) return null
-                    return (
-                      <div key={channel} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg} border ${config.border}`}>
-                        <ChannelIcon channel={channel} className={`w-4 h-4 ${config.color}`} />
-                        <span className={`text-xs ${config.color}`}>{config.label}</span>
-                      </div>
-                    )
-                  })}
+                  {Object.entries(prospect.channels || { email: { available: true } }).map(
+                    ([channel, data]) => {
+                      if (!data?.available) return null
+                      const config = CHANNEL_CONFIG[channel]
+                      if (!config) return null
+                      return (
+                        <div
+                          key={channel}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg} border ${config.border}`}
+                        >
+                          <ChannelIcon channel={channel} className={`w-4 h-4 ${config.color}`} />
+                          <span className={`text-xs ${config.color}`}>{config.label}</span>
+                        </div>
+                      )
+                    }
+                  )}
                 </div>
               </div>
             </div>
@@ -379,7 +461,9 @@ function KanbanColumn({ stage, stageKey, prospects, onProspectClick, onDrop }) {
             whileHover={{ scale: 1.02 }}
           >
             <div className="flex items-start justify-between mb-2">
-              <p className="font-medium text-white text-sm truncate flex-1">{prospect.company || 'Sans nom'}</p>
+              <p className="font-medium text-white text-sm truncate flex-1">
+                {prospect.company || 'Sans nom'}
+              </p>
               <GripVertical className="w-4 h-4 text-dark-600 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <p className="text-xs text-dark-400 truncate">{prospect.email}</p>
@@ -425,12 +509,16 @@ function AddProspectModal({ isOpen, onClose, onAdd }) {
 
     setLoading(true)
     try {
-      await createProspect(currentOrg.id, {
-        ...formData,
-        status: 'new',
-        source: 'manual',
-        channels: { email: { available: true } },
-      }, user)
+      await createProspect(
+        currentOrg.id,
+        {
+          ...formData,
+          status: 'new',
+          source: 'manual',
+          channels: { email: { available: true } },
+        },
+        user
+      )
       toast.success('Prospect ajoute')
       onClose()
       setFormData({ firstName: '', lastName: '', email: '', phone: '', company: '', website: '' })
@@ -532,8 +620,16 @@ function AddProspectModal({ isOpen, onClose, onAdd }) {
             <button type="button" onClick={onClose} className="btn-ghost flex-1">
               Annuler
             </button>
-            <button type="submit" disabled={loading} className="btn-primary flex-1 flex items-center justify-center gap-2">
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary flex-1 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4" />
+              )}
               {loading ? 'Creation...' : 'Ajouter'}
             </button>
           </div>
@@ -595,9 +691,7 @@ export default function Prospects() {
 
   // Toggle selection
   const toggleSelection = (id) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    )
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
 
   // Select all
@@ -682,7 +776,9 @@ export default function Prospects() {
           >
             <option value="all">Tous les statuts</option>
             {Object.entries(PIPELINE_STAGES).map(([key, stage]) => (
-              <option key={key} value={key}>{stage.label}</option>
+              <option key={key} value={key}>
+                {stage.label}
+              </option>
             ))}
           </select>
 
@@ -741,7 +837,9 @@ export default function Prospects() {
             <div className="col-span-1 flex items-center">
               <input
                 type="checkbox"
-                checked={selectedIds.length === filteredProspects.length && filteredProspects.length > 0}
+                checked={
+                  selectedIds.length === filteredProspects.length && filteredProspects.length > 0
+                }
                 onChange={selectAll}
                 className="rounded border-dark-600 bg-dark-800 text-brand-500"
               />
@@ -765,10 +863,7 @@ export default function Prospects() {
                     : 'Ajoutez vos premiers prospects'}
                 </p>
                 {canCreateProspects && (
-                  <button
-                    onClick={() => setShowAddModal(true)}
-                    className="btn-primary"
-                  >
+                  <button onClick={() => setShowAddModal(true)} className="btn-primary">
                     <Plus className="w-4 h-4 mr-2" />
                     Ajouter un prospect
                   </button>
@@ -805,19 +900,25 @@ export default function Prospects() {
                           <Building2 className="w-5 h-5 text-dark-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-white truncate">{prospect.company || 'Sans nom'}</p>
+                          <p className="font-medium text-white truncate">
+                            {prospect.company || 'Sans nom'}
+                          </p>
                           <p className="text-xs text-dark-400 truncate">{prospect.email}</p>
                         </div>
                       </div>
 
                       {/* Contact */}
                       <div className="col-span-2 mb-2 md:mb-0">
-                        <p className="text-sm text-white truncate">{prospect.firstName} {prospect.lastName}</p>
+                        <p className="text-sm text-white truncate">
+                          {prospect.firstName} {prospect.lastName}
+                        </p>
                       </div>
 
                       {/* Status */}
                       <div className="col-span-2 mb-2 md:mb-0">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.text} border ${statusInfo.border}`}>
+                        <span
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.text} border ${statusInfo.border}`}
+                        >
                           {statusInfo.label}
                         </span>
                       </div>
@@ -883,10 +984,7 @@ export default function Prospects() {
 
       {/* Add Prospect Modal */}
       <AnimatePresence>
-        <AddProspectModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-        />
+        <AddProspectModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
       </AnimatePresence>
     </div>
   )

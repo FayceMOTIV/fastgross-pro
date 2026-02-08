@@ -23,7 +23,15 @@ const styles = {
   statLabel: { fontSize: 8, color: '#6b7280', marginTop: 2 },
   insight: { padding: 8, backgroundColor: '#ecfdf5', borderRadius: 4, marginBottom: 5 },
   insightText: { fontSize: 10, color: '#065f46' },
-  footer: { position: 'absolute', bottom: 30, left: 40, right: 40, textAlign: 'center', fontSize: 8, color: '#9ca3af' },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 8,
+    color: '#9ca3af',
+  },
   valueBox: { padding: 15, backgroundColor: '#f0fdf4', borderRadius: 8, marginTop: 10 },
   valueText: { fontSize: 28, fontWeight: 'bold', color: '#00d49a' },
 }
@@ -37,7 +45,9 @@ const createReportDocument = (pdfLib, report) => {
       <Page size="A4" style={pdfStyles.page}>
         <View style={pdfStyles.header}>
           <Text style={pdfStyles.title}>Rapport de Valeur</Text>
-          <Text style={pdfStyles.subtitle}>{report.clientName} — {report.periodLabel}</Text>
+          <Text style={pdfStyles.subtitle}>
+            {report.clientName} — {report.periodLabel}
+          </Text>
         </View>
 
         <View style={pdfStyles.section}>

@@ -26,32 +26,112 @@ export const INTERACTION_TYPES = {
   // Outbound
   email_sent: { label: 'Email envoye', icon: 'Send', color: 'text-emerald-400', direction: 'out' },
   sms_sent: { label: 'SMS envoye', icon: 'Smartphone', color: 'text-blue-400', direction: 'out' },
-  whatsapp_sent: { label: 'WhatsApp envoye', icon: 'MessageCircle', color: 'text-green-400', direction: 'out' },
-  instagram_dm_sent: { label: 'DM Instagram envoye', icon: 'Instagram', color: 'text-pink-400', direction: 'out' },
-  voicemail_sent: { label: 'Vocal envoye', icon: 'Mic', color: 'text-purple-400', direction: 'out' },
-  courrier_sent: { label: 'Courrier envoye', icon: 'Mail', color: 'text-amber-400', direction: 'out' },
+  whatsapp_sent: {
+    label: 'WhatsApp envoye',
+    icon: 'MessageCircle',
+    color: 'text-green-400',
+    direction: 'out',
+  },
+  instagram_dm_sent: {
+    label: 'DM Instagram envoye',
+    icon: 'Instagram',
+    color: 'text-pink-400',
+    direction: 'out',
+  },
+  voicemail_sent: {
+    label: 'Vocal envoye',
+    icon: 'Mic',
+    color: 'text-purple-400',
+    direction: 'out',
+  },
+  courrier_sent: {
+    label: 'Courrier envoye',
+    icon: 'Mail',
+    color: 'text-amber-400',
+    direction: 'out',
+  },
 
   // Tracking
   email_opened: { label: 'Email ouvert', icon: 'Eye', color: 'text-amber-400', direction: 'track' },
-  email_clicked: { label: 'Lien clique', icon: 'MousePointer', color: 'text-blue-400', direction: 'track' },
-  email_bounced: { label: 'Email bounce', icon: 'AlertTriangle', color: 'text-red-400', direction: 'track' },
+  email_clicked: {
+    label: 'Lien clique',
+    icon: 'MousePointer',
+    color: 'text-blue-400',
+    direction: 'track',
+  },
+  email_bounced: {
+    label: 'Email bounce',
+    icon: 'AlertTriangle',
+    color: 'text-red-400',
+    direction: 'track',
+  },
   sms_delivered: { label: 'SMS livre', icon: 'Check', color: 'text-brand-400', direction: 'track' },
-  whatsapp_read: { label: 'WhatsApp lu', icon: 'CheckCheck', color: 'text-green-400', direction: 'track' },
-  courrier_delivered: { label: 'Courrier livre', icon: 'Package', color: 'text-amber-400', direction: 'track' },
+  whatsapp_read: {
+    label: 'WhatsApp lu',
+    icon: 'CheckCheck',
+    color: 'text-green-400',
+    direction: 'track',
+  },
+  courrier_delivered: {
+    label: 'Courrier livre',
+    icon: 'Package',
+    color: 'text-amber-400',
+    direction: 'track',
+  },
 
   // Inbound
   email_reply: { label: 'Reponse email', icon: 'Reply', color: 'text-brand-400', direction: 'in' },
-  sms_reply: { label: 'Reponse SMS', icon: 'MessageSquare', color: 'text-blue-400', direction: 'in' },
-  whatsapp_reply: { label: 'Reponse WhatsApp', icon: 'MessageCircle', color: 'text-green-400', direction: 'in' },
-  instagram_reply: { label: 'Reponse Instagram', icon: 'Instagram', color: 'text-pink-400', direction: 'in' },
+  sms_reply: {
+    label: 'Reponse SMS',
+    icon: 'MessageSquare',
+    color: 'text-blue-400',
+    direction: 'in',
+  },
+  whatsapp_reply: {
+    label: 'Reponse WhatsApp',
+    icon: 'MessageCircle',
+    color: 'text-green-400',
+    direction: 'in',
+  },
+  instagram_reply: {
+    label: 'Reponse Instagram',
+    icon: 'Instagram',
+    color: 'text-pink-400',
+    direction: 'in',
+  },
   call_received: { label: 'Appel recu', icon: 'Phone', color: 'text-purple-400', direction: 'in' },
 
   // Status changes
-  prospect_created: { label: 'Prospect cree', icon: 'UserPlus', color: 'text-dark-400', direction: 'system' },
-  status_changed: { label: 'Statut change', icon: 'RefreshCw', color: 'text-dark-400', direction: 'system' },
-  sequence_enrolled: { label: 'Inscrit sequence', icon: 'Play', color: 'text-brand-400', direction: 'system' },
-  sequence_completed: { label: 'Sequence terminee', icon: 'CheckCircle', color: 'text-emerald-400', direction: 'system' },
-  sequence_stopped: { label: 'Sequence arretee', icon: 'StopCircle', color: 'text-amber-400', direction: 'system' },
+  prospect_created: {
+    label: 'Prospect cree',
+    icon: 'UserPlus',
+    color: 'text-dark-400',
+    direction: 'system',
+  },
+  status_changed: {
+    label: 'Statut change',
+    icon: 'RefreshCw',
+    color: 'text-dark-400',
+    direction: 'system',
+  },
+  sequence_enrolled: {
+    label: 'Inscrit sequence',
+    icon: 'Play',
+    color: 'text-brand-400',
+    direction: 'system',
+  },
+  sequence_completed: {
+    label: 'Sequence terminee',
+    icon: 'CheckCircle',
+    color: 'text-emerald-400',
+    direction: 'system',
+  },
+  sequence_stopped: {
+    label: 'Sequence arretee',
+    icon: 'StopCircle',
+    color: 'text-amber-400',
+    direction: 'system',
+  },
   converted: { label: 'Converti', icon: 'Trophy', color: 'text-amber-400', direction: 'system' },
   blacklisted: { label: 'Blackliste', icon: 'Ban', color: 'text-red-400', direction: 'system' },
 }
@@ -181,16 +261,12 @@ export async function getInteractions(orgId, options = {}) {
 
   if (startDate) {
     const start = startDate instanceof Date ? Timestamp.fromDate(startDate) : startDate
-    interactions = interactions.filter((i) =>
-      i.createdAt?.toMillis?.() >= start.toMillis()
-    )
+    interactions = interactions.filter((i) => i.createdAt?.toMillis?.() >= start.toMillis())
   }
 
   if (endDate) {
     const end = endDate instanceof Date ? Timestamp.fromDate(endDate) : endDate
-    interactions = interactions.filter((i) =>
-      i.createdAt?.toMillis?.() <= end.toMillis()
-    )
+    interactions = interactions.filter((i) => i.createdAt?.toMillis?.() <= end.toMillis())
   }
 
   return {
@@ -205,11 +281,7 @@ export async function getInteractions(orgId, options = {}) {
  */
 export async function getRecentInteractions(orgId, limitCount = 20) {
   const snapshot = await getDocs(
-    query(
-      interactionsRef(orgId),
-      orderBy('createdAt', 'desc'),
-      limit(limitCount)
-    )
+    query(interactionsRef(orgId), orderBy('createdAt', 'desc'), limit(limitCount))
   )
 
   return snapshot.docs.map((doc) => ({
@@ -346,11 +418,7 @@ export async function getProspectTimeline(orgId, prospectId, limitCount = 50) {
 export function subscribeToInteractions(orgId, callback, options = {}) {
   const { prospectId, limit: limitCount = 50 } = options
 
-  let q = query(
-    interactionsRef(orgId),
-    orderBy('createdAt', 'desc'),
-    limit(limitCount)
-  )
+  let q = query(interactionsRef(orgId), orderBy('createdAt', 'desc'), limit(limitCount))
 
   if (prospectId) {
     q = query(

@@ -72,14 +72,14 @@ export default function NotificationPanel() {
   const panelRef = useRef(null)
 
   // Use demo or real notifications
-  const demoFormattedNotifications = demoNotifications.map(n => ({
+  const demoFormattedNotifications = demoNotifications.map((n) => ({
     ...n,
     createdAt: n.timestamp,
     read: n.read,
   }))
 
   const notifications = isDemo ? demoFormattedNotifications : realNotifications
-  const unreadCount = isDemo ? demoNotifications.filter(n => !n.read).length : realUnreadCount
+  const unreadCount = isDemo ? demoNotifications.filter((n) => !n.read).length : realUnreadCount
 
   // Close panel when clicking outside
   useEffect(() => {
@@ -176,7 +176,9 @@ export default function NotificationPanel() {
                       )}
 
                       <div className="flex gap-3">
-                        <div className={`w-8 h-8 rounded-lg ${config.bg} flex items-center justify-center flex-shrink-0`}>
+                        <div
+                          className={`w-8 h-8 rounded-lg ${config.bg} flex items-center justify-center flex-shrink-0`}
+                        >
                           <Icon className={`w-4 h-4 ${config.color}`} />
                         </div>
 

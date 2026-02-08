@@ -117,18 +117,24 @@ export async function createTemplate(orgId, templateData, createdBy) {
     htmlContent: templateData.htmlContent || null, // Email only
 
     // Voicemail specific
-    voiceConfig: templateData.channel === 'voicemail' ? {
-      voice: templateData.voiceConfig?.voice || 'fr-FR-Standard-A',
-      speed: templateData.voiceConfig?.speed || 1.0,
-      pitch: templateData.voiceConfig?.pitch || 0,
-    } : null,
+    voiceConfig:
+      templateData.channel === 'voicemail'
+        ? {
+            voice: templateData.voiceConfig?.voice || 'fr-FR-Standard-A',
+            speed: templateData.voiceConfig?.speed || 1.0,
+            pitch: templateData.voiceConfig?.pitch || 0,
+          }
+        : null,
 
     // Courrier specific
-    courrierConfig: templateData.channel === 'courrier' ? {
-      format: templateData.courrierConfig?.format || 'A4',
-      color: templateData.courrierConfig?.color || false,
-      envelope: templateData.courrierConfig?.envelope || 'standard',
-    } : null,
+    courrierConfig:
+      templateData.channel === 'courrier'
+        ? {
+            format: templateData.courrierConfig?.format || 'A4',
+            color: templateData.courrierConfig?.color || false,
+            envelope: templateData.courrierConfig?.envelope || 'standard',
+          }
+        : null,
 
     // Usage stats
     stats: {
@@ -188,17 +194,16 @@ export async function getTemplates(orgId, options = {}) {
   }
 
   if (tags?.length > 0) {
-    templates = templates.filter((t) =>
-      tags.some((tag) => t.tags?.includes(tag))
-    )
+    templates = templates.filter((t) => tags.some((tag) => t.tags?.includes(tag)))
   }
 
   if (search) {
     const searchLower = search.toLowerCase()
-    templates = templates.filter((t) =>
-      t.name?.toLowerCase().includes(searchLower) ||
-      t.subject?.toLowerCase().includes(searchLower) ||
-      t.content?.toLowerCase().includes(searchLower)
+    templates = templates.filter(
+      (t) =>
+        t.name?.toLowerCase().includes(searchLower) ||
+        t.subject?.toLowerCase().includes(searchLower) ||
+        t.content?.toLowerCase().includes(searchLower)
     )
   }
 
@@ -276,7 +281,7 @@ export async function updateTemplateStats(orgId, templateId, stats) {
 function calculateAverage(currentAvg, newValue, count) {
   if (newValue === null || newValue === undefined) return currentAvg
   if (currentAvg === null || currentAvg === undefined) return newValue
-  return ((currentAvg * (count - 1)) + newValue) / count
+  return (currentAvg * (count - 1) + newValue) / count
 }
 
 /**
@@ -339,7 +344,11 @@ export function getTemplatePreview(template, sampleProspect = {}) {
     '{{entreprise}}': sampleProspect.company || 'Acme Corp',
     '{{poste}}': sampleProspect.jobTitle || 'Directrice Marketing',
     '{{ville}}': sampleProspect.city || 'Paris',
-    '{{date}}': new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+    '{{date}}': new Date().toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
     '{{heure}}': new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
     '{{expediteur_prenom}}': 'Jean',
     '{{expediteur_nom}}': 'Martin',
@@ -359,16 +368,13 @@ export function getTemplatePreview(template, sampleProspect = {}) {
  * Subscribe to templates changes
  */
 export function subscribeToTemplates(orgId, callback) {
-  return onSnapshot(
-    query(templatesRef(orgId), orderBy('updatedAt', 'desc')),
-    (snapshot) => {
-      const templates = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      callback(templates)
-    }
-  )
+  return onSnapshot(query(templatesRef(orgId), orderBy('updatedAt', 'desc')), (snapshot) => {
+    const templates = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    callback(templates)
+  })
 }
 
 /**

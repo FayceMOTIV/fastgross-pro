@@ -73,8 +73,8 @@ export default function Login() {
               <span className="gradient-text">machine à leads.</span>
             </h2>
             <p className="text-dark-300 text-lg max-w-md">
-              L'IA analyse vos clients, génère des séquences email personnalisées
-              et identifie vos meilleurs prospects. Automatiquement.
+              L'IA analyse vos clients, génère des séquences email personnalisées et identifie vos
+              meilleurs prospects. Automatiquement.
             </p>
           </div>
 
@@ -144,7 +144,11 @@ export default function Login() {
               />
             </div>
 
-            <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+            <button
+              type="submit"
+              className="btn-primary w-full flex items-center justify-center gap-2"
+              disabled={loading}
+            >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
@@ -165,7 +169,11 @@ export default function Login() {
             </div>
           </div>
 
-          <button onClick={handleGoogle} className="btn-secondary w-full flex items-center justify-center gap-3" disabled={loading}>
+          <button
+            onClick={handleGoogle}
+            className="btn-secondary w-full flex items-center justify-center gap-3"
+            disabled={loading}
+          >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"

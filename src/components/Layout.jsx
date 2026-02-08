@@ -11,7 +11,6 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import {
   LayoutDashboard,
   Users,
-  Mail,
   FileText,
   Workflow,
   MessageSquare,
@@ -23,7 +22,6 @@ import {
   Zap,
   BarChart3,
   Search,
-  Bell,
   UserPlus,
   Building2,
   Check,
@@ -33,15 +31,22 @@ import {
   User,
   Eye,
   Plug,
+  Scan,
+  Wand2,
+  Target,
+  Send,
+  Award,
 } from 'lucide-react'
 
-// Navigation items with permissions
+// Navigation items with permissions - v4.0
 const navItems = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/app/prospects', icon: Users, label: 'Prospects' },
-  { to: '/app/templates', icon: FileText, label: 'Templates' },
-  { to: '/app/sequences', icon: Workflow, label: 'Sequences' },
-  { to: '/app/interactions', icon: MessageSquare, label: 'Interactions' },
+  { to: '/app/scanner', icon: Scan, label: 'Scanner' },
+  { to: '/app/forgeur', icon: Wand2, label: 'Forgeur' },
+  { to: '/app/radar', icon: Target, label: 'Radar' },
+  { to: '/app/campaigns', icon: Send, label: 'Campagnes' },
+  { to: '/app/proof', icon: Award, label: 'Proof' },
   { to: '/app/analytics', icon: BarChart3, label: 'Analytics' },
 ]
 
@@ -62,7 +67,16 @@ const roleIcons = {
 
 export default function Layout() {
   const { user, signOut, fullName, initials } = useAuth()
-  const { currentOrg, orgs, switchOrg, roleInfo, currentRole, isTrialActive, trialDaysRemaining, limits } = useOrg()
+  const {
+    currentOrg,
+    orgs,
+    switchOrg,
+    roleInfo,
+    currentRole,
+    isTrialActive,
+    trialDaysRemaining,
+    limits,
+  } = useOrg()
   const { can } = usePermissions()
   const navigate = useNavigate()
   const location = useLocation()
@@ -116,20 +130,18 @@ export default function Layout() {
   const getPageTitle = () => {
     const path = location.pathname
     const allItems = [...navItems, ...bottomNavItems]
-    const item = allItems.find((item) =>
-      item.end ? path === item.to : path.startsWith(item.to)
-    )
+    const item = allItems.find((item) => (item.end ? path === item.to : path.startsWith(item.to)))
     return item?.label || 'Dashboard'
   }
 
   const RoleIcon = roleIcons[currentRole] || User
 
   return (
-    <div className="flex h-screen overflow-hidden bg-dark-950">
+    <div className="flex h-screen overflow-hidden bg-surface-muted">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          className="fixed inset-0 bg-text/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -138,29 +150,29 @@ export default function Layout() {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50 w-72
-          bg-dark-900 border-r border-dark-800
+          bg-white border-r border-accent/5 shadow-soft-sm
           transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           flex flex-col
         `}
       >
         {/* Logo */}
-        <div className="p-5 border-b border-dark-800">
+        <div className="p-5 border-b border-accent/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <Zap className="w-5 h-5 text-dark-950" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-accent flex items-center justify-center shadow-accent-glow">
+                <Zap className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-display font-bold text-white text-lg leading-none">
+                <h1 className="font-display font-bold text-text text-lg leading-none">
                   Face Media
                 </h1>
-                <span className="text-xs text-brand-400 font-medium">Factory</span>
+                <span className="text-xs text-accent font-medium">Factory</span>
               </div>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800"
+              className="lg:hidden p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface-hover"
             >
               <X className="w-5 h-5" />
             </button>
@@ -171,28 +183,30 @@ export default function Layout() {
             <div className="relative mt-4" ref={orgDropdownRef}>
               <button
                 onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors text-sm border border-dark-700"
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-surface-hover hover:bg-accent/5 transition-colors text-sm border border-accent/5"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-dark-700 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-4 h-4 text-brand-400" />
+                  <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="w-4 h-4 text-accent" />
                   </div>
-                  <span className="text-white truncate font-medium">{currentOrg.name}</span>
+                  <span className="text-text truncate font-medium">{currentOrg.name}</span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-dark-400 transition-transform ${orgDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  className={`w-4 h-4 text-text-muted transition-transform ${orgDropdownOpen ? 'rotate-180' : ''}`}
+                />
               </button>
 
               {/* Dropdown */}
               {orgDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 py-2 bg-dark-800 rounded-lg border border-dark-700 shadow-xl z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 py-2 bg-white rounded-xl border border-accent/10 shadow-soft-lg z-50">
                   {orgs.map((org) => (
                     <button
                       key={org.id}
                       onClick={() => handleSwitchOrg(org.id)}
                       className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors ${
                         org.id === currentOrg.id
-                          ? 'bg-brand-500/10 text-brand-400'
-                          : 'text-dark-300 hover:bg-dark-700 hover:text-white'
+                          ? 'bg-accent/10 text-accent'
+                          : 'text-text-secondary hover:bg-surface-hover hover:text-text'
                       }`}
                     >
                       <Building2 className="w-4 h-4" />
@@ -200,13 +214,13 @@ export default function Layout() {
                       {org.id === currentOrg.id && <Check className="w-4 h-4" />}
                     </button>
                   ))}
-                  <div className="border-t border-dark-700 mt-2 pt-2 px-2">
+                  <div className="border-t border-accent/5 mt-2 pt-2 px-2">
                     <button
                       onClick={() => {
                         setOrgDropdownOpen(false)
                         navigate('/app/settings/organization')
                       }}
-                      className="w-full flex items-center gap-2 px-2 py-2 text-sm text-dark-400 hover:text-brand-400 hover:bg-dark-700 rounded-lg transition-colors"
+                      className="w-full flex items-center gap-2 px-2 py-2 text-sm text-text-muted hover:text-accent hover:bg-accent/5 rounded-lg transition-colors"
                     >
                       <Plus className="w-4 h-4" />
                       Creer une organisation
@@ -220,11 +234,11 @@ export default function Layout() {
           {/* Search button */}
           <button
             onClick={() => setCommandPaletteOpen(true)}
-            className="mt-3 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-dark-700 hover:border-dark-600 hover:bg-dark-800 transition-colors text-sm"
+            className="mt-3 w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border border-accent/5 hover:border-accent/20 hover:bg-accent/5 transition-colors text-sm"
           >
-            <Search className="w-4 h-4 text-dark-500" />
-            <span className="flex-1 text-left text-dark-500">Rechercher...</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-dark-500 bg-dark-800 rounded border border-dark-700">
+            <Search className="w-4 h-4 text-text-muted" />
+            <span className="flex-1 text-left text-text-muted">Rechercher...</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-text-muted bg-surface-hover rounded border border-accent/10">
               ⌘K
             </kbd>
           </button>
@@ -232,13 +246,14 @@ export default function Layout() {
 
         {/* Trial banner */}
         {isTrialActive && trialDaysRemaining <= 7 && (
-          <div className="mx-4 mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <p className="text-xs text-amber-400 font-medium">
-              Essai: {trialDaysRemaining} jour{trialDaysRemaining > 1 ? 's' : ''} restant{trialDaysRemaining > 1 ? 's' : ''}
+          <div className="mx-4 mt-4 p-3 rounded-xl bg-warning/10 border border-warning/20">
+            <p className="text-xs text-warning-dark font-medium">
+              Essai: {trialDaysRemaining} jour{trialDaysRemaining > 1 ? 's' : ''} restant
+              {trialDaysRemaining > 1 ? 's' : ''}
             </p>
             <button
               onClick={() => navigate('/app/settings/billing')}
-              className="mt-1 text-xs text-amber-300 hover:text-amber-200 underline"
+              className="mt-1 text-xs text-warning-dark hover:underline"
             >
               Passer au plan {limits.label}
             </button>
@@ -247,7 +262,7 @@ export default function Layout() {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <p className="px-3 py-2 text-[10px] font-semibold text-dark-500 uppercase tracking-wider">
+          <p className="px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
             Menu principal
           </p>
           {navItems.map(({ to, icon: Icon, label, end }) => (
@@ -259,8 +274,8 @@ export default function Layout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
-                    : 'text-dark-400 hover:text-white hover:bg-dark-800'
+                    ? 'bg-accent/10 text-accent border-l-2 border-accent'
+                    : 'text-text-secondary hover:text-text hover:bg-surface-hover'
                 }`
               }
             >
@@ -271,8 +286,8 @@ export default function Layout() {
         </nav>
 
         {/* Bottom section */}
-        <div className="p-4 border-t border-dark-800 space-y-1">
-          <p className="px-3 py-2 text-[10px] font-semibold text-dark-500 uppercase tracking-wider">
+        <div className="p-4 border-t border-accent/5 space-y-1">
+          <p className="px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
             Configuration
           </p>
           {bottomNavItems.map(({ to, icon: Icon, label, permission }) => {
@@ -287,8 +302,8 @@ export default function Layout() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-dark-800 text-white'
-                      : 'text-dark-400 hover:text-white hover:bg-dark-800'
+                      ? 'bg-surface-hover text-text'
+                      : 'text-text-secondary hover:text-text hover:bg-surface-hover'
                   }`
                 }
               >
@@ -300,39 +315,41 @@ export default function Layout() {
         </div>
 
         {/* User section */}
-        <div className="p-4 border-t border-dark-800">
+        <div className="p-4 border-t border-accent/5">
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-dark-800 transition-colors"
+              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-surface-hover transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-400/20 to-blue-400/20 flex items-center justify-center text-sm font-bold text-brand-400 border border-brand-500/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-accent flex items-center justify-center text-sm font-bold text-white shadow-accent-glow">
                 {initials}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-white truncate">{fullName}</p>
+                <p className="text-sm font-medium text-text truncate">{fullName}</p>
                 <div className="flex items-center gap-1.5">
-                  <RoleIcon className={`w-3 h-3 ${roleInfo?.color || 'text-dark-400'}`} />
-                  <span className={`text-xs ${roleInfo?.color || 'text-dark-400'}`}>
+                  <RoleIcon className={`w-3 h-3 ${roleInfo?.color || 'text-text-muted'}`} />
+                  <span className={`text-xs ${roleInfo?.color || 'text-text-muted'}`}>
                     {roleInfo?.label || 'Membre'}
                   </span>
                 </div>
               </div>
-              <ChevronDown className={`w-4 h-4 text-dark-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-4 h-4 text-text-muted transition-transform ${userMenuOpen ? 'rotate-180' : ''}`}
+              />
             </button>
 
             {/* User dropdown */}
             {userMenuOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-dark-800 rounded-lg border border-dark-700 shadow-xl">
-                <div className="px-3 py-2 border-b border-dark-700">
-                  <p className="text-xs text-dark-500 truncate">{user?.email}</p>
+              <div className="absolute bottom-full left-0 right-0 mb-2 py-2 bg-white rounded-xl border border-accent/10 shadow-soft-lg">
+                <div className="px-3 py-2 border-b border-accent/5">
+                  <p className="text-xs text-text-muted truncate">{user?.email}</p>
                 </div>
                 <button
                   onClick={() => {
                     setUserMenuOpen(false)
                     navigate('/app/settings/profile')
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-300 hover:bg-dark-700 hover:text-white transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text transition-colors"
                 >
                   <User className="w-4 h-4" />
                   Mon profil
@@ -342,18 +359,18 @@ export default function Layout() {
                     setUserMenuOpen(false)
                     navigate('/app/settings')
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-300 hover:bg-dark-700 hover:text-white transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text transition-colors"
                 >
                   <Settings className="w-4 h-4" />
                   Parametres
                 </button>
-                <div className="border-t border-dark-700 mt-2 pt-2">
+                <div className="border-t border-accent/5 mt-2 pt-2">
                   <button
                     onClick={() => {
                       setUserMenuOpen(false)
                       handleSignOut()
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/5 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Se deconnecter
@@ -368,22 +385,24 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-dark-800 bg-dark-900/80 backdrop-blur-xl">
+        <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-accent/5 bg-white/80 backdrop-blur-xl">
           {/* Left: Mobile menu + Page title */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800"
+              className="lg:hidden p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface-hover"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="hidden lg:block">
-              <h2 className="text-lg font-display font-bold text-white">{getPageTitle()}</h2>
+              <h2 className="text-lg font-display font-bold text-text">{getPageTitle()}</h2>
             </div>
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2">
-              <Zap className="w-5 h-5 text-brand-400" />
-              <span className="font-display font-bold text-white">FMF</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-accent flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-display font-bold text-text">FMF</span>
             </div>
           </div>
 
@@ -392,11 +411,11 @@ export default function Layout() {
             {/* Search (desktop) */}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dark-700 hover:border-dark-600 hover:bg-dark-800 transition-colors text-sm text-dark-400"
+              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-accent/10 hover:border-accent/20 hover:bg-accent/5 transition-colors text-sm text-text-muted"
             >
               <Search className="w-4 h-4" />
               <span>Rechercher</span>
-              <kbd className="px-1.5 py-0.5 text-[10px] font-medium bg-dark-800 rounded border border-dark-700">
+              <kbd className="px-1.5 py-0.5 text-[10px] font-medium bg-surface-hover rounded border border-accent/10">
                 ⌘K
               </kbd>
             </button>
@@ -407,7 +426,7 @@ export default function Layout() {
             {/* Mobile search */}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800"
+              className="lg:hidden p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface-hover"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -415,7 +434,7 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-dark-950">
+        <main className="flex-1 overflow-y-auto bg-surface-muted">
           <div className="max-w-7xl mx-auto p-4 lg:p-8">
             <Outlet />
           </div>
@@ -430,10 +449,7 @@ export default function Layout() {
       />
 
       {/* Keyboard Shortcuts Help */}
-      <KeyboardShortcutsHelp
-        open={shortcutsHelpOpen}
-        onClose={() => setShortcutsHelpOpen(false)}
-      />
+      <KeyboardShortcutsHelp open={shortcutsHelpOpen} onClose={() => setShortcutsHelpOpen(false)} />
     </div>
   )
 }

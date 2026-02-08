@@ -77,7 +77,7 @@ export const CHANNEL_STYLES = {
     color: 'text-gray-500',
     label: 'Stoppe',
   },
-};
+}
 
 // Regles d'orchestration
 export const ORCHESTRATION_RULES = {
@@ -126,7 +126,7 @@ export const ORCHESTRATION_RULES = {
     voicemail: 1, // UN SEUL voicemail
     courrier: 1, // UN SEUL courrier
   },
-};
+}
 
 // Sequences predefinies
 export const SEQUENCE_TEMPLATES = {
@@ -169,21 +169,21 @@ export const SEQUENCE_TEMPLATES = {
       { day: 22, channel: 'courrier', label: 'Courrier postal — Carte personnalisee' },
     ],
   },
-};
+}
 
 // Templates SMS / WhatsApp
 export const SMS_TEMPLATES = {
   relance_courte: [
     'Bonjour {{firstName}}, je vous ai envoye un email au sujet de {{company}}. 30 sec pour en discuter ? {{senderName}}',
-    '{{firstName}}, avez-vous vu mon email ? J\'ai une idee pour {{company}}. {{senderName}}',
+    "{{firstName}}, avez-vous vu mon email ? J'ai une idee pour {{company}}. {{senderName}}",
   ],
   relance_directe: [
     '{{firstName}}, derniere tentative ! Un simple "oui" ou "non" me suffit. {{senderName}}',
   ],
   whatsapp_intro: [
-    'Bonjour {{firstName}} ! Je suis {{senderName}}. J\'ai remarque {{company}} et j\'ai une proposition qui pourrait vous interesser. 2 min ?',
+    "Bonjour {{firstName}} ! Je suis {{senderName}}. J'ai remarque {{company}} et j'ai une proposition qui pourrait vous interesser. 2 min ?",
   ],
-};
+}
 
 export const SMS_RULES = {
   maxLength: 160, // SMS standard
@@ -191,24 +191,24 @@ export const SMS_RULES = {
   preferWhatsApp: true, // Si dispo, preferer WhatsApp
   sendingHours: { start: 9, end: 19 }, // JAMAIS apres 19h
   neverOnSunday: true,
-};
+}
 
 // Templates Instagram / Facebook DM
 export const SOCIAL_TEMPLATES = {
   instagram_dm: [
-    'Bonjour {{firstName}} ! Je suivais {{company}} et j\'adore ce que vous faites. Je vous ai envoye un email — est-ce que vous avez eu le temps de le voir ?',
-    'Hey {{firstName}} ! Je suis {{senderName}}. J\'ai decouvert {{company}} recemment et j\'ai une idee qui pourrait vous aider. Ca vous dit d\'en parler ?',
+    "Bonjour {{firstName}} ! Je suivais {{company}} et j'adore ce que vous faites. Je vous ai envoye un email — est-ce que vous avez eu le temps de le voir ?",
+    "Hey {{firstName}} ! Je suis {{senderName}}. J'ai decouvert {{company}} recemment et j'ai une idee qui pourrait vous aider. Ca vous dit d'en parler ?",
   ],
   facebook_dm: [
     'Bonjour {{firstName}}, je me permets de vous contacter car je pense pouvoir aider {{company}}. Seriez-vous ouvert a un echange rapide ?',
   ],
-};
+}
 
 export const SOCIAL_RULES = {
   neverColdDM: true, // JAMAIS de DM a froid
   maxDMsPerDay: 10,
   dmHours: { start: 9, end: 19 },
-};
+}
 
 // Templates Courrier postal
 export const POSTAL_TEMPLATES = {
@@ -225,7 +225,7 @@ Scannez ce QR code pour en savoir plus :
 Au plaisir d'echanger,
 {{senderName}}`,
   },
-};
+}
 
 export const POSTAL_RULES = {
   maxPerProspect: 1,
@@ -233,14 +233,14 @@ export const POSTAL_RULES = {
   minScore: 70,
   includeQRCode: true,
   costPerUnit: 2.5,
-};
+}
 
 // Templates Message vocal
 export const VOICEMAIL_TEMPLATES = {
   message_personnel: [
-    'Bonjour {{firstName}}, c\'est {{senderName}}. Je vous ai envoye un email il y a quelques jours au sujet de {{company}}. J\'avais une idee qui pourrait vraiment vous interesser. N\'hesitez pas a me rappeler au {{senderPhone}} ou a repondre a mon email. Bonne journee !',
+    "Bonjour {{firstName}}, c'est {{senderName}}. Je vous ai envoye un email il y a quelques jours au sujet de {{company}}. J'avais une idee qui pourrait vraiment vous interesser. N'hesitez pas a me rappeler au {{senderPhone}} ou a repondre a mon email. Bonne journee !",
   ],
-};
+}
 
 export const VOICEMAIL_RULES = {
   maxPerProspect: 1,
@@ -249,33 +249,33 @@ export const VOICEMAIL_RULES = {
   neverOnWeekend: true,
   method: 'tts', // text-to-speech ou 'recorded'
   // Le telephone NE SONNE PAS — message depose directement dans la messagerie
-};
+}
 
 // Utilitaire pour obtenir le style d'un canal
 export const getChannelStyle = (channel) => {
-  return CHANNEL_STYLES[channel] || CHANNEL_STYLES.email;
-};
+  return CHANNEL_STYLES[channel] || CHANNEL_STYLES.email
+}
 
 // Utilitaire pour verifier si un canal est disponible pour un prospect
 export const isChannelAvailable = (prospect, channel) => {
-  if (!prospect.channels) return channel === 'email';
-  return prospect.channels[channel]?.available === true;
-};
+  if (!prospect.channels) return channel === 'email'
+  return prospect.channels[channel]?.available === true
+}
 
 // Utilitaire pour obtenir les canaux disponibles pour un prospect
 export const getAvailableChannels = (prospect) => {
-  if (!prospect.channels) return ['email'];
+  if (!prospect.channels) return ['email']
   return Object.entries(prospect.channels)
     .filter(([_, config]) => config?.available)
-    .map(([channel]) => channel);
-};
+    .map(([channel]) => channel)
+}
 
 // Utilitaire pour generer une sequence adaptee au prospect
 export const generateSequenceForProspect = (prospect, templateKey = 'standard') => {
-  const template = SEQUENCE_TEMPLATES[templateKey];
-  if (!template) return null;
+  const template = SEQUENCE_TEMPLATES[templateKey]
+  if (!template) return null
 
-  const availableChannels = getAvailableChannels(prospect);
+  const availableChannels = getAvailableChannels(prospect)
 
   return template.steps.map((step, index) => ({
     number: index + 1,
@@ -284,8 +284,8 @@ export const generateSequenceForProspect = (prospect, templateKey = 'standard') 
     fallbackChannel: !availableChannels.includes(step.channel)
       ? availableChannels.find((c) => c !== 'email') || 'email'
       : null,
-  }));
-};
+  }))
+}
 
 // Stats par canal (pour les KPIs)
 export const calculateChannelStats = (prospects) => {
@@ -302,29 +302,29 @@ export const calculateChannelStats = (prospects) => {
       total: 0,
       byChannel: {},
     },
-  };
+  }
 
   prospects.forEach((prospect) => {
     if (prospect.sequence?.steps) {
       prospect.sequence.steps.forEach((step) => {
         if (step.status === 'sent' && stats.byChannel[step.channel]) {
-          stats.byChannel[step.channel].sent++;
-          if (step.tracking?.opened) stats.byChannel[step.channel].opened++;
-          if (step.tracking?.delivered) stats.byChannel[step.channel].delivered++;
-          if (step.tracking?.seen) stats.byChannel[step.channel].seen++;
+          stats.byChannel[step.channel].sent++
+          if (step.tracking?.opened) stats.byChannel[step.channel].opened++
+          if (step.tracking?.delivered) stats.byChannel[step.channel].delivered++
+          if (step.tracking?.seen) stats.byChannel[step.channel].seen++
         }
-      });
+      })
     }
 
     if (prospect.reply) {
-      stats.replies.total++;
-      const channel = prospect.reply.channel || 'email';
-      stats.replies.byChannel[channel] = (stats.replies.byChannel[channel] || 0) + 1;
+      stats.replies.total++
+      const channel = prospect.reply.channel || 'email'
+      stats.replies.byChannel[channel] = (stats.replies.byChannel[channel] || 0) + 1
       if (stats.byChannel[channel]) {
-        stats.byChannel[channel].replied++;
+        stats.byChannel[channel].replied++
       }
     }
-  });
+  })
 
-  return stats;
-};
+  return stats
+}

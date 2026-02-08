@@ -9,7 +9,7 @@ import { Zap, ArrowRight, Building2, Target, CheckCircle2 } from 'lucide-react'
 const steps = [
   { id: 'org', title: 'Votre organisation', icon: Building2 },
   { id: 'goal', title: 'Votre objectif', icon: Target },
-  { id: 'done', title: 'C\'est parti !', icon: CheckCircle2 },
+  { id: 'done', title: "C'est parti !", icon: CheckCircle2 },
 ]
 
 export default function Onboarding() {
@@ -48,12 +48,16 @@ export default function Onboarding() {
         <div className="flex items-center justify-center gap-2">
           {steps.map((s, i) => (
             <div key={s.id} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                i <= currentStep ? 'bg-brand-500 text-dark-950' : 'bg-dark-800 text-dark-500'
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                  i <= currentStep ? 'bg-brand-500 text-dark-950' : 'bg-dark-800 text-dark-500'
+                }`}
+              >
                 {i < currentStep ? '✓' : i + 1}
               </div>
-              {i < steps.length - 1 && <div className={`w-12 h-0.5 ${i < currentStep ? 'bg-brand-500' : 'bg-dark-800'}`} />}
+              {i < steps.length - 1 && (
+                <div className={`w-12 h-0.5 ${i < currentStep ? 'bg-brand-500' : 'bg-dark-800'}`} />
+              )}
             </div>
           ))}
         </div>
@@ -73,7 +77,11 @@ export default function Onboarding() {
               placeholder="Ex: Mon Agence, Jean Dupont Consulting..."
               autoFocus
             />
-            <button onClick={handleCreateOrg} disabled={!orgName} className="btn-primary w-full flex items-center justify-center gap-2">
+            <button
+              onClick={handleCreateOrg}
+              disabled={!orgName}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
               Continuer <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -84,7 +92,9 @@ export default function Onboarding() {
           <div className="glass-card p-8 space-y-6 animate-fade-in">
             <div className="text-center">
               <Target className="w-10 h-10 text-brand-400 mx-auto mb-3" />
-              <h2 className="text-2xl font-display font-bold text-white">Quel est votre profil ?</h2>
+              <h2 className="text-2xl font-display font-bold text-white">
+                Quel est votre profil ?
+              </h2>
               <p className="text-dark-400 mt-2">On adapte l'expérience à votre besoin</p>
             </div>
             <div className="space-y-3">
@@ -103,7 +113,13 @@ export default function Onboarding() {
                 </button>
               ))}
             </div>
-            <button onClick={() => { if (goal) setCurrentStep(2) }} disabled={!goal} className="btn-primary w-full flex items-center justify-center gap-2">
+            <button
+              onClick={() => {
+                if (goal) setCurrentStep(2)
+              }}
+              disabled={!goal}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
               Continuer <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -120,7 +136,10 @@ export default function Onboarding() {
               Votre espace <span className="text-white font-medium">{orgName}</span> est créé.
               Commencez par scanner le site d'un de vos clients.
             </p>
-            <button onClick={handleFinish} className="btn-primary flex items-center justify-center gap-2 mx-auto">
+            <button
+              onClick={handleFinish}
+              className="btn-primary flex items-center justify-center gap-2 mx-auto"
+            >
               <Zap className="w-4 h-4" />
               Accéder au dashboard
             </button>

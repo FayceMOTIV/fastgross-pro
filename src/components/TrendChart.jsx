@@ -1,50 +1,90 @@
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { memo, useMemo } from 'react'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
 
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="glass-card px-3 py-2 text-xs">
-      <p className="text-white font-medium">{label}</p>
-      {payload.map((entry, i) => (
-        <p key={i} style={{ color: entry.color }}>
-          {entry.name}: {entry.value}
-        </p>
-      ))}
-    </div>
-  );
-};
+// Register Chart.js components
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip)
 
-export default function TrendChart({ data, dataKey, color = '#00d49a', title, height = 200 }) {
-  const gradientId = `gradient-${dataKey}-${Math.random().toString(36).substr(2, 9)}`;
+// Memoized - only re-renders when data changes
+const TrendChart = memo(function TrendChart({
+  data,
+  dataKey,
+  color = '#00d49a',
+  title,
+  height = 200,
+}) {
+  const chartData = useMemo(
+    () => ({
+      labels: data.map((d) => d.name),
+      datasets: [
+        {
+          data: data.map((d) => d[dataKey]),
+          borderColor: color,
+          backgroundColor: `${color}30`,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: color,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2,
+        },
+      ],
+    }),
+    [data, dataKey, color]
+  )
+
+  const options = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13, 13, 26, 0.9)',
+          titleColor: '#fff',
+          bodyColor: '#a1a1aa',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          cornerRadius: 8,
+          padding: 12,
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: '#6d6d8a', font: { size: 11 } },
+          border: { display: false },
+        },
+        y: {
+          display: false,
+          grid: { display: false },
+        },
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+    }),
+    []
+  )
 
   return (
     <div className="glass-card p-5">
       {title && <h3 className="text-sm font-medium text-dark-300 mb-4">{title}</h3>}
-      <ResponsiveContainer width="100%" height={height}>
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-              <stop offset="100%" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: '#6d6d8a', fontSize: 11 }}
-          />
-          <YAxis hide />
-          <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
-            dataKey={dataKey}
-            stroke={color}
-            strokeWidth={2}
-            fill={`url(#${gradientId})`}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+      <div style={{ height }}>
+        <Line data={chartData} options={options} />
+      </div>
     </div>
-  );
-}
+  )
+})
+
+export default TrendChart

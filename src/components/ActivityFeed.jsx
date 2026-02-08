@@ -44,8 +44,8 @@ export default function ActivityFeed({ activities = [], maxItems = 10 }) {
         const timestamp = activity.timestamp?.toDate
           ? activity.timestamp.toDate()
           : activity.timestamp instanceof Date
-          ? activity.timestamp
-          : new Date(activity.timestamp)
+            ? activity.timestamp
+            : new Date(activity.timestamp)
 
         return (
           <div
@@ -58,13 +58,9 @@ export default function ActivityFeed({ activities = [], maxItems = 10 }) {
               <Icon className={`w-4 h-4 text-${config.color}-400`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white">
-                {activity.message || config.label}
-              </p>
+              <p className="text-sm text-white">{activity.message || config.label}</p>
               {activity.details && (
-                <p className="text-xs text-dark-500 truncate mt-0.5">
-                  {activity.details}
-                </p>
+                <p className="text-xs text-dark-500 truncate mt-0.5">{activity.details}</p>
               )}
             </div>
             <span className="text-xs text-dark-500 flex-shrink-0">

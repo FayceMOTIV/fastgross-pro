@@ -1,10 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-} from 'firebase/firestore'
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from './AuthContext'
 import { useDemo } from './DemoContext'
@@ -57,9 +52,33 @@ const DEMO_ORG = {
 }
 
 const DEMO_MEMBERS = [
-  { id: '1', uid: 'demo-user', displayName: 'Utilisateur Demo', email: 'demo@facemedia.fr', role: 'owner', status: 'active', lastActiveAt: new Date() },
-  { id: '2', uid: 'demo-admin', displayName: 'Admin Test', email: 'admin@facemedia.fr', role: 'admin', status: 'active', lastActiveAt: new Date(Date.now() - 3600000) },
-  { id: '3', uid: 'demo-manager', displayName: 'Manager Test', email: 'manager@facemedia.fr', role: 'manager', status: 'active', lastActiveAt: new Date(Date.now() - 7200000) },
+  {
+    id: '1',
+    uid: 'demo-user',
+    displayName: 'Utilisateur Demo',
+    email: 'demo@facemedia.fr',
+    role: 'owner',
+    status: 'active',
+    lastActiveAt: new Date(),
+  },
+  {
+    id: '2',
+    uid: 'demo-admin',
+    displayName: 'Admin Test',
+    email: 'admin@facemedia.fr',
+    role: 'admin',
+    status: 'active',
+    lastActiveAt: new Date(Date.now() - 3600000),
+  },
+  {
+    id: '3',
+    uid: 'demo-manager',
+    displayName: 'Manager Test',
+    email: 'manager@facemedia.fr',
+    role: 'manager',
+    status: 'active',
+    lastActiveAt: new Date(Date.now() - 7200000),
+  },
 ]
 
 export function OrgProvider({ children }) {
@@ -260,11 +279,13 @@ export function OrgProvider({ children }) {
 
   // Usage stats
   const usage = useMemo(() => {
-    return currentOrg?.usage || {
-      currentProspects: 0,
-      currentSequences: 0,
-      emailsSentThisMonth: 0,
-    }
+    return (
+      currentOrg?.usage || {
+        currentProspects: 0,
+        currentSequences: 0,
+        emailsSentThisMonth: 0,
+      }
+    )
   }, [currentOrg])
 
   // Check if limit reached

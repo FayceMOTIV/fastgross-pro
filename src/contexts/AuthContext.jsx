@@ -91,17 +91,20 @@ export function AuthProvider({ children }) {
   }
 
   // Update user profile
-  const updateUserProfile = useCallback(async (updates) => {
-    if (!user) throw new Error('Not authenticated')
+  const updateUserProfile = useCallback(
+    async (updates) => {
+      if (!user) throw new Error('Not authenticated')
 
-    const userRef = doc(db, 'users', user.uid)
-    await updateDoc(userRef, {
-      ...updates,
-      updatedAt: serverTimestamp(),
-    })
+      const userRef = doc(db, 'users', user.uid)
+      await updateDoc(userRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      })
 
-    setUserProfile((prev) => ({ ...prev, ...updates }))
-  }, [user])
+      setUserProfile((prev) => ({ ...prev, ...updates }))
+    },
+    [user]
+  )
 
   // Update last login
   const updateLastLogin = useCallback(async () => {
@@ -122,9 +125,10 @@ export function AuthProvider({ children }) {
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password)
 
-      const displayName = userData.firstName && userData.lastName
-        ? `${userData.firstName} ${userData.lastName}`
-        : userData.displayName || email.split('@')[0]
+      const displayName =
+        userData.firstName && userData.lastName
+          ? `${userData.firstName} ${userData.lastName}`
+          : userData.displayName || email.split('@')[0]
 
       await updateProfile(result.user, { displayName })
       await createUserProfile(result.user, {
@@ -218,34 +222,41 @@ export function AuthProvider({ children }) {
   }
 
   // Complete onboarding step
-  const completeOnboardingStep = useCallback(async (step, data = {}) => {
-    if (!user) throw new Error('Not authenticated')
+  const completeOnboardingStep = useCallback(
+    async (step, data = {}) => {
+      if (!user) throw new Error('Not authenticated')
 
-    const updates = {
-      onboardingStep: step,
-      ...data,
-    }
+      const updates = {
+        onboardingStep: step,
+        ...data,
+      }
 
-    // Mark complete if final step
-    if (step >= 3) {
-      updates.onboardingComplete = true
-    }
+      // Mark complete if final step
+      if (step >= 3) {
+        updates.onboardingComplete = true
+      }
 
-    await updateUserProfile(updates)
-  }, [user, updateUserProfile])
+      await updateUserProfile(updates)
+    },
+    [user, updateUserProfile]
+  )
 
   // Set default organization
-  const setDefaultOrg = useCallback(async (orgId) => {
-    if (!user) throw new Error('Not authenticated')
+  const setDefaultOrg = useCallback(
+    async (orgId) => {
+      if (!user) throw new Error('Not authenticated')
 
-    await updateUserProfile({ defaultOrgId: orgId })
-  }, [user, updateUserProfile])
+      await updateUserProfile({ defaultOrgId: orgId })
+    },
+    [user, updateUserProfile]
+  )
 
   // Check if onboarding needed
   const needsOnboarding = userProfile && !userProfile.onboardingComplete
 
   // Full name helper
-  const fullName = userProfile?.displayName ||
+  const fullName =
+    userProfile?.displayName ||
     (userProfile?.firstName && userProfile?.lastName
       ? `${userProfile.firstName} ${userProfile.lastName}`
       : user?.email?.split('@')[0] || 'Utilisateur')
@@ -286,11 +297,7 @@ export function AuthProvider({ children }) {
     setDefaultOrg,
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

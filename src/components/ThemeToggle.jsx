@@ -1,19 +1,19 @@
+import { memo } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
-import { Sun, Moon, Monitor } from 'lucide-react'
+import { Sun, Moon } from 'lucide-react'
 
-export default function ThemeToggle({ showLabel = true }) {
+const options = [
+  { value: 'light', icon: Sun, label: 'Clair' },
+  { value: 'dark', icon: Moon, label: 'Sombre' },
+]
+
+// Memoized - only re-renders when theme changes
+const ThemeToggle = memo(function ThemeToggle({ showLabel = true }) {
   const { theme, setTheme } = useTheme()
-
-  const options = [
-    { value: 'light', icon: Sun, label: 'Clair' },
-    { value: 'dark', icon: Moon, label: 'Sombre' },
-  ]
 
   return (
     <div className="flex items-center gap-3">
-      {showLabel && (
-        <span className="text-sm text-dark-400">Thème</span>
-      )}
+      {showLabel && <span className="text-sm text-dark-400">Theme</span>}
       <div className="flex rounded-lg border border-dark-700 overflow-hidden">
         {options.map(({ value, icon: Icon, label }) => (
           <button
@@ -33,9 +33,10 @@ export default function ThemeToggle({ showLabel = true }) {
       </div>
     </div>
   )
-}
+})
 
-export function ThemeToggleCompact() {
+// Memoized compact toggle
+const ThemeToggleCompact = memo(function ThemeToggleCompact() {
   const { isDark, toggleTheme } = useTheme()
 
   return (
@@ -47,4 +48,7 @@ export function ThemeToggleCompact() {
       {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
     </button>
   )
-}
+})
+
+export default ThemeToggle
+export { ThemeToggleCompact }

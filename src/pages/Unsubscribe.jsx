@@ -33,7 +33,7 @@ export default function Unsubscribe() {
       await setDoc(blacklistRef, {
         email: email.toLowerCase(),
         reason: 'unsubscribed',
-        addedAt: serverTimestamp()
+        addedAt: serverTimestamp(),
       })
 
       setStatus('success')

@@ -147,8 +147,8 @@ export default function OnboardingPlan() {
             Votre plan de prospection personnalise
           </h1>
           <p className="text-dark-400 max-w-2xl mx-auto">
-            Base sur votre profil, voici les 3 strategies que nous vous recommandons.
-            Choisissez celle qui correspond le mieux a vos objectifs.
+            Base sur votre profil, voici les 3 strategies que nous vous recommandons. Choisissez
+            celle qui correspond le mieux a vos objectifs.
           </p>
         </motion.div>
 
@@ -178,7 +178,9 @@ export default function OnboardingPlan() {
 
               {/* Plan Header */}
               <div className="mb-6">
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${plan.bgColor} mb-4`}>
+                <div
+                  className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${plan.bgColor} mb-4`}
+                >
                   <Calendar className="w-3 h-3" />
                   <span className={`text-xs font-medium ${plan.textColor}`}>{plan.duration}</span>
                 </div>
@@ -219,7 +221,9 @@ export default function OnboardingPlan() {
               </div>
 
               {/* Conversion Rate */}
-              <div className={`flex items-center justify-between p-3 rounded-xl ${plan.bgColor} mb-6`}>
+              <div
+                className={`flex items-center justify-between p-3 rounded-xl ${plan.bgColor} mb-6`}
+              >
                 <div className="flex items-center gap-2">
                   <TrendingUp className={`w-4 h-4 ${plan.textColor}`} />
                   <span className="text-sm text-dark-300">Taux de conversion estime</span>

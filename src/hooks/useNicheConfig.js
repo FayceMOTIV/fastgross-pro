@@ -5,13 +5,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useOrg } from '../contexts/OrgContext'
 import { db } from '../lib/firebase'
-import {
-  doc,
-  getDoc,
-  setDoc,
-  onSnapshot,
-  serverTimestamp
-} from 'firebase/firestore'
+import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import { DEFAULT_EMAIL_TEMPLATE, AUTOPILOT_CONFIG } from '../engine/config'
 
 // Suggestions de secteurs d'activite
@@ -29,7 +23,7 @@ export const SECTOR_SUGGESTIONS = [
   'Dentiste',
   'Pharmacie',
   'Hotel',
-  'Chambre d\'hotes',
+  "Chambre d'hotes",
   'Fleuriste',
   'Bijouterie',
   'Opticien',
@@ -40,7 +34,7 @@ export const SECTOR_SUGGESTIONS = [
   'Traiteur',
   'Boucherie',
   'Fromagerie',
-  'Epicerie fine'
+  'Epicerie fine',
 ]
 
 // Configuration par defaut
@@ -72,7 +66,7 @@ const DEFAULT_CONFIG = {
   // Google CSE (optionnel)
   googleCseApiKey: '',
   googleCseCxId: '',
-  useDirectories: true
+  useDirectories: true,
 }
 
 export function useNicheConfig() {
@@ -92,113 +86,120 @@ export function useNicheConfig() {
 
     const configRef = doc(db, 'organizations', currentOrg.id, 'autopilotConfig', 'settings')
 
-    const unsubscribe = onSnapshot(configRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setConfig({ ...DEFAULT_CONFIG, ...snapshot.data() })
-      } else {
-        setConfig(DEFAULT_CONFIG)
+    const unsubscribe = onSnapshot(
+      configRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          setConfig({ ...DEFAULT_CONFIG, ...snapshot.data() })
+        } else {
+          setConfig(DEFAULT_CONFIG)
+        }
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Error fetching niche config:', err)
+        setError(err)
+        setLoading(false)
       }
-      setLoading(false)
-    }, (err) => {
-      console.error('Error fetching niche config:', err)
-      setError(err)
-      setLoading(false)
-    })
+    )
 
     return () => unsubscribe()
   }, [currentOrg?.id])
 
   // Sauvegarder la configuration
-  const saveConfig = useCallback(async (updates) => {
-    if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
+  const saveConfig = useCallback(
+    async (updates) => {
+      if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
 
-    setSaving(true)
-    setError(null)
+      setSaving(true)
+      setError(null)
 
-    try {
-      const configRef = doc(db, 'organizations', currentOrg.id, 'autopilotConfig', 'settings')
+      try {
+        const configRef = doc(db, 'organizations', currentOrg.id, 'autopilotConfig', 'settings')
 
-      const newConfig = {
-        ...config,
-        ...updates,
-        updatedAt: serverTimestamp()
+        const newConfig = {
+          ...config,
+          ...updates,
+          updatedAt: serverTimestamp(),
+        }
+
+        await setDoc(configRef, newConfig, { merge: true })
+        setConfig(newConfig)
+      } catch (err) {
+        setError(err)
+        throw err
+      } finally {
+        setSaving(false)
       }
-
-      await setDoc(configRef, newConfig, { merge: true })
-      setConfig(newConfig)
-    } catch (err) {
-      setError(err)
-      throw err
-    } finally {
-      setSaving(false)
-    }
-  }, [currentOrg?.id, config])
+    },
+    [currentOrg?.id, config]
+  )
 
   // Mettre a jour un champ
   const updateField = useCallback((field, value) => {
-    setConfig(prev => ({ ...prev, [field]: value }))
+    setConfig((prev) => ({ ...prev, [field]: value }))
   }, [])
 
   // Ajouter un mot-cle
   const addKeyword = useCallback((keyword) => {
     if (!keyword.trim()) return
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
-      keywords: [...new Set([...prev.keywords, keyword.trim()])]
+      keywords: [...new Set([...prev.keywords, keyword.trim()])],
     }))
   }, [])
 
   // Supprimer un mot-cle
   const removeKeyword = useCallback((keyword) => {
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
-      keywords: prev.keywords.filter(k => k !== keyword)
+      keywords: prev.keywords.filter((k) => k !== keyword),
     }))
   }, [])
 
   // Ajouter un mot-cle a exclure
   const addExcludeKeyword = useCallback((keyword) => {
     if (!keyword.trim()) return
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
-      excludeKeywords: [...new Set([...prev.excludeKeywords, keyword.trim()])]
+      excludeKeywords: [...new Set([...prev.excludeKeywords, keyword.trim()])],
     }))
   }, [])
 
   // Supprimer un mot-cle a exclure
   const removeExcludeKeyword = useCallback((keyword) => {
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
-      excludeKeywords: prev.excludeKeywords.filter(k => k !== keyword)
+      excludeKeywords: prev.excludeKeywords.filter((k) => k !== keyword),
     }))
   }, [])
 
   // Mettre a jour le template email
   const updateEmailTemplate = useCallback((field, value) => {
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
       emailTemplate: {
         ...prev.emailTemplate,
-        [field]: value
-      }
+        [field]: value,
+      },
     }))
   }, [])
 
   // Reinitialiser le template email
   const resetEmailTemplate = useCallback(() => {
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
-      emailTemplate: DEFAULT_EMAIL_TEMPLATE
+      emailTemplate: DEFAULT_EMAIL_TEMPLATE,
     }))
   }, [])
 
   // Ajouter/retirer un jour d'envoi
   const toggleSendDay = useCallback((day) => {
-    setConfig(prev => ({
+    setConfig((prev) => ({
       ...prev,
       sendDays: prev.sendDays.includes(day)
-        ? prev.sendDays.filter(d => d !== day)
-        : [...prev.sendDays, day]
+        ? prev.sendDays.filter((d) => d !== day)
+        : [...prev.sendDays, day],
     }))
   }, [])
 
@@ -219,12 +220,12 @@ export function useNicheConfig() {
     }
 
     if (config.sendDays.length === 0) {
-      errors.push('Vous devez selectionner au moins un jour d\'envoi')
+      errors.push("Vous devez selectionner au moins un jour d'envoi")
     }
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     }
   }, [config])
 
@@ -252,9 +253,9 @@ export function useNicheConfig() {
     const testQuery = config.keywords[0] || config.sector || 'test'
     const response = await fetch(
       `https://www.googleapis.com/customsearch/v1` +
-      `?key=${config.googleCseApiKey}` +
-      `&cx=${config.googleCseCxId}` +
-      `&q=${encodeURIComponent(testQuery)}&num=1`
+        `?key=${config.googleCseApiKey}` +
+        `&cx=${config.googleCseCxId}` +
+        `&q=${encodeURIComponent(testQuery)}&num=1`
     )
 
     const data = await response.json()
@@ -284,7 +285,7 @@ export function useNicheConfig() {
     activateAutoPilot,
     deactivateAutoPilot,
     testGoogleCse,
-    SECTOR_SUGGESTIONS
+    SECTOR_SUGGESTIONS,
   }
 }
 

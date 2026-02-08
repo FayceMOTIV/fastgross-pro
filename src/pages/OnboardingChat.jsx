@@ -22,7 +22,8 @@ const QUESTIONS = [
   {
     id: 'welcome',
     type: 'message',
-    content: "Bienvenue sur Face Media Factory ! Je suis votre assistant IA de prospection. Je vais vous poser quelques questions pour comprendre votre activite et construire votre strategie de prospection sur-mesure.",
+    content:
+      'Bienvenue sur Face Media Factory ! Je suis votre assistant IA de prospection. Je vais vous poser quelques questions pour comprendre votre activite et construire votre strategie de prospection sur-mesure.',
   },
   {
     id: 'sector',
@@ -35,21 +36,21 @@ const QUESTIONS = [
   {
     id: 'offer',
     type: 'question',
-    content: "Parfait ! Decrivez votre offre principale en quelques mots.",
-    placeholder: "Ex: Je fais du coaching business pour entrepreneurs",
+    content: 'Parfait ! Decrivez votre offre principale en quelques mots.',
+    placeholder: 'Ex: Je fais du coaching business pour entrepreneurs',
     icon: Briefcase,
   },
   {
     id: 'target',
     type: 'question',
-    content: "Super, je comprends bien votre offre. Maintenant, qui sont vos clients ideaux ?",
-    placeholder: "Ex: PME de 10-50 salaries dans le BTP",
+    content: 'Super, je comprends bien votre offre. Maintenant, qui sont vos clients ideaux ?',
+    placeholder: 'Ex: PME de 10-50 salaries dans le BTP',
     icon: Users,
   },
   {
     id: 'zone',
     type: 'question',
-    content: "Et dans quelle zone geographique souhaitez-vous prospecter ?",
+    content: 'Et dans quelle zone geographique souhaitez-vous prospecter ?',
     placeholder: 'Ex: Paris, Lyon, Ile-de-France, Toute la France...',
     suggestions: ['Paris', 'Lyon', 'Marseille', 'Ile-de-France', 'Toute la France'],
     icon: MapPin,
@@ -57,7 +58,7 @@ const QUESTIONS = [
   {
     id: 'objective',
     type: 'choice',
-    content: "Derniere question : quel est votre objectif principal ?",
+    content: 'Derniere question : quel est votre objectif principal ?',
     choices: [
       { id: 'first_clients', label: 'Trouver mes premiers clients', icon: Rocket },
       { id: 'scale', label: 'Augmenter mon nombre de clients', icon: Target },
@@ -102,19 +103,22 @@ export default function OnboardingChat() {
 
   const simulateAIMessage = (content, callback) => {
     setIsTyping(true)
-    setTimeout(() => {
-      setIsTyping(false)
-      addAIMessage(content)
-      if (callback) callback()
-    }, 1000 + Math.random() * 500)
+    setTimeout(
+      () => {
+        setIsTyping(false)
+        addAIMessage(content)
+        if (callback) callback()
+      },
+      1000 + Math.random() * 500
+    )
   }
 
   const addAIMessage = (content) => {
-    setMessages(prev => [...prev, { type: 'ai', content }])
+    setMessages((prev) => [...prev, { type: 'ai', content }])
   }
 
   const addUserMessage = (content) => {
-    setMessages(prev => [...prev, { type: 'user', content }])
+    setMessages((prev) => [...prev, { type: 'user', content }])
   }
 
   const handleSend = () => {
@@ -122,7 +126,7 @@ export default function OnboardingChat() {
 
     const currentQuestion = QUESTIONS[currentStep]
     addUserMessage(inputValue)
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: inputValue }))
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: inputValue }))
     setInputValue('')
 
     // Move to next question
@@ -162,7 +166,7 @@ export default function OnboardingChat() {
   const handleChoiceClick = (choice) => {
     const currentQuestion = QUESTIONS[currentStep]
     addUserMessage(choice.label)
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: choice.id }))
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: choice.id }))
 
     // Move to summary
     setTimeout(() => {
@@ -264,9 +268,18 @@ export default function OnboardingChat() {
               </div>
               <div className="bg-dark-800/50 rounded-2xl px-5 py-3">
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 rounded-full bg-dark-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-dark-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-dark-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div
+                    className="w-2 h-2 rounded-full bg-dark-500 animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <div
+                    className="w-2 h-2 rounded-full bg-dark-500 animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <div
+                    className="w-2 h-2 rounded-full bg-dark-500 animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  />
                 </div>
               </div>
             </motion.div>
@@ -285,7 +298,9 @@ export default function OnboardingChat() {
                     <Check className="w-5 h-5 text-brand-400" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-white">Votre profil de prospection</h3>
+                    <h3 className="font-display font-semibold text-white">
+                      Votre profil de prospection
+                    </h3>
                     <p className="text-xs text-dark-500">Voici ce que j'ai compris :</p>
                   </div>
                 </div>
@@ -341,10 +356,7 @@ export default function OnboardingChat() {
                     <Check className="w-4 h-4" />
                     Oui, c'est parfait
                   </button>
-                  <button
-                    onClick={handleModify}
-                    className="btn-secondary flex-1"
-                  >
+                  <button onClick={handleModify} className="btn-secondary flex-1">
                     Non, modifier
                   </button>
                 </div>

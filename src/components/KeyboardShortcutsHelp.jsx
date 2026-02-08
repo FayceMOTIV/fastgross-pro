@@ -26,16 +26,13 @@ export default function KeyboardShortcutsHelp({ open, onClose }) {
   if (!open) return null
 
   // Group shortcuts by category
-  const navigationShortcuts = shortcuts.filter(s => s.action === 'navigate')
-  const actionShortcuts = shortcuts.filter(s => s.action === 'custom')
+  const navigationShortcuts = shortcuts.filter((s) => s.action === 'navigate')
+  const actionShortcuts = shortcuts.filter((s) => s.action === 'custom')
 
   return (
     <div className="fixed inset-0 z-[100]">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Dialog */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg">
@@ -62,14 +59,8 @@ export default function KeyboardShortcutsHelp({ open, onClose }) {
                 Global
               </h3>
               <div className="space-y-2">
-                <ShortcutRow
-                  keys={['⌘', 'K']}
-                  description="Ouvrir la recherche globale"
-                />
-                <ShortcutRow
-                  keys={['Shift', '?']}
-                  description="Afficher les raccourcis"
-                />
+                <ShortcutRow keys={['⌘', 'K']} description="Ouvrir la recherche globale" />
+                <ShortcutRow keys={['Shift', '?']} description="Afficher les raccourcis" />
               </div>
             </div>
 
@@ -97,7 +88,11 @@ export default function KeyboardShortcutsHelp({ open, onClose }) {
           {/* Footer */}
           <div className="px-6 py-4 border-t border-dark-800 bg-dark-900/50">
             <p className="text-xs text-dark-500 text-center">
-              Appuyez sur <kbd className="px-1.5 py-0.5 bg-dark-800 rounded border border-dark-700 text-dark-400">ESC</kbd> pour fermer
+              Appuyez sur{' '}
+              <kbd className="px-1.5 py-0.5 bg-dark-800 rounded border border-dark-700 text-dark-400">
+                ESC
+              </kbd>{' '}
+              pour fermer
             </p>
           </div>
         </div>

@@ -38,11 +38,7 @@ export function DemoProvider({ children }) {
     setIsDemo(false)
   }
 
-  return (
-    <DemoContext.Provider value={{ isDemo, exitDemo }}>
-      {children}
-    </DemoContext.Provider>
-  )
+  return <DemoContext.Provider value={{ isDemo, exitDemo }}>{children}</DemoContext.Provider>
 }
 
 export function useDemo() {

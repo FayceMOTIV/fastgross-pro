@@ -1,4 +1,7 @@
-export default function PageLoader() {
+import { memo } from 'react'
+
+// Memoized to prevent re-renders during route transitions
+const PageLoader = memo(function PageLoader() {
   return (
     <div className="min-h-screen bg-dark-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -6,5 +9,7 @@ export default function PageLoader() {
         <p className="text-dark-400 text-sm">Chargement...</p>
       </div>
     </div>
-  );
-}
+  )
+})
+
+export default PageLoader

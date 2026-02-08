@@ -20,44 +20,285 @@ import { useDemo } from '@/contexts/DemoContext'
 
 // Demo data for prospects
 const DEMO_PROSPECTS = [
-  { id: '1', firstName: 'Marie', lastName: 'Dupont', email: 'marie.dupont@techcorp.fr', phone: '+33612345678', company: 'TechCorp', position: 'CEO', status: 'qualified', score: 85, channels: { email: { valid: true }, sms: { valid: true } }, createdAt: new Date(Date.now() - 86400000), updatedAt: new Date() },
-  { id: '2', firstName: 'Jean', lastName: 'Martin', email: 'jean.martin@startup.io', phone: '+33623456789', company: 'StartupIO', position: 'CTO', status: 'in_sequence', score: 72, channels: { email: { valid: true }, whatsapp: { valid: true } }, createdAt: new Date(Date.now() - 172800000), updatedAt: new Date() },
-  { id: '3', firstName: 'Sophie', lastName: 'Bernard', email: 'sophie@agence.fr', phone: '+33634567890', company: 'Agence Creative', position: 'Directrice', status: 'replied', score: 92, channels: { email: { valid: true } }, createdAt: new Date(Date.now() - 259200000), updatedAt: new Date() },
-  { id: '4', firstName: 'Pierre', lastName: 'Dubois', email: 'p.dubois@industrie.com', phone: '+33645678901', company: 'Industrie SA', position: 'DAF', status: 'new', score: 45, channels: { email: { valid: true } }, createdAt: new Date(Date.now() - 345600000), updatedAt: new Date() },
-  { id: '5', firstName: 'Claire', lastName: 'Moreau', email: 'claire.moreau@conseil.fr', phone: '+33656789012', company: 'ConseilPro', position: 'Associee', status: 'converted', score: 98, channels: { email: { valid: true }, sms: { valid: true }, whatsapp: { valid: true } }, createdAt: new Date(Date.now() - 432000000), updatedAt: new Date() },
-  { id: '6', firstName: 'Lucas', lastName: 'Petit', email: 'lucas@digital.io', phone: '+33667890123', company: 'Digital Agency', position: 'Fondateur', status: 'enriched', score: 68, channels: { email: { valid: true } }, createdAt: new Date(Date.now() - 518400000), updatedAt: new Date() },
+  {
+    id: '1',
+    firstName: 'Marie',
+    lastName: 'Dupont',
+    email: 'marie.dupont@techcorp.fr',
+    phone: '+33612345678',
+    company: 'TechCorp',
+    position: 'CEO',
+    status: 'qualified',
+    score: 85,
+    channels: { email: { valid: true }, sms: { valid: true } },
+    createdAt: new Date(Date.now() - 86400000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    firstName: 'Jean',
+    lastName: 'Martin',
+    email: 'jean.martin@startup.io',
+    phone: '+33623456789',
+    company: 'StartupIO',
+    position: 'CTO',
+    status: 'in_sequence',
+    score: 72,
+    channels: { email: { valid: true }, whatsapp: { valid: true } },
+    createdAt: new Date(Date.now() - 172800000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    firstName: 'Sophie',
+    lastName: 'Bernard',
+    email: 'sophie@agence.fr',
+    phone: '+33634567890',
+    company: 'Agence Creative',
+    position: 'Directrice',
+    status: 'replied',
+    score: 92,
+    channels: { email: { valid: true } },
+    createdAt: new Date(Date.now() - 259200000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '4',
+    firstName: 'Pierre',
+    lastName: 'Dubois',
+    email: 'p.dubois@industrie.com',
+    phone: '+33645678901',
+    company: 'Industrie SA',
+    position: 'DAF',
+    status: 'new',
+    score: 45,
+    channels: { email: { valid: true } },
+    createdAt: new Date(Date.now() - 345600000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '5',
+    firstName: 'Claire',
+    lastName: 'Moreau',
+    email: 'claire.moreau@conseil.fr',
+    phone: '+33656789012',
+    company: 'ConseilPro',
+    position: 'Associee',
+    status: 'converted',
+    score: 98,
+    channels: { email: { valid: true }, sms: { valid: true }, whatsapp: { valid: true } },
+    createdAt: new Date(Date.now() - 432000000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '6',
+    firstName: 'Lucas',
+    lastName: 'Petit',
+    email: 'lucas@digital.io',
+    phone: '+33667890123',
+    company: 'Digital Agency',
+    position: 'Fondateur',
+    status: 'enriched',
+    score: 68,
+    channels: { email: { valid: true } },
+    createdAt: new Date(Date.now() - 518400000),
+    updatedAt: new Date(),
+  },
 ]
 
 // Demo data for sequences
 const DEMO_SEQUENCES = [
-  { id: '1', name: 'Outreach B2B SaaS', description: 'Sequence pour les startups SaaS', status: 'active', steps: [{ channel: 'email', day: 0 }, { channel: 'sms', day: 3 }, { channel: 'email', day: 7 }], stats: { enrolled: 45, active: 28, replied: 12, converted: 5 }, createdAt: new Date(Date.now() - 604800000), updatedAt: new Date() },
-  { id: '2', name: 'Relance Agences', description: 'Pour les agences de com', status: 'active', steps: [{ channel: 'email', day: 0 }, { channel: 'whatsapp', day: 2 }, { channel: 'voicemail', day: 5 }], stats: { enrolled: 32, active: 18, replied: 8, converted: 3 }, createdAt: new Date(Date.now() - 1209600000), updatedAt: new Date() },
-  { id: '3', name: 'Cold Outreach PME', description: 'Prospection PME industrielles', status: 'paused', steps: [{ channel: 'email', day: 0 }, { channel: 'courrier', day: 7 }], stats: { enrolled: 120, active: 0, replied: 25, converted: 8 }, createdAt: new Date(Date.now() - 2419200000), updatedAt: new Date() },
+  {
+    id: '1',
+    name: 'Outreach B2B SaaS',
+    description: 'Sequence pour les startups SaaS',
+    status: 'active',
+    steps: [
+      { channel: 'email', day: 0 },
+      { channel: 'sms', day: 3 },
+      { channel: 'email', day: 7 },
+    ],
+    stats: { enrolled: 45, active: 28, replied: 12, converted: 5 },
+    createdAt: new Date(Date.now() - 604800000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    name: 'Relance Agences',
+    description: 'Pour les agences de com',
+    status: 'active',
+    steps: [
+      { channel: 'email', day: 0 },
+      { channel: 'whatsapp', day: 2 },
+      { channel: 'voicemail', day: 5 },
+    ],
+    stats: { enrolled: 32, active: 18, replied: 8, converted: 3 },
+    createdAt: new Date(Date.now() - 1209600000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    name: 'Cold Outreach PME',
+    description: 'Prospection PME industrielles',
+    status: 'paused',
+    steps: [
+      { channel: 'email', day: 0 },
+      { channel: 'courrier', day: 7 },
+    ],
+    stats: { enrolled: 120, active: 0, replied: 25, converted: 8 },
+    createdAt: new Date(Date.now() - 2419200000),
+    updatedAt: new Date(),
+  },
 ]
 
 // Demo data for templates
 const DEMO_TEMPLATES = [
-  { id: '1', name: 'Premier contact B2B', channel: 'email', category: 'prospection', subject: 'Question rapide sur {{company}}', content: 'Bonjour {{firstName}},\n\nJe me permets de vous contacter...', stats: { used: 156, openRate: 62, replyRate: 18 }, createdAt: new Date(Date.now() - 604800000), updatedAt: new Date() },
-  { id: '2', name: 'Follow-up SMS', channel: 'sms', category: 'relance', subject: null, content: 'Bonjour {{firstName}}, suite a mon email, seriez-vous disponible pour un call de 15min ?', stats: { used: 89, openRate: 95, replyRate: 28 }, createdAt: new Date(Date.now() - 1209600000), updatedAt: new Date() },
-  { id: '3', name: 'WhatsApp intro', channel: 'whatsapp', category: 'prospection', subject: null, content: 'Bonjour {{firstName}} ! Je suis {{senderName}} de Face Media Factory...', stats: { used: 45, openRate: 88, replyRate: 35 }, createdAt: new Date(Date.now() - 2419200000), updatedAt: new Date() },
-  { id: '4', name: 'Relance email J+7', channel: 'email', category: 'relance', subject: 'Re: {{previousSubject}}', content: 'Bonjour {{firstName}},\n\nJe me permets de revenir vers vous...', stats: { used: 234, openRate: 58, replyRate: 22 }, createdAt: new Date(Date.now() - 3024000000), updatedAt: new Date() },
+  {
+    id: '1',
+    name: 'Premier contact B2B',
+    channel: 'email',
+    category: 'prospection',
+    subject: 'Question rapide sur {{company}}',
+    content: 'Bonjour {{firstName}},\n\nJe me permets de vous contacter...',
+    stats: { used: 156, openRate: 62, replyRate: 18 },
+    createdAt: new Date(Date.now() - 604800000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '2',
+    name: 'Follow-up SMS',
+    channel: 'sms',
+    category: 'relance',
+    subject: null,
+    content:
+      'Bonjour {{firstName}}, suite a mon email, seriez-vous disponible pour un call de 15min ?',
+    stats: { used: 89, openRate: 95, replyRate: 28 },
+    createdAt: new Date(Date.now() - 1209600000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '3',
+    name: 'WhatsApp intro',
+    channel: 'whatsapp',
+    category: 'prospection',
+    subject: null,
+    content: 'Bonjour {{firstName}} ! Je suis {{senderName}} de Face Media Factory...',
+    stats: { used: 45, openRate: 88, replyRate: 35 },
+    createdAt: new Date(Date.now() - 2419200000),
+    updatedAt: new Date(),
+  },
+  {
+    id: '4',
+    name: 'Relance email J+7',
+    channel: 'email',
+    category: 'relance',
+    subject: 'Re: {{previousSubject}}',
+    content: 'Bonjour {{firstName}},\n\nJe me permets de revenir vers vous...',
+    stats: { used: 234, openRate: 58, replyRate: 22 },
+    createdAt: new Date(Date.now() - 3024000000),
+    updatedAt: new Date(),
+  },
 ]
 
 // Demo data for interactions
 const DEMO_INTERACTIONS = [
-  { id: '1', type: 'email_sent', channel: 'email', direction: 'out', prospectId: '1', prospectName: 'Marie Dupont', prospectCompany: 'TechCorp', subject: 'Question rapide sur TechCorp', createdAt: new Date(Date.now() - 3600000) },
-  { id: '2', type: 'email_opened', channel: 'email', direction: 'track', prospectId: '1', prospectName: 'Marie Dupont', prospectCompany: 'TechCorp', createdAt: new Date(Date.now() - 3000000) },
-  { id: '3', type: 'email_reply', channel: 'email', direction: 'in', prospectId: '3', prospectName: 'Sophie Bernard', prospectCompany: 'Agence Creative', content: 'Bonjour, je serais ravie d\'en discuter...', createdAt: new Date(Date.now() - 7200000) },
-  { id: '4', type: 'sms_sent', channel: 'sms', direction: 'out', prospectId: '2', prospectName: 'Jean Martin', prospectCompany: 'StartupIO', content: 'Bonjour Jean, suite a mon email...', createdAt: new Date(Date.now() - 14400000) },
-  { id: '5', type: 'whatsapp_read', channel: 'whatsapp', direction: 'track', prospectId: '5', prospectName: 'Claire Moreau', prospectCompany: 'ConseilPro', createdAt: new Date(Date.now() - 21600000) },
-  { id: '6', type: 'converted', channel: null, direction: 'system', prospectId: '5', prospectName: 'Claire Moreau', prospectCompany: 'ConseilPro', createdAt: new Date(Date.now() - 86400000) },
+  {
+    id: '1',
+    type: 'email_sent',
+    channel: 'email',
+    direction: 'out',
+    prospectId: '1',
+    prospectName: 'Marie Dupont',
+    prospectCompany: 'TechCorp',
+    subject: 'Question rapide sur TechCorp',
+    createdAt: new Date(Date.now() - 3600000),
+  },
+  {
+    id: '2',
+    type: 'email_opened',
+    channel: 'email',
+    direction: 'track',
+    prospectId: '1',
+    prospectName: 'Marie Dupont',
+    prospectCompany: 'TechCorp',
+    createdAt: new Date(Date.now() - 3000000),
+  },
+  {
+    id: '3',
+    type: 'email_reply',
+    channel: 'email',
+    direction: 'in',
+    prospectId: '3',
+    prospectName: 'Sophie Bernard',
+    prospectCompany: 'Agence Creative',
+    content: "Bonjour, je serais ravie d'en discuter...",
+    createdAt: new Date(Date.now() - 7200000),
+  },
+  {
+    id: '4',
+    type: 'sms_sent',
+    channel: 'sms',
+    direction: 'out',
+    prospectId: '2',
+    prospectName: 'Jean Martin',
+    prospectCompany: 'StartupIO',
+    content: 'Bonjour Jean, suite a mon email...',
+    createdAt: new Date(Date.now() - 14400000),
+  },
+  {
+    id: '5',
+    type: 'whatsapp_read',
+    channel: 'whatsapp',
+    direction: 'track',
+    prospectId: '5',
+    prospectName: 'Claire Moreau',
+    prospectCompany: 'ConseilPro',
+    createdAt: new Date(Date.now() - 21600000),
+  },
+  {
+    id: '6',
+    type: 'converted',
+    channel: null,
+    direction: 'system',
+    prospectId: '5',
+    prospectName: 'Claire Moreau',
+    prospectCompany: 'ConseilPro',
+    createdAt: new Date(Date.now() - 86400000),
+  },
 ]
 
 // Demo data for team members
 const DEMO_TEAM_MEMBERS = [
-  { id: '1', uid: 'demo-user', displayName: 'Utilisateur Demo', email: 'demo@facemedia.fr', role: 'owner', status: 'active', joinedAt: new Date(Date.now() - 30 * 86400000), lastActiveAt: new Date() },
-  { id: '2', uid: 'demo-admin', displayName: 'Admin Test', email: 'admin@facemedia.fr', role: 'admin', status: 'active', joinedAt: new Date(Date.now() - 15 * 86400000), lastActiveAt: new Date(Date.now() - 3600000) },
-  { id: '3', uid: 'demo-manager', displayName: 'Manager Test', email: 'manager@facemedia.fr', role: 'manager', status: 'active', joinedAt: new Date(Date.now() - 7 * 86400000), lastActiveAt: new Date(Date.now() - 7200000) },
+  {
+    id: '1',
+    uid: 'demo-user',
+    displayName: 'Utilisateur Demo',
+    email: 'demo@facemedia.fr',
+    role: 'owner',
+    status: 'active',
+    joinedAt: new Date(Date.now() - 30 * 86400000),
+    lastActiveAt: new Date(),
+  },
+  {
+    id: '2',
+    uid: 'demo-admin',
+    displayName: 'Admin Test',
+    email: 'admin@facemedia.fr',
+    role: 'admin',
+    status: 'active',
+    joinedAt: new Date(Date.now() - 15 * 86400000),
+    lastActiveAt: new Date(Date.now() - 3600000),
+  },
+  {
+    id: '3',
+    uid: 'demo-manager',
+    displayName: 'Manager Test',
+    email: 'manager@facemedia.fr',
+    role: 'manager',
+    status: 'active',
+    joinedAt: new Date(Date.now() - 7 * 86400000),
+    lastActiveAt: new Date(Date.now() - 7200000),
+  },
 ]
 
 /**
@@ -209,9 +450,7 @@ export function useFirestoreMutations(collectionName) {
  * Hook pour les clients
  */
 export function useClients() {
-  const { data, loading, error } = useCollection('clients', [
-    orderBy('createdAt', 'desc'),
-  ])
+  const { data, loading, error } = useCollection('clients', [orderBy('createdAt', 'desc')])
   const mutations = useFirestoreMutations('clients')
 
   return { clients: data, loading, error, ...mutations }
@@ -267,10 +506,7 @@ export function useDashboardStats() {
     const fetchStats = async () => {
       try {
         // Fetch leads
-        const leadsQuery = query(
-          collection(db, 'leads'),
-          where('orgId', '==', currentOrg.id)
-        )
+        const leadsQuery = query(collection(db, 'leads'), where('orgId', '==', currentOrg.id))
         const leadsSnap = await getDocs(leadsQuery)
         const leads = leadsSnap.docs.map((d) => d.data())
 
@@ -283,10 +519,7 @@ export function useDashboardStats() {
         const campaigns = campaignsSnap.docs.map((d) => d.data())
 
         // Fetch clients
-        const clientsQuery = query(
-          collection(db, 'clients'),
-          where('orgId', '==', currentOrg.id)
-        )
+        const clientsQuery = query(collection(db, 'clients'), where('orgId', '==', currentOrg.id))
         const clientsSnap = await getDocs(clientsQuery)
 
         // Fetch email events
@@ -619,7 +852,12 @@ export function useProspects(options = {}) {
     let q = query(prospectsRef, orderBy('updatedAt', 'desc'), limit(limitCount))
 
     if (status) {
-      q = query(prospectsRef, where('status', '==', status), orderBy('updatedAt', 'desc'), limit(limitCount))
+      q = query(
+        prospectsRef,
+        where('status', '==', status),
+        orderBy('updatedAt', 'desc'),
+        limit(limitCount)
+      )
     }
 
     const unsubscribe = onSnapshot(
@@ -668,7 +906,7 @@ export function useAnalytics(period = '30d') {
       bestHour: null,
       bestSubject: null,
       topSequence: null,
-    }
+    },
   })
   const [loading, setLoading] = useState(true)
 
@@ -699,25 +937,27 @@ export function useAnalytics(period = '30d') {
         const allEvents = eventsSnap.docs.map((d) => ({
           id: d.id,
           ...d.data(),
-          createdAt: d.data().createdAt?.toDate?.() || new Date()
+          createdAt: d.data().createdAt?.toDate?.() || new Date(),
         }))
 
         // Filter by period
-        const currentEvents = allEvents.filter(e => e.createdAt >= startDate)
-        const previousEvents = allEvents.filter(e => e.createdAt >= previousStartDate && e.createdAt < startDate)
+        const currentEvents = allEvents.filter((e) => e.createdAt >= startDate)
+        const previousEvents = allEvents.filter(
+          (e) => e.createdAt >= previousStartDate && e.createdAt < startDate
+        )
 
         // Calculate totals
-        const sent = currentEvents.filter(e => e.type === 'sent').length
-        const opened = currentEvents.filter(e => e.type === 'opened').length
-        const replied = currentEvents.filter(e => e.type === 'replied').length
+        const sent = currentEvents.filter((e) => e.type === 'sent').length
+        const opened = currentEvents.filter((e) => e.type === 'opened').length
+        const replied = currentEvents.filter((e) => e.type === 'replied').length
 
-        const prevSent = previousEvents.filter(e => e.type === 'sent').length
-        const prevOpened = previousEvents.filter(e => e.type === 'opened').length
-        const prevReplied = previousEvents.filter(e => e.type === 'replied').length
+        const prevSent = previousEvents.filter((e) => e.type === 'sent').length
+        const prevOpened = previousEvents.filter((e) => e.type === 'opened').length
+        const prevReplied = previousEvents.filter((e) => e.type === 'replied').length
 
         // Group by day for chart
         const chartMap = new Map()
-        currentEvents.forEach(e => {
+        currentEvents.forEach((e) => {
           if (e.type === 'sent' || e.type === 'opened' || e.type === 'replied') {
             const day = e.createdAt.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
             if (!chartMap.has(day)) {
@@ -732,25 +972,25 @@ export function useAnalytics(period = '30d') {
         const chartData = Array.from(chartMap.values()).reverse()
 
         // Fetch clients for per-client stats
-        const clientsQuery = query(
-          collection(db, 'clients'),
-          where('orgId', '==', currentOrg.id)
-        )
+        const clientsQuery = query(collection(db, 'clients'), where('orgId', '==', currentOrg.id))
         const clientsSnap = await getDocs(clientsQuery)
-        const clients = clientsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+        const clients = clientsSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-        const byClient = clients.map(client => {
-          const clientEvents = currentEvents.filter(e => e.clientId === client.id)
-          const cSent = clientEvents.filter(e => e.type === 'sent').length
-          const cOpened = clientEvents.filter(e => e.type === 'opened').length
-          const cReplied = clientEvents.filter(e => e.type === 'replied').length
-          return {
-            name: client.name,
-            sent: cSent,
-            openRate: cSent > 0 ? Math.round((cOpened / cSent) * 100) : 0,
-            replyRate: cSent > 0 ? Math.round((cReplied / cSent) * 100) : 0,
-          }
-        }).filter(c => c.sent > 0).sort((a, b) => b.sent - a.sent)
+        const byClient = clients
+          .map((client) => {
+            const clientEvents = currentEvents.filter((e) => e.clientId === client.id)
+            const cSent = clientEvents.filter((e) => e.type === 'sent').length
+            const cOpened = clientEvents.filter((e) => e.type === 'opened').length
+            const cReplied = clientEvents.filter((e) => e.type === 'replied').length
+            return {
+              name: client.name,
+              sent: cSent,
+              openRate: cSent > 0 ? Math.round((cOpened / cSent) * 100) : 0,
+              replyRate: cSent > 0 ? Math.round((cReplied / cSent) * 100) : 0,
+            }
+          })
+          .filter((c) => c.sent > 0)
+          .sort((a, b) => b.sent - a.sent)
 
         setData({
           chartData,
@@ -772,7 +1012,7 @@ export function useAnalytics(period = '30d') {
             bestHour: '9h30',
             bestSubject: '"Question rapide sur..."',
             topSequence: 'Ton Expert',
-          }
+          },
         })
       } catch (error) {
         console.error('Error fetching analytics:', error)

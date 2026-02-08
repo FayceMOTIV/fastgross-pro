@@ -26,7 +26,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions, RoleGuard } from '@/hooks/usePermissions'
 import { useTeamMembers, useInvitations } from '@/hooks/useFirestore'
 import { ROLES } from '@/services/permissions'
-import { createInvitation, cancelInvitation, resendInvitation, removeMember, updateMemberRole } from '@/services/organization'
+import {
+  createInvitation,
+  cancelInvitation,
+  resendInvitation,
+  removeMember,
+  updateMemberRole,
+} from '@/services/organization'
 import toast from 'react-hot-toast'
 
 // Role icons
@@ -55,10 +61,11 @@ export default function Team() {
   const [inviteRole, setInviteRole] = useState('member')
 
   // Filter members
-  const filteredMembers = (members || []).filter((member) =>
-    searchQuery === '' ||
-    member.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredMembers = (members || []).filter(
+    (member) =>
+      searchQuery === '' ||
+      member.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const getInitials = (name) => {
@@ -111,7 +118,7 @@ export default function Team() {
       toast.success('Invitation renvoyee')
     } catch (err) {
       console.error('Error resending invitation:', err)
-      toast.error("Erreur lors du renvoi")
+      toast.error('Erreur lors du renvoi')
     }
   }
 
@@ -130,9 +137,7 @@ export default function Team() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Equipe</h1>
-          <p className="text-dark-400 mt-1">
-            Gerez les membres de votre organisation
-          </p>
+          <p className="text-dark-400 mt-1">Gerez les membres de votre organisation</p>
         </div>
         {canInviteMembers && (
           <button
@@ -176,11 +181,13 @@ export default function Team() {
             <span className="text-xs text-dark-400">Actifs aujourd'hui</span>
           </div>
           <p className="text-2xl font-bold text-white">
-            {members.filter((m) => {
-              const lastActive = m.lastActiveAt
-              const today = new Date()
-              return lastActive && lastActive.toDateString() === today.toDateString()
-            }).length}
+            {
+              members.filter((m) => {
+                const lastActive = m.lastActiveAt
+                const today = new Date()
+                return lastActive && lastActive.toDateString() === today.toDateString()
+              }).length
+            }
           </p>
         </div>
       </div>
@@ -217,7 +224,11 @@ export default function Team() {
               {/* Avatar */}
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-400/20 to-blue-400/20 flex items-center justify-center text-lg font-bold text-brand-400 border border-brand-500/20 flex-shrink-0">
                 {member.photoURL ? (
-                  <img src={member.photoURL} alt={member.displayName} className="w-full h-full rounded-xl object-cover" />
+                  <img
+                    src={member.photoURL}
+                    alt={member.displayName}
+                    className="w-full h-full rounded-xl object-cover"
+                  />
                 ) : (
                   getInitials(member.displayName)
                 )}
@@ -237,7 +248,9 @@ export default function Team() {
               </div>
 
               {/* Role */}
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-dark-800'} border ${roleInfo?.border || 'border-dark-700'}`}>
+              <div
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-dark-800'} border ${roleInfo?.border || 'border-dark-700'}`}
+              >
                 <RoleIcon className={`w-4 h-4 ${roleInfo?.color || 'text-dark-400'}`} />
                 <span className={`text-sm font-medium ${roleInfo?.color || 'text-dark-400'}`}>
                   {roleInfo?.label || member.role}
@@ -273,10 +286,7 @@ export default function Team() {
               const RoleIcon = roleIcons[invite.role] || User
 
               return (
-                <div
-                  key={invite.id}
-                  className="p-4 flex items-center gap-4"
-                >
+                <div key={invite.id} className="p-4 flex items-center gap-4">
                   {/* Icon */}
                   <div className="w-12 h-12 rounded-xl bg-dark-800 border border-dark-700 flex items-center justify-center flex-shrink-0">
                     <Mail className="w-5 h-5 text-dark-400" />
@@ -292,7 +302,9 @@ export default function Team() {
                   </div>
 
                   {/* Role */}
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-dark-800'} border ${roleInfo?.border || 'border-dark-700'}`}>
+                  <div
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-dark-800'} border ${roleInfo?.border || 'border-dark-700'}`}
+                  >
                     <RoleIcon className={`w-4 h-4 ${roleInfo?.color || 'text-dark-400'}`} />
                     <span className={`text-sm font-medium ${roleInfo?.color || 'text-dark-400'}`}>
                       {roleInfo?.label || invite.role}
@@ -361,9 +373,7 @@ export default function Team() {
               {/* Content */}
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2">
-                    Email
-                  </label>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">Email</label>
                   <input
                     type="email"
                     value={inviteEmail}
@@ -374,40 +384,38 @@ export default function Team() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2">
-                    Role
-                  </label>
+                  <label className="block text-sm font-medium text-dark-300 mb-2">Role</label>
                   <div className="space-y-2">
-                    {Object.entries(ROLES).filter(([key]) => key !== 'owner').map(([key, role]) => (
-                      <label
-                        key={key}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
-                          inviteRole === key
-                            ? `${role.bg} ${role.border}`
-                            : 'bg-dark-800/50 border-dark-700 hover:border-dark-600'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="role"
-                          value={key}
-                          checked={inviteRole === key}
-                          onChange={(e) => setInviteRole(e.target.value)}
-                          className="sr-only"
-                        />
-                        {(() => {
-                          const RoleIcon = roleIcons[key]
-                          return <RoleIcon className={`w-5 h-5 ${role.color}`} />
-                        })()}
-                        <div className="flex-1">
-                          <p className="font-medium text-white">{role.label}</p>
-                          <p className="text-xs text-dark-400">{role.description}</p>
-                        </div>
-                        {inviteRole === key && (
-                          <Check className="w-5 h-5 text-brand-400" />
-                        )}
-                      </label>
-                    ))}
+                    {Object.entries(ROLES)
+                      .filter(([key]) => key !== 'owner')
+                      .map(([key, role]) => (
+                        <label
+                          key={key}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
+                            inviteRole === key
+                              ? `${role.bg} ${role.border}`
+                              : 'bg-dark-800/50 border-dark-700 hover:border-dark-600'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="role"
+                            value={key}
+                            checked={inviteRole === key}
+                            onChange={(e) => setInviteRole(e.target.value)}
+                            className="sr-only"
+                          />
+                          {(() => {
+                            const RoleIcon = roleIcons[key]
+                            return <RoleIcon className={`w-5 h-5 ${role.color}`} />
+                          })()}
+                          <div className="flex-1">
+                            <p className="font-medium text-white">{role.label}</p>
+                            <p className="text-xs text-dark-400">{role.description}</p>
+                          </div>
+                          {inviteRole === key && <Check className="w-5 h-5 text-brand-400" />}
+                        </label>
+                      ))}
                   </div>
                 </div>
               </div>

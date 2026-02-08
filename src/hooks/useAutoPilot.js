@@ -17,7 +17,7 @@ import {
   where,
   orderBy,
   limit,
-  serverTimestamp
+  serverTimestamp,
 } from 'firebase/firestore'
 import { httpsCallable } from 'firebase/functions'
 import { PROSPECT_STATUS } from '../engine/config'
@@ -42,18 +42,22 @@ export function useAutoPilot() {
 
     const configRef = doc(db, 'organizations', currentOrg.id, 'autopilotConfig', 'settings')
 
-    const unsubscribe = onSnapshot(configRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setConfig({ id: snapshot.id, ...snapshot.data() })
-      } else {
-        setConfig(null)
+    const unsubscribe = onSnapshot(
+      configRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          setConfig({ id: snapshot.id, ...snapshot.data() })
+        } else {
+          setConfig(null)
+        }
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Error fetching autopilot config:', err)
+        setError(err)
+        setLoading(false)
       }
-      setLoading(false)
-    }, (err) => {
-      console.error('Error fetching autopilot config:', err)
-      setError(err)
-      setLoading(false)
-    })
+    )
 
     return () => unsubscribe()
   }, [currentOrg?.id])
@@ -66,16 +70,12 @@ export function useAutoPilot() {
     }
 
     const prospectsRef = collection(db, 'organizations', currentOrg.id, 'prospects')
-    const q = query(
-      prospectsRef,
-      orderBy('createdAt', 'desc'),
-      limit(100)
-    )
+    const q = query(prospectsRef, orderBy('createdAt', 'desc'), limit(100))
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }))
       setProspects(data)
 
@@ -84,22 +84,22 @@ export function useAutoPilot() {
         total: data.length,
         byStatus: {},
         avgScore: 0,
-        emailExtractionRate: 0
+        emailExtractionRate: 0,
       }
 
-      Object.values(PROSPECT_STATUS).forEach(status => {
-        newStats.byStatus[status] = data.filter(p => p.status === status).length
+      Object.values(PROSPECT_STATUS).forEach((status) => {
+        newStats.byStatus[status] = data.filter((p) => p.status === status).length
       })
 
-      const scoredProspects = data.filter(p => p.score > 0)
+      const scoredProspects = data.filter((p) => p.score > 0)
       if (scoredProspects.length > 0) {
         newStats.avgScore = Math.round(
           scoredProspects.reduce((sum, p) => sum + p.score, 0) / scoredProspects.length
         )
       }
 
-      const scrapedCount = data.filter(p => p.status !== PROSPECT_STATUS.FOUND).length
-      const withEmailCount = data.filter(p => p.emails?.length > 0).length
+      const scrapedCount = data.filter((p) => p.status !== PROSPECT_STATUS.FOUND).length
+      const withEmailCount = data.filter((p) => p.emails?.length > 0).length
       if (scrapedCount > 0) {
         newStats.emailExtractionRate = Math.round((withEmailCount / scrapedCount) * 100)
       }
@@ -121,9 +121,9 @@ export function useAutoPilot() {
     const q = query(logsRef, orderBy('runAt', 'desc'), limit(20))
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }))
       setLogs(data)
     })
@@ -132,20 +132,30 @@ export function useAutoPilot() {
   }, [currentOrg?.id])
 
   // Sauvegarder la configuration
-  const saveConfig = useCallback(async (newConfig) => {
-    if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
+  const saveConfig = useCallback(
+    async (newConfig) => {
+      if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
 
-    const configRef = doc(db, 'organizations', currentOrg.id, 'autopilotConfig', 'settings')
-    await setDoc(configRef, {
-      ...newConfig,
-      updatedAt: serverTimestamp()
-    }, { merge: true })
-  }, [currentOrg?.id])
+      const configRef = doc(db, 'organizations', currentOrg.id, 'autopilotConfig', 'settings')
+      await setDoc(
+        configRef,
+        {
+          ...newConfig,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      )
+    },
+    [currentOrg?.id]
+  )
 
   // Activer/desactiver l'autopilot
-  const toggleAutoPilot = useCallback(async (enabled) => {
-    await saveConfig({ enabled })
-  }, [saveConfig])
+  const toggleAutoPilot = useCallback(
+    async (enabled) => {
+      await saveConfig({ enabled })
+    },
+    [saveConfig]
+  )
 
   // Executer manuellement le pipeline
   const runManual = useCallback(async () => {
@@ -167,66 +177,78 @@ export function useAutoPilot() {
   }, [currentOrg?.id])
 
   // Envoyer un email a un prospect
-  const sendProspectEmail = useCallback(async (prospectId, accountId) => {
-    if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
+  const sendProspectEmail = useCallback(
+    async (prospectId, accountId) => {
+      if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
 
-    // Recuperer le prospect
-    const prospectRef = doc(db, 'organizations', currentOrg.id, 'prospects', prospectId)
-    const prospectSnap = await getDoc(prospectRef)
+      // Recuperer le prospect
+      const prospectRef = doc(db, 'organizations', currentOrg.id, 'prospects', prospectId)
+      const prospectSnap = await getDoc(prospectRef)
 
-    if (!prospectSnap.exists()) {
-      throw new Error('Prospect non trouve')
-    }
+      if (!prospectSnap.exists()) {
+        throw new Error('Prospect non trouve')
+      }
 
-    const prospect = prospectSnap.data()
+      const prospect = prospectSnap.data()
 
-    if (!prospect.generatedEmail?.subject || !prospect.emails?.[0]) {
-      throw new Error('Email non genere pour ce prospect')
-    }
+      if (!prospect.generatedEmail?.subject || !prospect.emails?.[0]) {
+        throw new Error('Email non genere pour ce prospect')
+      }
 
-    const sendFn = httpsCallable(functions, 'sendProspectEmail')
-    const result = await sendFn({
-      emailData: {
-        to: prospect.emails[0],
-        subject: prospect.generatedEmail.subject,
-        body: prospect.generatedEmail.body
-      },
-      accountId,
-      prospectId,
-      orgId: currentOrg.id
-    })
+      const sendFn = httpsCallable(functions, 'sendProspectEmail')
+      const result = await sendFn({
+        emailData: {
+          to: prospect.emails[0],
+          subject: prospect.generatedEmail.subject,
+          body: prospect.generatedEmail.body,
+        },
+        accountId,
+        prospectId,
+        orgId: currentOrg.id,
+      })
 
-    return result.data
-  }, [currentOrg?.id])
+      return result.data
+    },
+    [currentOrg?.id]
+  )
 
   // Obtenir les prospects par statut
-  const getProspectsByStatus = useCallback((status) => {
-    return prospects.filter(p => p.status === status)
-  }, [prospects])
+  const getProspectsByStatus = useCallback(
+    (status) => {
+      return prospects.filter((p) => p.status === status)
+    },
+    [prospects]
+  )
 
   // Obtenir les prospects prets a envoyer
   const getReadyProspects = useCallback(() => {
     return prospects
-      .filter(p => p.status === PROSPECT_STATUS.READY || p.status === PROSPECT_STATUS.SCORED)
-      .filter(p => p.emails?.length > 0)
+      .filter((p) => p.status === PROSPECT_STATUS.READY || p.status === PROSPECT_STATUS.SCORED)
+      .filter((p) => p.emails?.length > 0)
       .sort((a, b) => (b.score || 0) - (a.score || 0))
   }, [prospects])
 
   // Mettre a jour le statut d'un prospect
-  const updateProspectStatus = useCallback(async (prospectId, status) => {
-    if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
+  const updateProspectStatus = useCallback(
+    async (prospectId, status) => {
+      if (!currentOrg?.id) throw new Error('Organisation non selectionnee')
 
-    const prospectRef = doc(db, 'organizations', currentOrg.id, 'prospects', prospectId)
-    await updateDoc(prospectRef, {
-      status,
-      updatedAt: serverTimestamp()
-    })
-  }, [currentOrg?.id])
+      const prospectRef = doc(db, 'organizations', currentOrg.id, 'prospects', prospectId)
+      await updateDoc(prospectRef, {
+        status,
+        updatedAt: serverTimestamp(),
+      })
+    },
+    [currentOrg?.id]
+  )
 
   // Supprimer un prospect de la file
-  const removeProspect = useCallback(async (prospectId) => {
-    await updateProspectStatus(prospectId, 'removed')
-  }, [updateProspectStatus])
+  const removeProspect = useCallback(
+    async (prospectId) => {
+      await updateProspectStatus(prospectId, 'removed')
+    },
+    [updateProspectStatus]
+  )
 
   return {
     config,
@@ -243,7 +265,7 @@ export function useAutoPilot() {
     getProspectsByStatus,
     getReadyProspects,
     updateProspectStatus,
-    removeProspect
+    removeProspect,
   }
 }
 

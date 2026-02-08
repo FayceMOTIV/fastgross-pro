@@ -1,5 +1,150 @@
 # Changelog
 
+## [4.0.0] - 2026-02-09
+
+### Full Automation Engine - Transformation majeure
+
+#### Nouveaux Modules
+- **Scanner** : Analyse de sites web avec extraction IA (entreprise, contacts, pain points, accroches personnalisees)
+- **Forgeur** : Generation de sequences multicanales avec IA (selection prospect, canaux, objectif, ton)
+- **Radar** : Lead scoring IA avec jauge visuelle et breakdown detaille (profil, engagement, signaux)
+- **Campaigns** : Gestion des campagnes d'envoi multicanal avec suivi temps reel
+- **Proof** : Rapports ROI avec graphiques (evolution hebdo, funnel, repartition canaux)
+- **Pricing** : Page tarification complete avec 3 forfaits (Starter 97€, Pro 297€, Enterprise 697€)
+
+#### Systeme de Forfaits
+- **Starter** : 500 prospects, 1000 emails, 1 canal
+- **Pro** : 2500 prospects, 5000 emails + 500 SMS, 3 canaux, Lead scoring IA
+- **Enterprise** : 10000 prospects, tous canaux (6), sequences illimitees, marque blanche
+
+#### Services
+- `src/services/plans.js` : Configuration des forfaits et canaux
+- `src/services/quotas.js` : Gestion des quotas et usage
+
+#### Navigation
+- Mise a jour sidebar avec nouveaux modules (Scanner, Forgeur, Radar, Campaigns, Proof)
+- Route `/pricing` publique
+
+#### Technique
+- Recharts integre pour les graphiques du module Proof
+- Mode mock pour toutes les pages (fonctionnel sans Cloud Functions)
+- Build : 12.85s, 3249 modules
+- Tests : 50/50 passent
+
+---
+
+## [2.2.1] - 2026-02-07
+
+### Hotfix - React createContext Crash
+
+#### Fix Critique
+- **vite.config.js** : Correction du bug `TypeError: Cannot read properties of undefined (reading 'createContext')`
+  - Cause : `manualChunks` separait React de React DOM dans des chunks differents
+  - Solution : Configuration object-based simple au lieu de function-based
+  - `react-vendor` inclut maintenant : react, react-dom, react-router-dom, scheduler
+  - Suppression du circular chunk warning
+
+#### Technique
+- Build : 10.46s, aucun warning
+- Tests : 50/50 passent
+- Bundle react-vendor : 166KB (54KB gzip)
+
+---
+
+## [2.2.0] - 2026-02-07
+
+### Refonte UX Complete + Landing Page
+
+#### Landing Page Publique
+- **Nouvelle landing** : Page d'accueil marketing complete avec 8 sections
+  - Navigation fixe avec blur au scroll
+  - Hero avec animations orbes flottants + mockup dashboard
+  - Section 6 canaux avec cards animees
+  - Section "Comment ca marche" en 4 etapes
+  - Grille tarifaire 3 plans (Bootstrap, Growth, Scale)
+  - Temoignages clients
+  - FAQ accordion
+  - CTA final + Footer complet
+- **Animations** : Framer Motion (fade-up, float, levitate)
+- **Responsive** : Mobile-first design
+
+#### Theme Clair (Light Mode)
+- **Nouvelle palette** : Fond blanc/creme, surfaces lumineuses
+  - bg: #FAFBFE, surface: #FFFFFF
+  - accent: #4F6EF7 (bleu indigo)
+  - Gradients pastels (hero, accent, warm, ocean, mint)
+- **Ombres douces** : soft-sm, soft-md, soft-lg avec opacity 0.04-0.08
+- **Typographie** : Plus Jakarta Sans (corps) + Outfit (titres)
+
+#### Refonte Composants
+- **Layout/Sidebar** : Fond blanc, bordures subtiles, hover accent-glow
+- **Dashboard** : Cards blanches, icones colorees, graphiques adaptes
+- **Boutons** : Gradients (primary), outline (secondary), ghost
+- **Cards** : Fond blanc, border accent/5, radius 16-20px
+- **Badges** : Fond pastel transparent, texte colore
+
+#### CSS Variables
+- **Variables globales** dans :root pour theming coherent
+- **Classes utilitaires** : card, card-hover, btn-primary, btn-secondary, input-field
+- **Tailwind extend** : couleurs, shadows, animations, keyframes
+
+#### Technique
+- **Build** : 10.18s, CSS 56.85KB gzip
+- **Tests** : 50/50 passent
+- **Lint** : 0 erreurs, 19 warnings
+
+---
+
+## [2.1.0] - 2026-02-07
+
+### Refactoring, Optimisation Bundle & Qualite Code
+
+#### Refactoring Settings.jsx
+- **Decomposition** : Settings.jsx 1745 lignes -> 109 lignes (thin tab router)
+- **11 sous-composants** crees dans `src/components/settings/`:
+  - ProspectionSettings, ChannelsSettings, SourcesSettings
+  - ScheduleSettings, NotificationsSettings, ProfileSettings
+  - AppearanceSettings, OrganizationSettings, BillingSettings
+  - DangerSettings, DevSettings
+- **Chaque composant < 350 lignes**, separation claire des responsabilites
+- **Barrel export** via index.js
+
+#### Optimisation Bundle (-57% charts)
+- **Recharts -> Chart.js** : Migration complete
+- **Chunk charts** : 383KB -> 163KB (-57%)
+- **react-chartjs-2** avec useMemo pour performance
+- **Vite manualChunks** mis a jour
+
+#### React.memo & Optimisation Re-renders
+- **8 composants memoises** : PageLoader, EmptyState, StatsCard, Modal, ThemeToggle, Tabs, TrendChart
+- **useCallback** ajoute aux handlers critiques
+- **Reduction re-renders** sur composants statiques
+
+#### ESLint + Prettier
+- **ESLint 8** configure avec react, react-hooks, prettier
+- **Prettier** : singleQuote, semi: false, tabWidth: 2
+- **0 erreurs**, 19 warnings (non-bloquants)
+- **Scripts npm** : lint, lint:fix, format, format:check
+
+#### Tests Unitaires (Vitest)
+- **50 tests** passent (100%)
+- **6 fichiers de tests** :
+  - permissions.test.js (12 tests) - RBAC
+  - EmailExtractor.test.js (21 tests) - Extraction emails
+  - exportCsv.test.js (4 tests) - Export CSV
+  - PageLoader.test.jsx (2 tests)
+  - EmptyState.test.jsx (5 tests)
+  - StatsCard.test.jsx (6 tests)
+- **Setup** : vitest + @testing-library/react + jsdom
+- **Mocks** : Firebase, react-router-dom, Chart.js
+
+#### Technique
+- Build : toujours fonctionnel, ~163KB charts chunk
+- testTimeout: 10000 configure
+- Couverture : services + engine + composants critiques
+
+---
+
 ## [2.0.0] - 2026-02-07
 
 ### Audit & Optimisation Majeure

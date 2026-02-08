@@ -26,7 +26,7 @@ import { useDemo } from '@/hooks/useDemo'
 import { CHANNEL_STYLES, SEQUENCE_TEMPLATES } from '@/engine/multiChannelEngine'
 
 // Channel icon component
-const ChannelIcon = ({ channel, className = "w-4 h-4" }) => {
+const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
   const icons = {
     email: Mail,
     sms: Smartphone,
@@ -48,7 +48,8 @@ const MULTICHANNEL_SEQUENCE = [
     channel: 'email',
     label: 'Email 1 - Accroche personnalisee',
     subject: 'Une question rapide sur {{company}}',
-    preview: 'Bonjour {{firstName}},\n\nJe me permets de vous contacter car je travaille avec plusieurs entreprises de votre secteur...',
+    preview:
+      'Bonjour {{firstName}},\n\nJe me permets de vous contacter car je travaille avec plusieurs entreprises de votre secteur...',
     fullContent: `Bonjour {{firstName}},
 
 Je me permets de vous contacter car je travaille avec plusieurs entreprises de votre secteur et j'ai remarque que {{company}} pourrait beneficier de nos solutions.
@@ -66,8 +67,10 @@ Bien cordialement`,
     channel: 'sms',
     label: 'SMS - Relance courte "30 sec ?"',
     subject: null,
-    preview: 'Bonjour {{firstName}}, je vous ai envoye un email au sujet de {{company}}. 30 sec pour en discuter ?',
-    fullContent: 'Bonjour {{firstName}}, je vous ai envoye un email au sujet de {{company}}. 30 sec pour en discuter ? {{senderName}}',
+    preview:
+      'Bonjour {{firstName}}, je vous ai envoye un email au sujet de {{company}}. 30 sec pour en discuter ?',
+    fullContent:
+      'Bonjour {{firstName}}, je vous ai envoye un email au sujet de {{company}}. 30 sec pour en discuter ? {{senderName}}',
     type: 'followup',
   },
   {
@@ -76,8 +79,9 @@ Bien cordialement`,
     channel: 'instagram_dm',
     label: 'Instagram DM - Approche sociale',
     subject: null,
-    preview: 'Hey {{firstName}} ! Je suivais {{company}} et j\'adore ce que vous faites...',
-    fullContent: 'Hey {{firstName}} ! Je suivais {{company}} et j\'adore ce que vous faites. Je vous ai envoye un email — est-ce que vous avez eu le temps de le voir ?',
+    preview: "Hey {{firstName}} ! Je suivais {{company}} et j'adore ce que vous faites...",
+    fullContent:
+      "Hey {{firstName}} ! Je suivais {{company}} et j'adore ce que vous faites. Je vous ai envoye un email — est-ce que vous avez eu le temps de le voir ?",
     type: 'followup',
   },
   {
@@ -86,7 +90,8 @@ Bien cordialement`,
     channel: 'email',
     label: 'Email 2 - Valeur ajoutee (cas client)',
     subject: 'Re: Une question rapide sur {{company}}',
-    preview: 'Bonjour {{firstName}},\n\nJe me permets de revenir vers vous suite a mon precedent message...',
+    preview:
+      'Bonjour {{firstName}},\n\nJe me permets de revenir vers vous suite a mon precedent message...',
     fullContent: `Bonjour {{firstName}},
 
 Je me permets de revenir vers vous suite a mon precedent message.
@@ -106,8 +111,10 @@ Bien cordialement`,
     channel: 'voicemail',
     label: 'Message vocal - Touche humaine finale',
     subject: null,
-    preview: 'Bonjour {{firstName}}, c\'est {{senderName}}. Je vous ai envoye un email il y a quelques jours...',
-    fullContent: 'Bonjour {{firstName}}, c\'est {{senderName}}. Je vous ai envoye un email il y a quelques jours au sujet de {{company}}. J\'avais une idee qui pourrait vraiment vous interesser. N\'hesitez pas a me rappeler ou a repondre a mon email. Bonne journee !',
+    preview:
+      "Bonjour {{firstName}}, c'est {{senderName}}. Je vous ai envoye un email il y a quelques jours...",
+    fullContent:
+      "Bonjour {{firstName}}, c'est {{senderName}}. Je vous ai envoye un email il y a quelques jours au sujet de {{company}}. J'avais une idee qui pourrait vraiment vous interesser. N'hesitez pas a me rappeler ou a repondre a mon email. Bonne journee !",
     type: 'breakup',
   },
 ]
@@ -144,16 +151,14 @@ export default function OnboardingSequence() {
 
   const toggleChannel = (channel) => {
     if (channel === 'email') return // Email always enabled
-    setEnabledChannels(prev => ({
+    setEnabledChannels((prev) => ({
       ...prev,
-      [channel]: !prev[channel]
+      [channel]: !prev[channel],
     }))
   }
 
   // Filter sequence based on enabled channels
-  const filteredSequence = MULTICHANNEL_SEQUENCE.filter(
-    step => enabledChannels[step.channel]
-  )
+  const filteredSequence = MULTICHANNEL_SEQUENCE.filter((step) => enabledChannels[step.channel])
 
   const handleRegenerate = () => {
     setIsRegenerating(true)
@@ -175,7 +180,7 @@ export default function OnboardingSequence() {
     }, 1000)
   }
 
-  const currentDelay = DELAY_OPTIONS.find(d => d.id === selectedDelay)
+  const currentDelay = DELAY_OPTIONS.find((d) => d.id === selectedDelay)
 
   return (
     <div className="min-h-screen bg-dark-950">
@@ -215,31 +220,38 @@ export default function OnboardingSequence() {
             Votre sequence multicanale
           </h1>
           <p className="text-dark-400 max-w-2xl mx-auto">
-            Voici la sequence que nous avons generee pour vous.
-            Activez les canaux de votre choix et personnalisez le rythme.
+            Voici la sequence que nous avons generee pour vous. Activez les canaux de votre choix et
+            personnalisez le rythme.
           </p>
 
           {/* Multichannel preview icons */}
           <div className="flex items-center justify-center gap-3 mt-6">
-            {Object.entries(CHANNEL_STYLES).slice(0, 5).map(([channel, style]) => {
-              if (['reply', 'stopped', 'facebook_dm', 'whatsapp'].includes(channel)) return null
-              const isEnabled = enabledChannels[channel]
-              return (
-                <div
-                  key={channel}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
-                    isEnabled
-                      ? `${style.bg} ${style.border}`
-                      : 'bg-dark-800/50 border-dark-700 opacity-50'
-                  }`}
-                >
-                  <ChannelIcon channel={channel} className={`w-4 h-4 ${isEnabled ? style.color : 'text-dark-500'}`} />
-                  <span className={`text-sm font-medium ${isEnabled ? 'text-white' : 'text-dark-500'}`}>
-                    {style.label}
-                  </span>
-                </div>
-              )
-            })}
+            {Object.entries(CHANNEL_STYLES)
+              .slice(0, 5)
+              .map(([channel, style]) => {
+                if (['reply', 'stopped', 'facebook_dm', 'whatsapp'].includes(channel)) return null
+                const isEnabled = enabledChannels[channel]
+                return (
+                  <div
+                    key={channel}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
+                      isEnabled
+                        ? `${style.bg} ${style.border}`
+                        : 'bg-dark-800/50 border-dark-700 opacity-50'
+                    }`}
+                  >
+                    <ChannelIcon
+                      channel={channel}
+                      className={`w-4 h-4 ${isEnabled ? style.color : 'text-dark-500'}`}
+                    />
+                    <span
+                      className={`text-sm font-medium ${isEnabled ? 'text-white' : 'text-dark-500'}`}
+                    >
+                      {style.label}
+                    </span>
+                  </div>
+                )
+              })}
           </div>
         </motion.div>
 
@@ -278,14 +290,17 @@ export default function OnboardingSequence() {
                       } ${locked ? 'cursor-default' : 'cursor-pointer hover:border-dark-500'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <ChannelIcon channel={channel} className={`w-5 h-5 ${isEnabled ? style.color : 'text-dark-500'}`} />
+                        <ChannelIcon
+                          channel={channel}
+                          className={`w-5 h-5 ${isEnabled ? style.color : 'text-dark-500'}`}
+                        />
                         <div>
-                          <p className={`text-sm font-medium ${isEnabled ? 'text-white' : 'text-dark-400'}`}>
+                          <p
+                            className={`text-sm font-medium ${isEnabled ? 'text-white' : 'text-dark-400'}`}
+                          >
                             {style.label}
                           </p>
-                          {locked && (
-                            <p className="text-xs text-dark-500">Toujours actif</p>
-                          )}
+                          {locked && <p className="text-xs text-dark-500">Toujours actif</p>}
                           {premium && (
                             <p className="text-xs text-amber-400">Premium - 2.50 EUR/envoi</p>
                           )}
@@ -329,8 +344,13 @@ export default function OnboardingSequence() {
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${style.bg} border ${style.border}`}>
-                          <ChannelIcon channel={step.channel} className={`w-4 h-4 ${style.color}`} />
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${style.bg} border ${style.border}`}
+                        >
+                          <ChannelIcon
+                            channel={step.channel}
+                            className={`w-4 h-4 ${style.color}`}
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -343,11 +363,15 @@ export default function OnboardingSequence() {
                             </span>
                           </div>
                           <p className="text-sm font-medium text-white truncate">{step.label}</p>
-                          <p className="text-xs text-dark-400 mt-1 line-clamp-1">{step.preview.split('\n')[0]}</p>
+                          <p className="text-xs text-dark-400 mt-1 line-clamp-1">
+                            {step.preview.split('\n')[0]}
+                          </p>
                         </div>
-                        <ChevronRight className={`w-4 h-4 ${
-                          selectedStep === index ? style.color : 'text-dark-500'
-                        }`} />
+                        <ChevronRight
+                          className={`w-4 h-4 ${
+                            selectedStep === index ? style.color : 'text-dark-500'
+                          }`}
+                        />
                       </div>
                     </button>
                   )
@@ -381,9 +405,7 @@ export default function OnboardingSequence() {
                       <p className="text-sm font-medium text-white">{tone.label}</p>
                       <p className="text-xs text-dark-400">{tone.description}</p>
                     </div>
-                    {selectedTone === tone.id && (
-                      <Check className="w-4 h-4 text-brand-400" />
-                    )}
+                    {selectedTone === tone.id && <Check className="w-4 h-4 text-brand-400" />}
                   </button>
                 ))}
               </div>
@@ -415,9 +437,7 @@ export default function OnboardingSequence() {
                       <p className="text-sm font-medium text-white">{delay.label}</p>
                       <p className="text-xs text-dark-400">{delay.description}</p>
                     </div>
-                    {selectedDelay === delay.id && (
-                      <Check className="w-4 h-4 text-brand-400" />
-                    )}
+                    {selectedDelay === delay.id && <Check className="w-4 h-4 text-brand-400" />}
                   </button>
                 ))}
               </div>
@@ -464,20 +484,28 @@ export default function OnboardingSequence() {
                       } ${CHANNEL_STYLES[filteredSequence[selectedStep].channel]?.border}`}
                     >
                       {/* Channel Badge */}
-                      <div className={`px-4 py-3 border-b ${CHANNEL_STYLES[filteredSequence[selectedStep].channel]?.border}`}>
+                      <div
+                        className={`px-4 py-3 border-b ${CHANNEL_STYLES[filteredSequence[selectedStep].channel]?.border}`}
+                      >
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            CHANNEL_STYLES[filteredSequence[selectedStep].channel]?.bg
-                          }`}>
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              CHANNEL_STYLES[filteredSequence[selectedStep].channel]?.bg
+                            }`}
+                          >
                             <ChannelIcon
                               channel={filteredSequence[selectedStep].channel}
                               className={`w-5 h-5 ${CHANNEL_STYLES[filteredSequence[selectedStep].channel]?.color}`}
                             />
                           </div>
                           <div>
-                            <p className="font-medium text-white">{filteredSequence[selectedStep].label}</p>
+                            <p className="font-medium text-white">
+                              {filteredSequence[selectedStep].label}
+                            </p>
                             <p className="text-xs text-dark-400">
-                              {filteredSequence[selectedStep].day === 0 ? 'Jour 1' : `J+${filteredSequence[selectedStep].day}`}
+                              {filteredSequence[selectedStep].day === 0
+                                ? 'Jour 1'
+                                : `J+${filteredSequence[selectedStep].day}`}
                             </p>
                           </div>
                         </div>
@@ -497,7 +525,9 @@ export default function OnboardingSequence() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-dark-500 w-12">Objet:</span>
-                              <span className="text-sm text-white">{filteredSequence[selectedStep].subject}</span>
+                              <span className="text-sm text-white">
+                                {filteredSequence[selectedStep].subject}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -515,11 +545,13 @@ export default function OnboardingSequence() {
                         {filteredSequence[selectedStep].channel === 'sms' && (
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-dark-400">SMS - Max 160 caracteres</span>
-                            <span className={`text-xs ${
-                              filteredSequence[selectedStep].fullContent.length <= 160
-                                ? 'text-brand-400'
-                                : 'text-amber-400'
-                            }`}>
+                            <span
+                              className={`text-xs ${
+                                filteredSequence[selectedStep].fullContent.length <= 160
+                                  ? 'text-brand-400'
+                                  : 'text-amber-400'
+                              }`}
+                            >
                               {filteredSequence[selectedStep].fullContent.length}/160
                             </span>
                           </div>
@@ -582,7 +614,9 @@ export default function OnboardingSequence() {
                       })}
                     </div>
                     <button
-                      onClick={() => setSelectedStep(Math.min(filteredSequence.length - 1, selectedStep + 1))}
+                      onClick={() =>
+                        setSelectedStep(Math.min(filteredSequence.length - 1, selectedStep + 1))
+                      }
                       disabled={selectedStep === filteredSequence.length - 1}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-800 text-dark-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >

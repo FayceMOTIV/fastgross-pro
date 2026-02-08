@@ -61,7 +61,19 @@ export const PLANS = {
     maxSequences: 100,
     maxChannels: ['email', 'sms', 'whatsapp', 'instagram_dm', 'voicemail', 'courrier'],
     maxEmailsPerMonth: 25000,
-    features: ['email_basic', 'sms_basic', 'whatsapp', 'instagram', 'voicemail', 'courrier', 'templates', 'sequences', 'analytics', 'api', 'webhooks'],
+    features: [
+      'email_basic',
+      'sms_basic',
+      'whatsapp',
+      'instagram',
+      'voicemail',
+      'courrier',
+      'templates',
+      'sequences',
+      'analytics',
+      'api',
+      'webhooks',
+    ],
     price: 199,
   },
   enterprise: {
@@ -69,7 +81,15 @@ export const PLANS = {
     maxUsers: -1, // Unlimited
     maxProspects: -1,
     maxSequences: -1,
-    maxChannels: ['email', 'sms', 'whatsapp', 'instagram_dm', 'facebook_dm', 'voicemail', 'courrier'],
+    maxChannels: [
+      'email',
+      'sms',
+      'whatsapp',
+      'instagram_dm',
+      'facebook_dm',
+      'voicemail',
+      'courrier',
+    ],
     maxEmailsPerMonth: -1,
     features: ['all'],
     price: 499,
@@ -206,9 +226,7 @@ export async function getUserOrganizations(userId) {
   const userOrgs = []
 
   for (const orgDoc of orgsSnapshot.docs) {
-    const memberDoc = await getDoc(
-      doc(db, 'organizations', orgDoc.id, 'members', userId)
-    )
+    const memberDoc = await getDoc(doc(db, 'organizations', orgDoc.id, 'members', userId))
     if (memberDoc.exists() && memberDoc.data().status === 'active') {
       userOrgs.push({
         id: orgDoc.id,
@@ -219,9 +237,7 @@ export async function getUserOrganizations(userId) {
     }
   }
 
-  return userOrgs.sort((a, b) =>
-    (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0)
-  )
+  return userOrgs.sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0))
 }
 
 /**
@@ -254,10 +270,7 @@ export async function deleteOrganization(orgId) {
  */
 export async function getOrgMembers(orgId) {
   const membersSnapshot = await getDocs(
-    query(
-      collection(db, 'organizations', orgId, 'members'),
-      orderBy('joinedAt', 'desc')
-    )
+    query(collection(db, 'organizations', orgId, 'members'), orderBy('joinedAt', 'desc'))
   )
 
   return membersSnapshot.docs.map((doc) => ({
@@ -270,9 +283,7 @@ export async function getOrgMembers(orgId) {
  * Get single member
  */
 export async function getOrgMember(orgId, userId) {
-  const memberDoc = await getDoc(
-    doc(db, 'organizations', orgId, 'members', userId)
-  )
+  const memberDoc = await getDoc(doc(db, 'organizations', orgId, 'members', userId))
   if (!memberDoc.exists()) return null
   return { id: memberDoc.id, ...memberDoc.data() }
 }
@@ -435,16 +446,13 @@ export function subscribeToOrganization(orgId, callback) {
  * Subscribe to members changes
  */
 export function subscribeToMembers(orgId, callback) {
-  return onSnapshot(
-    query(collection(db, 'organizations', orgId, 'members')),
-    (snapshot) => {
-      const members = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      callback(members)
-    }
-  )
+  return onSnapshot(query(collection(db, 'organizations', orgId, 'members')), (snapshot) => {
+    const members = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    callback(members)
+  })
 }
 
 // ==========================================

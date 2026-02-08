@@ -17,22 +17,28 @@ export default function CookieBanner() {
   }, [])
 
   const handleAccept = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify({
-      accepted: true,
-      date: new Date().toISOString(),
-      analytics: true,
-      functional: true,
-    }))
+    localStorage.setItem(
+      COOKIE_CONSENT_KEY,
+      JSON.stringify({
+        accepted: true,
+        date: new Date().toISOString(),
+        analytics: true,
+        functional: true,
+      })
+    )
     setVisible(false)
   }
 
   const handleDecline = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify({
-      accepted: false,
-      date: new Date().toISOString(),
-      analytics: false,
-      functional: true, // Functional cookies are required
-    }))
+    localStorage.setItem(
+      COOKIE_CONSENT_KEY,
+      JSON.stringify({
+        accepted: false,
+        date: new Date().toISOString(),
+        analytics: false,
+        functional: true, // Functional cookies are required
+      })
+    )
     setVisible(false)
   }
 
@@ -47,12 +53,11 @@ export default function CookieBanner() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-semibold mb-1">
-              Nous utilisons des cookies
-            </h3>
+            <h3 className="text-white font-semibold mb-1">Nous utilisons des cookies</h3>
             <p className="text-dark-400 text-sm mb-4">
-              Ce site utilise des cookies pour ameliorer votre experience, analyser le trafic et personnaliser le contenu.
-              En cliquant sur "Accepter", vous consentez a l'utilisation de tous les cookies.{' '}
+              Ce site utilise des cookies pour ameliorer votre experience, analyser le trafic et
+              personnaliser le contenu. En cliquant sur "Accepter", vous consentez a l'utilisation
+              de tous les cookies.{' '}
               <a href="/legal/privacy" className="text-brand-400 hover:underline">
                 Politique de confidentialite
               </a>

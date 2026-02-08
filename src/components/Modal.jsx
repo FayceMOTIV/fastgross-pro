@@ -1,9 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import FocusTrap from 'focus-trap-react'
 import { X } from 'lucide-react'
 
-export default function Modal({
+const sizeClasses = {
+  sm: 'max-w-md',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+  full: 'max-w-[90vw]',
+}
+
+// Memoized modal - prevents re-renders from parent component updates
+const Modal = memo(function Modal({
   isOpen,
   onClose,
   title,
@@ -29,17 +38,12 @@ export default function Modal({
     }
   }, [isOpen, onClose])
 
-  const handleOverlayClick = (e) => {
-    if (e.target === overlayRef.current) onClose()
-  }
-
-  const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-[90vw]',
-  }
+  const handleOverlayClick = useCallback(
+    (e) => {
+      if (e.target === overlayRef.current) onClose()
+    },
+    [onClose]
+  )
 
   return (
     <AnimatePresence>
@@ -73,7 +77,9 @@ export default function Modal({
               {(title || showClose) && (
                 <div className="flex items-center justify-between p-6 border-b border-dark-800/50">
                   {title && (
-                    <h2 id="modal-title" className="text-xl font-display font-semibold text-white">{title}</h2>
+                    <h2 id="modal-title" className="text-xl font-display font-semibold text-white">
+                      {title}
+                    </h2>
                   )}
                   {showClose && (
                     <button
@@ -95,4 +101,6 @@ export default function Modal({
       )}
     </AnimatePresence>
   )
-}
+})
+
+export default Modal

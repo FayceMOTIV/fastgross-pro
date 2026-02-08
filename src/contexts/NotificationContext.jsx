@@ -16,7 +16,7 @@ export function NotificationProvider({ children }) {
       if (stored) {
         const parsed = JSON.parse(stored)
         setNotifications(parsed)
-        setUnreadCount(parsed.filter(n => !n.read).length)
+        setUnreadCount(parsed.filter((n) => !n.read).length)
       }
     } catch (e) {
       console.error('Failed to load notifications:', e)
@@ -27,7 +27,7 @@ export function NotificationProvider({ children }) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications))
-      setUnreadCount(notifications.filter(n => !n.read).length)
+      setUnreadCount(notifications.filter((n) => !n.read).length)
     } catch (e) {
       console.error('Failed to save notifications:', e)
     }
@@ -45,7 +45,7 @@ export function NotificationProvider({ children }) {
       createdAt: new Date().toISOString(),
     }
 
-    setNotifications(prev => {
+    setNotifications((prev) => {
       const updated = [notification, ...prev]
       // Keep only the last MAX_NOTIFICATIONS
       return updated.slice(0, MAX_NOTIFICATIONS)
@@ -56,21 +56,17 @@ export function NotificationProvider({ children }) {
 
   // Mark a notification as read
   const markAsRead = useCallback((id) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    )
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
   }, [])
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(() => {
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, read: true }))
-    )
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
   }, [])
 
   // Remove a notification
   const removeNotification = useCallback((id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
   }, [])
 
   // Clear all notifications

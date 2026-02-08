@@ -3,27 +3,27 @@
  * Utilise des templates avec variables pour creer des emails de prospection
  */
 
-import { DEFAULT_EMAIL_TEMPLATE } from './config';
+import { DEFAULT_EMAIL_TEMPLATE } from './config'
 
 /**
  * Variables disponibles dans les templates
  */
 export const TEMPLATE_VARIABLES = {
   // Prospect
-  '{entreprise}': 'Nom de l\'entreprise',
+  '{entreprise}': "Nom de l'entreprise",
   '{prenom}': 'Prenom du contact',
   '{nom}': 'Nom du contact',
   '{email_prospect}': 'Email du prospect',
   '{url}': 'URL du site',
-  '{secteur}': 'Secteur d\'activite',
+  '{secteur}': "Secteur d'activite",
   '{ville}': 'Ville',
   // Scoring
   '{score_video}': 'Description du manque de video',
   // Expediteur
-  '{sender_name}': 'Nom de l\'expediteur',
-  '{sender_email}': 'Email de l\'expediteur',
-  '{signature}': 'Signature HTML'
-};
+  '{sender_name}': "Nom de l'expediteur",
+  '{sender_email}': "Email de l'expediteur",
+  '{signature}': 'Signature HTML',
+}
 
 /**
  * Extraire le prenom depuis un nom complet ou un email
@@ -31,56 +31,56 @@ export const TEMPLATE_VARIABLES = {
 export const extractFirstName = (fullName, email) => {
   // Si on a un nom complet
   if (fullName && fullName.trim()) {
-    const parts = fullName.trim().split(/\s+/);
-    return capitalizeFirst(parts[0]);
+    const parts = fullName.trim().split(/\s+/)
+    return capitalizeFirst(parts[0])
   }
 
   // Sinon, essayer d'extraire du prefix email
   if (email) {
-    const prefix = email.split('@')[0];
+    const prefix = email.split('@')[0]
 
     // Si format prenom.nom
     if (prefix.includes('.')) {
-      const firstName = prefix.split('.')[0];
-      return capitalizeFirst(firstName);
+      const firstName = prefix.split('.')[0]
+      return capitalizeFirst(firstName)
     }
 
     // Si format prenom_nom
     if (prefix.includes('_')) {
-      const firstName = prefix.split('_')[0];
-      return capitalizeFirst(firstName);
+      const firstName = prefix.split('_')[0]
+      return capitalizeFirst(firstName)
     }
 
     // Si c'est probablement juste un prenom
     if (prefix.length >= 3 && prefix.length <= 15 && /^[a-z]+$/i.test(prefix)) {
-      return capitalizeFirst(prefix);
+      return capitalizeFirst(prefix)
     }
   }
 
-  return '';
-};
+  return ''
+}
 
 /**
  * Extraire le nom depuis un nom complet
  */
 export const extractLastName = (fullName) => {
-  if (!fullName || !fullName.trim()) return '';
+  if (!fullName || !fullName.trim()) return ''
 
-  const parts = fullName.trim().split(/\s+/);
+  const parts = fullName.trim().split(/\s+/)
   if (parts.length > 1) {
-    return capitalizeFirst(parts[parts.length - 1]);
+    return capitalizeFirst(parts[parts.length - 1])
   }
 
-  return '';
-};
+  return ''
+}
 
 /**
  * Capitaliser la premiere lettre
  */
 export const capitalizeFirst = (str) => {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-};
+  if (!str) return ''
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
 
 /**
  * Extraire le nom d'entreprise depuis l'URL ou le nom du prospect
@@ -88,54 +88,54 @@ export const capitalizeFirst = (str) => {
 export const extractCompanyName = (prospect) => {
   // Si on a un nom explicite
   if (prospect.name && prospect.name.trim()) {
-    return prospect.name.trim();
+    return prospect.name.trim()
   }
 
   // Sinon, extraire du domaine
   if (prospect.domain) {
     // Retirer l'extension (.com, .fr, etc.)
-    let name = prospect.domain.replace(/\.[a-z]{2,}$/i, '');
+    let name = prospect.domain.replace(/\.[a-z]{2,}$/i, '')
     // Remplacer les tirets par des espaces
-    name = name.replace(/-/g, ' ');
+    name = name.replace(/-/g, ' ')
     // Capitaliser
-    return name.split(' ').map(capitalizeFirst).join(' ');
+    return name.split(' ').map(capitalizeFirst).join(' ')
   }
 
-  return 'votre entreprise';
-};
+  return 'votre entreprise'
+}
 
 /**
  * Remplacer les variables dans un template
  */
 export const replaceVariables = (template, variables) => {
-  let result = template;
+  let result = template
 
   for (const [key, value] of Object.entries(variables)) {
     // Remplacer toutes les occurrences de la variable
-    const regex = new RegExp(escapeRegex(key), 'g');
-    result = result.replace(regex, value || '');
+    const regex = new RegExp(escapeRegex(key), 'g')
+    result = result.replace(regex, value || '')
   }
 
-  return result;
-};
+  return result
+}
 
 /**
  * Echapper les caracteres speciaux pour regex
  */
 const escapeRegex = (str) => {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-};
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 /**
  * Generer un email personnalise pour un prospect
  */
 export const generateEmail = (prospect, config, senderAccount, template = null) => {
-  const emailTemplate = template || config.emailTemplate || DEFAULT_EMAIL_TEMPLATE;
+  const emailTemplate = template || config.emailTemplate || DEFAULT_EMAIL_TEMPLATE
 
   // Preparer les variables
-  const prenom = extractFirstName(prospect.contactName, prospect.emails?.[0]);
-  const nom = extractLastName(prospect.contactName);
-  const entreprise = extractCompanyName(prospect);
+  const prenom = extractFirstName(prospect.contactName, prospect.emails?.[0])
+  const nom = extractLastName(prospect.contactName)
+  const entreprise = extractCompanyName(prospect)
 
   const variables = {
     '{entreprise}': entreprise,
@@ -148,30 +148,30 @@ export const generateEmail = (prospect, config, senderAccount, template = null) 
     '{score_video}': prospect.scoreDetails?.scoreVideoText || 'peu de contenu video',
     '{sender_name}': senderAccount?.displayName || config.senderName || 'Face Media',
     '{sender_email}': senderAccount?.email || config.senderEmail || '',
-    '{signature}': config.signature || emailTemplate.signature || ''
-  };
+    '{signature}': config.signature || emailTemplate.signature || '',
+  }
 
   // Generer le sujet et le corps
-  const subject = replaceVariables(emailTemplate.subject, variables);
-  const body = replaceVariables(emailTemplate.body, variables);
+  const subject = replaceVariables(emailTemplate.subject, variables)
+  const body = replaceVariables(emailTemplate.body, variables)
 
   return {
     to: prospect.emails?.[0],
     subject,
     body,
     variables, // Pour debug/preview
-    generatedAt: new Date().toISOString()
-  };
-};
+    generatedAt: new Date().toISOString(),
+  }
+}
 
 /**
  * Generer le lien de desinscription RGPD
  */
 export const generateUnsubscribeLink = (email, orgId, baseUrl = '') => {
-  const encodedEmail = encodeURIComponent(email);
-  const encodedOrg = encodeURIComponent(orgId);
-  return `${baseUrl}/unsubscribe?e=${encodedEmail}&o=${encodedOrg}`;
-};
+  const encodedEmail = encodeURIComponent(email)
+  const encodedOrg = encodeURIComponent(orgId)
+  return `${baseUrl}/unsubscribe?e=${encodedEmail}&o=${encodedOrg}`
+}
 
 /**
  * Ajouter le footer RGPD a un email
@@ -181,10 +181,10 @@ export const addRGPDFooter = (body, unsubscribeLink) => {
 
 ---
 Vous recevez cet email car votre site web est public.
-Pour ne plus recevoir de messages : ${unsubscribeLink}`;
+Pour ne plus recevoir de messages : ${unsubscribeLink}`
 
-  return body + footer;
-};
+  return body + footer
+}
 
 /**
  * Generer les headers de desinscription pour l'envoi
@@ -192,32 +192,28 @@ Pour ne plus recevoir de messages : ${unsubscribeLink}`;
 export const generateUnsubscribeHeaders = (unsubscribeLink) => {
   return {
     'List-Unsubscribe': `<${unsubscribeLink}>`,
-    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
-  };
-};
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  }
+}
 
 /**
  * Generer un email complet pret a l'envoi
  */
 export const generateFullEmail = (prospect, config, senderAccount, baseUrl = '') => {
-  const email = generateEmail(prospect, config, senderAccount);
+  const email = generateEmail(prospect, config, senderAccount)
 
   // Ajouter le lien de desinscription
-  const unsubscribeLink = generateUnsubscribeLink(
-    prospect.emails?.[0],
-    config.orgId,
-    baseUrl
-  );
+  const unsubscribeLink = generateUnsubscribeLink(prospect.emails?.[0], config.orgId, baseUrl)
 
   // Ajouter le footer RGPD
-  email.body = addRGPDFooter(email.body, unsubscribeLink);
+  email.body = addRGPDFooter(email.body, unsubscribeLink)
 
   // Ajouter les headers
-  email.headers = generateUnsubscribeHeaders(unsubscribeLink);
-  email.unsubscribeLink = unsubscribeLink;
+  email.headers = generateUnsubscribeHeaders(unsubscribeLink)
+  email.unsubscribeLink = unsubscribeLink
 
-  return email;
-};
+  return email
+}
 
 /**
  * Previsualiser un email avec des donnees de test
@@ -230,50 +226,50 @@ export const previewEmail = (template, config) => {
     emails: ['contact@lepetitbistrot.fr'],
     contactName: 'Jean Dupont',
     scoreDetails: {
-      scoreVideoText: 'pas de video sur votre site et pas de chaine YouTube'
-    }
-  };
+      scoreVideoText: 'pas de video sur votre site et pas de chaine YouTube',
+    },
+  }
 
   const testAccount = {
     displayName: config.senderName || 'Faical de Face Media',
-    email: config.senderEmail || 'contact@facemedia.fr'
-  };
+    email: config.senderEmail || 'contact@facemedia.fr',
+  }
 
-  return generateEmail(testProspect, config, testAccount, template);
-};
+  return generateEmail(testProspect, config, testAccount, template)
+}
 
 /**
  * Valider un template
  */
 export const validateTemplate = (template) => {
-  const errors = [];
+  const errors = []
 
   if (!template.subject || template.subject.trim() === '') {
-    errors.push('Le sujet est requis');
+    errors.push('Le sujet est requis')
   }
 
   if (!template.body || template.body.trim() === '') {
-    errors.push('Le corps de l\'email est requis');
+    errors.push("Le corps de l'email est requis")
   }
 
   // Verifier qu'il n'y a pas de variables mal formatees
-  const malformedVars = template.body.match(/\{[^}]+\s+[^}]+\}/g);
+  const malformedVars = template.body.match(/\{[^}]+\s+[^}]+\}/g)
   if (malformedVars) {
-    errors.push(`Variables mal formatees: ${malformedVars.join(', ')}`);
+    errors.push(`Variables mal formatees: ${malformedVars.join(', ')}`)
   }
 
   // Verifier les variables inconnues
-  const usedVars = template.body.match(/\{[^}]+\}/g) || [];
-  const unknownVars = usedVars.filter(v => !TEMPLATE_VARIABLES[v]);
+  const usedVars = template.body.match(/\{[^}]+\}/g) || []
+  const unknownVars = usedVars.filter((v) => !TEMPLATE_VARIABLES[v])
   if (unknownVars.length > 0) {
-    errors.push(`Variables inconnues: ${unknownVars.join(', ')}`);
+    errors.push(`Variables inconnues: ${unknownVars.join(', ')}`)
   }
 
   return {
     valid: errors.length === 0,
-    errors
-  };
-};
+    errors,
+  }
+}
 
 /**
  * Templates alternatifs predéfinis
@@ -290,7 +286,7 @@ Je cree des videos courtes et percutantes pour {secteur}.
 
 Interesse(e) par 15 min d'echange ?
 
-{sender_name}`
+{sender_name}`,
   },
 
   storytelling: {
@@ -313,7 +309,7 @@ Je peux realiser pour {entreprise} :
 
 Un cafe virtuel pour en discuter ?
 
-{sender_name}`
+{sender_name}`,
   },
 
   challenger: {
@@ -331,9 +327,9 @@ Je suis videaste specialise {secteur} a {ville}. Je transforme les entreprises c
 
 Une demo gratuite pour voir ce que ca donne ?
 
-{sender_name}`
-  }
-};
+{sender_name}`,
+  },
+}
 
 export default {
   TEMPLATE_VARIABLES,
@@ -349,5 +345,5 @@ export default {
   generateUnsubscribeHeaders,
   generateFullEmail,
   previewEmail,
-  validateTemplate
-};
+  validateTemplate,
+}

@@ -33,16 +33,59 @@ import TrendChart from '@/components/TrendChart'
 
 // Channel icons and styles
 const CHANNELS = {
-  email: { icon: Mail, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', label: 'Email' },
-  sms: { icon: Smartphone, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', label: 'SMS' },
-  whatsapp: { icon: MessageCircle, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', label: 'WhatsApp' },
-  instagram_dm: { icon: Instagram, color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20', label: 'Instagram' },
-  voicemail: { icon: Mic, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', label: 'Vocal' },
-  courrier: { icon: MapPin, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20', label: 'Courrier' },
+  email: {
+    icon: Mail,
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+    label: 'Email',
+  },
+  sms: {
+    icon: Smartphone,
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+    label: 'SMS',
+  },
+  whatsapp: {
+    icon: MessageCircle,
+    color: 'text-green-400',
+    bg: 'bg-green-500/10',
+    border: 'border-green-500/20',
+    label: 'WhatsApp',
+  },
+  instagram_dm: {
+    icon: Instagram,
+    color: 'text-pink-400',
+    bg: 'bg-pink-500/10',
+    border: 'border-pink-500/20',
+    label: 'Instagram',
+  },
+  voicemail: {
+    icon: Mic,
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/20',
+    label: 'Vocal',
+  },
+  courrier: {
+    icon: MapPin,
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    label: 'Courrier',
+  },
 }
 
-function PeriodComparisonCard({ current, previous, label, format = 'number', icon: Icon, color = 'text-brand-400' }) {
-  const diff = previous > 0 ? ((current - previous) / previous * 100) : 0
+function PeriodComparisonCard({
+  current,
+  previous,
+  label,
+  format = 'number',
+  icon: Icon,
+  color = 'text-brand-400',
+}) {
+  const diff = previous > 0 ? ((current - previous) / previous) * 100 : 0
   const isPositive = diff >= 0
 
   const formatValue = (val) => {
@@ -63,9 +106,14 @@ function PeriodComparisonCard({ current, previous, label, format = 'number', ico
       </div>
       <p className="text-2xl font-display font-bold text-white">{formatValue(current)}</p>
       {previous > 0 && (
-        <div className={`flex items-center gap-1 mt-2 text-xs ${isPositive ? 'text-brand-400' : 'text-red-400'}`}>
+        <div
+          className={`flex items-center gap-1 mt-2 text-xs ${isPositive ? 'text-brand-400' : 'text-red-400'}`}
+        >
           {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          <span>{isPositive ? '+' : ''}{diff.toFixed(1)}%</span>
+          <span>
+            {isPositive ? '+' : ''}
+            {diff.toFixed(1)}%
+          </span>
           <span className="text-dark-500">vs periode prec.</span>
         </div>
       )}
@@ -115,14 +163,20 @@ function ChannelPerformanceCard({ channel, data }) {
         <div className="flex items-center gap-2">
           <div className="w-16 text-xs text-dark-500">Delivres</div>
           <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
-            <div className={`h-full ${config.bg.replace('10', '40')}`} style={{ width: `${deliveryRate}%` }} />
+            <div
+              className={`h-full ${config.bg.replace('10', '40')}`}
+              style={{ width: `${deliveryRate}%` }}
+            />
           </div>
           <div className="w-12 text-xs text-dark-400 text-right">{deliveryRate}%</div>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-16 text-xs text-dark-500">Ouverts</div>
           <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
-            <div className={`h-full ${config.bg.replace('10', '40')}`} style={{ width: `${openRate}%` }} />
+            <div
+              className={`h-full ${config.bg.replace('10', '40')}`}
+              style={{ width: `${openRate}%` }}
+            />
           </div>
           <div className="w-12 text-xs text-dark-400 text-right">{openRate}%</div>
         </div>
@@ -191,12 +245,15 @@ function ROICard({ data }) {
         <div>
           <p className="text-sm text-dark-400">ROI Global</p>
           <p className="text-3xl font-display font-bold text-brand-400">
-            {roi > 0 ? '+' : ''}{roi}%
+            {roi > 0 ? '+' : ''}
+            {roi}%
           </p>
         </div>
         <div className="text-right">
           <p className="text-sm text-dark-400">Benefice net</p>
-          <p className={`text-xl font-bold ${totalRevenue - totalCost >= 0 ? 'text-brand-400' : 'text-red-400'}`}>
+          <p
+            className={`text-xl font-bold ${totalRevenue - totalCost >= 0 ? 'text-brand-400' : 'text-red-400'}`}
+          >
             {(totalRevenue - totalCost).toLocaleString()} EUR
           </p>
         </div>
@@ -214,7 +271,7 @@ function SequenceFunnel({ data }) {
     { key: 'converted', label: 'Convertis', color: 'bg-brand-500', value: data.converted || 0 },
   ]
 
-  const maxValue = Math.max(...stages.map(s => s.value), 1)
+  const maxValue = Math.max(...stages.map((s) => s.value), 1)
 
   return (
     <motion.div
@@ -235,9 +292,10 @@ function SequenceFunnel({ data }) {
       <div className="space-y-3">
         {stages.map((stage, i) => {
           const width = (stage.value / maxValue) * 100
-          const dropRate = i > 0 && stages[i - 1].value > 0
-            ? Math.round(((stages[i - 1].value - stage.value) / stages[i - 1].value) * 100)
-            : 0
+          const dropRate =
+            i > 0 && stages[i - 1].value > 0
+              ? Math.round(((stages[i - 1].value - stage.value) / stages[i - 1].value) * 100)
+              : 0
 
           return (
             <div key={stage.key} className="relative">
@@ -256,9 +314,7 @@ function SequenceFunnel({ data }) {
                   </motion.div>
                 </div>
                 {i > 0 && dropRate > 0 && (
-                  <div className="w-16 text-xs text-red-400 text-right">
-                    -{dropRate}%
-                  </div>
+                  <div className="w-16 text-xs text-red-400 text-right">-{dropRate}%</div>
                 )}
               </div>
               {i < stages.length - 1 && (
@@ -272,13 +328,9 @@ function SequenceFunnel({ data }) {
       </div>
 
       <div className="mt-6 pt-4 border-t border-dark-800 flex items-center justify-between">
-        <div className="text-sm text-dark-400">
-          Taux de conversion global
-        </div>
+        <div className="text-sm text-dark-400">Taux de conversion global</div>
         <div className="text-lg font-bold text-brand-400">
-          {stages[0].value > 0
-            ? Math.round((stages[4].value / stages[0].value) * 100)
-            : 0}%
+          {stages[0].value > 0 ? Math.round((stages[4].value / stages[0].value) * 100) : 0}%
         </div>
       </div>
     </motion.div>
@@ -287,9 +339,24 @@ function SequenceFunnel({ data }) {
 
 function InsightCard({ type, title, description, metric, action }) {
   const configs = {
-    success: { icon: Trophy, color: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20' },
-    warning: { icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-    info: { icon: Lightbulb, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+    success: {
+      icon: Trophy,
+      color: 'text-brand-400',
+      bg: 'bg-brand-500/10',
+      border: 'border-brand-500/20',
+    },
+    warning: {
+      icon: AlertCircle,
+      color: 'text-amber-400',
+      bg: 'bg-amber-500/10',
+      border: 'border-amber-500/20',
+    },
+    info: {
+      icon: Lightbulb,
+      color: 'text-blue-400',
+      bg: 'bg-blue-500/10',
+      border: 'border-blue-500/20',
+    },
   }
 
   const config = configs[type] || configs.info
@@ -302,15 +369,11 @@ function InsightCard({ type, title, description, metric, action }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <p className={`font-medium ${config.color}`}>{title}</p>
-            {metric && (
-              <span className="text-sm font-bold text-white">{metric}</span>
-            )}
+            {metric && <span className="text-sm font-bold text-white">{metric}</span>}
           </div>
           <p className="text-sm text-dark-400 mt-1">{description}</p>
           {action && (
-            <button className="text-xs text-brand-400 hover:underline mt-2">
-              {action}
-            </button>
+            <button className="text-xs text-brand-400 hover:underline mt-2">{action}</button>
           )}
         </div>
       </div>
@@ -322,12 +385,10 @@ function EmptyState() {
   return (
     <div className="glass-card p-12 text-center">
       <BarChart3 className="w-12 h-12 text-dark-600 mx-auto mb-4" />
-      <h3 className="text-lg font-display font-semibold text-dark-400">
-        Pas encore de donnees
-      </h3>
+      <h3 className="text-lg font-display font-semibold text-dark-400">Pas encore de donnees</h3>
       <p className="text-dark-500 text-sm mt-2 max-w-md mx-auto">
-        Lancez vos premieres sequences de prospection pour voir vos statistiques apparaitre ici.
-        Les donnees s'accumuleront au fur et a mesure de vos campagnes.
+        Lancez vos premieres sequences de prospection pour voir vos statistiques apparaitre ici. Les
+        donnees s'accumuleront au fur et a mesure de vos campagnes.
       </p>
     </div>
   )
@@ -340,49 +401,52 @@ export default function Analytics() {
   const { data, loading } = useAnalytics(period)
 
   // Mock enhanced data (would come from Firestore)
-  const enhancedData = useMemo(() => ({
-    ...data,
-    roi: {
-      cost: 450,
-      revenue: 2800,
-      leads: 85,
-      conversions: 12,
-    },
-    channels: {
-      email: { sent: 1250, delivered: 1180, opened: 590, replied: 85, converted: 12 },
-      sms: { sent: 120, delivered: 115, opened: 110, replied: 28, converted: 4 },
-      whatsapp: { sent: 45, delivered: 44, opened: 42, replied: 15, converted: 3 },
-      instagram_dm: { sent: 30, delivered: 28, opened: 25, replied: 8, converted: 1 },
-      voicemail: { sent: 15, delivered: 15, opened: 15, replied: 5, converted: 1 },
-      courrier: { sent: 8, delivered: 8, opened: 8, replied: 4, converted: 1 },
-    },
-    funnel: {
-      enrolled: 1500,
-      contacted: 1468,
-      opened: 789,
-      replied: 145,
-      converted: 22,
-    },
-    insights: {
-      bestDay: 'Mardi',
-      bestHour: '9h - 10h',
-      bestChannel: 'SMS',
-      bestSubject: 'Question rapide sur...',
-      topSequence: 'B2B SaaS Outreach',
-      improvement: '+23%',
-    },
-    trends: {
-      daily: [
-        { date: 'Lun', emails: 45, replies: 3, conversions: 0 },
-        { date: 'Mar', emails: 62, replies: 8, conversions: 1 },
-        { date: 'Mer', emails: 58, replies: 5, conversions: 1 },
-        { date: 'Jeu', emails: 55, replies: 6, conversions: 0 },
-        { date: 'Ven', emails: 48, replies: 4, conversions: 1 },
-        { date: 'Sam', emails: 12, replies: 1, conversions: 0 },
-        { date: 'Dim', emails: 8, replies: 0, conversions: 0 },
-      ],
-    },
-  }), [data])
+  const enhancedData = useMemo(
+    () => ({
+      ...data,
+      roi: {
+        cost: 450,
+        revenue: 2800,
+        leads: 85,
+        conversions: 12,
+      },
+      channels: {
+        email: { sent: 1250, delivered: 1180, opened: 590, replied: 85, converted: 12 },
+        sms: { sent: 120, delivered: 115, opened: 110, replied: 28, converted: 4 },
+        whatsapp: { sent: 45, delivered: 44, opened: 42, replied: 15, converted: 3 },
+        instagram_dm: { sent: 30, delivered: 28, opened: 25, replied: 8, converted: 1 },
+        voicemail: { sent: 15, delivered: 15, opened: 15, replied: 5, converted: 1 },
+        courrier: { sent: 8, delivered: 8, opened: 8, replied: 4, converted: 1 },
+      },
+      funnel: {
+        enrolled: 1500,
+        contacted: 1468,
+        opened: 789,
+        replied: 145,
+        converted: 22,
+      },
+      insights: {
+        bestDay: 'Mardi',
+        bestHour: '9h - 10h',
+        bestChannel: 'SMS',
+        bestSubject: 'Question rapide sur...',
+        topSequence: 'B2B SaaS Outreach',
+        improvement: '+23%',
+      },
+      trends: {
+        daily: [
+          { date: 'Lun', emails: 45, replies: 3, conversions: 0 },
+          { date: 'Mar', emails: 62, replies: 8, conversions: 1 },
+          { date: 'Mer', emails: 58, replies: 5, conversions: 1 },
+          { date: 'Jeu', emails: 55, replies: 6, conversions: 0 },
+          { date: 'Ven', emails: 48, replies: 4, conversions: 1 },
+          { date: 'Sam', emails: 12, replies: 1, conversions: 0 },
+          { date: 'Dim', emails: 8, replies: 0, conversions: 0 },
+        ],
+      },
+    }),
+    [data]
+  )
 
   const hasData = data.totals.emailsSent > 0 || data.byClient.length > 0
 
@@ -395,7 +459,7 @@ export default function Analytics() {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
+    { id: 'overview', label: "Vue d'ensemble", icon: BarChart3 },
     { id: 'channels', label: 'Par canal', icon: Zap },
     { id: 'roi', label: 'ROI', icon: Euro },
     { id: 'insights', label: 'Insights', icon: Lightbulb },
@@ -420,9 +484,7 @@ export default function Analytics() {
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  period === p
-                    ? 'bg-brand-500/20 text-brand-400'
-                    : 'text-dark-400 hover:text-white'
+                  period === p ? 'bg-brand-500/20 text-brand-400' : 'text-dark-400 hover:text-white'
                 }`}
               >
                 {p === '7d' ? '7j' : p === '30d' ? '30j' : '90j'}
@@ -557,11 +619,7 @@ export default function Analytics() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(enhancedData.channels).map(([channel, channelData]) => (
-                  <ChannelPerformanceCard
-                    key={channel}
-                    channel={channel}
-                    data={channelData}
-                  />
+                  <ChannelPerformanceCard key={channel} channel={channel} data={channelData} />
                 ))}
               </div>
 
@@ -572,12 +630,24 @@ export default function Analytics() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-dark-800">
-                        <th className="text-left px-4 py-3 text-xs font-medium text-dark-400 uppercase">Canal</th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">Envoyes</th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">Ouverture</th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">Reponse</th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">Conversion</th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">Cout/Conv.</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                          Canal
+                        </th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                          Envoyes
+                        </th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                          Ouverture
+                        </th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                          Reponse
+                        </th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                          Conversion
+                        </th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                          Cout/Conv.
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-dark-800/50">
@@ -585,27 +655,40 @@ export default function Analytics() {
                         const config = CHANNELS[channel]
                         if (!config) return null
                         const Icon = config.icon
-                        const openRate = d.delivered > 0 ? Math.round((d.opened / d.delivered) * 100) : 0
-                        const replyRate = d.opened > 0 ? Math.round((d.replied / d.opened) * 100) : 0
-                        const convRate = d.replied > 0 ? Math.round((d.converted / d.replied) * 100) : 0
+                        const openRate =
+                          d.delivered > 0 ? Math.round((d.opened / d.delivered) * 100) : 0
+                        const replyRate =
+                          d.opened > 0 ? Math.round((d.replied / d.opened) * 100) : 0
+                        const convRate =
+                          d.replied > 0 ? Math.round((d.converted / d.replied) * 100) : 0
 
                         return (
                           <tr key={channel} className="hover:bg-dark-800/30">
                             <td className="px-4 py-4">
                               <div className="flex items-center gap-2">
                                 <Icon className={`w-4 h-4 ${config.color}`} />
-                                <span className="text-sm font-medium text-white">{config.label}</span>
+                                <span className="text-sm font-medium text-white">
+                                  {config.label}
+                                </span>
                               </div>
                             </td>
                             <td className="px-4 py-4 text-sm text-dark-300 text-right">{d.sent}</td>
                             <td className="px-4 py-4 text-sm text-right">
-                              <span className={openRate >= 50 ? 'text-brand-400' : 'text-dark-400'}>{openRate}%</span>
+                              <span className={openRate >= 50 ? 'text-brand-400' : 'text-dark-400'}>
+                                {openRate}%
+                              </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-right">
-                              <span className={replyRate >= 15 ? 'text-brand-400' : 'text-dark-400'}>{replyRate}%</span>
+                              <span
+                                className={replyRate >= 15 ? 'text-brand-400' : 'text-dark-400'}
+                              >
+                                {replyRate}%
+                              </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-right">
-                              <span className={convRate >= 10 ? 'text-brand-400' : 'text-dark-400'}>{convRate}%</span>
+                              <span className={convRate >= 10 ? 'text-brand-400' : 'text-dark-400'}>
+                                {convRate}%
+                              </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-dark-300 text-right">
                               {d.converted > 0 ? Math.round(50 / d.converted) : '-'} EUR
@@ -640,7 +723,10 @@ export default function Analytics() {
                       <div key={item.label} className="flex items-center gap-3">
                         <div className="w-32 text-sm text-dark-400">{item.label}</div>
                         <div className="flex-1 h-3 bg-dark-800 rounded-full overflow-hidden">
-                          <div className={`h-full ${item.color}`} style={{ width: `${(item.cost / 450) * 100}%` }} />
+                          <div
+                            className={`h-full ${item.color}`}
+                            style={{ width: `${(item.cost / 450) * 100}%` }}
+                          />
                         </div>
                         <div className="w-16 text-sm text-dark-300 text-right">{item.cost} EUR</div>
                       </div>
@@ -659,9 +745,14 @@ export default function Analytics() {
                       <div key={item.label} className="flex items-center gap-3">
                         <div className="w-32 text-sm text-dark-400">{item.label}</div>
                         <div className="flex-1 h-3 bg-dark-800 rounded-full overflow-hidden">
-                          <div className={`h-full ${item.color}`} style={{ width: `${(item.revenue / 2800) * 100}%` }} />
+                          <div
+                            className={`h-full ${item.color}`}
+                            style={{ width: `${(item.revenue / 2800) * 100}%` }}
+                          />
                         </div>
-                        <div className="w-20 text-sm text-dark-300 text-right">{item.revenue} EUR</div>
+                        <div className="w-20 text-sm text-dark-300 text-right">
+                          {item.revenue} EUR
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -749,7 +840,9 @@ export default function Analytics() {
                       <div>
                         <p className="font-medium text-white">Augmentez l'utilisation du SMS</p>
                         <p className="text-sm text-dark-400 mt-1">
-                          Avec 23% de taux de reponse, le SMS est votre canal le plus performant mais represente seulement 8% de vos envois. Doublez son utilisation pour maximiser vos conversions.
+                          Avec 23% de taux de reponse, le SMS est votre canal le plus performant
+                          mais represente seulement 8% de vos envois. Doublez son utilisation pour
+                          maximiser vos conversions.
                         </p>
                       </div>
                     </div>
@@ -762,7 +855,9 @@ export default function Analytics() {
                       <div>
                         <p className="font-medium text-white">Optimisez vos objets d'email</p>
                         <p className="text-sm text-dark-400 mt-1">
-                          Les objets contenant une question ont 34% d'ouverture en plus. Testez des formulations comme "Question rapide sur [sujet]" ou "Avez-vous 2 minutes ?"
+                          Les objets contenant une question ont 34% d'ouverture en plus. Testez des
+                          formulations comme "Question rapide sur [sujet]" ou "Avez-vous 2 minutes
+                          ?"
                         </p>
                       </div>
                     </div>
@@ -775,7 +870,8 @@ export default function Analytics() {
                       <div>
                         <p className="font-medium text-white">Ajoutez une etape vocale</p>
                         <p className="text-sm text-dark-400 mt-1">
-                          Les sequences avec message vocal en etape 4 ont 18% de conversions en plus. Ajoutez un voicemail personnalise apres vos emails.
+                          Les sequences avec message vocal en etape 4 ont 18% de conversions en
+                          plus. Ajoutez un voicemail personnalise apres vos emails.
                         </p>
                       </div>
                     </div>
@@ -793,25 +889,41 @@ export default function Analytics() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-dark-800/50">
-                      <th className="text-left px-4 py-3 text-xs font-medium text-dark-400 uppercase">Client</th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">Envoyes</th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">Taux ouv.</th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">Taux rep.</th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">Performance</th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        Client
+                      </th>
+                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        Envoyes
+                      </th>
+                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        Taux ouv.
+                      </th>
+                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        Taux rep.
+                      </th>
+                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        Performance
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-dark-800/30">
                     {data.byClient.map((client, i) => (
                       <tr key={i} className="hover:bg-dark-800/30">
                         <td className="px-4 py-4 text-sm font-medium text-white">{client.name}</td>
-                        <td className="px-4 py-4 text-sm text-dark-300 text-center">{client.sent}</td>
+                        <td className="px-4 py-4 text-sm text-dark-300 text-center">
+                          {client.sent}
+                        </td>
                         <td className="px-4 py-4 text-sm text-center">
-                          <span className={client.openRate >= 55 ? 'text-brand-400' : 'text-dark-300'}>
+                          <span
+                            className={client.openRate >= 55 ? 'text-brand-400' : 'text-dark-300'}
+                          >
                             {client.openRate}%
                           </span>
                         </td>
                         <td className="px-4 py-4 text-sm text-center">
-                          <span className={client.replyRate >= 12 ? 'text-brand-400' : 'text-dark-300'}>
+                          <span
+                            className={client.replyRate >= 12 ? 'text-brand-400' : 'text-dark-300'}
+                          >
                             {client.replyRate}%
                           </span>
                         </td>

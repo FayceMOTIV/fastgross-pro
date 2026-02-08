@@ -46,14 +46,37 @@ const INTEGRATIONS = {
     bg: 'bg-orange-500/10',
     border: 'border-orange-500/20',
     logo: '/logos/aws.svg',
-    features: ['SMTP relay', 'API transactionnelle', 'Tracking ouvertures/clics', 'Le moins cher du marche'],
+    features: [
+      'SMTP relay',
+      'API transactionnelle',
+      'Tracking ouvertures/clics',
+      'Le moins cher du marche',
+    ],
     docs: 'https://docs.aws.amazon.com/ses/',
     authType: 'credentials',
     fields: [
-      { key: 'accessKeyId', label: 'Access Key ID', type: 'text', required: true, placeholder: 'AKIA...' },
+      {
+        key: 'accessKeyId',
+        label: 'Access Key ID',
+        type: 'text',
+        required: true,
+        placeholder: 'AKIA...',
+      },
       { key: 'secretAccessKey', label: 'Secret Access Key', type: 'password', required: true },
-      { key: 'region', label: 'Region AWS', type: 'text', required: true, placeholder: 'eu-west-3' },
-      { key: 'senderEmail', label: 'Email expediteur verifie', type: 'email', required: true, placeholder: 'contact@votredomaine.com' },
+      {
+        key: 'region',
+        label: 'Region AWS',
+        type: 'text',
+        required: true,
+        placeholder: 'eu-west-3',
+      },
+      {
+        key: 'senderEmail',
+        label: 'Email expediteur verifie',
+        type: 'email',
+        required: true,
+        placeholder: 'contact@votredomaine.com',
+      },
     ],
   },
   saleshandy: {
@@ -67,7 +90,12 @@ const INTEGRATIONS = {
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/20',
     logo: '/logos/saleshandy.svg',
-    features: ['Comptes email illimites', 'Base B2B 700M+ contacts', 'Warmup integre', 'AI sequence generator'],
+    features: [
+      'Comptes email illimites',
+      'Base B2B 700M+ contacts',
+      'Warmup integre',
+      'AI sequence generator',
+    ],
     docs: 'https://www.saleshandy.com/developers/',
     authType: 'api_key',
     fields: [
@@ -90,10 +118,16 @@ const INTEGRATIONS = {
     docs: 'https://www.budgetsms.net/api/',
     authType: 'credentials',
     fields: [
-      { key: 'username', label: 'Nom d\'utilisateur', type: 'text', required: true },
+      { key: 'username', label: "Nom d'utilisateur", type: 'text', required: true },
       { key: 'userId', label: 'User ID', type: 'text', required: true },
       { key: 'handle', label: 'Handle', type: 'password', required: true },
-      { key: 'senderId', label: 'Sender ID', type: 'text', required: true, placeholder: 'FaceMedia' },
+      {
+        key: 'senderId',
+        label: 'Sender ID',
+        type: 'text',
+        required: true,
+        placeholder: 'FaceMedia',
+      },
     ],
   },
   evolutionapi: {
@@ -107,13 +141,30 @@ const INTEGRATIONS = {
     bg: 'bg-green-500/10',
     border: 'border-green-500/20',
     logo: '/logos/evolutionapi.svg',
-    features: ['Self-hosted gratuit', 'Dual-mode Baileys/Cloud API', 'Multi-instances', 'Integration Typebot/Chatwoot'],
+    features: [
+      'Self-hosted gratuit',
+      'Dual-mode Baileys/Cloud API',
+      'Multi-instances',
+      'Integration Typebot/Chatwoot',
+    ],
     docs: 'https://github.com/EvolutionAPI/evolution-api',
     authType: 'api_key',
     fields: [
-      { key: 'apiUrl', label: 'URL Evolution API', type: 'url', required: true, placeholder: 'https://votre-instance.com' },
+      {
+        key: 'apiUrl',
+        label: 'URL Evolution API',
+        type: 'url',
+        required: true,
+        placeholder: 'https://votre-instance.com',
+      },
       { key: 'apiKey', label: 'Cle API', type: 'password', required: true },
-      { key: 'instanceName', label: 'Nom de l\'instance', type: 'text', required: true, placeholder: 'facemedia-prod' },
+      {
+        key: 'instanceName',
+        label: "Nom de l'instance",
+        type: 'text',
+        required: true,
+        placeholder: 'facemedia-prod',
+      },
     ],
   },
   manychat: {
@@ -147,12 +198,23 @@ const INTEGRATIONS = {
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/20',
     logo: '/logos/mercifacteur.svg',
-    features: ['Lettres recommandees', 'Cartes postales', 'Suivi envois', 'Templates personnalises'],
+    features: [
+      'Lettres recommandees',
+      'Cartes postales',
+      'Suivi envois',
+      'Templates personnalises',
+    ],
     docs: 'https://www.merci-facteur.com/api/',
     authType: 'api_key',
     fields: [
       { key: 'apiKey', label: 'Cle API', type: 'password', required: true },
-      { key: 'senderAddress', label: 'Adresse expediteur', type: 'textarea', required: true, placeholder: 'Nom\nAdresse\nCode postal Ville' },
+      {
+        key: 'senderAddress',
+        label: 'Adresse expediteur',
+        type: 'textarea',
+        required: true,
+        placeholder: 'Nom\nAdresse\nCode postal Ville',
+      },
     ],
   },
   ringover: {
@@ -177,7 +239,7 @@ const INTEGRATIONS = {
   windmill: {
     id: 'windmill',
     name: 'Windmill',
-    description: 'Orchestrateur code-first - 13x plus rapide qu\'Airflow',
+    description: "Orchestrateur code-first - 13x plus rapide qu'Airflow",
     category: 'automation',
     channel: null,
     icon: Bot,
@@ -185,13 +247,30 @@ const INTEGRATIONS = {
     bg: 'bg-teal-500/10',
     border: 'border-teal-500/20',
     logo: '/logos/windmill.svg',
-    features: ['Scripts Python/TS/Go/Bash', 'Auto-genere des UIs', 'Self-hosted gratuit', 'Webhooks natifs'],
+    features: [
+      'Scripts Python/TS/Go/Bash',
+      'Auto-genere des UIs',
+      'Self-hosted gratuit',
+      'Webhooks natifs',
+    ],
     docs: 'https://www.windmill.dev/docs/',
     authType: 'webhook',
     fields: [
-      { key: 'baseUrl', label: 'URL Windmill', type: 'url', required: true, placeholder: 'https://votre-windmill.com' },
-      { key: 'token', label: 'Token d\'acces', type: 'password', required: true },
-      { key: 'workspace', label: 'Workspace', type: 'text', required: true, placeholder: 'facemedia' },
+      {
+        key: 'baseUrl',
+        label: 'URL Windmill',
+        type: 'url',
+        required: true,
+        placeholder: 'https://votre-windmill.com',
+      },
+      { key: 'token', label: "Token d'acces", type: 'password', required: true },
+      {
+        key: 'workspace',
+        label: 'Workspace',
+        type: 'text',
+        required: true,
+        placeholder: 'facemedia',
+      },
     ],
   },
 }
@@ -409,26 +488,28 @@ export default function Integrations() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className={`glass-card p-5 transition-all ${
-                isConnected
-                  ? 'border-brand-500/30 bg-brand-500/5'
-                  : 'hover:border-dark-600'
+                isConnected ? 'border-brand-500/30 bg-brand-500/5' : 'hover:border-dark-600'
               }`}
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl ${integration.bg} border ${integration.border} flex items-center justify-center`}>
+                  <div
+                    className={`w-12 h-12 rounded-xl ${integration.bg} border ${integration.border} flex items-center justify-center`}
+                  >
                     <Icon className={`w-6 h-6 ${integration.color}`} />
                   </div>
                   <div>
                     <h3 className="font-medium text-white">{integration.name}</h3>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      isConnected
-                        ? 'bg-brand-500/10 text-brand-400'
-                        : isPending
-                        ? 'bg-amber-500/10 text-amber-400'
-                        : 'bg-dark-800 text-dark-400'
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        isConnected
+                          ? 'bg-brand-500/10 text-brand-400'
+                          : isPending
+                            ? 'bg-amber-500/10 text-amber-400'
+                            : 'bg-dark-800 text-dark-400'
+                      }`}
+                    >
                       {isConnected ? 'Connectee' : isPending ? 'En attente' : 'Non connectee'}
                     </span>
                   </div>
@@ -518,9 +599,7 @@ export default function Integrations() {
         <div className="glass-card p-12 text-center">
           <Plug className="w-12 h-12 text-dark-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">Aucune integration trouvee</h3>
-          <p className="text-dark-400">
-            Essayez de modifier votre filtre
-          </p>
+          <p className="text-dark-400">Essayez de modifier votre filtre</p>
         </div>
       )}
 
@@ -544,7 +623,9 @@ export default function Integrations() {
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-dark-800">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg ${selectedIntegration.bg} border ${selectedIntegration.border} flex items-center justify-center`}>
+                  <div
+                    className={`w-10 h-10 rounded-lg ${selectedIntegration.bg} border ${selectedIntegration.border} flex items-center justify-center`}
+                  >
                     {(() => {
                       const Icon = selectedIntegration.icon
                       return <Icon className={`w-5 h-5 ${selectedIntegration.color}`} />
@@ -554,7 +635,8 @@ export default function Integrations() {
                     <h2 className="font-bold text-white">{selectedIntegration.name}</h2>
                     <p className="text-xs text-dark-400">
                       {selectedIntegration.authType === 'api_key' && 'Authentification par cle API'}
-                      {selectedIntegration.authType === 'credentials' && 'Authentification par identifiants'}
+                      {selectedIntegration.authType === 'credentials' &&
+                        'Authentification par identifiants'}
                       {selectedIntegration.authType === 'oauth' && 'Authentification OAuth'}
                       {selectedIntegration.authType === 'webhook' && 'Configuration webhook'}
                     </p>
@@ -592,7 +674,9 @@ export default function Integrations() {
                       {field.type === 'textarea' ? (
                         <textarea
                           value={formData[field.key] || ''}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
+                          }
                           placeholder={field.placeholder}
                           rows={3}
                           className="input-field w-full resize-none"
@@ -605,11 +689,13 @@ export default function Integrations() {
                               field.type === 'password' && !showSecrets[field.key]
                                 ? 'password'
                                 : field.type === 'password'
-                                ? 'text'
-                                : field.type
+                                  ? 'text'
+                                  : field.type
                             }
                             value={formData[field.key] || ''}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
+                            }
                             placeholder={field.placeholder}
                             className="input-field w-full pr-20"
                             disabled={!canManageIntegrations}
@@ -657,8 +743,8 @@ export default function Integrations() {
                         className="text-brand-400 hover:underline"
                       >
                         documentation officielle
-                      </a>
-                      {' '}pour obtenir vos identifiants.
+                      </a>{' '}
+                      pour obtenir vos identifiants.
                     </p>
                   </div>
                 </div>

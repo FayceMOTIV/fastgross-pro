@@ -95,9 +95,7 @@ export default function EmailPreview({
         </div>
 
         {/* Body */}
-        <div className="text-dark-200 leading-relaxed text-sm">
-          {formatBody(body)}
-        </div>
+        <div className="text-dark-200 leading-relaxed text-sm">{formatBody(body)}</div>
       </div>
     </div>
   )

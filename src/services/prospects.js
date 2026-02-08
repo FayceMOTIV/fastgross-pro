@@ -26,14 +26,49 @@ import { db } from '@/lib/firebase'
 
 // Prospect status definitions
 export const PROSPECT_STATUS = {
-  new: { label: 'Nouveau', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  contacted: { label: 'Contacte', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-  opened: { label: 'A ouvert', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-  clicked: { label: 'A clique', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
-  replied: { label: 'A repondu', color: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20' },
-  converted: { label: 'Converti', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  new: {
+    label: 'Nouveau',
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/20',
+  },
+  contacted: {
+    label: 'Contacte',
+    color: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+  },
+  opened: {
+    label: 'A ouvert',
+    color: 'text-purple-400',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/20',
+  },
+  clicked: {
+    label: 'A clique',
+    color: 'text-pink-400',
+    bg: 'bg-pink-500/10',
+    border: 'border-pink-500/20',
+  },
+  replied: {
+    label: 'A repondu',
+    color: 'text-brand-400',
+    bg: 'bg-brand-500/10',
+    border: 'border-brand-500/20',
+  },
+  converted: {
+    label: 'Converti',
+    color: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/20',
+  },
   lost: { label: 'Perdu', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-  blacklisted: { label: 'Blackliste', color: 'text-dark-500', bg: 'bg-dark-800', border: 'border-dark-700' },
+  blacklisted: {
+    label: 'Blackliste',
+    color: 'text-dark-500',
+    bg: 'bg-dark-800',
+    border: 'border-dark-700',
+  },
 }
 
 // Channel definitions
@@ -201,18 +236,17 @@ export async function getProspects(orgId, options = {}) {
   let filtered = prospects
 
   if (tags?.length > 0) {
-    filtered = filtered.filter((p) =>
-      tags.some((tag) => p.tags?.includes(tag))
-    )
+    filtered = filtered.filter((p) => tags.some((tag) => p.tags?.includes(tag)))
   }
 
   if (search) {
     const searchLower = search.toLowerCase()
-    filtered = filtered.filter((p) =>
-      p.firstName?.toLowerCase().includes(searchLower) ||
-      p.lastName?.toLowerCase().includes(searchLower) ||
-      p.email?.toLowerCase().includes(searchLower) ||
-      p.company?.toLowerCase().includes(searchLower)
+    filtered = filtered.filter(
+      (p) =>
+        p.firstName?.toLowerCase().includes(searchLower) ||
+        p.lastName?.toLowerCase().includes(searchLower) ||
+        p.email?.toLowerCase().includes(searchLower) ||
+        p.company?.toLowerCase().includes(searchLower)
     )
   }
 
@@ -373,7 +407,9 @@ export async function importProspects(orgId, prospects, createdBy) {
  * Add activity to prospect
  */
 export async function addProspectActivity(orgId, prospectId, activity) {
-  const activityRef = doc(collection(db, 'organizations', orgId, 'prospects', prospectId, 'activities'))
+  const activityRef = doc(
+    collection(db, 'organizations', orgId, 'prospects', prospectId, 'activities')
+  )
 
   await setDoc(activityRef, {
     ...activity,
@@ -436,7 +472,12 @@ export function subscribeToProspects(orgId, callback, options = {}) {
   let q = query(prospectsRef(orgId), orderBy('updatedAt', 'desc'), limit(100))
 
   if (options.status) {
-    q = query(prospectsRef(orgId), where('status', '==', options.status), orderBy('updatedAt', 'desc'), limit(100))
+    q = query(
+      prospectsRef(orgId),
+      where('status', '==', options.status),
+      orderBy('updatedAt', 'desc'),
+      limit(100)
+    )
   }
 
   return onSnapshot(q, (snapshot) => {

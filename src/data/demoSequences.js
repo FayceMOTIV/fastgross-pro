@@ -1,12 +1,12 @@
 export const demoSequences = {
   expert: {
-    name: "Séquence Expert",
+    name: 'Séquence Expert',
     description: "Approche d'autorité et d'expertise",
-    icon: "Target",
-    color: "brand",
+    icon: 'Target',
+    color: 'brand',
     emails: [
       {
-        subject: "Question rapide sur votre stratégie digitale",
+        subject: 'Question rapide sur votre stratégie digitale',
         body: `Bonjour {prénom},
 
 J'ai analysé {entreprise} et votre positionnement sur le marché. Ce qui m'a frappé, c'est la qualité de votre offre — mais je pense que votre visibilité en ligne ne lui rend pas justice.
@@ -16,8 +16,8 @@ J'ai identifié 3 leviers concrets qui pourraient doubler votre flux de prospect
 Seriez-vous ouvert à un échange de 15 min cette semaine ?
 
 {signature}`,
-        delay: "Jour 1",
-        psychology: "Curiosité + Valeur immédiate"
+        delay: 'Jour 1',
+        psychology: 'Curiosité + Valeur immédiate',
       },
       {
         subject: "Les 3 leviers que j'ai identifiés pour {entreprise}",
@@ -33,8 +33,8 @@ Concrètement, voici ce que j'ai trouvé :
 J'ai préparé un mini-audit gratuit de 2 pages. Voulez-vous que je vous l'envoie ?
 
 {signature}`,
-        delay: "Jour 3",
-        psychology: "Preuve sociale + Réciprocité"
+        delay: 'Jour 3',
+        psychology: 'Preuve sociale + Réciprocité',
       },
       {
         subject: "L'audit de {entreprise} est prêt",
@@ -50,11 +50,11 @@ Quel créneau vous conviendrait ?
 • Ou proposez-moi le vôtre
 
 {signature}`,
-        delay: "Jour 6",
-        psychology: "Engagement + Options limitées"
+        delay: 'Jour 6',
+        psychology: 'Engagement + Options limitées',
       },
       {
-        subject: "Dernière relance — je ne vais pas insister",
+        subject: 'Dernière relance — je ne vais pas insister',
         body: `{prénom},
 
 Je comprends que votre agenda est chargé. C'est mon dernier message sur ce sujet.
@@ -65,20 +65,20 @@ Mais si vous voulez en discuter dans les prochaines semaines/mois, ma porte rest
 
 Belle continuation,
 {signature}`,
-        delay: "Jour 10",
-        psychology: "Rareté + Porte ouverte"
-      }
-    ]
+        delay: 'Jour 10',
+        psychology: 'Rareté + Porte ouverte',
+      },
+    ],
   },
 
   friendly: {
-    name: "Séquence Amicale",
-    description: "Ton conversationnel et accessible",
-    icon: "Heart",
-    color: "pink",
+    name: 'Séquence Amicale',
+    description: 'Ton conversationnel et accessible',
+    icon: 'Heart',
+    color: 'pink',
     emails: [
       {
-        subject: "Hello depuis Paris 👋",
+        subject: 'Hello depuis Paris 👋',
         body: `Hey {prénom},
 
 Je suis tombé sur {entreprise} en faisant ma veille et j'ai été impressionné. Franchement, vous faites les choses bien.
@@ -89,11 +89,11 @@ Je bosse avec des boîtes comme la vôtre pour les aider à générer plus de pr
 
 À bientôt peut-être,
 {signature}`,
-        delay: "Jour 1",
-        psychology: "Sympathie + Authenticité"
+        delay: 'Jour 1',
+        psychology: 'Sympathie + Authenticité',
       },
       {
-        subject: "Re: Petit truc qui pourrait vous intéresser",
+        subject: 'Re: Petit truc qui pourrait vous intéresser',
         body: `{prénom},
 
 Je repensais à {entreprise} ce matin (oui, j'ai une vie passionnante 😄).
@@ -103,11 +103,11 @@ J'ai noté 2-3 idées qui pourraient vous aider à générer plus de leads sans 
 Si ça vous intéresse, je vous les partage volontiers. Sinon, pas de souci !
 
 {signature}`,
-        delay: "Jour 4",
-        psychology: "Humour + Désengagement"
+        delay: 'Jour 4',
+        psychology: 'Humour + Désengagement',
       },
       {
-        subject: "Question rapide",
+        subject: 'Question rapide',
         body: `{prénom},
 
 Juste pour savoir — est-ce que la croissance de {entreprise} est un sujet pour vous en ce moment ?
@@ -116,8 +116,8 @@ Si oui, je pense qu'on devrait discuter.
 Si non, promis je vous laisse tranquille 🙂
 
 {signature}`,
-        delay: "Jour 7",
-        psychology: "Simplicité + Respect"
+        delay: 'Jour 7',
+        psychology: 'Simplicité + Respect',
       },
       {
         subject: "Ok, j'ai compris 😅",
@@ -130,20 +130,20 @@ Je ne vais pas vous spammer avec 47 relances. Mais si un jour vous cherchez quel
 Bonne continuation avec {entreprise} !
 
 {signature}`,
-        delay: "Jour 12",
-        psychology: "Humour + Sortie élégante"
-      }
-    ]
+        delay: 'Jour 12',
+        psychology: 'Humour + Sortie élégante',
+      },
+    ],
   },
 
   challenger: {
-    name: "Séquence Challenger",
-    description: "Remise en question constructive",
-    icon: "Zap",
-    color: "amber",
+    name: 'Séquence Challenger',
+    description: 'Remise en question constructive',
+    icon: 'Zap',
+    color: 'amber',
     emails: [
       {
-        subject: "Ce que vos concurrents font (et pas vous)",
+        subject: 'Ce que vos concurrents font (et pas vous)',
         body: `{prénom},
 
 J'ai passé 30 minutes à analyser {entreprise} et vos 3 principaux concurrents.
@@ -155,11 +155,11 @@ Je ne dis pas que vous avez tort. Mais je me demande si c'est un choix stratégi
 Je peux vous montrer exactement ce qu'ils font en 15 min. Intéressé ?
 
 {signature}`,
-        delay: "Jour 1",
-        psychology: "FOMO + Challenge"
+        delay: 'Jour 1',
+        psychology: 'FOMO + Challenge',
       },
       {
-        subject: "Question provocante",
+        subject: 'Question provocante',
         body: `{prénom},
 
 Combien de prospects qualifiés {entreprise} génère par mois ?
@@ -171,11 +171,11 @@ Les entreprises que j'accompagne passent de "quelques leads par mois" à "plusie
 On en parle ?
 
 {signature}`,
-        delay: "Jour 4",
-        psychology: "Question directe + Promesse"
+        delay: 'Jour 4',
+        psychology: 'Question directe + Promesse',
       },
       {
-        subject: "Pourquoi vous perdez des clients",
+        subject: 'Pourquoi vous perdez des clients',
         body: `{prénom},
 
 Ce n'est pas votre offre le problème. C'est votre visibilité.
@@ -187,11 +187,11 @@ Je peux vous montrer exactement où ça coince et comment corriger le tir.
 15 min de votre temps. Zéro engagement. Juste des faits.
 
 {signature}`,
-        delay: "Jour 7",
-        psychology: "Douleur + Solution"
+        delay: 'Jour 7',
+        psychology: 'Douleur + Solution',
       },
       {
-        subject: "Dernière chance",
+        subject: 'Dernière chance',
         body: `{prénom},
 
 Je vais être direct : je pense que {entreprise} passe à côté d'une opportunité de croissance significative.
@@ -202,17 +202,17 @@ Soit j'ai raison, et vous perdez de l'argent chaque jour qui passe.
 Un appel de 15 min pour en avoir le cœur net ?
 
 {signature}`,
-        delay: "Jour 11",
-        psychology: "Urgence + Alternative"
-      }
-    ]
+        delay: 'Jour 11',
+        psychology: 'Urgence + Alternative',
+      },
+    ],
   },
 
   storyteller: {
-    name: "Séquence Storyteller",
-    description: "Approche narrative et engageante",
-    icon: "BookOpen",
-    color: "purple",
+    name: 'Séquence Storyteller',
+    description: 'Approche narrative et engageante',
+    icon: 'BookOpen',
+    color: 'purple',
     emails: [
       {
         subject: "L'histoire de Marc (qui ressemble à la vôtre)",
@@ -227,8 +227,8 @@ Puis il a changé une seule chose dans son approche. Aujourd'hui, il a plus de p
 Vous voulez savoir ce qu'il a changé ?
 
 {signature}`,
-        delay: "Jour 1",
-        psychology: "Identification + Curiosité"
+        delay: 'Jour 1',
+        psychology: 'Identification + Curiosité',
       },
       {
         subject: "La suite de l'histoire de Marc",
@@ -243,8 +243,8 @@ Résultat : son taux de réponse est passé de 2% à 23%.
 Le secret ? Une méthode que je serais ravi de vous montrer.
 
 {signature}`,
-        delay: "Jour 4",
-        psychology: "Révélation + Preuve"
+        delay: 'Jour 4',
+        psychology: 'Révélation + Preuve',
       },
       {
         subject: "Ce que Marc m'a dit hier",
@@ -259,11 +259,11 @@ Je ne veux pas que vous fassiez la même erreur.
 Un appel de 15 min pour voir si la méthode de Marc peut marcher pour {entreprise} ?
 
 {signature}`,
-        delay: "Jour 7",
-        psychology: "Témoignage + Regret anticipé"
+        delay: 'Jour 7',
+        psychology: 'Témoignage + Regret anticipé',
       },
       {
-        subject: "Épilogue",
+        subject: 'Épilogue',
         body: `{prénom},
 
 L'histoire de Marc s'est bien terminée. Il a 3 nouveaux clients par mois sans passer ses journées à prospecter.
@@ -274,34 +274,34 @@ Si vous changez d'avis, mon email n'a pas expiré.
 
 Bonne continuation,
 {signature}`,
-        delay: "Jour 12",
-        psychology: "Clôture narrative + Ouverture"
-      }
-    ]
-  }
-};
+        delay: 'Jour 12',
+        psychology: 'Clôture narrative + Ouverture',
+      },
+    ],
+  },
+}
 
 export const toneDescriptions = {
   expert: {
     label: '🎯 Expert',
     description: "Approche d'autorité et d'expertise. Idéal pour les secteurs B2B techniques.",
-    bestFor: ['Consultants', 'Agences tech', 'SaaS']
+    bestFor: ['Consultants', 'Agences tech', 'SaaS'],
   },
   friendly: {
     label: '🤝 Amical',
-    description: "Ton conversationnel et accessible. Parfait pour créer une relation humaine.",
-    bestFor: ['Services', 'Formation', 'Coaching']
+    description: 'Ton conversationnel et accessible. Parfait pour créer une relation humaine.',
+    bestFor: ['Services', 'Formation', 'Coaching'],
   },
   challenger: {
     label: '⚡ Challenger',
-    description: "Remise en question constructive. Efficace pour les décideurs pressés.",
-    bestFor: ['Grands comptes', 'Direction', 'Scale-ups']
+    description: 'Remise en question constructive. Efficace pour les décideurs pressés.',
+    bestFor: ['Grands comptes', 'Direction', 'Scale-ups'],
   },
   storyteller: {
     label: '📖 Storyteller',
-    description: "Approche narrative et engageante. Idéal pour se démarquer.",
-    bestFor: ['Marketing', 'Creative', 'Startups']
-  }
-};
+    description: 'Approche narrative et engageante. Idéal pour se démarquer.',
+    bestFor: ['Marketing', 'Creative', 'Startups'],
+  },
+}
 
-export default demoSequences;
+export default demoSequences
