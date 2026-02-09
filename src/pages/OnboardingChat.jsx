@@ -16,7 +16,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useDemo } from '@/hooks/useDemo'
+import { useDemo } from '@/contexts/DemoContext'
 
 const QUESTIONS = [
   {

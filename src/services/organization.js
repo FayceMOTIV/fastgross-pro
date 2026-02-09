@@ -5,6 +5,7 @@
 
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -222,18 +223,57 @@ export async function getOrganization(orgId) {
  * Get all organizations for a user
  */
 export async function getUserOrganizations(userId) {
-  const orgsSnapshot = await getDocs(collection(db, 'organizations'))
   const userOrgs = []
 
-  for (const orgDoc of orgsSnapshot.docs) {
-    const memberDoc = await getDoc(doc(db, 'organizations', orgDoc.id, 'members', userId))
-    if (memberDoc.exists() && memberDoc.data().status === 'active') {
-      userOrgs.push({
-        id: orgDoc.id,
-        ...orgDoc.data(),
-        role: memberDoc.data().role,
-        memberData: memberDoc.data(),
-      })
+  try {
+    // Query user's memberships using collectionGroup
+    const membershipsQuery = query(
+      collectionGroup(db, 'members'),
+      where('uid', '==', userId),
+      where('status', '==', 'active')
+    )
+
+    const membershipsSnapshot = await getDocs(membershipsQuery)
+
+    for (const memberDoc of membershipsSnapshot.docs) {
+      // Get org ID from parent path: organizations/{orgId}/members/{memberId}
+      const orgId = memberDoc.ref.parent.parent.id
+
+      try {
+        const orgDoc = await getDoc(doc(db, 'organizations', orgId))
+        if (orgDoc.exists()) {
+          userOrgs.push({
+            id: orgId,
+            ...orgDoc.data(),
+            role: memberDoc.data().role,
+            memberData: memberDoc.data(),
+          })
+        }
+      } catch (err) {
+        console.warn(`Could not fetch org ${orgId}:`, err.message)
+      }
+    }
+  } catch (err) {
+    console.warn('CollectionGroup query failed, trying alternative:', err.message)
+    // Fallback: check user profile for org references
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId))
+      if (userDoc.exists() && userDoc.data().defaultOrgId) {
+        const orgId = userDoc.data().defaultOrgId
+        const orgDoc = await getDoc(doc(db, 'organizations', orgId))
+        const memberDoc = await getDoc(doc(db, 'organizations', orgId, 'members', userId))
+
+        if (orgDoc.exists() && memberDoc.exists()) {
+          userOrgs.push({
+            id: orgId,
+            ...orgDoc.data(),
+            role: memberDoc.data().role,
+            memberData: memberDoc.data(),
+          })
+        }
+      }
+    } catch (fallbackErr) {
+      console.error('Fallback org fetch failed:', fallbackErr.message)
     }
   }
 

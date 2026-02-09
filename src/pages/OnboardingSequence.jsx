@@ -22,7 +22,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from 'lucide-react'
-import { useDemo } from '@/hooks/useDemo'
+import { useDemo } from '@/contexts/DemoContext'
 import { CHANNEL_STYLES, SEQUENCE_TEMPLATES } from '@/engine/multiChannelEngine'
 
 // Channel icon component

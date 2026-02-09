@@ -48,7 +48,7 @@ import DemoBanner, { DemoBadge } from '@/components/DemoBanner'
 import { useDashboardStats, useLeads, useCollection } from '@/hooks/useFirestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTour } from '@/components/OnboardingTour'
-import { useDemo } from '@/hooks/useDemo'
+import { useDemo } from '@/contexts/DemoContext'
 import {
   demoStats,
   demoDailyStats,

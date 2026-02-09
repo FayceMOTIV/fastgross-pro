@@ -14,7 +14,7 @@ import {
   Calendar,
   Star,
 } from 'lucide-react'
-import { useDemo } from '@/hooks/useDemo'
+import { useDemo } from '@/contexts/DemoContext'
 
 const PLANS = [
   {

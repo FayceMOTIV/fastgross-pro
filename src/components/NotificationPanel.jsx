@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { useDemo } from '@/hooks/useDemo'
+import { useDemo } from '@/contexts/DemoContext'
 import { demoNotifications } from '@/data/demoData'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
