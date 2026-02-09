@@ -55,6 +55,10 @@ function ProtectedRoute({ children }) {
 
   // Allow access if user is authenticated OR in demo mode
   if (user || isDemo) {
+    // Still loading profile, show loader
+    if (!isDemo && needsOnboarding === null) {
+      return <PageLoader />
+    }
     // Check if user needs to complete onboarding (skip for demo)
     if (!isDemo && needsOnboarding && !location.pathname.startsWith('/onboarding')) {
       return <Navigate to="/onboarding" replace />
@@ -78,6 +82,11 @@ function OnboardingRoute({ children }) {
     return <Navigate to="/login" replace />
   }
 
+  // Still loading profile, show loader
+  if (needsOnboarding === null) {
+    return <PageLoader />
+  }
+
   // If onboarding is complete, redirect to app
   if (!needsOnboarding) {
     return <Navigate to="/app" replace />
@@ -98,6 +107,10 @@ function PublicRoute({ children }) {
 
   // If user is logged in (and not in demo mode), redirect appropriately
   if (user && !isDemo) {
+    // Still loading profile, show loader
+    if (needsOnboarding === null) {
+      return <PageLoader />
+    }
     if (needsOnboarding) {
       return <Navigate to="/onboarding" replace />
     }

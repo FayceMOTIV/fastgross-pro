@@ -252,7 +252,13 @@ export function AuthProvider({ children }) {
   )
 
   // Check if onboarding needed
-  const needsOnboarding = userProfile && !userProfile.onboardingComplete
+  // Returns true if user exists but hasn't completed onboarding
+  // Returns null if we don't know yet (profile still loading)
+  const needsOnboarding = user
+    ? userProfile === null
+      ? null // Still loading profile
+      : !userProfile.onboardingComplete
+    : false
 
   // Full name helper
   const fullName =
