@@ -12,6 +12,9 @@ import {
   Loader2,
   Sparkles,
   PartyPopper,
+  Instagram,
+  Phone,
+  Send,
 } from 'lucide-react'
 import { useOnboardingFlow } from '@/contexts/OnboardingContext'
 import { useDemo } from '@/contexts/DemoContext'
@@ -41,6 +44,30 @@ const CHANNELS = [
     icon: MessageSquare,
     gradient: 'from-green-500 to-emerald-500',
     shadow: 'shadow-green-500/25',
+  },
+  {
+    id: 'instagram',
+    name: 'Instagram DM',
+    description: 'Messages prives',
+    icon: Instagram,
+    gradient: 'from-pink-500 to-rose-500',
+    shadow: 'shadow-pink-500/25',
+  },
+  {
+    id: 'voicemail',
+    name: 'Voicemail',
+    description: 'Messages vocaux',
+    icon: Phone,
+    gradient: 'from-violet-500 to-purple-500',
+    shadow: 'shadow-violet-500/25',
+  },
+  {
+    id: 'courrier',
+    name: 'Courrier',
+    description: 'Lettres postales',
+    icon: Send,
+    gradient: 'from-amber-500 to-orange-500',
+    shadow: 'shadow-amber-500/25',
   },
 ]
 
@@ -186,7 +213,7 @@ export default function OnboardingSequence() {
               </div>
               Canaux de communication
             </h3>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {CHANNELS.map((channel) => {
                 const isSelected = channels.includes(channel.id)
                 const Icon = channel.icon

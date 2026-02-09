@@ -14,9 +14,13 @@ const DEFAULT_DATA = {
   businessName: '',
   sector: '',
   offer: '',
+  website: '',
+  linkedin: '',
+  instagram: '',
   target: '',
   zone: '',
-  objective: '',
+  volume: '',
+  urgency: '',
 
   // Step 2: Plan selection
   selectedPlan: null,

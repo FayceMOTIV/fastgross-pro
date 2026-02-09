@@ -13,71 +13,136 @@ import {
   Rocket,
   Sparkles,
   Loader2,
+  Globe,
+  Instagram,
+  Linkedin,
+  AtSign,
+  TrendingUp,
+  DollarSign,
+  Clock,
 } from 'lucide-react'
 import { useOnboardingFlow } from '@/contexts/OnboardingContext'
 import { useDemo } from '@/contexts/DemoContext'
 
 const STEPS = [
   {
-    id: 'sector',
-    title: 'Votre secteur',
-    question: "Quel est votre secteur d'activite ?",
-    placeholder: 'Ex: Consultant marketing, Plombier, Agence web...',
-    suggestions: ['Agence marketing', 'Consultant', 'Artisan', 'Commerce', 'Freelance'],
+    id: 'businessName',
+    title: 'Votre entreprise',
+    question: 'Quel est le nom de votre entreprise ?',
+    placeholder: 'Ex: Mon Agence, Dupont Consulting...',
     icon: Building2,
     gradient: 'from-violet-500 to-purple-600',
     bgGradient: 'from-violet-500/20 to-purple-600/20',
   },
   {
-    id: 'offer',
-    title: 'Votre offre',
-    question: 'Decrivez votre offre principale en quelques mots.',
-    placeholder: 'Ex: Coaching business pour entrepreneurs',
+    id: 'sector',
+    title: 'Votre secteur',
+    question: "Dans quel secteur exercez-vous ?",
+    placeholder: 'Ex: Marketing digital, Plomberie, Coaching...',
+    suggestions: ['Agence marketing', 'Consultant', 'Artisan', 'E-commerce', 'SaaS', 'Formation'],
     icon: Briefcase,
     gradient: 'from-blue-500 to-cyan-500',
     bgGradient: 'from-blue-500/20 to-cyan-500/20',
   },
   {
-    id: 'target',
-    title: 'Votre cible',
-    question: 'Qui sont vos clients ideaux ?',
-    placeholder: 'Ex: PME de 10-50 salaries dans le BTP',
-    icon: Users,
+    id: 'offer',
+    title: 'Votre offre',
+    question: 'Quelle est votre offre principale et son prix moyen ?',
+    placeholder: 'Ex: Coaching business a 2000€, Sites web a partir de 3000€...',
+    icon: DollarSign,
     gradient: 'from-emerald-500 to-teal-500',
     bgGradient: 'from-emerald-500/20 to-teal-500/20',
   },
   {
-    id: 'zone',
-    title: 'Votre zone',
-    question: 'Dans quelle zone geographique souhaitez-vous prospecter ?',
-    placeholder: 'Ex: Paris, Lyon, Toute la France...',
-    suggestions: ['Paris', 'Lyon', 'Marseille', 'Ile-de-France', 'Toute la France'],
-    icon: MapPin,
+    id: 'website',
+    title: 'Votre site web',
+    question: 'Avez-vous un site web ? Si oui, quelle est l\'URL ?',
+    placeholder: 'Ex: https://monsite.com (ou "non" si pas de site)',
+    icon: Globe,
+    gradient: 'from-indigo-500 to-blue-500',
+    bgGradient: 'from-indigo-500/20 to-blue-500/20',
+  },
+  {
+    id: 'linkedin',
+    title: 'LinkedIn',
+    question: 'Quel est votre profil ou page LinkedIn ?',
+    placeholder: 'Ex: https://linkedin.com/in/monprofil (ou "non")',
+    icon: Linkedin,
+    gradient: 'from-blue-600 to-blue-700',
+    bgGradient: 'from-blue-600/20 to-blue-700/20',
+  },
+  {
+    id: 'instagram',
+    title: 'Instagram',
+    question: 'Avez-vous un compte Instagram professionnel ?',
+    placeholder: 'Ex: @moncompte (ou "non")',
+    icon: Instagram,
+    gradient: 'from-pink-500 to-rose-500',
+    bgGradient: 'from-pink-500/20 to-rose-500/20',
+  },
+  {
+    id: 'target',
+    title: 'Votre cible',
+    question: 'Decrivez votre client ideal (secteur, taille, poste)',
+    placeholder: 'Ex: Dirigeants de PME 10-50 salaries dans le BTP',
+    icon: Users,
     gradient: 'from-orange-500 to-amber-500',
     bgGradient: 'from-orange-500/20 to-amber-500/20',
   },
   {
-    id: 'objective',
-    title: 'Votre objectif',
-    question: 'Quel est votre objectif principal ?',
+    id: 'zone',
+    title: 'Zone geographique',
+    question: 'Dans quelle zone souhaitez-vous prospecter ?',
+    placeholder: 'Ex: Paris, Ile-de-France, Toute la France...',
+    suggestions: ['Paris', 'Lyon', 'Ile-de-France', 'France entiere', 'Europe', 'International'],
+    icon: MapPin,
+    gradient: 'from-red-500 to-orange-500',
+    bgGradient: 'from-red-500/20 to-orange-500/20',
+  },
+  {
+    id: 'volume',
+    title: 'Volume souhaite',
+    question: 'Combien de nouveaux clients souhaitez-vous par mois ?',
     type: 'choice',
     choices: [
-      { id: 'first_clients', label: 'Trouver mes premiers clients', icon: Rocket, gradient: 'from-pink-500 to-rose-500' },
-      { id: 'scale', label: 'Augmenter mon volume', icon: Target, gradient: 'from-violet-500 to-purple-500' },
-      { id: 'new_offer', label: 'Lancer une nouvelle offre', icon: Sparkles, gradient: 'from-amber-500 to-orange-500' },
-      { id: 'new_market', label: 'Tester un nouveau marche', icon: MapPin, gradient: 'from-emerald-500 to-teal-500' },
+      { id: '1-5', label: '1 a 5 clients', icon: Users, gradient: 'from-emerald-500 to-teal-500' },
+      { id: '5-15', label: '5 a 15 clients', icon: TrendingUp, gradient: 'from-blue-500 to-cyan-500' },
+      { id: '15-30', label: '15 a 30 clients', icon: Rocket, gradient: 'from-violet-500 to-purple-500' },
+      { id: '30+', label: '30+ clients', icon: Sparkles, gradient: 'from-amber-500 to-orange-500' },
     ],
     icon: Target,
-    gradient: 'from-pink-500 to-rose-600',
-    bgGradient: 'from-pink-500/20 to-rose-600/20',
+    gradient: 'from-purple-500 to-pink-500',
+    bgGradient: 'from-purple-500/20 to-pink-500/20',
+  },
+  {
+    id: 'urgency',
+    title: 'Votre urgence',
+    question: 'Quand souhaitez-vous demarrer votre prospection ?',
+    type: 'choice',
+    choices: [
+      { id: 'asap', label: 'Des maintenant', icon: Zap, gradient: 'from-red-500 to-rose-500' },
+      { id: 'week', label: 'Cette semaine', icon: Clock, gradient: 'from-orange-500 to-amber-500' },
+      { id: 'month', label: 'Ce mois-ci', icon: Target, gradient: 'from-blue-500 to-cyan-500' },
+      { id: 'exploring', label: 'Je decouvre', icon: Sparkles, gradient: 'from-violet-500 to-purple-500' },
+    ],
+    icon: Clock,
+    gradient: 'from-rose-500 to-pink-600',
+    bgGradient: 'from-rose-500/20 to-pink-600/20',
   },
 ]
 
-const OBJECTIVE_LABELS = {
-  first_clients: 'Trouver mes premiers clients',
-  scale: 'Augmenter mon volume',
-  new_offer: 'Lancer une nouvelle offre',
-  new_market: 'Tester un nouveau marche',
+const VOLUME_LABELS = {
+  '1-5': '1 a 5 clients/mois',
+  '5-15': '5 a 15 clients/mois',
+  '15-30': '15 a 30 clients/mois',
+  '30+': '30+ clients/mois',
+}
+
+const URGENCY_LABELS = {
+  'asap': 'Des maintenant',
+  'week': 'Cette semaine',
+  'month': 'Ce mois-ci',
+  'exploring': 'Je decouvre',
 }
 
 export default function OnboardingChat() {
@@ -87,11 +152,16 @@ export default function OnboardingChat() {
   const [currentStep, setCurrentStep] = useState(0)
   const [inputValue, setInputValue] = useState('')
   const [answers, setAnswers] = useState({
+    businessName: data.businessName || '',
     sector: data.sector || '',
     offer: data.offer || '',
+    website: data.website || '',
+    linkedin: data.linkedin || '',
+    instagram: data.instagram || '',
     target: data.target || '',
     zone: data.zone || '',
-    objective: data.objective || '',
+    volume: data.volume || '',
+    urgency: data.urgency || '',
   })
   const [showSummary, setShowSummary] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -134,9 +204,14 @@ export default function OnboardingChat() {
   }
 
   const handleChoiceClick = (choiceId) => {
-    const newAnswers = { ...answers, objective: choiceId }
+    const newAnswers = { ...answers, [step.id]: choiceId }
     setAnswers(newAnswers)
-    setShowSummary(true)
+
+    if (currentStep < STEPS.length - 1) {
+      setCurrentStep(currentStep + 1)
+    } else {
+      setShowSummary(true)
+    }
   }
 
   const handleSuggestionClick = (suggestion) => {
@@ -152,6 +227,14 @@ export default function OnboardingChat() {
   const handleModify = () => {
     setShowSummary(false)
     setCurrentStep(0)
+  }
+
+  const getDisplayValue = (item) => {
+    const value = answers[item.id]
+    if (!value) return '-'
+    if (item.id === 'volume') return VOLUME_LABELS[value] || value
+    if (item.id === 'urgency') return URGENCY_LABELS[value] || value
+    return value
   }
 
   return (
@@ -173,7 +256,7 @@ export default function OnboardingChat() {
               </div>
               <div>
                 <h1 className="font-display font-bold text-white text-lg">Face Media Factory</h1>
-                <p className="text-sm text-white/60">Etape 1 sur 3 - Votre profil</p>
+                <p className="text-sm text-white/60">Etape 1 sur 3 - Analyse de votre business</p>
               </div>
             </div>
             {isDemo && (
@@ -192,6 +275,9 @@ export default function OnboardingChat() {
               transition={{ duration: 0.5, ease: 'easeOut' }}
             />
           </div>
+          <p className="text-xs text-white/40 mt-2 text-center">
+            Question {currentStep + 1} sur {STEPS.length}
+          </p>
         </div>
       </header>
 
@@ -223,7 +309,7 @@ export default function OnboardingChat() {
                       {step?.question}
                     </h2>
                     <p className="text-white/60 text-sm mb-8">
-                      Question {currentStep + 1} sur {STEPS.length}
+                      {step?.title}
                     </p>
 
                     {/* Input or Choices */}
@@ -313,40 +399,38 @@ export default function OnboardingChat() {
 
                   <div className="relative">
                     {/* Header */}
-                    <div className="flex items-center gap-4 mb-8">
+                    <div className="flex items-center gap-4 mb-6">
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
                         <Check className="w-8 h-8 text-white" />
                       </div>
                       <div>
                         <h2 className="text-2xl font-display font-bold text-white">
-                          Votre profil
+                          Analyse complete
                         </h2>
-                        <p className="text-white/60">Verifiez que tout est correct</p>
+                        <p className="text-white/60">Verifiez votre profil</p>
                       </div>
                     </div>
 
-                    {/* Summary Items */}
-                    <div className="space-y-3 mb-8">
+                    {/* Summary Items - Scrollable */}
+                    <div className="space-y-2 mb-6 max-h-[40vh] overflow-y-auto pr-2">
                       {STEPS.map((item, index) => {
                         const Icon = item.icon
-                        const value = item.id === 'objective'
-                          ? OBJECTIVE_LABELS[answers[item.id]]
-                          : answers[item.id]
+                        const value = getDisplayValue(item)
 
                         return (
                           <motion.div
                             key={item.id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10"
+                            transition={{ delay: index * 0.05 }}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
                           >
-                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center flex-shrink-0`}>
-                              <Icon className="w-5 h-5 text-white" />
+                            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center flex-shrink-0`}>
+                              <Icon className="w-4 h-4 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-white/50 mb-0.5">{item.title}</p>
-                              <p className="text-white font-medium truncate">{value || '-'}</p>
+                              <p className="text-xs text-white/50">{item.title}</p>
+                              <p className="text-sm text-white font-medium truncate">{value}</p>
                             </div>
                           </motion.div>
                         )
@@ -375,12 +459,12 @@ export default function OnboardingChat() {
                         {isSubmitting ? (
                           <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            Chargement...
+                            Analyse IA...
                           </>
                         ) : (
                           <>
-                            Continuer
-                            <ArrowRight className="w-5 h-5" />
+                            <Sparkles className="w-5 h-5" />
+                            Generer ma strategie
                           </>
                         )}
                       </motion.button>
@@ -400,7 +484,7 @@ export default function OnboardingChat() {
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
             Donnees securisees
           </span>
-          <span>Configuration en 2 min</span>
+          <span>Analyse IA personnalisee</span>
         </div>
       </footer>
     </div>
