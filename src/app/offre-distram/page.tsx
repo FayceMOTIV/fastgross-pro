@@ -125,6 +125,8 @@ function ModeCard({
       </div>
       <Link
         href={link}
+        target="_blank"
+        rel="noopener noreferrer"
         className={cn("inline-flex items-center gap-2 font-semibold hover:gap-3 transition-all", c.text)}
       >
         Voir le mode {title} <ArrowRight className="w-4 h-4" />
@@ -728,6 +730,8 @@ export default function OffreDistramPage() {
 
               <Link
                 href="/assistant"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-1"
                 style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
               >
