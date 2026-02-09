@@ -701,8 +701,8 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: ShoppingCart, label: "Nouvelle commande", href: "/orders/new", color: "from-blue-500 to-indigo-600", shadow: "shadow-blue-500/25" },
-          { icon: Users, label: "Ajouter client", href: "/clients/new", color: "from-emerald-500 to-teal-600", shadow: "shadow-emerald-500/25" },
+          { icon: ShoppingCart, label: "Commandes", href: "/orders", color: "from-blue-500 to-indigo-600", shadow: "shadow-blue-500/25" },
+          { icon: Users, label: "Clients", href: "/clients", color: "from-emerald-500 to-teal-600", shadow: "shadow-emerald-500/25" },
           { icon: Package, label: "Gérer catalogue", href: "/catalogues", color: "from-amber-500 to-orange-600", shadow: "shadow-amber-500/25" },
           { icon: Zap, label: "Voir alertes", href: "/alerts", color: "from-rose-500 to-pink-600", shadow: "shadow-rose-500/25" },
         ].map((action) => (
