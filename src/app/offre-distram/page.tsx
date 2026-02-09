@@ -347,8 +347,7 @@ export default function OffreDistramPage() {
 
           <Reveal className="delay-200">
             <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
-              Hamza, on a construit cette plateforme pour que DISTRAM vende plus, perde moins de clients, et que tu
-              puisses enfin <span style={{ color: DISTRAM_COLORS.primary }}>dormir tranquille</span>.
+              Hamza, on a construit cette plateforme pour que ton équipe commerciale performe, que DISTRAM garde ses clients, et que tu puisses enfin <span style={{ color: DISTRAM_COLORS.primary }}>atteindre tes objectifs sereinement</span>.
             </p>
           </Reveal>
 
@@ -373,7 +372,7 @@ export default function OffreDistramPage() {
               </div>
               <div className="text-center">
                 <p className="text-3xl md:text-4xl font-bold text-white">24/7</p>
-                <p className="text-sm">IA qui vend pour vous</p>
+                <p className="text-sm">IA qui vend pour toi</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl md:text-4xl font-bold text-white">30 sec</p>
@@ -394,10 +393,10 @@ export default function OffreDistramPage() {
         <div className="container mx-auto px-4">
           <Reveal>
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-              On sait ce que tu vis, Hamza.
+              On sait ce que tu vis au quotidien, Hamza.
             </h2>
             <p className="text-center text-gray-500 mb-16 max-w-2xl mx-auto">
-              Après 30 ans à construire DISTRAM, tu mérites mieux que ça.
+              Gérer une équipe commerciale chez un grossiste de la taille de DISTRAM, c&apos;est pas simple.
             </p>
           </Reveal>
 
@@ -445,9 +444,9 @@ export default function OffreDistramPage() {
             <Reveal className="delay-500">
               <PainCard
                 emoji="😴"
-                title="Toi, à 23h"
-                description="T'es encore en train de penser au boulot. 'J'ai oublié de rappeler ce client.' 'Il faut que je vérifie les stocks.' Jamais tranquille."
-                cost="→ Ta santé, ta famille"
+                title="Tes objectifs, ta pression"
+                description="Tu dois faire performer 8 commerciaux sur 3 dépôts. Tu dois rendre des comptes à la direction. Mais t'as pas les bons outils pour suivre tout ça."
+                cost="→ Stress et manque de visibilité"
               />
             </Reveal>
           </div>
@@ -476,7 +475,7 @@ export default function OffreDistramPage() {
                 <div>
                   <h3 className="text-2xl font-bold mb-2">
                     Tu me connais, Hamza.{" "}
-                    <span style={{ color: DISTRAM_COLORS.primary }}>Je connais ton métier.</span>
+                    <span style={{ color: DISTRAM_COLORS.primary }}>Je connais les enjeux de DISTRAM.</span>
                   </h3>
                   <p className="text-gray-600 mb-4">
                     Tu sais que j&apos;ai dirigé{" "}
@@ -484,13 +483,11 @@ export default function OffreDistramPage() {
                     <span className="font-bold text-gray-900">15 ans dans la restauration</span>.
                   </p>
                   <p className="text-gray-600 mb-4">
-                    Je connais tes galères : les devis qui prennent des heures, les clients qui appellent à 22h, les
-                    livreurs qui tournent en rond, les commerciaux qui perdent des prospects.{" "}
-                    <span className="font-bold">Je les ai vécues.</span>
+                    Je connais les défis d&apos;une équipe commerciale chez un grossiste : les devis qui prennent des heures, le suivi des clients sur plusieurs dépôts, les commerciaux qui perdent du temps sur des tâches à faible valeur.{" "}
+                    <span className="font-bold">J&apos;ai managé des équipes comme la tienne.</span>
                   </p>
                   <p className="text-gray-600">
-                    Cette plateforme, je l&apos;ai construite pour résoudre les problèmes que j&apos;aurais voulu
-                    résoudre quand j&apos;étais à ta place.
+                    Cette plateforme, c&apos;est l&apos;outil que j&apos;aurais voulu avoir pour faire performer mes commerciaux et atteindre mes objectifs.
                   </p>
 
                   {/* Stats expérience */}
@@ -511,7 +508,7 @@ export default function OffreDistramPage() {
                       <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
                         23 ans
                       </p>
-                      <p className="text-sm text-gray-500">Dans ton secteur</p>
+                      <p className="text-sm text-gray-500">Dans ce secteur</p>
                     </div>
                   </div>
                 </div>
@@ -544,7 +541,7 @@ export default function OffreDistramPage() {
             <Reveal className="delay-100">
               <PromiseCard
                 before="Appels clients H24"
-                after="L'IA répond à votre place"
+                after="L'IA répond à ta place"
                 description="Questions, commandes, réclamations. L'IA gère. Même à 3h du matin."
               />
             </Reveal>
@@ -571,9 +568,9 @@ export default function OffreDistramPage() {
             </Reveal>
             <Reveal className="delay-500">
               <PromiseCard
-                before="Toi à 23h, stressé"
-                after="Toi à 23h, en famille"
-                description="L'IA veille. Tu reçois un résumé le matin. Dors tranquille."
+                before="Reporting manuel chronophage"
+                after="Dashboard temps réel automatique"
+                description="L'IA compile tout. Tu as les chiffres pour la direction sans effort."
               />
             </Reveal>
           </div>
@@ -588,7 +585,7 @@ export default function OffreDistramPage() {
               5 outils. 5 problèmes résolus.
             </h2>
             <p className="text-center text-gray-500 mb-16">
-              Chaque équipe a son interface. Chaque interface a un objectif : vous faire gagner.
+              Chaque équipe a son interface. Chaque interface a un objectif : te faire gagner.
             </p>
           </Reveal>
 
@@ -645,7 +642,7 @@ export default function OffreDistramPage() {
               <ModeCard
                 number="04"
                 title="Admin"
-                subtitle="Configurez tout, sans nous appeler"
+                subtitle="Configure tout, sans nous appeler"
                 icon={Settings}
                 color="gray"
                 benefits={[
@@ -761,7 +758,7 @@ export default function OffreDistramPage() {
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
               <span style={{ color: DISTRAM_COLORS.primary }}>FACE MEDIA</span> gère tout.
               <br />
-              Vous, vous vendez.
+              Toi, tu vends.
             </h2>
             <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">
               Pas besoin d&apos;embaucher un développeur. Pas besoin de comprendre la tech. On est là. Tout le temps.
@@ -805,7 +802,7 @@ export default function OffreDistramPage() {
             {/* Gains */}
             <Reveal>
               <div className="rounded-2xl p-8 mb-8" style={{ background: `${DISTRAM_COLORS.primary}15` }}>
-                <h3 className="text-xl font-bold mb-6">Ce que vous GAGNEZ chaque année :</h3>
+                <h3 className="text-xl font-bold mb-6">Ce que tu GAGNES chaque année :</h3>
                 <div className="space-y-4">
                   <ROILine label="Temps commercial récupéré" detail="2h/devis × 8 commerciaux × 200 devis/an" value="+78 000€" />
                   <ROILine label="Clients sauvés (anti-churn)" detail="10 clients × 12 000€/client" value="+120 000€" />
@@ -847,7 +844,7 @@ export default function OffreDistramPage() {
             {/* ROI */}
             <Reveal className="delay-200">
               <div className="bg-[#1A1A1A] text-white rounded-2xl p-8 text-center">
-                <p className="text-gray-400 mb-2">Ce que vous gagnez</p>
+                <p className="text-gray-400 mb-2">Ce que tu gagnes</p>
                 <p className="text-5xl font-black mb-2" style={{ color: DISTRAM_COLORS.primary }}>
                   +291 000€/an
                 </p>
