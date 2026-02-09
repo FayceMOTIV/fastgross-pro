@@ -32,6 +32,26 @@ import { useDemo } from '@/contexts/DemoContext'
 import { checkQuota, incrementUsage } from '@/services/quotas'
 import { createProspect } from '@/services/prospects'
 
+// Generate random French phone number
+const generateFrenchPhone = () => {
+  const prefixes = ['06', '07']
+  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+  const number = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)).join('')
+  return `+33 ${prefix} ${number.slice(0, 2)} ${number.slice(2, 4)} ${number.slice(4, 6)} ${number.slice(6, 8)}`
+}
+
+// French cities for mock addresses
+const FRENCH_CITIES = [
+  { city: 'Paris', postalCode: '75001', address: '12 Rue de Rivoli' },
+  { city: 'Lyon', postalCode: '69001', address: '45 Place Bellecour' },
+  { city: 'Marseille', postalCode: '13001', address: '28 La Canebiere' },
+  { city: 'Bordeaux', postalCode: '33000', address: '15 Place de la Bourse' },
+  { city: 'Lille', postalCode: '59000', address: '8 Grand Place' },
+  { city: 'Nantes', postalCode: '44000', address: '22 Rue Crebillon' },
+  { city: 'Toulouse', postalCode: '31000', address: '5 Place du Capitole' },
+  { city: 'Nice', postalCode: '06000', address: '18 Promenade des Anglais' },
+]
+
 // Mock scan data for demo/development
 const generateMockScan = (url) => {
   const domain = new URL(url).hostname.replace('www.', '')
@@ -40,6 +60,16 @@ const generateMockScan = (url) => {
   const industries = ['SaaS', 'E-commerce', 'Conseil', 'Marketing', 'Technologie', 'Finance', 'Sante']
   const sizes = ['TPE (1-10)', 'PME (10-50)', 'ETI (50-250)', 'GE (250+)']
   const tones = ['Professionnel', 'Decontracte', 'Technique', 'Innovant']
+
+  // Generate location
+  const location = FRENCH_CITIES[Math.floor(Math.random() * FRENCH_CITIES.length)]
+
+  // Generate phone numbers
+  const mainPhone = generateFrenchPhone()
+  const mobilePhone = generateFrenchPhone()
+
+  // Instagram handle from domain
+  const instagramHandle = domain.split('.')[0].toLowerCase()
 
   return {
     company_name: companyName,
@@ -60,16 +90,27 @@ const generateMockScan = (url) => {
     ].slice(0, Math.floor(Math.random() * 3) + 1),
     tone: tones[Math.floor(Math.random() * tones.length)],
     language: 'Francais',
+    // Location data for Courrier channel
+    location: {
+      address: location.address,
+      city: location.city,
+      postalCode: location.postalCode,
+      country: 'France',
+    },
     key_contacts: [
       {
-        name: 'Responsable Commercial',
+        name: 'Jean Dupont',
         email: `contact@${domain}`,
+        phone: mainPhone,
+        mobile: mobilePhone,
         role: 'Directeur Commercial',
         verified: true,
       },
       {
-        name: 'Responsable Marketing',
+        name: 'Marie Martin',
         email: `marketing@${domain}`,
+        phone: generateFrenchPhone(),
+        mobile: generateFrenchPhone(),
         role: 'Responsable Marketing',
         verified: false,
       },
@@ -77,6 +118,8 @@ const generateMockScan = (url) => {
     social_links: {
       linkedin: `https://linkedin.com/company/${domain.split('.')[0]}`,
       twitter: `https://twitter.com/${domain.split('.')[0]}`,
+      instagram: `https://instagram.com/${instagramHandle}`,
+      instagram_handle: `@${instagramHandle}`,
     },
     technologies: ['React', 'Node.js', 'Google Analytics', 'HubSpot', 'Stripe'].slice(
       0,
@@ -202,6 +245,59 @@ function ScanResult({ data, onAddProspect, isAdding, isAdded }) {
             <p className="font-semibold text-gray-900">{data.language}</p>
           </div>
         </div>
+
+        {/* Available Channels */}
+        <div className="px-6 pb-6">
+          <p className="text-xs text-gray-500 mb-3">Canaux de prospection disponibles</p>
+          <div className="flex flex-wrap gap-2">
+            {/* Email - always available */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-100">
+              <Mail className="w-4 h-4 text-blue-500" />
+              <span className="text-sm font-medium text-blue-700">Email</span>
+              <Check className="w-3 h-3 text-blue-500" />
+            </div>
+            {/* SMS */}
+            {data.key_contacts?.[0]?.phone && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100">
+                <Phone className="w-4 h-4 text-emerald-500" />
+                <span className="text-sm font-medium text-emerald-700">SMS</span>
+                <Check className="w-3 h-3 text-emerald-500" />
+              </div>
+            )}
+            {/* WhatsApp */}
+            {data.key_contacts?.[0]?.mobile && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 border border-green-100">
+                <Phone className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-medium text-green-700">WhatsApp</span>
+                <Check className="w-3 h-3 text-green-500" />
+              </div>
+            )}
+            {/* Instagram DM */}
+            {data.social_links?.instagram_handle && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-50 border border-pink-100">
+                <Instagram className="w-4 h-4 text-pink-500" />
+                <span className="text-sm font-medium text-pink-700">Instagram DM</span>
+                <Check className="w-3 h-3 text-pink-500" />
+              </div>
+            )}
+            {/* Voicemail */}
+            {data.key_contacts?.[0]?.phone && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 border border-violet-100">
+                <Phone className="w-4 h-4 text-violet-500" />
+                <span className="text-sm font-medium text-violet-700">Voicemail</span>
+                <Check className="w-3 h-3 text-violet-500" />
+              </div>
+            )}
+            {/* Courrier */}
+            {data.location?.address && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-100">
+                <Building2 className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-amber-700">Courrier</span>
+                <Check className="w-3 h-3 text-amber-500" />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* AI Summary */}
@@ -223,26 +319,68 @@ function ScanResult({ data, onAddProspect, isAdding, isAdded }) {
           </div>
           <div className="space-y-3">
             {data.key_contacts?.map((contact, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                <div>
-                  <p className="font-medium text-gray-900">{contact.name}</p>
-                  <p className="text-sm text-gray-500">{contact.role}</p>
-                  <p className="text-sm text-violet-600">{contact.email}</p>
+              <div key={idx} className="p-4 rounded-xl bg-gray-50">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-medium text-gray-900">{contact.name}</p>
+                    <p className="text-sm text-gray-500">{contact.role}</p>
+                  </div>
+                  {contact.verified ? (
+                    <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                      <Check className="w-3 h-3" />
+                      Verifie
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                      <AlertCircle className="w-3 h-3" />
+                      A verifier
+                    </span>
+                  )}
                 </div>
-                {contact.verified ? (
-                  <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-                    <Check className="w-3 h-3" />
-                    Verifie
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
-                    <AlertCircle className="w-3 h-3" />
-                    A verifier
-                  </span>
-                )}
+                <div className="space-y-1.5 mt-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4 text-blue-500" />
+                    <span className="text-gray-700">{contact.email}</span>
+                  </div>
+                  {contact.phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="w-4 h-4 text-emerald-500" />
+                      <span className="text-gray-700">{contact.phone}</span>
+                    </div>
+                  )}
+                  {contact.mobile && contact.mobile !== contact.phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="w-4 h-4 text-green-500" />
+                      <span className="text-gray-700">{contact.mobile} (mobile)</span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
+
+          {/* Location for Courrier */}
+          {data.location && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-500 mb-2">Adresse (Courrier)</p>
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-100">
+                <p className="text-sm text-gray-700">
+                  {data.location.address}, {data.location.postalCode} {data.location.city}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Instagram for DM */}
+          {data.social_links?.instagram_handle && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-500 mb-2">Instagram (DM)</p>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-pink-50 border border-pink-100">
+                <Instagram className="w-4 h-4 text-pink-500" />
+                <span className="text-sm text-gray-700">{data.social_links.instagram_handle}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Personalization Hooks */}
@@ -459,18 +597,29 @@ export default function Scanner() {
     try {
       // Get the first contact or use company info
       const primaryContact = scanResult.key_contacts?.[0] || {}
+      const location = scanResult.location || {}
 
-      // Create prospect data from scan result
+      // Create prospect data from scan result with ALL channels
       const prospectData = {
         company: scanResult.company_name,
         website: scanResult.website,
+        // Email channel
         email: primaryContact.email || `contact@${new URL(scanResult.website).hostname.replace('www.', '')}`,
+        // Contact info
         firstName: primaryContact.name?.split(' ')[0] || '',
         lastName: primaryContact.name?.split(' ').slice(1).join(' ') || '',
         jobTitle: primaryContact.role || '',
-        phone: null,
-        city: null,
+        // Phone for SMS, WhatsApp, Voicemail channels
+        phone: primaryContact.mobile || primaryContact.phone || null,
+        // Instagram DM channel
+        instagram: scanResult.social_links?.instagram_handle?.replace('@', '') || null,
+        // Courrier channel
+        city: location.city || null,
+        address: location.address ? `${location.address}, ${location.postalCode} ${location.city}` : null,
+        country: location.country || 'France',
+        // LinkedIn for reference
         linkedin: scanResult.social_links?.linkedin || null,
+        // Metadata
         source: 'scanner',
         tags: [scanResult.industry, 'Scanner'].filter(Boolean),
         notes: `Analyse IA: ${scanResult.summary}\n\nPain points: ${scanResult.pain_points?.join(', ')}\n\nAccroches: ${scanResult.personalization_hooks?.join('\n')}`,
@@ -482,6 +631,7 @@ export default function Scanner() {
           technologies: scanResult.technologies,
           painPoints: scanResult.pain_points,
           hooks: scanResult.personalization_hooks,
+          location: scanResult.location,
           scannedAt: scanResult.scannedAt,
         },
       }
