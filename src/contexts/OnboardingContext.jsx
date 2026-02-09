@@ -120,15 +120,12 @@ export function OnboardingFlowProvider({ children }) {
         })
       }
 
-      // Clear localStorage
+      // Clear onboarding storage but save data for completion page
       localStorage.removeItem(STORAGE_KEY)
+      localStorage.setItem('fmf_onboarding_complete', JSON.stringify(finalData))
 
-      // Navigate to app
-      if (isDemo) {
-        navigate('/app?demo=true')
-      } else {
-        navigate('/app')
-      }
+      // Navigate to completion page
+      navigate('/onboarding/complete')
     } catch (err) {
       console.error('Error completing onboarding:', err)
       setError(err.message)

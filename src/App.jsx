@@ -26,6 +26,7 @@ const Pricing = lazy(() => import('@/pages/Pricing'))
 const OnboardingChat = lazy(() => import('@/pages/OnboardingChat'))
 const OnboardingPlan = lazy(() => import('@/pages/OnboardingPlan'))
 const OnboardingSequence = lazy(() => import('@/pages/OnboardingSequence'))
+const OnboardingComplete = lazy(() => import('@/pages/OnboardingComplete'))
 
 // Lazy loaded pages - App (v4.0)
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
@@ -236,6 +237,14 @@ export default function App() {
                         element={
                           <OnboardingRoute>
                             <OnboardingSequence />
+                          </OnboardingRoute>
+                        }
+                      />
+                      <Route
+                        path="/onboarding/complete"
+                        element={
+                          <OnboardingRoute>
+                            <OnboardingComplete />
                           </OnboardingRoute>
                         }
                       />
