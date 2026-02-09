@@ -5,6 +5,7 @@ import { OrgProvider, useOrg } from '@/contexts/OrgContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { DemoProvider, useDemo } from '@/contexts/DemoContext'
+import { OnboardingFlowProvider } from '@/contexts/OnboardingContext'
 
 // Components (not lazy - needed immediately)
 import Layout from '@/components/Layout'
@@ -62,9 +63,15 @@ function ProtectedRoute({ children }) {
   return <Navigate to="/login" state={{ from: location }} replace />
 }
 
-// Onboarding route guard
+// Onboarding route guard - allows demo mode or authenticated users needing onboarding
 function OnboardingRoute({ children }) {
   const { user, loading, needsOnboarding } = useAuth()
+  const { isDemo } = useDemo()
+
+  // Demo mode - always allow
+  if (isDemo) {
+    return <OnboardingFlowProvider>{children}</OnboardingFlowProvider>
+  }
 
   if (loading) {
     return <PageLoader />
@@ -84,7 +91,7 @@ function OnboardingRoute({ children }) {
     return <Navigate to="/app" replace />
   }
 
-  return children
+  return <OnboardingFlowProvider>{children}</OnboardingFlowProvider>
 }
 
 // Public route - redirects authenticated users to app
