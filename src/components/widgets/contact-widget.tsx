@@ -43,7 +43,7 @@ const defaultConfig: ContactWidgetConfig = {
   position: "bottom-right",
   primaryColor: "#16a34a",
   welcomeMessage: "Bonjour ! Comment pouvons-nous vous aider ?",
-  companyName: "FastGross Pro",
+  companyName: "DISTRAM",
   features: {
     chat: true,
     callback: true,
@@ -549,11 +549,11 @@ export const WIDGET_EMBED_SCRIPT = `
 <script>
 (function() {
   var script = document.createElement('script');
-  script.src = 'https://fastgross.pro/widget.js';
+  script.src = 'https://facemediagrossiste.web.app/widget.js';
   script.async = true;
   script.dataset.primaryColor = '#16a34a';
   script.dataset.position = 'bottom-right';
-  script.dataset.companyName = 'FastGross Pro';
+  script.dataset.companyName = 'DISTRAM';
   document.head.appendChild(script);
 })();
 </script>

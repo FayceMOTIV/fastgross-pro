@@ -309,7 +309,7 @@ export default function LivreurProfilePage() {
 
         {/* Version */}
         <div className="text-center text-xs text-muted-foreground pt-4">
-          FastGross Pro - Livreur v1.0.0
+          DISTRAM - Livreur v1.0.0
         </div>
       </div>
     </div>

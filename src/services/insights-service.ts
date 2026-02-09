@@ -385,7 +385,7 @@ export async function generateWeeklyReport(): Promise<string> {
   const formatDate = (d: Date) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
   const report = `
-# Rapport Hebdomadaire FastGross Pro
+# Rapport Hebdomadaire DISTRAM
 
 **Période:** ${formatDate(reportData.period.start)} - ${formatDate(reportData.period.end)}
 
@@ -427,7 +427,7 @@ ${reportData.insights.slice(0, 5).flatMap(i => i.suggestedActions.slice(0, 1).ma
 
 ---
 
-*Rapport généré automatiquement par FastGross Pro AI le ${formatDate(new Date())}*
+*Rapport généré automatiquement par DISTRAM AI le ${formatDate(new Date())}*
   `.trim();
 
   return report;

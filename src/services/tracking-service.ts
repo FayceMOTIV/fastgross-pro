@@ -516,7 +516,7 @@ export function generateEmailTrackingPixel(
   campaignId: string,
   prospectId: string
 ): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fastgross.pro";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://facemediagrossiste.web.app";
   return `${baseUrl}/api/track/open?c=${campaignId}&p=${prospectId}`;
 }
 
@@ -528,7 +528,7 @@ export function generateTrackedLink(
   campaignId: string,
   prospectId: string
 ): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://fastgross.pro";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://facemediagrossiste.web.app";
   const encodedUrl = encodeURIComponent(originalUrl);
   return `${baseUrl}/api/track/click?url=${encodedUrl}&c=${campaignId}&p=${prospectId}`;
 }

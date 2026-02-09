@@ -87,7 +87,7 @@ Nous vous remercions de bien vouloir procéder au règlement dans les meilleurs 
 Si vous avez déjà effectué ce paiement, merci de ne pas tenir compte de ce message et de nous en informer.
 
 Cordialement,
-L'équipe comptabilité FastGross Pro
+L'équipe comptabilité DISTRAM
 
 ---
 Détails de la facture :
@@ -114,7 +114,7 @@ Nous vous prions de bien vouloir régulariser cette situation dans les plus bref
 Si vous rencontrez des difficultés de paiement, n'hésitez pas à nous contacter pour convenir d'un arrangement.
 
 Cordialement,
-L'équipe comptabilité FastGross Pro`,
+L'équipe comptabilité DISTRAM`,
     channel: "email",
     daysAfterDue: 10,
     level: 2,
@@ -134,7 +134,7 @@ Sans règlement de votre part sous 5 jours ouvrés, nous serons dans l'obligatio
 Merci de nous contacter immédiatement pour régulariser cette situation.
 
 Cordialement,
-Direction commerciale - FastGross Pro
+Direction commerciale - DISTRAM
 Tél : 04 91 00 00 00`,
     channel: "email+sms",
     daysAfterDue: 20,
@@ -152,7 +152,7 @@ Par la présente, nous vous mettons en demeure de régler sous 8 jours la somme 
 
 Cette mise en demeure vaut également notification de la suspension de votre compte client.
 
-Direction générale - FastGross Pro`,
+Direction générale - DISTRAM`,
     channel: "email+letter",
     daysAfterDue: 30,
     level: 4,
@@ -651,7 +651,7 @@ Cependant, un solde de ${invoice.amountDue}€ reste dû sur la facture ${invoic
 Pourriez-vous nous indiquer quand nous pouvons espérer recevoir le règlement du solde ?
 
 Cordialement,
-L'équipe FastGross Pro`;
+L'équipe DISTRAM`;
     }
 
     if (reminderCount >= 2) {
@@ -664,7 +664,7 @@ Nous comprenons que des difficultés peuvent survenir. Si c'est le cas, contacte
 Sans nouvelles de votre part sous 48h, nous serons contraints d'appliquer notre procédure de recouvrement.
 
 Cordialement,
-Direction commerciale - FastGross Pro`;
+Direction commerciale - DISTRAM`;
     }
 
     return REMINDER_TEMPLATES[0].body

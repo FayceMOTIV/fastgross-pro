@@ -57,7 +57,7 @@ const mockSequences: EmailSequence[] = [
     name: "Séquence Nouveau Prospect",
     description: "Pour les prospects identifiés via scraping",
     steps: [
-      { id: "s1", day: 0, type: "email", subject: "Découvrez FastGross Pro", template: "Bonjour {{nom}},\n\nJe me permets de vous contacter car votre établissement {{entreprise}} pourrait bénéficier de nos services..." },
+      { id: "s1", day: 0, type: "email", subject: "Découvrez DISTRAM", template: "Bonjour {{nom}},\n\nJe me permets de vous contacter car votre établissement {{entreprise}} pourrait bénéficier de nos services..." },
       { id: "s2", day: 3, type: "task", template: "Appeler {{nom}} pour suivi" },
       { id: "s3", day: 7, type: "email", subject: "Offre spéciale pour {{entreprise}}", template: "Bonjour {{nom}},\n\nSuite à mon précédent message, je souhaitais vous proposer une offre de bienvenue exclusive..." },
       { id: "s4", day: 14, type: "email", subject: "Dernière relance", template: "Bonjour {{nom}},\n\nJe comprends que vous êtes occupé. Si vous êtes intéressé, je reste disponible..." },
@@ -84,7 +84,7 @@ const mockSequences: EmailSequence[] = [
     name: "Upsell Premium",
     description: "Pour proposer des produits premium aux bons clients",
     steps: [
-      { id: "s8", day: 0, type: "email", subject: "Exclusivité pour nos meilleurs clients", template: "Cher(e) {{nom}},\n\nEn tant que client privilégié de FastGross, nous avons le plaisir de vous présenter notre nouvelle gamme premium..." },
+      { id: "s8", day: 0, type: "email", subject: "Exclusivité pour nos meilleurs clients", template: "Cher(e) {{nom}},\n\nEn tant que client privilégié de DISTRAM, nous avons le plaisir de vous présenter notre nouvelle gamme premium..." },
       { id: "s9", day: 7, type: "email", subject: "Échantillon gratuit pour {{entreprise}}", template: "Bonjour {{nom}},\n\nPour vous remercier de votre fidélité, nous vous offrons un échantillon de nos nouveaux produits..." },
     ],
     active: false,
@@ -210,9 +210,9 @@ export default function AutomationPage() {
 
     if (editingStep) {
       const generatedContent = editingStep.type === "email"
-        ? "Bonjour {{nom}},\n\nJe me permets de vous contacter car j'ai remarqué que votre établissement {{entreprise}} est en pleine croissance.\n\nChez FastGross Pro, nous accompagnons les professionnels de la restauration avec des produits de qualité à des prix compétitifs.\n\nSeriez-vous disponible pour un rapide échange de 10 minutes cette semaine ?\n\nBien cordialement,\n{{commercial}}"
+        ? "Bonjour {{nom}},\n\nJe me permets de vous contacter car j'ai remarqué que votre établissement {{entreprise}} est en pleine croissance.\n\nChez DISTRAM, nous accompagnons les professionnels de la restauration avec des produits de qualité à des prix compétitifs.\n\nSeriez-vous disponible pour un rapide échange de 10 minutes cette semaine ?\n\nBien cordialement,\n{{commercial}}"
         : editingStep.type === "sms"
-          ? "{{nom}}, FastGross Pro vous offre -15% sur votre 1ère commande ! Code BIENVENUE15. Appelez-nous au 01 23 45 67 89"
+          ? "{{nom}}, DISTRAM vous offre -15% sur votre 1ère commande ! Code BIENVENUE15. Appelez-nous au 01 23 45 67 89"
           : "Rappeler {{nom}} de {{entreprise}} pour présenter notre offre";
 
       setEditingStep({

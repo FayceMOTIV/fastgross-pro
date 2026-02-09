@@ -121,7 +121,7 @@ export function generateQuoteHTML(quote: QuoteData): string {
 <body>
   <div class="header">
     <div class="logo">
-      FastGross Pro <span>× DISTRAM</span>
+      DISTRAM <span>× DISTRAM</span>
     </div>
     <div class="quote-info">
       <div class="quote-number">DEVIS ${quote.numero}</div>
@@ -218,7 +218,7 @@ export function generateQuoteHTML(quote: QuoteData): string {
   <div class="footer">
     <p>DISTRAM - Grossiste alimentaire halal | Lyon - Montpellier - Bordeaux</p>
     <p>SIRET: XXX XXX XXX XXXXX | TVA: FR XX XXX XXX XXX</p>
-    <p>Devis généré automatiquement par FastGross Pro</p>
+    <p>Devis généré automatiquement par DISTRAM</p>
   </div>
 </body>
 </html>

@@ -71,7 +71,7 @@ export function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <Package className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold text-lg">FastGross</span>
+              <span className="font-semibold text-lg">DISTRAM</span>
             </Link>
           </div>
 
@@ -294,7 +294,7 @@ export function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Package className="h-4 w-4 text-white" />
             </div>
-            <span className="font-semibold">FastGross</span>
+            <span className="font-semibold">DISTRAM</span>
           </Link>
 
           <div className="flex items-center gap-2">

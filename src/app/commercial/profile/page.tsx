@@ -79,7 +79,7 @@ export default function CommercialProfilePage() {
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Email</div>
-                <div className="font-medium">{user?.email || 'email@fastgross.pro'}</div>
+                <div className="font-medium">{user?.email || 'email@distram.fr'}</div>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function CommercialProfilePage() {
 
         {/* Version */}
         <div className="text-center text-xs text-muted-foreground pt-4">
-          FastGross Pro v1.0.0
+          DISTRAM v1.0.0
         </div>
       </div>
     </div>

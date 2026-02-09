@@ -131,7 +131,7 @@ export function MobileHeader({ role }: { role: UserRole }) {
         <Package className="h-4 w-4 text-white" />
       </div>
       <div>
-        <span className="font-semibold text-lg">FastGross</span>
+        <span className="font-semibold text-lg">DISTRAM</span>
         <span className="text-xs text-muted-foreground ml-2">{titles[role]}</span>
       </div>
     </div>

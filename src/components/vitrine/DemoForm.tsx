@@ -77,7 +77,7 @@ export default function DemoForm() {
               Demandez votre démo gratuite
             </h2>
             <p className="text-orange-100 text-lg">
-              15 minutes pour découvrir comment FastGross Pro peut transformer DISTRAM
+              15 minutes pour découvrir comment DISTRAM peut transformer DISTRAM
             </p>
           </div>
 

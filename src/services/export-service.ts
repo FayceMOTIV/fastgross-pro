@@ -305,8 +305,8 @@ function generatePDFHTML(
       ${content}
 
       <div class="footer">
-        <p>Document généré automatiquement par FastGross Pro</p>
-        <p>© ${new Date().getFullYear()} FastGross Pro - Tous droits réservés</p>
+        <p>Document généré automatiquement par DISTRAM</p>
+        <p>© ${new Date().getFullYear()} DISTRAM - Tous droits réservés</p>
       </div>
     </body>
     </html>

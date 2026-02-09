@@ -87,7 +87,7 @@ function MiniChat({ onClose }: { onClose: () => void }) {
     {
       id: "1",
       role: "assistant",
-      content: "Bonjour! Je suis votre assistant FastGross. Comment puis-je vous aider?",
+      content: "Bonjour! Je suis votre assistant DISTRAM. Comment puis-je vous aider?",
       timestamp: new Date(),
     }
   ]);

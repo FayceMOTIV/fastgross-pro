@@ -80,14 +80,14 @@ export default function SettingsPage() {
   // Profile form state
   const [profileForm, setProfileForm] = useState({
     name: user?.displayName || "Jean Dupont",
-    email: user?.email || "jean.dupont@fastgross.fr",
+    email: user?.email || "jean.dupont@distram.fr",
     phone: "06 12 34 56 78",
     position: "Directeur Commercial",
   });
 
   // Company form state
   const [companyForm, setCompanyForm] = useState({
-    name: "FastGross Distribution",
+    name: "DISTRAM",
     siret: "123 456 789 00012",
     address: "123 Avenue des Champs-Élysées",
     city: "Paris",
@@ -230,12 +230,12 @@ export default function SettingsPage() {
     // Reset to original values
     setProfileForm({
       name: user?.displayName || "Jean Dupont",
-      email: user?.email || "jean.dupont@fastgross.fr",
+      email: user?.email || "jean.dupont@distram.fr",
       phone: "06 12 34 56 78",
       position: "Directeur Commercial",
     });
     setCompanyForm({
-      name: "FastGross Distribution",
+      name: "DISTRAM",
       siret: "123 456 789 00012",
       address: "123 Avenue des Champs-Élysées",
       city: "Paris",
@@ -766,7 +766,7 @@ export default function SettingsPage() {
                     <div>
                       <CardTitle className="text-slate-900 dark:text-white">Intégrations et services</CardTitle>
                       <CardDescription className="text-slate-600 dark:text-slate-400">
-                        Connectez FastGross Pro à vos outils préférés
+                        Connectez DISTRAM à vos outils préférés
                       </CardDescription>
                     </div>
                   </div>

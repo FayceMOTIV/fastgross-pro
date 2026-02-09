@@ -297,7 +297,7 @@ export default function PortailProfilePage() {
 
         {/* Version */}
         <div className="text-center text-xs text-muted-foreground pt-4">
-          FastGross Pro - Portail Client v1.0.0
+          DISTRAM - Portail Client v1.0.0
         </div>
       </div>
     </div>

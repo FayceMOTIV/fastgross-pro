@@ -69,7 +69,7 @@ import {
 const MOCK_USERS: UserWithRole[] = [
   {
     uid: '1',
-    email: 'admin@fastgross.pro',
+    email: 'admin@distram.fr',
     displayName: 'Administrateur',
     role: 'admin',
     permissions: ROLE_PERMISSIONS.admin,
@@ -79,7 +79,7 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '2',
-    email: 'manager@fastgross.pro',
+    email: 'manager@distram.fr',
     displayName: 'Sophie Martin',
     role: 'manager',
     permissions: ROLE_PERMISSIONS.manager,
@@ -89,7 +89,7 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '3',
-    email: 'ahmed@fastgross.pro',
+    email: 'ahmed@distram.fr',
     displayName: 'Ahmed Benali',
     role: 'livreur',
     permissions: ROLE_PERMISSIONS.livreur,
@@ -101,7 +101,7 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '4',
-    email: 'hamza@fastgross.pro',
+    email: 'hamza@distram.fr',
     displayName: 'Hamza Karim',
     role: 'commercial',
     permissions: ROLE_PERMISSIONS.commercial,
@@ -114,7 +114,7 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '5',
-    email: 'sarah@fastgross.pro',
+    email: 'sarah@distram.fr',
     displayName: 'Sarah Dubois',
     role: 'commercial',
     permissions: ROLE_PERMISSIONS.commercial,
@@ -127,7 +127,7 @@ const MOCK_USERS: UserWithRole[] = [
   },
   {
     uid: '6',
-    email: 'youssef@fastgross.pro',
+    email: 'youssef@distram.fr',
     displayName: 'Youssef Benali',
     role: 'livreur',
     permissions: ROLE_PERMISSIONS.livreur,
@@ -622,7 +622,7 @@ function UserFormModal({ open, onOpenChange, user, onSave }: UserFormModalProps)
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="jean@fastgross.pro"
+              placeholder="jean@distram.fr"
             />
           </div>
 

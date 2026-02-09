@@ -137,7 +137,7 @@ export default function ReferralPage() {
 
   // Generate referral link
   const referralCode = "PARRAIN-USER1";
-  const referralLink = `https://fastgross.pro/landing/parrainage?ref=${referralCode}`;
+  const referralLink = `https://facemediagrossiste.web.app/landing/parrainage?ref=${referralCode}`;
 
   // Stats
   const stats = {
@@ -161,9 +161,9 @@ export default function ReferralPage() {
 
   // Share functions
   const shareVia = (platform: string) => {
-    const text = `Rejoignez FastGross Pro et économisez 100€ sur votre première commande avec mon code ${referralCode} !`;
+    const text = `Rejoignez DISTRAM et économisez 100€ sur votre première commande avec mon code ${referralCode} !`;
     const urls: Record<string, string> = {
-      email: `mailto:?subject=Invitation FastGross Pro&body=${encodeURIComponent(text + "\n\n" + referralLink)}`,
+      email: `mailto:?subject=Invitation DISTRAM&body=${encodeURIComponent(text + "\n\n" + referralLink)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(text + " " + referralLink)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(referralLink)}`,

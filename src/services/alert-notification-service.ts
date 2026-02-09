@@ -166,14 +166,14 @@ export const DEFAULT_NOTIFICATION_RULES: AlertNotificationRule[] = [
 
 // Mock commercials
 const COMMERCIALS = [
-  { id: "com_1", name: "Marie Lefebvre", email: "marie@fastgross.pro", phone: "06 12 34 56 78" },
-  { id: "com_2", name: "Ahmed Benali", email: "ahmed@fastgross.pro", phone: "06 98 76 54 32" },
-  { id: "com_3", name: "Sophie Martin", email: "sophie@fastgross.pro", phone: "06 11 22 33 44" },
+  { id: "com_1", name: "Marie Lefebvre", email: "marie@distram.fr", phone: "06 12 34 56 78" },
+  { id: "com_2", name: "Ahmed Benali", email: "ahmed@distram.fr", phone: "06 98 76 54 32" },
+  { id: "com_3", name: "Sophie Martin", email: "sophie@distram.fr", phone: "06 11 22 33 44" },
 ];
 
 // Mock managers
 const MANAGERS = [
-  { id: "mgr_1", name: "Hamza Bouazza", email: "hamza@fastgross.pro", phone: "06 55 66 77 88" },
+  { id: "mgr_1", name: "Hamza Bouazza", email: "hamza@distram.fr", phone: "06 55 66 77 88" },
 ];
 
 // Get assigned commercial for a client
@@ -512,10 +512,10 @@ ${digest.stats.criticalAlerts > 0 ? `
 ${digest.priorityActions.map((a) => `• ${a.clientName} : ${a.action}`).join("\n")}
 ` : ""}
 
-Connectez-vous à FastGross Pro pour voir tous les détails.
+Connectez-vous à DISTRAM pour voir tous les détails.
 
 Bonne journée !
-L'équipe FastGross Pro
+L'équipe DISTRAM
   `;
 
   const commercial = COMMERCIALS.find((c) => c.id === recipientId);

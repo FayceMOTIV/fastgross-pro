@@ -67,7 +67,7 @@ export default function GlobalError({
             {/* Logo */}
             <div className="mt-12">
               <p className="text-sm text-gray-400">
-                DISTRAM - FastGross Pro
+                DISTRAM
               </p>
             </div>
           </div>

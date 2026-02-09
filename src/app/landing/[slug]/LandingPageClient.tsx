@@ -54,9 +54,9 @@ const LANDING_PAGES: Record<string, LandingPage> = {
   "offre-decouverte": {
     id: "lp_1",
     slug: "offre-decouverte",
-    title: "Offre Découverte | FastGross Pro",
+    title: "Offre Découverte | DISTRAM",
     headline: "Économisez 15% sur vos achats alimentaires",
-    subheadline: "Rejoignez +500 restaurateurs qui font confiance à FastGross Pro pour leur approvisionnement",
+    subheadline: "Rejoignez +500 restaurateurs qui font confiance à DISTRAM pour leur approvisionnement",
     benefits: [
       "Livraison gratuite dès 200€ de commande",
       "Plus de 2000 références disponibles",
@@ -65,7 +65,7 @@ const LANDING_PAGES: Record<string, LandingPage> = {
       "Service client 7j/7",
     ],
     testimonial: {
-      quote: "Depuis que je travaille avec FastGross Pro, j'ai réduit mes coûts de 12% tout en gagnant du temps sur mes commandes.",
+      quote: "Depuis que je travaille avec DISTRAM, j'ai réduit mes coûts de 12% tout en gagnant du temps sur mes commandes.",
       author: "Mehdi K.",
       business: "Istanbul Kebab, Marseille",
     },
@@ -89,7 +89,7 @@ const LANDING_PAGES: Record<string, LandingPage> = {
   "special-kebab": {
     id: "lp_2",
     slug: "special-kebab",
-    title: "Offre Spéciale Kebab | FastGross Pro",
+    title: "Offre Spéciale Kebab | DISTRAM",
     headline: "Tout pour votre kebab à prix grossiste",
     subheadline: "Viandes, pains pita, sauces et légumes frais livrés en 24h",
     benefits: [
@@ -124,7 +124,7 @@ const LANDING_PAGES: Record<string, LandingPage> = {
   "parrainage": {
     id: "lp_3",
     slug: "parrainage",
-    title: "Programme Parrainage | FastGross Pro",
+    title: "Programme Parrainage | DISTRAM",
     headline: "Parrainez un ami, gagnez 100€",
     subheadline: "Vous et votre filleul recevez chacun 100€ de crédit sur vos commandes",
     benefits: [
@@ -153,7 +153,7 @@ const LANDING_PAGES: Record<string, LandingPage> = {
   "salon-restauration": {
     id: "lp_4",
     slug: "salon-restauration",
-    title: "Salon de la Restauration 2025 | FastGross Pro",
+    title: "Salon de la Restauration 2025 | DISTRAM",
     headline: "Rencontrez-nous au Salon Sirha !",
     subheadline: "Stand B42 - Offre exclusive salon : -20% sur votre 1ère commande",
     benefits: [
@@ -396,10 +396,8 @@ export default function LandingPageClient({
       {/* Header */}
       <header className="py-4 px-4 border-b">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="text-2xl font-bold">
-            <span style={{ color: page.theme.primaryColor }}>Fast</span>
-            <span>Gross</span>
-            <span className="text-muted-foreground ml-1 text-lg">Pro</span>
+          <div className="text-2xl font-bold" style={{ color: page.theme.primaryColor }}>
+            DISTRAM
           </div>
           <a
             href="tel:+33491000000"
@@ -557,7 +555,7 @@ export default function LandingPageClient({
             Prêt à optimiser vos achats ?
           </h2>
           <p className="text-lg opacity-90 mb-8">
-            Rejoignez les +500 restaurateurs qui font confiance à FastGross Pro
+            Rejoignez les +500 restaurateurs qui font confiance à DISTRAM
           </p>
           <Button
             size="lg"
