@@ -42,9 +42,9 @@ const Radar = lazy(() => import('@/pages/Radar'))
 const Campaigns = lazy(() => import('@/pages/Campaigns'))
 const Proof = lazy(() => import('@/pages/Proof'))
 
-// Auth guard with onboarding check
+// Auth guard - simplified, no forced onboarding
 function ProtectedRoute({ children }) {
-  const { user, loading, needsOnboarding } = useAuth()
+  const { user, loading } = useAuth()
   const location = useLocation()
   const { isDemo } = useDemo()
 
@@ -55,14 +55,6 @@ function ProtectedRoute({ children }) {
 
   // Allow access if user is authenticated OR in demo mode
   if (user || isDemo) {
-    // Still loading profile, show loader
-    if (!isDemo && needsOnboarding === null) {
-      return <PageLoader />
-    }
-    // Check if user needs to complete onboarding (skip for demo)
-    if (!isDemo && needsOnboarding && !location.pathname.startsWith('/onboarding')) {
-      return <Navigate to="/onboarding" replace />
-    }
     return children
   }
 
@@ -122,22 +114,20 @@ function PublicRoute({ children }) {
 
 // Organization guard - ensures user has an org selected
 function OrgGuard({ children }) {
-  const { currentOrg, loading, orgs } = useOrg()
+  const { currentOrg, loading } = useOrg()
   const { isDemo } = useDemo()
 
   if (isDemo) {
     return children
   }
 
+  // Wait for org loading to complete
   if (loading) {
     return <PageLoader />
   }
 
-  // If no orgs at all, redirect to create one
-  if (!loading && orgs.length === 0) {
-    return <Navigate to="/onboarding" replace />
-  }
-
+  // OrgContext now auto-creates org, so we should always have one
+  // Just show children - if somehow no org, OrgContext handles it
   return children
 }
 

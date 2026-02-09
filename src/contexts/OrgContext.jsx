@@ -122,22 +122,49 @@ export function OrgProvider({ children }) {
       return
     }
 
-    // Set loading false immediately to not block UI
-    setLoading(false)
+    const fetchOrgsAndAutoCreate = async () => {
+      setLoading(true)
+      setError(null)
 
-    const fetchOrgs = async () => {
       try {
-        setError(null)
-
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), 5000)
+          setTimeout(() => reject(new Error('Timeout')), 8000)
         )
 
-        const userOrgs = await Promise.race([
-          getUserOrganizations(user.uid),
-          timeoutPromise
-        ])
+        let userOrgs = []
+        try {
+          userOrgs = await Promise.race([
+            getUserOrganizations(user.uid),
+            timeoutPromise
+          ])
+        } catch (fetchErr) {
+          console.warn('Error fetching orgs, will try to create one:', fetchErr.message)
+        }
+
+        // AUTO-CREATE ORG if user has none
+        if (userOrgs.length === 0) {
+          console.log('No orgs found, auto-creating one for user')
+          try {
+            const orgName = user.displayName || user.email?.split('@')[0] || 'Mon Organisation'
+            const newOrg = await createOrganization(user, { name: orgName })
+            userOrgs = [newOrg]
+            console.log('Auto-created org:', newOrg.id)
+          } catch (createErr) {
+            console.error('Failed to auto-create org:', createErr)
+            // Create a temporary local org so user can use the app
+            const tempOrg = {
+              id: 'temp-' + user.uid,
+              name: user.displayName || 'Mon Organisation',
+              role: 'owner',
+              billing: { plan: 'starter', status: 'active' },
+              usage: { currentProspects: 0, emailsSentThisMonth: 0 },
+              limits: PLANS.trial || { maxProspects: 100, maxEmailsPerMonth: 200 },
+              isTemporary: true,
+            }
+            userOrgs = [tempOrg]
+          }
+        }
 
         setOrgs(userOrgs)
 
@@ -152,14 +179,14 @@ export function OrgProvider({ children }) {
           localStorage.setItem('fmf_current_org', selectedOrg.id)
         }
       } catch (err) {
-        console.error('Error fetching organizations:', err)
+        console.error('Error in org setup:', err)
         setError(err.message)
-        // Don't block - just continue with empty orgs
-        setOrgs([])
+      } finally {
+        setLoading(false)
       }
     }
 
-    fetchOrgs()
+    fetchOrgsAndAutoCreate()
   }, [user, isDemo])
 
   // Subscribe to current org and members changes
