@@ -122,12 +122,23 @@ export function OrgProvider({ children }) {
       return
     }
 
+    // Set loading false immediately to not block UI
+    setLoading(false)
+
     const fetchOrgs = async () => {
       try {
-        setLoading(true)
         setError(null)
 
-        const userOrgs = await getUserOrganizations(user.uid)
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
+
+        const userOrgs = await Promise.race([
+          getUserOrganizations(user.uid),
+          timeoutPromise
+        ])
+
         setOrgs(userOrgs)
 
         // Auto-select org from localStorage or first available
@@ -143,8 +154,8 @@ export function OrgProvider({ children }) {
       } catch (err) {
         console.error('Error fetching organizations:', err)
         setError(err.message)
-      } finally {
-        setLoading(false)
+        // Don't block - just continue with empty orgs
+        setOrgs([])
       }
     }
 

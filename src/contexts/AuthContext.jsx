@@ -28,24 +28,53 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser)
-        // Fetch user profile from Firestore
+        setLoading(false) // Stop loading immediately so UI can render
+
+        // Fetch user profile from Firestore (non-blocking)
         try {
-          const profileDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          )
+
+          const profileDoc = await Promise.race([
+            getDoc(doc(db, 'users', firebaseUser.uid)),
+            timeoutPromise
+          ])
+
           if (profileDoc.exists()) {
             setUserProfile(profileDoc.data())
           } else {
             // Create profile if it doesn't exist
-            await createUserProfile(firebaseUser)
+            const newProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName || '',
+              onboardingComplete: false,
+              createdAt: new Date(),
+            }
+            setUserProfile(newProfile)
+            // Try to save to Firestore in background
+            setDoc(doc(db, 'users', firebaseUser.uid), {
+              ...newProfile,
+              createdAt: serverTimestamp(),
+            }).catch(console.error)
           }
         } catch (err) {
           console.error('Error fetching user profile:', err)
-          setError(err.message)
+          // Set default profile so app can continue
+          setUserProfile({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName || '',
+            onboardingComplete: false,
+          })
         }
       } else {
         setUser(null)
         setUserProfile(null)
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => unsubscribe()
