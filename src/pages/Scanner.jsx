@@ -20,22 +20,32 @@ import {
   Lightbulb,
   Code,
   TrendingUp,
+  CheckCircle,
+  ArrowRight,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from '@/lib/firebase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import { checkQuota, incrementUsage } from '@/services/quotas'
+import { createProspect } from '@/services/prospects'
 
 // Mock scan data for demo/development
 const generateMockScan = (url) => {
   const domain = new URL(url).hostname.replace('www.', '')
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1)
 
+  const industries = ['SaaS', 'E-commerce', 'Conseil', 'Marketing', 'Technologie', 'Finance', 'Sante']
+  const sizes = ['TPE (1-10)', 'PME (10-50)', 'ETI (50-250)', 'GE (250+)']
+  const tones = ['Professionnel', 'Decontracte', 'Technique', 'Innovant']
+
   return {
     company_name: companyName,
     website: url,
-    industry: ['SaaS', 'E-commerce', 'Conseil', 'Marketing', 'Technologie'][Math.floor(Math.random() * 5)],
-    company_size: ['TPE (1-10)', 'PME (10-50)', 'ETI (50-250)', 'GE (250+)'][Math.floor(Math.random() * 4)],
+    industry: industries[Math.floor(Math.random() * industries.length)],
+    company_size: sizes[Math.floor(Math.random() * sizes.length)],
     main_products: [
       'Solution CRM',
       'Plateforme marketing',
@@ -48,18 +58,18 @@ const generateMockScan = (url) => {
       'Manque de visibilite sur les KPIs',
       'Difficulte a scaler',
     ].slice(0, Math.floor(Math.random() * 3) + 1),
-    tone: ['Professionnel', 'Decontracte', 'Technique', 'Innovant'][Math.floor(Math.random() * 4)],
+    tone: tones[Math.floor(Math.random() * tones.length)],
     language: 'Francais',
     key_contacts: [
       {
-        name: 'Jean Dupont',
+        name: 'Responsable Commercial',
         email: `contact@${domain}`,
         role: 'Directeur Commercial',
         verified: true,
       },
       {
-        name: 'Marie Martin',
-        email: `marie.martin@${domain}`,
+        name: 'Responsable Marketing',
+        email: `marketing@${domain}`,
         role: 'Responsable Marketing',
         verified: false,
       },
@@ -83,14 +93,20 @@ const generateMockScan = (url) => {
 }
 
 // Scan history item component
-function ScanHistoryItem({ scan, onSelect }) {
+function ScanHistoryItem({ scan, onSelect, isSelected }) {
   return (
     <button
       onClick={() => onSelect(scan)}
-      className="w-full p-4 text-left bg-white rounded-xl border border-gray-100 hover:border-violet-200 hover:shadow-md transition-all group"
+      className={`w-full p-4 text-left rounded-xl border transition-all group ${
+        isSelected
+          ? 'bg-violet-50 border-violet-200 shadow-md'
+          : 'bg-white border-gray-100 hover:border-violet-200 hover:shadow-md'
+      }`}
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-100 transition-colors">
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
+          isSelected ? 'bg-violet-100' : 'bg-violet-50 group-hover:bg-violet-100'
+        }`}>
           <Globe className="w-5 h-5 text-violet-600" />
         </div>
         <div className="flex-1 min-w-0">
@@ -111,7 +127,7 @@ function ScanHistoryItem({ scan, onSelect }) {
 }
 
 // Scan result display
-function ScanResult({ data, onAddProspect }) {
+function ScanResult({ data, onAddProspect, isAdding, isAdded }) {
   if (!data) return null
 
   return (
@@ -139,10 +155,31 @@ function ScanResult({ data, onAddProspect }) {
             </div>
             <button
               onClick={onAddProspect}
-              className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors"
+              disabled={isAdding || isAdded}
+              className={`flex items-center gap-2 px-5 py-2.5 font-semibold rounded-xl transition-all ${
+                isAdded
+                  ? 'bg-emerald-100 text-emerald-700 cursor-default'
+                  : isAdding
+                  ? 'bg-violet-100 text-violet-400 cursor-wait'
+                  : 'bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-200'
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              Ajouter aux prospects
+              {isAdded ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Prospect ajoute
+                </>
+              ) : isAdding ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Ajout en cours...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4" />
+                  Ajouter aux prospects
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -298,11 +335,14 @@ function ScanResult({ data, onAddProspect }) {
 export default function Scanner() {
   const { user } = useAuth()
   const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [url, setUrl] = useState('')
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState(null)
   const [scanHistory, setScanHistory] = useState([])
   const [progress, setProgress] = useState(0)
+  const [isAddingProspect, setIsAddingProspect] = useState(false)
+  const [addedProspects, setAddedProspects] = useState(new Set())
 
   // Load scan history from localStorage for demo
   useEffect(() => {
@@ -337,8 +377,8 @@ export default function Scanner() {
       return
     }
 
-    // Check quota (mock for demo)
-    if (user) {
+    // Check quota (only for real users)
+    if (user && !isDemo) {
       const quotaCheck = await checkQuota(user.uid, 'enrichments')
       if (!quotaCheck.allowed) {
         toast.error(quotaCheck.error)
@@ -362,20 +402,35 @@ export default function Scanner() {
     }, 300)
 
     try {
-      // In production, this would call the Cloud Function
-      // For now, use mock data
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      let result
 
-      const result = generateMockScan(validUrl)
+      // Try to call Cloud Function in production, use mock in demo
+      if (!isDemo && functions) {
+        try {
+          const scanWebsite = httpsCallable(functions, 'scanWebsite')
+          const response = await scanWebsite({ url: validUrl })
+          result = response.data
+        } catch (funcError) {
+          console.warn('Cloud Function not available, using mock:', funcError)
+          // Fall back to mock if Cloud Function fails
+          await new Promise((resolve) => setTimeout(resolve, 1500))
+          result = generateMockScan(validUrl)
+        }
+      } else {
+        // Demo mode: use mock data
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        result = generateMockScan(validUrl)
+      }
+
       setScanResult(result)
 
       // Save to history
-      const newHistory = [result, ...scanHistory.slice(0, 9)]
+      const newHistory = [result, ...scanHistory.filter(s => s.website !== result.website).slice(0, 9)]
       setScanHistory(newHistory)
       localStorage.setItem('fmf_scan_history', JSON.stringify(newHistory))
 
-      // Increment usage
-      if (user) {
+      // Increment usage (only for real users)
+      if (user && !isDemo) {
         await incrementUsage(user.uid, 'enrichments')
       }
 
@@ -390,10 +445,70 @@ export default function Scanner() {
     }
   }
 
-  const handleAddProspect = () => {
+  const handleAddProspect = async () => {
     if (!scanResult) return
-    // In production, this would create a prospect in Firestore
-    toast.success(`${scanResult.company_name} ajoute aux prospects !`)
+
+    // Check if already added
+    if (addedProspects.has(scanResult.website)) {
+      toast.error('Ce prospect a deja ete ajoute')
+      return
+    }
+
+    setIsAddingProspect(true)
+
+    try {
+      // Get the first contact or use company info
+      const primaryContact = scanResult.key_contacts?.[0] || {}
+
+      // Create prospect data from scan result
+      const prospectData = {
+        company: scanResult.company_name,
+        website: scanResult.website,
+        email: primaryContact.email || `contact@${new URL(scanResult.website).hostname.replace('www.', '')}`,
+        firstName: primaryContact.name?.split(' ')[0] || '',
+        lastName: primaryContact.name?.split(' ').slice(1).join(' ') || '',
+        jobTitle: primaryContact.role || '',
+        phone: null,
+        city: null,
+        linkedin: scanResult.social_links?.linkedin || null,
+        source: 'scanner',
+        tags: [scanResult.industry, 'Scanner'].filter(Boolean),
+        notes: `Analyse IA: ${scanResult.summary}\n\nPain points: ${scanResult.pain_points?.join(', ')}\n\nAccroches: ${scanResult.personalization_hooks?.join('\n')}`,
+        score: 50 + Math.floor(Math.random() * 30), // Initial score 50-80
+        enrichment: {
+          industry: scanResult.industry,
+          size: scanResult.company_size,
+          tone: scanResult.tone,
+          technologies: scanResult.technologies,
+          painPoints: scanResult.pain_points,
+          hooks: scanResult.personalization_hooks,
+          scannedAt: scanResult.scannedAt,
+        },
+      }
+
+      if (isDemo) {
+        // Demo mode: just simulate success
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        setAddedProspects(prev => new Set(prev).add(scanResult.website))
+        toast.success(`${scanResult.company_name} ajoute aux prospects !`)
+      } else if (currentOrg?.id && user) {
+        // Real mode: create prospect in Firestore
+        await createProspect(currentOrg.id, prospectData, user)
+        setAddedProspects(prev => new Set(prev).add(scanResult.website))
+        toast.success(`${scanResult.company_name} ajoute aux prospects !`)
+      } else {
+        toast.error('Organisation non trouvee')
+      }
+    } catch (error) {
+      console.error('Error adding prospect:', error)
+      toast.error('Erreur lors de l\'ajout du prospect')
+    } finally {
+      setIsAddingProspect(false)
+    }
+  }
+
+  const handleSelectFromHistory = (scan) => {
+    setScanResult(scan)
   }
 
   return (
@@ -470,7 +585,12 @@ export default function Scanner() {
             ) : (
               <div className="space-y-3">
                 {scanHistory.map((scan, idx) => (
-                  <ScanHistoryItem key={idx} scan={scan} onSelect={setScanResult} />
+                  <ScanHistoryItem
+                    key={idx}
+                    scan={scan}
+                    onSelect={handleSelectFromHistory}
+                    isSelected={scanResult?.website === scan.website}
+                  />
                 ))}
               </div>
             )}
@@ -480,17 +600,36 @@ export default function Scanner() {
         {/* Main Results Area */}
         <div className="lg:col-span-3">
           {scanResult ? (
-            <ScanResult data={scanResult} onAddProspect={handleAddProspect} />
+            <ScanResult
+              data={scanResult}
+              onAddProspect={handleAddProspect}
+              isAdding={isAddingProspect}
+              isAdded={addedProspects.has(scanResult.website)}
+            />
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
               <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-violet-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Pret a scanner</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <p className="text-gray-500 max-w-md mx-auto mb-6">
                 Entrez l'URL d'un site web pour extraire automatiquement les informations de l'entreprise,
                 les contacts, et des accroches personnalisees pour votre prospection.
               </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-sm">
+                  Extraction contacts
+                </span>
+                <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-sm">
+                  Analyse IA
+                </span>
+                <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-sm">
+                  Pain points
+                </span>
+                <span className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-sm">
+                  Accroches personnalisees
+                </span>
+              </div>
             </div>
           )}
         </div>
