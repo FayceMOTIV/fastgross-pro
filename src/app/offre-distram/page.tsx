@@ -337,7 +337,7 @@ export default function OffreDistramPage() {
 
           <Reveal className="delay-100">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-              Et si vos commerciaux
+              Et si tes commerciaux
               <br />
               <span style={{ color: DISTRAM_COLORS.primary }}>closaient 3x plus</span>
               <br />
@@ -347,8 +347,8 @@ export default function OffreDistramPage() {
 
           <Reveal className="delay-200">
             <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
-              Hamza, on a construit cette plateforme pour que DISTRAM vende plus, perde moins de clients, et que vous
-              puissiez enfin <span style={{ color: DISTRAM_COLORS.primary }}>dormir tranquille</span>.
+              Hamza, on a construit cette plateforme pour que DISTRAM vende plus, perde moins de clients, et que tu
+              puisses enfin <span style={{ color: DISTRAM_COLORS.primary }}>dormir tranquille</span>.
             </p>
           </Reveal>
 
@@ -359,7 +359,7 @@ export default function OffreDistramPage() {
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-xl font-semibold rounded-xl transition-all hover:-translate-y-1"
                 style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
               >
-                Voir ce que vous allez gagner <ArrowRight className="w-5 h-5" />
+                Voir ce que tu vas gagner <ArrowRight className="w-5 h-5" />
               </a>
             </div>
           </Reveal>
@@ -394,10 +394,10 @@ export default function OffreDistramPage() {
         <div className="container mx-auto px-4">
           <Reveal>
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-              On sait ce que vous vivez, Hamza.
+              On sait ce que tu vis, Hamza.
             </h2>
             <p className="text-center text-gray-500 mb-16 max-w-2xl mx-auto">
-              Après 30 ans à construire DISTRAM, vous méritez mieux que ça.
+              Après 30 ans à construire DISTRAM, tu mérites mieux que ça.
             </p>
           </Reveal>
 
@@ -406,7 +406,7 @@ export default function OffreDistramPage() {
               <PainCard
                 emoji="😤"
                 title="2 heures pour UN devis"
-                description="Votre commercial visite un kebab, note le menu sur un papier, rentre au bureau, cherche les prix, fait le devis dans Excel... Pendant ce temps, la concurrence a déjà signé."
+                description="Ton commercial visite un kebab, note le menu sur un papier, rentre au bureau, cherche les prix, fait le devis dans Excel... Pendant ce temps, la concurrence a déjà signé."
                 cost="→ 15 000€/an perdus en temps commercial"
               />
             </Reveal>
@@ -414,7 +414,7 @@ export default function OffreDistramPage() {
               <PainCard
                 emoji="📞"
                 title="Le téléphone qui sonne H24"
-                description="'C'est quoi le prix du kebab ?' 'Vous livrez demain ?' 'J'ai oublié ma commande'... Même le dimanche. Même à 22h. Vos équipes n'en peuvent plus."
+                description="'C'est quoi le prix du kebab ?' 'Vous livrez demain ?' 'J'ai oublié ma commande'... Même le dimanche. Même à 22h. Tes équipes n'en peuvent plus."
                 cost="→ 8h/semaine perdues à répondre"
               />
             </Reveal>
@@ -422,7 +422,7 @@ export default function OffreDistramPage() {
               <PainCard
                 emoji="🔮"
                 title="Aucune visibilité"
-                description="Lyon fait quoi ? Bordeaux a combien de commandes ? Ce client a pas commandé depuis 3 semaines, il se passe quoi ? Vous pilotez à l'aveugle."
+                description="Lyon fait quoi ? Bordeaux a combien de commandes ? Ce client a pas commandé depuis 3 semaines, il se passe quoi ? Tu pilotes à l'aveugle."
                 cost="→ Décisions au doigt mouillé"
               />
             </Reveal>
@@ -430,7 +430,7 @@ export default function OffreDistramPage() {
               <PainCard
                 emoji="💸"
                 title="Clients qui partent en silence"
-                description="Vous découvrez qu'un client est parti... 2 mois après. Il commande chez le concurrent maintenant. Personne n'a vu les signaux."
+                description="Tu découvres qu'un client est parti... 2 mois après. Il commande chez le concurrent maintenant. Personne n'a vu les signaux."
                 cost="→ 12 000€/client perdu"
               />
             </Reveal>
@@ -438,16 +438,16 @@ export default function OffreDistramPage() {
               <PainCard
                 emoji="🚗"
                 title="Livreurs qui tournent en rond"
-                description="Vos livreurs font 50km de plus que nécessaire chaque jour. Essence, temps, usure des véhicules. Et des clients qui attendent."
+                description="Tes livreurs font 50km de plus que nécessaire chaque jour. Essence, temps, usure des véhicules. Et des clients qui attendent."
                 cost="→ 36 000€/an en carburant gaspillé"
               />
             </Reveal>
             <Reveal className="delay-500">
               <PainCard
                 emoji="😴"
-                title="Vous, à 23h"
-                description="Vous êtes encore en train de penser au boulot. 'J'ai oublié de rappeler ce client.' 'Il faut que je vérifie les stocks.' Jamais tranquille."
-                cost="→ Votre santé, votre famille"
+                title="Toi, à 23h"
+                description="T'es encore en train de penser au boulot. 'J'ai oublié de rappeler ce client.' 'Il faut que je vérifie les stocks.' Jamais tranquille."
+                cost="→ Ta santé, ta famille"
               />
             </Reveal>
           </div>
@@ -475,22 +475,22 @@ export default function OffreDistramPage() {
                 {/* Texte */}
                 <div>
                   <h3 className="text-2xl font-bold mb-2">
-                    Pourquoi je comprends{" "}
-                    <span style={{ color: DISTRAM_COLORS.primary }}>votre métier</span>
+                    Tu me connais, Hamza.{" "}
+                    <span style={{ color: DISTRAM_COLORS.primary }}>Je connais ton métier.</span>
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Je m&apos;appelle Faiçal. Avant de créer FACE MEDIA, j&apos;ai passé{" "}
-                    <span className="font-bold text-gray-900">8 ans dans le grossiste alimentaire</span> et{" "}
+                    Tu sais que j&apos;ai dirigé{" "}
+                    <span className="font-bold text-gray-900">Marketfood pendant 8 ans</span>. Et avant ça,{" "}
                     <span className="font-bold text-gray-900">15 ans dans la restauration</span>.
                   </p>
                   <p className="text-gray-600 mb-4">
-                    Je connais vos galères : les devis qui prennent des heures, les clients qui appellent à 22h, les
+                    Je connais tes galères : les devis qui prennent des heures, les clients qui appellent à 22h, les
                     livreurs qui tournent en rond, les commerciaux qui perdent des prospects.{" "}
                     <span className="font-bold">Je les ai vécues.</span>
                   </p>
                   <p className="text-gray-600">
                     Cette plateforme, je l&apos;ai construite pour résoudre les problèmes que j&apos;aurais voulu
-                    résoudre quand j&apos;étais à votre place.
+                    résoudre quand j&apos;étais à ta place.
                   </p>
 
                   {/* Stats expérience */}
@@ -499,7 +499,7 @@ export default function OffreDistramPage() {
                       <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
                         8 ans
                       </p>
-                      <p className="text-sm text-gray-500">Grossiste alimentaire</p>
+                      <p className="text-sm text-gray-500">Marketfood</p>
                     </div>
                     <div className="text-center">
                       <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
@@ -511,7 +511,7 @@ export default function OffreDistramPage() {
                       <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>
                         23 ans
                       </p>
-                      <p className="text-sm text-gray-500">Dans votre secteur</p>
+                      <p className="text-sm text-gray-500">Dans ton secteur</p>
                     </div>
                   </div>
                 </div>
@@ -529,7 +529,7 @@ export default function OffreDistramPage() {
               Imaginez <span style={{ color: DISTRAM_COLORS.primary }}>DISTRAM</span> dans 3 mois
             </h2>
             <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">
-              Tout ça, sans embaucher personne. Sans vous former pendant 6 mois. Sans investir des millions.
+              Tout ça, sans embaucher personne. Sans te former pendant 6 mois. Sans investir des millions.
             </p>
           </Reveal>
 
@@ -538,7 +538,7 @@ export default function OffreDistramPage() {
               <PromiseCard
                 before="2h pour un devis"
                 after="30 secondes"
-                description="L'IA scanne le menu, génère le devis. Votre commercial n'a plus qu'à closer."
+                description="L'IA scanne le menu, génère le devis. Ton commercial n'a plus qu'à closer."
               />
             </Reveal>
             <Reveal className="delay-100">
@@ -550,7 +550,7 @@ export default function OffreDistramPage() {
             </Reveal>
             <Reveal className="delay-200">
               <PromiseCard
-                before="3 dépôts, 0 visibilité"
+                before="Tes 3 dépôts, 0 visibilité"
                 after="1 écran, tout en temps réel"
                 description="Lyon, Montpellier, Bordeaux. Stocks, commandes, performances. Tout."
               />
@@ -559,21 +559,21 @@ export default function OffreDistramPage() {
               <PromiseCard
                 before="Clients qui partent"
                 after="Alertes 2 semaines AVANT"
-                description="L'IA détecte les signaux faibles. Vous intervenez avant qu'il soit trop tard."
+                description="L'IA détecte les signaux faibles. Tu interviens avant qu'il soit trop tard."
               />
             </Reveal>
             <Reveal className="delay-400">
               <PromiseCard
                 before="50km de trop/jour"
                 after="Tournées optimisées par l'IA"
-                description="Moins de km, plus de livraisons. Vos livreurs rentrent plus tôt."
+                description="Moins de km, plus de livraisons. Tes livreurs rentrent plus tôt."
               />
             </Reveal>
             <Reveal className="delay-500">
               <PromiseCard
-                before="Vous à 23h, stressé"
-                after="Vous à 23h, en famille"
-                description="L'IA veille. Vous recevez un résumé le matin. Dormez tranquille."
+                before="Toi à 23h, stressé"
+                after="Toi à 23h, en famille"
+                description="L'IA veille. Tu reçois un résumé le matin. Dors tranquille."
               />
             </Reveal>
           </div>
@@ -597,7 +597,7 @@ export default function OffreDistramPage() {
               <ModeCard
                 number="01"
                 title="Commercial"
-                subtitle="Vos 8 commerciaux vont closer 3x plus"
+                subtitle="Tes 8 commerciaux vont closer 3x plus"
                 icon={Users}
                 color="blue"
                 benefits={[
@@ -629,7 +629,7 @@ export default function OffreDistramPage() {
               <ModeCard
                 number="03"
                 title="Manager"
-                subtitle="Pilotez vos 3 dépôts sur 1 seul écran"
+                subtitle="Pilote tes 3 dépôts sur 1 seul écran"
                 icon={BarChart3}
                 color="purple"
                 benefits={[
@@ -660,7 +660,7 @@ export default function OffreDistramPage() {
               <ModeCard
                 number="05"
                 title="Portail Client B2B"
-                subtitle="Vos 300 clients commandent en ligne, 24h/24"
+                subtitle="Tes 300 clients commandent en ligne, 24h/24"
                 icon={ShoppingCart}
                 color="orange"
                 benefits={[
@@ -697,8 +697,8 @@ export default function OffreDistramPage() {
               </h2>
 
               <p className="text-xl text-gray-300 mb-8">
-                L&apos;agent IA DISTRAM répond à vos clients 24h/24, 7j/7. Il connaît vos 98 produits par cœur. Il
-                suggère, il vend, il fidélise. Pendant que vous dormez.
+                L&apos;agent IA DISTRAM répond à tes clients 24h/24, 7j/7. Il connaît tes 98 produits par cœur. Il
+                suggère, il vend, il fidélise. Pendant que tu dors.
               </p>
 
               <div className="space-y-4 mb-8">
@@ -710,7 +710,7 @@ export default function OffreDistramPage() {
                 <AIFeature
                   icon="🧠"
                   title="Apprend en continu"
-                  description="Plus il discute avec vos clients, plus il comprend leurs besoins."
+                  description="Plus il discute avec tes clients, plus il comprend leurs besoins."
                 />
                 <AIFeature
                   icon="🎯"
@@ -725,7 +725,7 @@ export default function OffreDistramPage() {
                 <AIFeature
                   icon="💬"
                   title="WhatsApp & Web"
-                  description="Vos clients lui parlent par message. Comme à un pote qui vend pour vous."
+                  description="Tes clients lui parlent par message. Comme à un pote qui vend pour toi."
                 />
               </div>
 
@@ -776,16 +776,16 @@ export default function OffreDistramPage() {
               <PartnerCard icon="🚀" title="Mises à jour gratuites" description="Chaque mois, de nouvelles fonctionnalités. Sans payer plus." />
             </Reveal>
             <Reveal className="delay-200">
-              <PartnerCard icon="🎓" title="Formation équipes" description="On forme vos 8 commerciaux jusqu'à ce qu'ils maîtrisent." />
+              <PartnerCard icon="🎓" title="Formation équipes" description="On forme tes 8 commerciaux jusqu'à ce qu'ils maîtrisent." />
             </Reveal>
             <Reveal className="delay-300">
-              <PartnerCard icon="🔧" title="Personnalisation incluse" description="Vos couleurs, votre logo, vos process. On adapte tout." />
+              <PartnerCard icon="🔧" title="Personnalisation incluse" description="Tes couleurs, ton logo, tes process. On adapte tout." />
             </Reveal>
             <Reveal className="delay-400">
               <PartnerCard icon="📊" title="Rapports mensuels" description="Un bilan chaque mois. Ce qui marche, ce qu'on améliore." />
             </Reveal>
             <Reveal className="delay-500">
-              <PartnerCard icon="🤝" title="Partenaire, pas prestataire" description="Votre succès, c'est notre succès. Ensemble." />
+              <PartnerCard icon="🤝" title="Partenaire, pas prestataire" description="Ton succès, c'est notre succès. Ensemble." />
             </Reveal>
           </div>
         </div>
@@ -797,7 +797,7 @@ export default function OffreDistramPage() {
           <Reveal>
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Le calcul est simple, Hamza.</h2>
             <p className="text-center text-gray-600 mb-16">
-              Basé sur vos vrais chiffres : 300 clients, 8 commerciaux, 3 dépôts.
+              Basé sur tes vrais chiffres : 300 clients, 8 commerciaux, 3 dépôts.
             </p>
           </Reveal>
 
@@ -830,8 +830,8 @@ export default function OffreDistramPage() {
                   Sur mesure selon vos besoins
                 </p>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                  Chaque grossiste est différent. On construit VOTRE solution selon vos équipes, vos dépôts, vos
-                  objectifs. Appelez Faiçal pour un devis gratuit en 24h.
+                  Chaque grossiste est différent. On construit TA solution selon tes équipes, tes dépôts, tes
+                  objectifs. Appelle-moi pour un devis gratuit en 24h.
                 </p>
                 <a
                   href={FAICAL_PHONE_LINK}
@@ -886,7 +886,7 @@ export default function OffreDistramPage() {
                   <span className="text-4xl md:text-5xl font-black">Devis personnalisé</span>
                 </div>
                 <p className="text-gray-400 mt-4 max-w-md mx-auto">
-                  Chaque grossiste est différent. On construit VOTRE solution selon vos besoins, vos équipes, vos
+                  Chaque grossiste est différent. On construit TA solution selon tes besoins, tes équipes, tes
                   objectifs.
                 </p>
               </div>
@@ -939,7 +939,7 @@ export default function OffreDistramPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Formation de vos équipes
+                      Formation de tes équipes
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
@@ -947,11 +947,11 @@ export default function OffreDistramPage() {
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Personnalisation à vos couleurs
+                      Personnalisation à tes couleurs
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Import de vos données
+                      Import de tes données
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
@@ -972,10 +972,10 @@ export default function OffreDistramPage() {
                   style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
                 >
                   <Phone className="w-5 h-5" />
-                  Demander mon devis gratuit →
+                  Appelle-moi pour ton devis →
                 </a>
                 <p className="text-gray-500 text-sm mt-4">
-                  Appelez Faiçal :{" "}
+                  Appelle-moi :{" "}
                   <a href={FAICAL_PHONE_LINK} className="hover:underline" style={{ color: DISTRAM_COLORS.primary }}>
                     {FAICAL_PHONE}
                   </a>
