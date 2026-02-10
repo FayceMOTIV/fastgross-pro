@@ -897,7 +897,7 @@ export default function WelcomePage() {
               </h2>
               <div className="space-y-4 text-slate-300 leading-relaxed">
                 <p>
-                  Je m&apos;appelle <strong className="text-white">Fayçal Kriouar</strong>, fondateur de <strong className="text-white">Face Media</strong>.
+                  Je m&apos;appelle <strong className="text-white">Faiçal Kriouar</strong>, fondateur de <strong className="text-white">Face Media</strong>.
                   J&apos;ai passé <strong className="text-white">20 ans</strong> dans le secteur CHR (Cafés, Hôtels, Restaurants)
                   dont <strong className="text-white">8 ans</strong> dans la distribution alimentaire.
                 </p>
@@ -916,7 +916,7 @@ export default function WelcomePage() {
                   FK
                 </div>
                 <div>
-                  <p className="font-bold text-white text-lg">Fayçal Kriouar</p>
+                  <p className="font-bold text-white text-lg">Faiçal Kriouar</p>
                   <p className="text-violet-400">Fondateur de Face Media</p>
                 </div>
               </div>

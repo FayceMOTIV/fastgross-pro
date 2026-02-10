@@ -5,8 +5,8 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DISTRAM_COLORS } from "@/lib/theme-distram";
 
-const FAYCAL_PHONE = "06 02 10 07 74";
-const FAYCAL_PHONE_LINK = "tel:+33602100774";
+const FAICAL_PHONE = "06 02 10 07 74";
+const FAICAL_PHONE_LINK = "tel:+33602100774";
 
 import {
   CheckCircle,
@@ -274,12 +274,12 @@ export default function OffreDistramPage() {
             <span className="font-bold text-lg text-white">DISTRAM × FACE MEDIA</span>
           </div>
           <a
-            href={FAYCAL_PHONE_LINK}
+            href={FAICAL_PHONE_LINK}
             className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all hover:scale-105"
             style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
           >
             <Phone className="w-4 h-4" />
-            <span className="hidden md:inline">{FAYCAL_PHONE}</span>
+            <span className="hidden md:inline">{FAICAL_PHONE}</span>
           </a>
         </div>
       </nav>
@@ -712,7 +712,7 @@ export default function OffreDistramPage() {
           </Reveal>
 
           <div className="max-w-4xl mx-auto">
-            {/* Fayçal */}
+            {/* Faiçal */}
             <Reveal>
               <div className="flex flex-col md:flex-row items-center gap-8 mb-12">
                 <div className="flex-shrink-0">
@@ -725,7 +725,7 @@ export default function OffreDistramPage() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold mb-3">
-                    Je m&apos;appelle Fayçal.{" "}
+                    Je m&apos;appelle Faiçal.{" "}
                     <span style={{ color: DISTRAM_COLORS.primary }}>Je connais tes galères.</span>
                   </h3>
                   <p className="text-gray-600 mb-3">
@@ -798,18 +798,18 @@ export default function OffreDistramPage() {
               <span style={{ color: DISTRAM_COLORS.primary }}>DISTRAM</span> ?
             </h2>
             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-              Appelle Fayçal. On te montre la plateforme avec TES vrais produits, TES vrais clients, TES vrais chiffres.
+              Appelle Faiçal. On te montre la plateforme avec TES vrais produits, TES vrais clients, TES vrais chiffres.
             </p>
           </Reveal>
 
           <Reveal className="delay-100">
             <a
-              href={FAYCAL_PHONE_LINK}
+              href={FAICAL_PHONE_LINK}
               className="inline-flex items-center justify-center gap-3 text-2xl md:text-3xl px-12 py-6 rounded-2xl font-black transition-all hover:-translate-y-2 hover:shadow-2xl"
               style={{ background: DISTRAM_COLORS.primary, color: DISTRAM_COLORS.black }}
             >
               <Phone className="w-8 h-8" />
-              {FAYCAL_PHONE}
+              {FAICAL_PHONE}
             </a>
             <p className="text-gray-500 mt-6">
               Ou{" "}
