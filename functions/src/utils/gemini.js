@@ -3,7 +3,7 @@
  * Uses Gemini 1.5 Flash (free tier) as primary, Claude as fallback
  */
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
 
 /**
  * Call Gemini 1.5 Flash API
