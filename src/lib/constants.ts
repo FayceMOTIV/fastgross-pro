@@ -77,7 +77,7 @@ export const PRICING_PLANS = [
     ],
     notIncluded: [
       'IA Prospection',
-      'IA Anti-Churn',
+      'IA Détection décrochage',
       'IA Tournées',
       'Multi-dépôts',
     ],
@@ -91,7 +91,7 @@ export const PRICING_PLANS = [
     features: [
       'Tout Starter +',
       'IA Prospection',
-      'IA Anti-Churn',
+      'IA Détection décrochage',
       'Clients illimités',
       'Tracking GPS livreurs',
       'Support prioritaire',
@@ -113,7 +113,7 @@ export const PRICING_PLANS = [
       'IA Tournées optimisées',
       'IA Stocks prédictive',
       'Multi-dépôts (3 max)',
-      'Intégration SAGE',
+      'Export comptable automatique',
       'Support dédié',
       'Formation équipe',
     ],
@@ -133,7 +133,7 @@ export const MAIN_NAV = [
 export const AI_NAV = [
   { name: 'Scan Menu', href: '/scan-menu', icon: 'Camera', badge: 'IA' },
   { name: 'Prospection', href: '/prospection', icon: 'Target', badge: 'IA' },
-  { name: 'Anti-Churn', href: '/anti-churn', icon: 'Shield', badge: 'IA' },
+  { name: 'Décrochage', href: '/anti-churn', icon: 'Shield', badge: 'IA' },
   { name: 'Tournées', href: '/tournees', icon: 'Route', badge: 'IA' },
   { name: 'Stocks', href: '/stocks', icon: 'Package', badge: 'IA' },
   { name: 'Assistant', href: '/assistant', icon: 'MessageSquare', badge: 'IA' },

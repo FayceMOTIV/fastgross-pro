@@ -17,12 +17,14 @@ export function PhonePreviewButton({ className }: PhonePreviewProps) {
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-full shadow-2xl shadow-violet-500/30 hover:scale-105 transition-all",
+          "fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold rounded-full shadow-2xl shadow-violet-500/30 hover:scale-105 transition-all hover:shadow-violet-500/50",
           className
         )}
+        aria-label="Aperçu mobile"
+        title="Aperçu sur mobile"
       >
         <Smartphone className="h-5 w-5" />
-        <span className="hidden sm:inline">Vue Mobile</span>
+        <span className="text-sm">Aperçu Mobile</span>
       </button>
 
       {/* Modal Overlay */}

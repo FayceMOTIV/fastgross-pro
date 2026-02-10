@@ -94,10 +94,10 @@ export default function Hero() {
 
             {/* Floating badges */}
             <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg animate-bounce">
-              ROI x72 minimum
+              ROI x19 minimum
             </div>
             <div className="absolute -bottom-4 -left-4 bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-              Intégration SAGE incluse
+              Export comptable inclus
             </div>
 
             {/* Stats floating card */}

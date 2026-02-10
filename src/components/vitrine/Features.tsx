@@ -34,7 +34,7 @@ const features = [
   },
   {
     icon: Shield,
-    title: 'IA Anti-Churn',
+    title: 'IA Détection Décrochage',
     subtitle: null,
     description: 'Détecte les clients qui vont partir 30 jours AVANT. Signaux d\'alerte, actions de rétention suggérées.',
     metrics: '-40% de clients perdus',
@@ -56,7 +56,7 @@ const features = [
     icon: Package,
     title: 'IA Stocks',
     subtitle: null,
-    description: 'Prédit les ruptures sur vos 98 références halal. Saisonnalité Ramadan/fêtes intégrée, alertes DLC viandes.',
+    description: 'Prédit les ruptures sur vos 500 références halal. Saisonnalité Ramadan/fêtes intégrée, alertes DLC viandes.',
     metrics: '-60% de ruptures',
     color: 'purple',
     bgColor: 'bg-purple-100',

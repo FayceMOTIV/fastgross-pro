@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   Target,
   FileText,
+  Bot,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,7 +47,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { href: '/portail', label: 'Accueil', icon: Home },
     { href: '/portail/catalogue', label: 'Catalogue', icon: Package },
     { href: '/portail/commandes', label: 'Commandes', icon: ShoppingCart },
-    { href: '/portail/factures', label: 'Factures', icon: FileText },
+    { href: '/portail/assistant', label: 'Assistant', icon: Bot },
     { href: '/portail/profile', label: 'Compte', icon: User },
   ],
   // Admin et Manager n'utilisent pas la nav mobile

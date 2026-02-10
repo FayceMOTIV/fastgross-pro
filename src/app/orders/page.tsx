@@ -468,9 +468,9 @@ export default function OrdersPage() {
 
         {/* Orders Table */}
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 overflow-x-auto">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-muted/50 border-b">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Commande</th>
@@ -802,8 +802,8 @@ function OrderDetails({
             Articles ({order.items.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full">
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-muted/50 border-y">
               <tr>
                 <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Réf</th>

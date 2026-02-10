@@ -45,7 +45,7 @@ export default function AntiChurnPage() {
   return (
     <div className="min-h-screen">
       <Header
-        title="IA Anti-Churn"
+        title="IA Détection Décrochage"
         subtitle="Détectez et retenez vos clients à risque"
       />
 
@@ -58,7 +58,7 @@ export default function AntiChurnPage() {
                 <Shield className="w-8 h-8" />
               </div>
               <div>
-                <h2 className="text-xl font-bold mb-1">Protection anti-churn activée</h2>
+                <h2 className="text-xl font-bold mb-1">Détection de décrochage activée</h2>
                 <p className="text-red-100">
                   L'IA analyse vos clients en continu et détecte les signaux de départ 30 jours avant
                 </p>

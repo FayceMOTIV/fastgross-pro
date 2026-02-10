@@ -24,7 +24,7 @@ export default function ROISection() {
   const caSupplementaire = clientsSupplementaires * caMoyenClient;
 
   const roiTotal = economiesMensuelle + caSupplementaire;
-  const roiMultiple = Math.round(roiTotal / 549); // vs plan Pro
+  const roiMultiple = Math.round(roiTotal / 1275); // vs investissement mensuel moyen
 
   return (
     <section id="roi" className="py-20 bg-white">

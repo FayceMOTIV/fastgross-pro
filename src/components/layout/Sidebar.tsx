@@ -33,7 +33,7 @@ const mainNav = [
 const aiNav = [
   { name: 'Scan Menu', href: '/scan-menu', icon: Camera },
   { name: 'Prospection', href: '/prospects', icon: Target },
-  { name: 'Anti-Churn', href: '/anti-churn', icon: Shield },
+  { name: 'Décrochage', href: '/anti-churn', icon: Shield },
   { name: 'Tournées', href: '/tournees', icon: Route },
   { name: 'Stocks', href: '/stocks', icon: Package },
   { name: 'Assistant', href: '/assistant', icon: MessageSquare },

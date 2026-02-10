@@ -5,7 +5,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DISTRAM_COLORS } from "@/lib/theme-distram";
 
-// Constante pour le numéro de Faiçal
+// Constante pour le numéro de Fayçal
 const FAICAL_PHONE = "06 02 10 07 74";
 const FAICAL_PHONE_LINK = "tel:+33602100774";
 import {
@@ -369,8 +369,8 @@ export default function OffreDistramPage() {
           <Reveal className="delay-400">
             <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-gray-400">
               <div className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-white">156 000€</p>
-                <p className="text-sm">d&apos;économies/an</p>
+                <p className="text-3xl md:text-4xl font-bold text-white">291 000€</p>
+                <p className="text-sm">de gains/an</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl md:text-4xl font-bold text-white">24/7</p>
@@ -379,6 +379,10 @@ export default function OffreDistramPage() {
               <div className="text-center">
                 <p className="text-3xl md:text-4xl font-bold text-white">30 sec</p>
                 <p className="text-sm">pour un devis</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-bold text-white">3 sem.</p>
+                <p className="text-sm">pour être rentable</p>
               </div>
             </div>
           </Reveal>
@@ -461,7 +465,7 @@ export default function OffreDistramPage() {
           <Reveal>
             <div className="max-w-4xl mx-auto">
               <div className="flex flex-col md:flex-row items-center gap-8">
-                {/* Avatar Faiçal */}
+                {/* Avatar Fayçal */}
                 <div className="flex-shrink-0">
                   <div
                     className="w-32 h-32 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg"
@@ -696,7 +700,7 @@ export default function OffreDistramPage() {
               </h2>
 
               <p className="text-xl text-gray-300 mb-8">
-                L&apos;agent IA DISTRAM répond à tes clients 24h/24, 7j/7. Il connaît tes 98 produits par cœur. Il
+                L&apos;agent IA DISTRAM répond à tes clients 24h/24, 7j/7. Il connaît tes 500 références par cœur. Il
                 suggère, il vend, il fidélise. Pendant que tu dors.
               </p>
 
@@ -729,7 +733,7 @@ export default function OffreDistramPage() {
               </div>
 
               <Link
-                href="/assistant"
+                href="/portail/assistant"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:-translate-y-1"
@@ -809,7 +813,7 @@ export default function OffreDistramPage() {
                 <h3 className="text-xl font-bold mb-6">Ce que tu GAGNES chaque année :</h3>
                 <div className="space-y-4">
                   <ROILine label="Temps commercial récupéré" detail="2h/devis × 8 commerciaux × 200 devis/an" value="+78 000€" />
-                  <ROILine label="Clients sauvés (anti-churn)" detail="10 clients × 12 000€/client" value="+120 000€" />
+                  <ROILine label="Clients sauvés (détection décrochage)" detail="10 clients × 12 000€/client" value="+120 000€" />
                   <ROILine label="Carburant économisé" detail="Tournées optimisées, -30% de km" value="+36 000€" />
                   <ROILine label="Ventes additionnelles (cross-sell IA)" detail="+15% panier moyen" value="+45 000€" />
                   <ROILine label="Appels évités (portail + IA)" detail="70% d'appels en moins" value="+12 000€" />
@@ -853,9 +857,16 @@ export default function OffreDistramPage() {
                   +291 000€/an
                 </p>
                 <p className="text-xl text-gray-300">de gains potentiels avec la plateforme complète</p>
-                <p className="font-bold mt-4" style={{ color: DISTRAM_COLORS.primary }}>
-                  → ROI garanti dès les premiers mois
-                </p>
+                <div className="flex justify-center gap-8 mt-6">
+                  <div>
+                    <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>×19</p>
+                    <p className="text-sm text-gray-400">retour sur investissement</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold" style={{ color: DISTRAM_COLORS.primary }}>3 sem.</p>
+                    <p className="text-sm text-gray-400">pour être rentable</p>
+                  </div>
+                </div>
               </div>
             </Reveal>
           </div>
@@ -936,7 +947,7 @@ export default function OffreDistramPage() {
                   <ul className="space-y-2 text-gray-300">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
-                      Support 7j/7 par Faiçal
+                      Support 7j/7 par Fayçal
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
@@ -987,26 +998,7 @@ export default function OffreDistramPage() {
         </div>
       </section>
 
-      {/* ===================== SECTION 9: URGENCE ===================== */}
-      <section className="py-16" style={{ background: DISTRAM_COLORS.primary }}>
-        <div className="container mx-auto px-4 text-center" style={{ color: DISTRAM_COLORS.black }}>
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">
-            ⚠️ Cette offre est valable jusqu&apos;au 28 février 2026
-          </h2>
-          <p className="text-lg mb-6 max-w-2xl mx-auto">
-            On ne peut accompagner qu&apos;un nombre limité de clients avec ce niveau de service. Après DISTRAM, on
-            passe au suivant. Les conditions peuvent changer.
-          </p>
-          <a
-            href="#offre"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold transition-all hover:-translate-y-1"
-            style={{ background: DISTRAM_COLORS.black, color: "white" }}
-          >
-            Sécuriser cette offre maintenant
-          </a>
-        </div>
-      </section>
-
+      
       {/* ===================== FOOTER ===================== */}
       <footer className="py-8 bg-gray-900 text-white">
         <div className="container mx-auto px-4 text-center">

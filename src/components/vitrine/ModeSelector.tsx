@@ -53,7 +53,7 @@ const modes = [
     gradient: 'from-orange-500 to-amber-600',
     shadow: 'shadow-orange-500/25',
     hoverBg: 'hover:bg-orange-50 dark:hover:bg-orange-500/10',
-    badge: '98 produits',
+    badge: '500 références',
   },
 ];
 

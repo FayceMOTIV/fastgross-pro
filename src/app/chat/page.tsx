@@ -351,7 +351,7 @@ export default function ChatPage() {
     <div className="h-screen flex flex-col bg-[#1a1d21] text-white overflow-hidden">
       {/* Quick Switcher Modal */}
       {showQuickSwitcher && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-24" onClick={() => setShowQuickSwitcher(false)}>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-24 px-4" onClick={() => setShowQuickSwitcher(false)}>
           <div className="w-full max-w-xl bg-[#222529] rounded-xl shadow-2xl border border-slate-700" onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b border-slate-700">
               <div className="flex items-center gap-3 bg-[#1a1d21] rounded-lg px-4 py-3">

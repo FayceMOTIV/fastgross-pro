@@ -184,14 +184,16 @@ export function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
   // ===== MODE DESKTOP (Admin, Manager) =====
   if (config.layout === 'desktop') {
     return (
-      <div className="min-h-screen bg-background">
-        {/* Sidebar */}
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Sidebar - Hidden on mobile, visible on desktop */}
         {config.showSidebar && (
-          <Sidebar />
+          <div className="hidden lg:block">
+            <Sidebar />
+          </div>
         )}
 
         {/* Main content */}
-        <div className={cn(config.showSidebar && 'lg:pl-64')}>
+        <div className={cn('flex-1 flex flex-col', config.showSidebar && 'lg:pl-64')}>
           {/* Header Desktop */}
           <header className="sticky top-0 z-30 h-16 bg-card/80 backdrop-blur-lg border-b border-border">
             <div className="h-full px-4 lg:px-6 flex items-center justify-between">
@@ -278,7 +280,12 @@ export function AdaptiveLayout({ children }: AdaptiveLayoutProps) {
             </div>
           </header>
 
-          <main className="p-4 lg:p-6">{children}</main>
+          <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6">{children}</main>
+
+          {/* Mobile bottom nav for admin/manager */}
+          <div className="lg:hidden">
+            <MobileNav role={role} />
+          </div>
         </div>
       </div>
     );

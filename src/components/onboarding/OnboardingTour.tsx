@@ -131,7 +131,7 @@ const TOUR_STEPS: Record<TourType, Step[]> = {
   'portail-client': [
     {
       target: '[data-tour="catalogue"]',
-      content: 'Parcourez notre catalogue de 98 produits halal.',
+      content: 'Parcourez notre catalogue de 500 références halal.',
       disableBeacon: true,
     },
     {

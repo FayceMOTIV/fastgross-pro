@@ -26,7 +26,7 @@ const InputSchema = z.object({
 
 export const catalogSearch = createTool({
   id: "search-catalog",
-  description: `Recherche dans le catalogue de 98 produits DISTRAM.
+  description: `Recherche dans le catalogue de 500 références DISTRAM.
 Peut chercher par nom, catégorie, type de cuisine, ou ingrédient.
 Catégories disponibles: viandes, sauces, pains, fromages, boissons, épicerie, surgelés.`,
   inputSchema: InputSchema,

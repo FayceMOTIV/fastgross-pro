@@ -7,6 +7,7 @@ import {
   Package,
   FileText,
   MessageSquare,
+  Bot,
   Clock,
   CheckCircle,
   Truck,
@@ -134,7 +135,7 @@ const mockData = {
       id: '4',
       type: 'info',
       title: 'Nouveau catalogue DISTRAM',
-      message: '98 produits halal pour la restauration rapide',
+      message: '500 références halal pour la restauration rapide',
       date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       isNew: false,
     },
@@ -307,12 +308,12 @@ export default function PortailHomePage() {
             </Card>
           </Link>
 
-          <Link href="/chat">
+          <Link href="/portail/assistant">
             <Card className="border-2 hover:border-orange-500 hover:shadow-xl transition-all hover:scale-105 cursor-pointer">
               <CardContent className="p-6 text-center">
-                <MessageSquare className="h-12 w-12 text-gray-600 dark:text-gray-400 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Support Client</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Besoin d'aide?</p>
+                <Bot className="h-12 w-12 text-orange-600 dark:text-orange-400 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Assistant IA</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Posez vos questions 24/7</p>
               </CardContent>
             </Card>
           </Link>
@@ -335,7 +336,7 @@ export default function PortailHomePage() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {mockData.featuredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden hover:shadow-xl transition-shadow">
                   <div className="relative">
@@ -564,8 +565,14 @@ export default function PortailHomePage() {
                   <p className="text-orange-50">Notre équipe est à votre disposition du lundi au vendredi, 8h-18h</p>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50">
+              <div className="flex flex-wrap gap-3">
+                <Link href="/portail/assistant">
+                  <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50">
+                    <Bot className="h-5 w-5 mr-2" />
+                    Assistant IA
+                  </Button>
+                </Link>
+                <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
                   <Phone className="h-5 w-5 mr-2" />
                   01 23 45 67 89
                 </Button>

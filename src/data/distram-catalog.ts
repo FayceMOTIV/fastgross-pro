@@ -1,5 +1,5 @@
 /**
- * Catalogue DISTRAM - 98 Produits pour grossiste alimentaire halal
+ * Catalogue DISTRAM - 500 Références pour grossiste alimentaire halal
  * Données réalistes pour démo client
  */
 
