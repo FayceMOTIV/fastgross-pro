@@ -1132,6 +1132,64 @@ function formatTimeAgo(date) {
 }
 
 /**
+ * Hook pour ecouter l'etat du moteur de prospection en temps reel
+ * Retourne: { status, step, progress, message, stats, error }
+ */
+export function useEngineStatus(userId) {
+  const [engineStatus, setEngineStatus] = useState({
+    status: 'idle', // idle, running, completed, error
+    step: null,
+    progress: 0,
+    message: null,
+    stats: null,
+    error: null,
+    startedAt: null,
+    completedAt: null,
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false)
+      return
+    }
+
+    const userRef = doc(db, 'users', userId)
+
+    const unsubscribe = onSnapshot(
+      userRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data()
+          const status = data.engineStatus || {}
+
+          setEngineStatus({
+            status: status.status || 'idle',
+            step: status.step || null,
+            progress: status.progress || 0,
+            message: status.message || null,
+            stats: status.stats || null,
+            error: status.error || null,
+            startedAt: status.startedAt?.toDate?.() || null,
+            completedAt: status.completedAt?.toDate?.() || null,
+            currentCompany: status.currentCompany || null,
+          })
+        }
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Error listening to engine status:', err)
+        setLoading(false)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [userId])
+
+  return { engineStatus, loading }
+}
+
+/**
  * Hook pour les analytics détaillées
  */
 export function useAnalytics(period = '30d') {
