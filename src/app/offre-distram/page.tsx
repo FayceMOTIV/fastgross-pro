@@ -24,7 +24,6 @@ import {
   Target,
   Camera,
   MessageSquare,
-  MapPin,
   Route,
   Clock,
   Zap,
