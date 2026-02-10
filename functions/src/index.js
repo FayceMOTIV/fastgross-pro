@@ -48,6 +48,11 @@ export { handleUnsubscribe, handleProspectEmailWebhook } from './autopilot/unsub
 export { resetMonthlyUsage, manualResetUsage } from './utils/resetUsage.js'
 
 // ============================================
+// Prospect Engine (v4.0 - Core automation)
+// ============================================
+export { prospectEngine, refreshProspects } from './engine/prospectEngine.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData } from './dev/seedData.js'

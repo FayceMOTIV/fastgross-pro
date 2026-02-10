@@ -1,6 +1,8 @@
-import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useEffect, useState, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { httpsCallable } from 'firebase/functions'
+import { functions } from '@/lib/firebase'
 import {
   Users,
   Mail,
@@ -20,6 +22,12 @@ import {
   Instagram,
   Mic,
   MapPin,
+  X,
+  Loader2,
+  Search,
+  RefreshCw,
+  Rocket,
+  AlertCircle,
 } from 'lucide-react'
 import {
   Chart as ChartJS,
@@ -32,6 +40,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
+import toast from 'react-hot-toast'
 
 // Register Chart.js components
 ChartJS.register(
@@ -43,10 +52,10 @@ ChartJS.register(
   ChartTooltip,
   Legend
 )
-import { orderBy, limit } from 'firebase/firestore'
 import DemoBanner, { DemoBadge } from '@/components/DemoBanner'
-import { useDashboardStats, useLeads, useCollection } from '@/hooks/useFirestore'
+import { useRealDashboardStats } from '@/hooks/useFirestore'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOrg } from '@/contexts/OrgContext'
 import { useTour } from '@/components/OnboardingTour'
 import { useDemo } from '@/contexts/DemoContext'
 import {
@@ -54,7 +63,6 @@ import {
   demoDailyStats,
   demoClients,
   demoRecentActivity,
-  transformProspectsToLeads,
   getHotProspects,
 } from '@/data/demoData'
 import { CHANNEL_STYLES } from '@/engine/multiChannelEngine'
@@ -109,20 +117,14 @@ const chartOptions = {
   },
 }
 
-// Format activity for display
-const formatActivity = (activity) => {
-  const timeAgo = (date) => {
-    const seconds = Math.floor((new Date() - new Date(date)) / 1000)
-    if (seconds < 60) return "A l'instant"
-    if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`
-    if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`
-    return `Il y a ${Math.floor(seconds / 86400)}j`
-  }
-
-  return {
-    ...activity,
-    timeAgo: timeAgo(activity.timestamp),
-  }
+// Format time ago
+const formatTimeAgo = (date) => {
+  if (!date) return ''
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000)
+  if (seconds < 60) return "A l'instant"
+  if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`
+  if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`
+  return `Il y a ${Math.floor(seconds / 86400)}j`
 }
 
 // Circular progress component - Light theme
@@ -130,7 +132,7 @@ function CircularProgress({ value, max, size = 200 }) {
   const strokeWidth = 12
   const radius = (size - strokeWidth) / 2
   const circumference = radius * 2 * Math.PI
-  const progress = Math.min(value / max, 1)
+  const progress = max > 0 ? Math.min(value / max, 1) : 0
   const strokeDashoffset = circumference - progress * circumference
 
   return (
@@ -174,16 +176,172 @@ function CircularProgress({ value, max, size = 200 }) {
   )
 }
 
+// Launch Day Modal
+function LaunchDayModal({ isOpen, onClose, pendingCampaigns, onLaunch, isLaunching }) {
+  if (!isOpen) return null
+
+  const totalMessages = pendingCampaigns.reduce((acc, c) => acc + (c.steps?.length || 1), 0)
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden"
+        >
+          {/* Header */}
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                  <Rocket className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-display font-bold text-text">Lancer ma journee</h2>
+                  <p className="text-sm text-text-muted">Confirmation avant envoi</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-text-muted" />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            {pendingCampaigns.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-text mb-2">
+                  Aucune campagne en attente
+                </h3>
+                <p className="text-text-muted">
+                  Toutes vos sequences ont deja ete lancees. Recherchez de nouveaux prospects pour
+                  continuer.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-gradient-to-br from-accent/5 to-purple-50 rounded-xl p-4 mb-6">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p className="text-3xl font-bold text-accent">{pendingCampaigns.length}</p>
+                      <p className="text-sm text-text-muted">Prospects</p>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-bold text-purple-600">{totalMessages}</p>
+                      <p className="text-sm text-text-muted">Messages a envoyer</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-48 overflow-y-auto mb-6">
+                  {pendingCampaigns.slice(0, 5).map((campaign) => (
+                    <div
+                      key={campaign.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <Mail className="w-4 h-4 text-accent" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text truncate">
+                          {campaign.prospectName || 'Prospect'}
+                        </p>
+                        <p className="text-xs text-text-muted truncate">
+                          {campaign.prospectCompany || 'Entreprise'}
+                        </p>
+                      </div>
+                      <span className="text-xs text-text-muted">
+                        {campaign.steps?.length || 1} etapes
+                      </span>
+                    </div>
+                  ))}
+                  {pendingCampaigns.length > 5 && (
+                    <p className="text-sm text-center text-text-muted">
+                      + {pendingCampaigns.length - 5} autres prospects
+                    </p>
+                  )}
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-800">
+                      Les messages seront envoyes progressivement selon le planning de chaque
+                      sequence. Vous pouvez suivre l'avancement dans l'onglet Campagnes.
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-text font-medium hover:bg-gray-100 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={onLaunch}
+              disabled={pendingCampaigns.length === 0 || isLaunching}
+              className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLaunching ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Lancement...
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5" />
+                  Lancer
+                </>
+              )}
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { isDemo } = useDemo()
-  const { stats: realStats, loading: statsLoading } = useDashboardStats()
-  const { leads: realLeads, loading: leadsLoading } = useLeads()
-  const { data: activities } = useCollection('emailEvents', [
-    orderBy('timestamp', 'desc'),
-    limit(10),
-  ])
   const { userProfile } = useAuth()
+  const { currentOrg } = useOrg()
   const { setIsOpen } = useTour()
+
+  // Real stats from Firestore (non-demo mode)
+  const {
+    stats: realStats,
+    pendingCampaigns: realPendingCampaigns,
+    hotProspects: realHotProspects,
+    recentActivity: realRecentActivity,
+    dailyStats: realDailyStats,
+    loading,
+  } = useRealDashboardStats()
+
+  // Modal state
+  const [showLaunchModal, setShowLaunchModal] = useState(false)
+  const [isLaunching, setIsLaunching] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
 
   // Launch tour for new users
   useEffect(() => {
@@ -200,49 +358,53 @@ export default function Dashboard() {
   // Use demo or real data
   const stats = isDemo
     ? {
+        totalProspects: demoStats.totalProspects,
         totalLeads: demoStats.totalProspects,
         emailsSent: demoStats.totalEmailed,
         openRate: demoStats.avgOpenRate,
         replyRate: demoStats.avgReplyRate,
         hotLeads: demoClients.filter((c) => c.score >= 70).length,
+        warmLeads: demoClients.filter((c) => c.score >= 40 && c.score < 70).length,
         totalRevenue: demoStats.totalRevenueNum,
-        thisMonthRevenue: demoStats.thisMonth.revenueNum,
+        thisMonthRevenue: demoStats.thisMonth?.revenueNum || 0,
         converted: demoStats.totalConverted,
         todayToContact: 37,
         todayContacted: 12,
         todayReplies: 4,
         todaySigned: 1,
-        // Multichannel stats
-        totalMessages: demoStats.totalMessages,
-        byChannel: demoStats.byChannel,
-        totalReplies: demoStats.totalReplies,
-        repliesByChannel: demoStats.repliesByChannel,
+        pendingCampaigns: 15,
+        totalMessages: demoStats.totalMessages || 0,
+        byChannel: demoStats.byChannel || { email: 0, sms: 0, instagram_dm: 0, voicemail: 0, courrier: 0 },
+        totalReplies: demoStats.totalReplies || 0,
+        repliesByChannel: demoStats.repliesByChannel || {},
       }
     : {
         ...realStats,
-        todayToContact: 37,
-        todayContacted: 12,
-        todayReplies: 4,
-        todaySigned: 1,
-        totalMessages: 0,
-        byChannel: { email: 0, sms: 0, instagram_dm: 0, voicemail: 0, courrier: 0 },
-        totalReplies: 0,
-        repliesByChannel: {},
+        totalLeads: realStats.totalProspects,
+        todayToContact: realStats.pendingCampaigns || 0,
       }
 
-  // Get hot prospects (replied)
-  const hotProspects = isDemo ? getHotProspects() : []
+  // Pending campaigns for launch modal
+  const pendingCampaigns = isDemo
+    ? Array.from({ length: 15 }, (_, i) => ({
+        id: `demo-${i}`,
+        prospectName: demoClients[i % demoClients.length]?.company || 'Prospect',
+        prospectCompany: demoClients[i % demoClients.length]?.sector || 'Entreprise',
+        steps: [{ channel: 'email' }, { channel: 'sms' }],
+      }))
+    : realPendingCampaigns
 
-  const leads = isDemo ? transformProspectsToLeads(demoClients) : realLeads
+  // Hot prospects
+  const hotProspects = isDemo ? getHotProspects() : realHotProspects
 
-  // Chart data - with null safety for demoDailyStats
+  // Chart data
   const defaultChartData = [
-    { name: 'Lun', envoyes: 24, ouverts: 18, reponses: 3 },
-    { name: 'Mar', envoyes: 30, ouverts: 22, reponses: 5 },
-    { name: 'Mer', envoyes: 28, ouverts: 20, reponses: 4 },
-    { name: 'Jeu', envoyes: 35, ouverts: 28, reponses: 7 },
-    { name: 'Ven', envoyes: 32, ouverts: 25, reponses: 6 },
-    { name: 'Sam', envoyes: 8, ouverts: 6, reponses: 1 },
+    { name: 'Lun', envoyes: 0, ouverts: 0, reponses: 0 },
+    { name: 'Mar', envoyes: 0, ouverts: 0, reponses: 0 },
+    { name: 'Mer', envoyes: 0, ouverts: 0, reponses: 0 },
+    { name: 'Jeu', envoyes: 0, ouverts: 0, reponses: 0 },
+    { name: 'Ven', envoyes: 0, ouverts: 0, reponses: 0 },
+    { name: 'Sam', envoyes: 0, ouverts: 0, reponses: 0 },
     { name: 'Dim', envoyes: 0, ouverts: 0, reponses: 0 },
   ]
 
@@ -253,20 +415,14 @@ export default function Dashboard() {
         ouverts: d?.opened || 0,
         reponses: d?.replied || 0,
       }))
+    : realDailyStats.length > 0
+    ? realDailyStats
     : defaultChartData
 
   // Activity feed
   const recentActivities = isDemo
-    ? demoRecentActivity.map(formatActivity)
-    : (activities || []).map((event) => ({
-        id: event.id,
-        type: event.type,
-        channel: event.channel || 'email',
-        message: event.leadName ? `${event.leadName}` : 'Lead anonyme',
-        details: event.email || event.subject,
-        timestamp: event.timestamp,
-        timeAgo: formatActivity({ timestamp: event.timestamp }).timeAgo,
-      }))
+    ? demoRecentActivity.map((a) => ({ ...a, timeAgo: formatTimeAgo(a.timestamp) }))
+    : realRecentActivity
 
   // Today's date
   const today = new Date().toLocaleDateString('fr-FR', {
@@ -275,8 +431,51 @@ export default function Dashboard() {
     month: 'long',
   })
 
+  // Launch campaigns handler
+  const handleLaunchDay = useCallback(async () => {
+    if (isDemo) {
+      toast.success('Mode demo: Campagnes lancees avec succes!')
+      setShowLaunchModal(false)
+      return
+    }
+
+    setIsLaunching(true)
+    try {
+      const runAutoPilot = httpsCallable(functions, 'runAutoPilotManual')
+      await runAutoPilot({ orgId: currentOrg?.id })
+      toast.success(`${pendingCampaigns.length} campagnes lancees avec succes!`)
+      setShowLaunchModal(false)
+    } catch (error) {
+      console.error('Launch error:', error)
+      toast.error('Erreur lors du lancement: ' + (error.message || 'Erreur inconnue'))
+    } finally {
+      setIsLaunching(false)
+    }
+  }, [isDemo, currentOrg?.id, pendingCampaigns.length])
+
+  // Search new prospects handler
+  const handleSearchProspects = useCallback(async () => {
+    if (isDemo) {
+      toast.success('Mode demo: Recherche de nouveaux prospects simulee!')
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const prospectEngine = httpsCallable(functions, 'prospectEngine')
+      toast.loading('Recherche de nouveaux prospects en cours...', { id: 'search-prospects' })
+      await prospectEngine({ orgId: currentOrg?.id })
+      toast.success('Nouveaux prospects trouves!', { id: 'search-prospects' })
+    } catch (error) {
+      console.error('Search error:', error)
+      toast.error('Erreur: ' + (error.message || 'Erreur inconnue'), { id: 'search-prospects' })
+    } finally {
+      setIsSearching(false)
+    }
+  }, [isDemo, currentOrg?.id])
+
   // Show loading state
-  if (!isDemo && (statsLoading || leadsLoading)) {
+  if (!isDemo && loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -292,6 +491,15 @@ export default function Dashboard() {
       {/* Demo Banner */}
       {isDemo && <DemoBanner page="dashboard" />}
 
+      {/* Launch Day Modal */}
+      <LaunchDayModal
+        isOpen={showLaunchModal}
+        onClose={() => setShowLaunchModal(false)}
+        pendingCampaigns={pendingCampaigns}
+        onLaunch={handleLaunchDay}
+        isLaunching={isLaunching}
+      />
+
       {/* Hero Section - Today's Focus */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -301,7 +509,11 @@ export default function Dashboard() {
         <div className="flex flex-col lg:flex-row items-center gap-8">
           {/* Left - Progress Ring */}
           <div className="flex-shrink-0">
-            <CircularProgress value={stats.todayContacted} max={stats.todayToContact} size={180} />
+            <CircularProgress
+              value={stats.todayContacted || 0}
+              max={Math.max(stats.todayToContact || 1, 1)}
+              size={180}
+            />
           </div>
 
           {/* Right - Content */}
@@ -311,11 +523,12 @@ export default function Dashboard() {
               <span className="capitalize">{today}</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-display font-bold text-text mb-2">
-              <span className="gradient-text">{stats.todayToContact}</span> personnes a contacter
+              <span className="gradient-text">{stats.todayToContact || 0}</span> personnes a contacter
             </h1>
             <p className="text-text-secondary mb-6">
-              Vous avez deja contacte {stats.todayContacted} prospects aujourd'hui. Continuez comme
-              ca !
+              {stats.todayToContact > 0
+                ? `Vous avez ${stats.pendingCampaigns || 0} sequences pretes a etre lancees.`
+                : 'Recherchez de nouveaux prospects pour commencer votre journee.'}
             </p>
 
             {/* Quick Stats */}
@@ -325,7 +538,7 @@ export default function Dashboard() {
                   <Send className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-text">{stats.todayContacted}</p>
+                  <p className="text-sm font-medium text-text">{stats.todayContacted || 0}</p>
                   <p className="text-xs text-text-muted">Envoyes</p>
                 </div>
               </div>
@@ -334,7 +547,7 @@ export default function Dashboard() {
                   <MessageSquare className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-text">{stats.todayReplies}</p>
+                  <p className="text-sm font-medium text-text">{stats.todayReplies || 0}</p>
                   <p className="text-xs text-text-muted">Reponses</p>
                 </div>
               </div>
@@ -343,7 +556,7 @@ export default function Dashboard() {
                   <CheckCircle className="w-4 h-4 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-text">{stats.todaySigned}</p>
+                  <p className="text-sm font-medium text-text">{stats.todaySigned || 0}</p>
                   <p className="text-xs text-text-muted">Signe</p>
                 </div>
               </div>
@@ -351,14 +564,25 @@ export default function Dashboard() {
 
             {/* CTAs */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-3">
-              <Link to="/app/prospects" className="btn-primary flex items-center gap-2">
+              <button
+                onClick={() => setShowLaunchModal(true)}
+                className="btn-primary flex items-center gap-2"
+              >
                 <Play className="w-4 h-4" />
                 Lancer ma journee
-              </Link>
-              <Link to="/app/prospects" className="btn-secondary flex items-center gap-2">
-                Voir ma liste
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
+              <button
+                onClick={handleSearchProspects}
+                disabled={isSearching}
+                className="btn-secondary flex items-center gap-2"
+              >
+                {isSearching ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                Rechercher nouveaux prospects
+              </button>
             </div>
           </div>
         </div>
@@ -392,8 +616,8 @@ export default function Dashboard() {
               <Mail className="w-5 h-5 text-purple-600" />
             </div>
           </div>
-          <p className="text-2xl font-display font-bold text-text">{stats.emailsSent || 0}</p>
-          <p className="text-xs text-text-muted mt-1">Emails envoyes</p>
+          <p className="text-2xl font-display font-bold text-text">{stats.totalMessages || 0}</p>
+          <p className="text-xs text-text-muted mt-1">Messages envoyes</p>
         </motion.div>
 
         <motion.div
@@ -419,13 +643,11 @@ export default function Dashboard() {
         >
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-              <Euro className="w-5 h-5 text-success" />
+              <Target className="w-5 h-5 text-success" />
             </div>
           </div>
-          <p className="text-2xl font-display font-bold text-success">
-            {isDemo ? demoStats.totalRevenue : `${stats.totalRevenue || 0} EUR`}
-          </p>
-          <p className="text-xs text-text-muted mt-1">CA genere</p>
+          <p className="text-2xl font-display font-bold text-success">{stats.hotLeads || 0}</p>
+          <p className="text-xs text-text-muted mt-1">Leads chauds</p>
         </motion.div>
       </div>
 
@@ -509,52 +731,62 @@ export default function Dashboard() {
             <h2 className="section-title">Activite recente</h2>
           </div>
           <div className="space-y-4">
-            {recentActivities.slice(0, 8).map((activity, index) => {
-              const channelStyle = activity.channel ? CHANNEL_STYLES[activity.channel] : null
-              return (
-                <div key={activity.id || index} className="flex items-start gap-3">
-                  <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      channelStyle
-                        ? channelStyle.bg
-                        : activity.type === 'reply'
-                          ? 'bg-success/10'
-                          : activity.type === 'converted'
+            {recentActivities.length > 0 ? (
+              recentActivities.slice(0, 8).map((activity, index) => {
+                const channelStyle = activity.channel ? CHANNEL_STYLES[activity.channel] : null
+                return (
+                  <div key={activity.id || index} className="flex items-start gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        channelStyle
+                          ? channelStyle.bg
+                          : activity.type === 'reply'
                             ? 'bg-success/10'
-                            : activity.type === 'opened'
-                              ? 'bg-amber-100'
-                              : activity.type === 'sent'
-                                ? 'bg-blue-100'
-                                : 'bg-purple-100'
-                    }`}
-                  >
-                    {channelStyle ? (
-                      <ChannelIcon
-                        channel={activity.channel}
-                        className={`w-4 h-4 ${channelStyle.color}`}
-                      />
-                    ) : activity.type === 'reply' ? (
-                      <MessageSquare className="w-4 h-4 text-success" />
-                    ) : activity.type === 'converted' ? (
-                      <CheckCircle className="w-4 h-4 text-success" />
-                    ) : activity.type === 'opened' ? (
-                      <Eye className="w-4 h-4 text-amber-600" />
-                    ) : activity.type === 'sent' ? (
-                      <Mail className="w-4 h-4 text-blue-600" />
-                    ) : (
-                      <Users className="w-4 h-4 text-purple-600" />
-                    )}
+                            : activity.type === 'converted'
+                              ? 'bg-success/10'
+                              : activity.type === 'opened'
+                                ? 'bg-amber-100'
+                                : activity.type === 'sent'
+                                  ? 'bg-blue-100'
+                                  : 'bg-purple-100'
+                      }`}
+                    >
+                      {channelStyle ? (
+                        <ChannelIcon
+                          channel={activity.channel}
+                          className={`w-4 h-4 ${channelStyle.color}`}
+                        />
+                      ) : activity.type === 'reply' ? (
+                        <MessageSquare className="w-4 h-4 text-success" />
+                      ) : activity.type === 'converted' ? (
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      ) : activity.type === 'opened' ? (
+                        <Eye className="w-4 h-4 text-amber-600" />
+                      ) : activity.type === 'sent' ? (
+                        <Mail className="w-4 h-4 text-blue-600" />
+                      ) : (
+                        <Users className="w-4 h-4 text-purple-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-text truncate">{activity.message}</p>
+                      <p className="text-xs text-text-muted truncate">{activity.details}</p>
+                    </div>
+                    <span className="text-xs text-text-muted flex-shrink-0">
+                      {activity.timeAgo || ''}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-text truncate">{activity.message}</p>
-                    <p className="text-xs text-text-muted truncate">{activity.details}</p>
-                  </div>
-                  <span className="text-xs text-text-muted flex-shrink-0">
-                    {activity.timeAgo || ''}
-                  </span>
-                </div>
-              )
-            })}
+                )
+              })
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="w-10 h-10 text-text-muted mx-auto mb-2" />
+                <p className="text-text-muted text-sm">Aucune activite recente</p>
+                <p className="text-xs text-text-muted mt-1">
+                  Lancez vos campagnes pour voir l'activite ici
+                </p>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -571,7 +803,7 @@ export default function Dashboard() {
             <Zap className="w-5 h-5 text-accent" />
             <h2 className="section-title">Messages par canal</h2>
           </div>
-          <span className="text-sm text-text-muted">{stats.totalMessages} messages envoyes</span>
+          <span className="text-sm text-text-muted">{stats.totalMessages || 0} messages envoyes</span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -672,7 +904,7 @@ export default function Dashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-text truncate">{prospect.company}</p>
                       <p className="text-xs text-text-muted truncate">
-                        {prospect.sector} - {prospect.city}
+                        {prospect.sector || prospect.industry} - {prospect.city}
                       </p>
                     </div>
                     <div

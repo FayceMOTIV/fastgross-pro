@@ -107,15 +107,30 @@ export function OnboardingFlowProvider({ children }) {
           completedAt: serverTimestamp(),
         })
 
-        // Mark user profile as onboarding complete
+        // Mark user profile as onboarding complete with FULL ICP data
         await updateUserProfile({
           onboardingComplete: true,
           onboardingData: {
+            businessName: finalData.businessName,
             sector: finalData.sector,
+            offer: finalData.offer,
             target: finalData.target,
             zone: finalData.zone,
-            offer: finalData.offer,
+            volume: finalData.volume,
+            website: finalData.website,
+            linkedin: finalData.linkedin,
+            instagram: finalData.instagram,
+            channels: finalData.channels,
+            tone: finalData.tone,
+            frequency: finalData.frequency,
             selectedPlan: finalData.selectedPlan,
+          },
+          // Initialize engine status
+          engineStatus: {
+            status: 'pending',
+            step: null,
+            progress: 0,
+            message: null,
           },
         })
       }

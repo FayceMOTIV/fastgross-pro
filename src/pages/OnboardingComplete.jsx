@@ -1,211 +1,120 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { httpsCallable } from 'firebase/functions'
+import { db, functions } from '@/lib/firebase'
 import {
-  Zap,
   Check,
   ArrowRight,
-  Mail,
-  Smartphone,
-  MessageSquare,
-  Instagram,
-  Phone,
-  Send,
   Sparkles,
   Rocket,
-  Target,
-  Calendar,
-  Clock,
+  Search,
+  Globe,
   Users,
-  Building2,
-  MapPin,
-  TrendingUp,
-  Play,
+  Target,
+  Zap,
   PartyPopper,
   Loader2,
-  ChevronRight,
+  AlertCircle,
+  RefreshCw,
+  Building2,
+  Mail,
+  FileText,
 } from 'lucide-react'
 import Confetti from 'react-confetti'
+import { useAuth } from '@/contexts/AuthContext'
+import { useOrg } from '@/contexts/OrgContext'
 import { useDemo } from '@/contexts/DemoContext'
 
-// Channel icons mapping
-const CHANNEL_ICONS = {
-  email: { icon: Mail, color: 'from-blue-500 to-cyan-500', label: 'Email' },
-  sms: { icon: Smartphone, color: 'from-emerald-500 to-teal-500', label: 'SMS' },
-  whatsapp: { icon: MessageSquare, color: 'from-green-500 to-emerald-500', label: 'WhatsApp' },
-  instagram: { icon: Instagram, color: 'from-pink-500 to-rose-500', label: 'Instagram DM' },
-  voicemail: { icon: Phone, color: 'from-violet-500 to-purple-500', label: 'Voicemail' },
-  courrier: { icon: Send, color: 'from-amber-500 to-orange-500', label: 'Courrier' },
-}
+// Progress steps configuration
+const ENGINE_STEPS = [
+  {
+    id: 'starting',
+    label: 'Initialisation',
+    description: 'Demarrage du moteur de prospection',
+    icon: Rocket,
+    color: 'from-violet-500 to-purple-600',
+  },
+  {
+    id: 'checking_existing',
+    label: 'Verification',
+    description: 'Verification des prospects existants',
+    icon: Search,
+    color: 'from-blue-500 to-cyan-500',
+  },
+  {
+    id: 'finding_companies',
+    label: 'Recherche IA',
+    description: 'L\'IA recherche des entreprises correspondant a votre ICP',
+    icon: Target,
+    color: 'from-emerald-500 to-teal-500',
+  },
+  {
+    id: 'scraping',
+    label: 'Analyse des sites',
+    description: 'Analyse des sites web et extraction des donnees',
+    icon: Globe,
+    color: 'from-amber-500 to-orange-500',
+  },
+  {
+    id: 'saving',
+    label: 'Sauvegarde',
+    description: 'Enregistrement des prospects dans votre base',
+    icon: Users,
+    color: 'from-pink-500 to-rose-500',
+  },
+  {
+    id: 'generating_sequences',
+    label: 'Generation sequences',
+    description: 'Creation des messages personnalises pour chaque prospect',
+    icon: FileText,
+    color: 'from-indigo-500 to-violet-500',
+  },
+  {
+    id: 'done',
+    label: 'Termine',
+    description: 'Votre base de prospects est prete !',
+    icon: PartyPopper,
+    color: 'from-emerald-500 to-green-500',
+  },
+]
 
-// Tone labels
-const TONE_LABELS = {
-  professional: { label: 'Professionnel', emoji: '👔' },
-  friendly: { label: 'Amical', emoji: '😊' },
-  direct: { label: 'Direct', emoji: '🎯' },
-}
-
-// Frequency labels
-const FREQUENCY_LABELS = {
-  aggressive: { label: 'Intensif', days: '2-3 jours' },
-  balanced: { label: 'Equilibre', days: '4-5 jours' },
-  gentle: { label: 'Doux', days: '7+ jours' },
-}
-
-// Generate mock sequence based on onboarding data
-const generateSequence = (data) => {
-  const { businessName, sector, offer, target, channels, tone, frequency } = data
-
-  const delayDays = {
-    aggressive: [0, 2, 4, 6],
-    balanced: [0, 3, 6, 10],
-    gentle: [0, 5, 10, 15],
-  }
-
-  const toneStyle = {
-    professional: { greeting: 'Bonjour', closing: 'Cordialement' },
-    friendly: { greeting: 'Salut', closing: 'A bientot' },
-    direct: { greeting: 'Bonjour', closing: 'Bien a vous' },
-  }
-
-  const style = toneStyle[tone] || toneStyle.professional
-  const delays = delayDays[frequency] || delayDays.balanced
-
-  const sequence = []
-  let stepIndex = 0
-
-  // Email steps
-  if (channels.includes('email')) {
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'email',
-      delay: delays[0],
-      subject: `${businessName} - Une solution pour ${target}`,
-      preview: `${style.greeting},\n\nJe me permets de vous contacter car j'ai identifie que ${sector} est un secteur ou nous pouvons apporter une vraie valeur.\n\nNotre offre: ${offer}\n\n${style.closing}`,
-    })
-
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'email',
-      delay: delays[1],
-      subject: `Re: ${businessName}`,
-      preview: `${style.greeting},\n\nJe me permets de vous relancer suite a mon precedent message. Seriez-vous disponible pour un echange de 15 minutes ?\n\n${style.closing}`,
-    })
-  }
-
-  // SMS step
-  if (channels.includes('sms')) {
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'sms',
-      delay: delays[2],
-      preview: `${style.greeting}, suite a mes emails - disponible pour un call de 10min sur ${offer.substring(0, 30)}... ? [Votre nom]`,
-    })
-  }
-
-  // WhatsApp step
-  if (channels.includes('whatsapp')) {
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'whatsapp',
-      delay: delays[2],
-      preview: `${style.greeting} ! Je vous ai contacte par email concernant notre solution pour ${target}. Avez-vous eu le temps d'y jeter un oeil ?`,
-    })
-  }
-
-  // Instagram step
-  if (channels.includes('instagram')) {
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'instagram',
-      delay: delays[3],
-      preview: `Bonjour ! Je me permets de vous contacter ici suite a mes precedents messages. Notre solution pourrait vraiment aider ${target}.`,
-    })
-  }
-
-  // Voicemail step
-  if (channels.includes('voicemail')) {
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'voicemail',
-      delay: delays[3],
-      preview: `${style.greeting}, c'est [Votre nom] de ${businessName}. Je vous laisse ce message suite a mes emails. Je serais ravi d'echanger avec vous. Rappellez-moi au [numero].`,
-    })
-  }
-
-  // Courrier step
-  if (channels.includes('courrier')) {
-    sequence.push({
-      step: ++stepIndex,
-      channel: 'courrier',
-      delay: delays[3] + 3,
-      preview: `Lettre personnalisee avec presentation de ${offer} et QR code vers votre calendrier de reservation.`,
-    })
-  }
-
-  return sequence.slice(0, 6) // Max 6 steps
+// Find step index
+function getStepIndex(stepId) {
+  const index = ENGINE_STEPS.findIndex((s) => s.id === stepId)
+  return index >= 0 ? index : 0
 }
 
 export default function OnboardingComplete() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const { currentOrg } = useOrg()
   const { isDemo } = useDemo()
 
-  const [showConfetti, setShowConfetti] = useState(true)
-  const [isGenerating, setIsGenerating] = useState(true)
-  const [sequence, setSequence] = useState([])
-  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight })
+  const [engineStatus, setEngineStatus] = useState({
+    status: 'pending',
+    step: null,
+    progress: 0,
+    message: '',
+    stats: null,
+    error: null,
+  })
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
+  const [windowSize, setWindowSize] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800,
+  })
 
-  // Get onboarding data from localStorage
-  const [onboardingData, setOnboardingData] = useState(null)
+  // Current step info
+  const currentStepIndex = getStepIndex(engineStatus.step)
+  const currentStepInfo = ENGINE_STEPS[currentStepIndex] || ENGINE_STEPS[0]
+  const isCompleted = engineStatus.status === 'completed'
+  const isError = engineStatus.status === 'error'
+  const isRunning = engineStatus.status === 'running'
 
-  useEffect(() => {
-    // Try to get data from localStorage (saved during onboarding)
-    let data = null
-    try {
-      const savedData = localStorage.getItem('fmf_onboarding_complete')
-      if (savedData) {
-        data = JSON.parse(savedData)
-      }
-    } catch (error) {
-      console.error('Error parsing onboarding data:', error)
-    }
-
-    if (data && data.businessName) {
-      setOnboardingData(data)
-
-      // Simulate AI generation
-      setTimeout(() => {
-        const generatedSequence = generateSequence(data)
-        setSequence(generatedSequence)
-        setIsGenerating(false)
-      }, 2000)
-    } else {
-      // Fallback demo data
-      const demoData = {
-        businessName: 'Mon Entreprise',
-        sector: 'Services B2B',
-        offer: 'Solution de prospection automatisee',
-        target: 'Dirigeants PME',
-        zone: 'France',
-        channels: ['email', 'sms', 'whatsapp'],
-        tone: 'professional',
-        frequency: 'balanced',
-      }
-      setOnboardingData(demoData)
-
-      setTimeout(() => {
-        const generatedSequence = generateSequence(demoData)
-        setSequence(generatedSequence)
-        setIsGenerating(false)
-      }, 2000)
-    }
-
-    // Stop confetti after 5 seconds
-    const confettiTimer = setTimeout(() => setShowConfetti(false), 5000)
-
-    return () => clearTimeout(confettiTimer)
-  }, [])
-
+  // Window resize handler
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight })
@@ -214,30 +123,148 @@ export default function OnboardingComplete() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Subscribe to engine status updates from Firestore
+  useEffect(() => {
+    if (!user?.uid || isDemo) return
+
+    const unsubscribe = onSnapshot(
+      doc(db, 'users', user.uid),
+      (snapshot) => {
+        const data = snapshot.data()
+        if (data?.engineStatus) {
+          setEngineStatus(data.engineStatus)
+
+          // Show confetti when completed
+          if (data.engineStatus.status === 'completed' && !showConfetti) {
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 5000)
+          }
+        }
+      },
+      (error) => {
+        console.error('Error listening to engine status:', error)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [user?.uid, isDemo, showConfetti])
+
+  // Start the prospect engine
+  const startEngine = useCallback(async () => {
+    if (!user?.uid || !currentOrg?.id || hasStarted) return
+
+    setHasStarted(true)
+    setEngineStatus({
+      status: 'running',
+      step: 'starting',
+      progress: 0,
+      message: 'Demarrage du moteur...',
+      stats: null,
+      error: null,
+    })
+
+    try {
+      const prospectEngine = httpsCallable(functions, 'prospectEngine')
+      await prospectEngine({ orgId: currentOrg.id })
+    } catch (error) {
+      console.error('Engine error:', error)
+      setEngineStatus((prev) => ({
+        ...prev,
+        status: 'error',
+        error: error.message || 'Une erreur est survenue',
+      }))
+    }
+  }, [user?.uid, currentOrg?.id, hasStarted])
+
+  // Auto-start engine when component mounts (non-demo mode)
+  useEffect(() => {
+    if (!isDemo && user?.uid && currentOrg?.id && !hasStarted) {
+      // Small delay to ensure everything is ready
+      const timer = setTimeout(() => {
+        startEngine()
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [isDemo, user?.uid, currentOrg?.id, hasStarted, startEngine])
+
+  // Demo mode simulation
+  useEffect(() => {
+    if (!isDemo) return
+
+    const steps = ['starting', 'checking_existing', 'finding_companies', 'scraping', 'saving', 'generating_sequences', 'done']
+    let currentIndex = 0
+
+    setEngineStatus({
+      status: 'running',
+      step: 'starting',
+      progress: 0,
+      message: 'Demarrage du moteur (demo)...',
+      stats: null,
+      error: null,
+    })
+
+    const interval = setInterval(() => {
+      currentIndex++
+      if (currentIndex >= steps.length) {
+        clearInterval(interval)
+        setEngineStatus({
+          status: 'completed',
+          step: 'done',
+          progress: 100,
+          message: 'Termine! 18 prospects trouves, 8 sequences pretes.',
+          stats: {
+            found: 20,
+            created: 18,
+            scored: 18,
+            sequenced: 8,
+            hotLeads: 5,
+            warmLeads: 10,
+          },
+          error: null,
+        })
+        setShowConfetti(true)
+        setTimeout(() => setShowConfetti(false), 5000)
+        return
+      }
+
+      const progress = Math.round((currentIndex / (steps.length - 1)) * 100)
+      const messages = {
+        checking_existing: 'Verification des doublons...',
+        finding_companies: 'L\'IA recherche des entreprises...',
+        scraping: `Analyse des sites web (${Math.min(currentIndex * 4, 18)}/20)...`,
+        saving: 'Sauvegarde des prospects...',
+        generating_sequences: 'Generation des sequences IA...',
+      }
+
+      setEngineStatus({
+        status: 'running',
+        step: steps[currentIndex],
+        progress,
+        message: messages[steps[currentIndex]] || '',
+        stats: null,
+        error: null,
+      })
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [isDemo])
+
   const handleGoToDashboard = () => {
     localStorage.removeItem('fmf_onboarding_complete')
-    if (isDemo) {
-      navigate('/app?demo=true')
-    } else {
-      navigate('/app')
-    }
+    navigate(isDemo ? '/app?demo=true' : '/app')
   }
 
-  const handleGoToForgeur = () => {
-    localStorage.removeItem('fmf_onboarding_complete')
-    if (isDemo) {
-      navigate('/app/forgeur?demo=true')
-    } else {
-      navigate('/app/forgeur')
-    }
-  }
-
-  if (!onboardingData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
-      </div>
-    )
+  const handleRetry = () => {
+    setHasStarted(false)
+    setEngineStatus({
+      status: 'pending',
+      step: null,
+      progress: 0,
+      message: '',
+      stats: null,
+      error: null,
+    })
+    setTimeout(() => startEngine(), 500)
   }
 
   return (
@@ -256,8 +283,14 @@ export default function OnboardingComplete() {
       {/* Animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-1/2 -left-40 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute -bottom-40 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute top-1/2 -left-40 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '1s' }}
+        />
+        <div
+          className="absolute -bottom-40 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: '2s' }}
+        />
       </div>
 
       {/* Header */}
@@ -265,12 +298,22 @@ export default function OnboardingComplete() {
         <div className="max-w-5xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                <Check className="w-6 h-6 text-white" />
+              <div
+                className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${
+                  isCompleted ? 'from-emerald-500 to-teal-600' : 'from-violet-500 to-purple-600'
+                } flex items-center justify-center shadow-lg`}
+              >
+                {isCompleted ? (
+                  <Check className="w-6 h-6 text-white" />
+                ) : (
+                  <Zap className="w-6 h-6 text-white" />
+                )}
               </div>
               <div>
                 <h1 className="font-display font-bold text-white text-lg">Face Media Factory</h1>
-                <p className="text-sm text-white/60">Configuration terminee</p>
+                <p className="text-sm text-white/60">
+                  {isCompleted ? 'Configuration terminee' : 'Initialisation en cours'}
+                </p>
               </div>
             </div>
             {isDemo && (
@@ -284,8 +327,8 @@ export default function OnboardingComplete() {
 
       {/* Main Content */}
       <main className="relative z-10 py-8 px-4">
-        <div className="max-w-5xl mx-auto">
-          {/* Success Header */}
+        <div className="max-w-3xl mx-auto">
+          {/* Header based on status */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -295,236 +338,239 @@ export default function OnboardingComplete() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', delay: 0.2 }}
-              className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-500/30 mb-6"
+              className={`inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br ${currentStepInfo.color} shadow-2xl mb-6`}
             >
-              <PartyPopper className="w-10 h-10 text-white" />
+              {isRunning ? (
+                <Loader2 className="w-10 h-10 text-white animate-spin" />
+              ) : isError ? (
+                <AlertCircle className="w-10 h-10 text-white" />
+              ) : (
+                <currentStepInfo.icon className="w-10 h-10 text-white" />
+              )}
             </motion.div>
 
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-              Votre strategie est <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">prete</span> !
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
+              {isCompleted ? (
+                <>
+                  Votre base est{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+                    prete
+                  </span>{' '}
+                  !
+                </>
+              ) : isError ? (
+                <>
+                  Une{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
+                    erreur
+                  </span>{' '}
+                  est survenue
+                </>
+              ) : (
+                <>
+                  Preparation de votre{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">
+                    strategie
+                  </span>
+                </>
+              )}
             </h1>
-            <p className="text-xl text-white/60 max-w-2xl mx-auto">
-              Nous avons genere votre premiere sequence de prospection personnalisee
+            <p className="text-lg text-white/60 max-w-xl mx-auto">
+              {isCompleted
+                ? engineStatus.message
+                : isError
+                ? engineStatus.error
+                : 'L\'IA recherche et analyse des prospects correspondant a votre profil client ideal'}
             </p>
           </motion.div>
 
-          {/* Strategy Summary */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="grid md:grid-cols-4 gap-4 mb-8"
-          >
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-sm text-white/60">Entreprise</span>
+          {/* Progress Bar */}
+          {!isCompleted && !isError && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-10"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-white/60">{currentStepInfo.description}</span>
+                <span className="text-sm font-medium text-white">{engineStatus.progress}%</span>
               </div>
-              <p className="text-white font-medium truncate">{onboardingData.businessName}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-sm text-white/60">Cible</span>
+              <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${engineStatus.progress}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full"
+                />
               </div>
-              <p className="text-white font-medium truncate">{onboardingData.target}</p>
-            </div>
+              {engineStatus.message && (
+                <p className="text-sm text-white/50 mt-2 flex items-center gap-2">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  {engineStatus.message}
+                </p>
+              )}
+            </motion.div>
+          )}
 
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-sm text-white/60">Zone</span>
-              </div>
-              <p className="text-white font-medium truncate">{onboardingData.zone}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-sm text-white/60">Ton</span>
-              </div>
-              <p className="text-white font-medium">
-                {TONE_LABELS[onboardingData.tone]?.emoji} {TONE_LABELS[onboardingData.tone]?.label}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Channels Selected */}
+          {/* Steps Timeline */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 mb-8"
           >
-            <h3 className="text-lg font-display font-semibold text-white mb-4 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-400" />
-              Vos canaux de prospection
+            <h3 className="text-lg font-display font-semibold text-white mb-6 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              Progression du moteur
             </h3>
-            <div className="flex flex-wrap gap-3">
-              {onboardingData.channels.map((channelId) => {
-                const channel = CHANNEL_ICONS[channelId]
-                if (!channel) return null
-                const Icon = channel.icon
+
+            <div className="space-y-4">
+              {ENGINE_STEPS.map((step, index) => {
+                const StepIcon = step.icon
+                const isActive = step.id === engineStatus.step
+                const isPast = index < currentStepIndex
+                const isFuture = index > currentStepIndex
+
                 return (
-                  <div
-                    key={channelId}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/20"
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                    className={`flex items-center gap-4 p-3 rounded-xl transition-all ${
+                      isActive
+                        ? 'bg-white/10 border border-white/20'
+                        : isPast
+                        ? 'opacity-60'
+                        : 'opacity-30'
+                    }`}
                   >
-                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${channel.color} flex items-center justify-center`}>
-                      <Icon className="w-4 h-4 text-white" />
+                    {/* Icon */}
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        isPast
+                          ? 'bg-emerald-500/20'
+                          : isActive
+                          ? `bg-gradient-to-br ${step.color}`
+                          : 'bg-white/5'
+                      }`}
+                    >
+                      {isPast ? (
+                        <Check className="w-5 h-5 text-emerald-400" />
+                      ) : isActive && isRunning ? (
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      ) : (
+                        <StepIcon
+                          className={`w-5 h-5 ${isActive ? 'text-white' : 'text-white/50'}`}
+                        />
+                      )}
                     </div>
-                    <span className="text-white font-medium">{channel.label}</span>
-                  </div>
+
+                    {/* Label */}
+                    <div className="flex-1">
+                      <p
+                        className={`font-medium ${
+                          isActive ? 'text-white' : isPast ? 'text-white/70' : 'text-white/40'
+                        }`}
+                      >
+                        {step.label}
+                      </p>
+                      <p className="text-sm text-white/50">{step.description}</p>
+                    </div>
+
+                    {/* Status indicator */}
+                    {isPast && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400">
+                        Termine
+                      </span>
+                    )}
+                    {isActive && isRunning && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-violet-500/20 text-violet-400">
+                        En cours
+                      </span>
+                    )}
+                  </motion.div>
                 )
               })}
             </div>
-            <p className="text-white/50 text-sm mt-4">
-              Frequence: {FREQUENCY_LABELS[onboardingData.frequency]?.label} ({FREQUENCY_LABELS[onboardingData.frequency]?.days} entre chaque message)
-            </p>
           </motion.div>
 
-          {/* Generated Sequence */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 mb-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-display font-semibold text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-400" />
-                Votre premiere sequence IA
-              </h3>
-              {isGenerating && (
-                <div className="flex items-center gap-2 text-white/60">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Generation en cours...</span>
-                </div>
-              )}
-            </div>
-
-            <AnimatePresence mode="wait">
-              {isGenerating ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-12"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-4 animate-pulse">
-                    <Sparkles className="w-8 h-8 text-white" />
+          {/* Stats (when completed) */}
+          <AnimatePresence>
+            {isCompleted && engineStatus.stats && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+              >
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {engineStatus.stats.created}
                   </div>
-                  <p className="text-white/60">L'IA analyse votre profil et genere vos messages...</p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="sequence"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-4"
-                >
-                  {sequence.map((step, index) => {
-                    const channel = CHANNEL_ICONS[step.channel]
-                    const Icon = channel?.icon || Mail
-
-                    return (
-                      <motion.div
-                        key={step.step}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="relative"
-                      >
-                        {/* Connector line */}
-                        {index > 0 && (
-                          <div className="absolute left-6 -top-4 w-0.5 h-4 bg-white/20" />
-                        )}
-
-                        <div className="flex gap-4">
-                          {/* Step indicator */}
-                          <div className="flex flex-col items-center">
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${channel?.color || 'from-violet-500 to-purple-600'} flex items-center justify-center shadow-lg`}>
-                              <Icon className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex items-center gap-1 mt-1 text-xs text-white/50">
-                              <Clock className="w-3 h-3" />
-                              J+{step.delay}
-                            </div>
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1 bg-white/5 rounded-xl p-4 border border-white/10">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-medium text-white/60 bg-white/10 px-2 py-1 rounded-full">
-                                Etape {step.step} - {channel?.label}
-                              </span>
-                            </div>
-                            {step.subject && (
-                              <p className="text-sm font-medium text-white mb-2">
-                                Objet: {step.subject}
-                              </p>
-                            )}
-                            <p className="text-sm text-white/70 whitespace-pre-line line-clamp-3">
-                              {step.preview}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+                  <div className="text-sm text-white/60">Prospects trouves</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
+                  <div className="text-3xl font-bold text-emerald-400 mb-1">
+                    {engineStatus.stats.hotLeads}
+                  </div>
+                  <div className="text-sm text-white/60">Leads chauds</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
+                  <div className="text-3xl font-bold text-amber-400 mb-1">
+                    {engineStatus.stats.warmLeads}
+                  </div>
+                  <div className="text-sm text-white/60">Leads tiedes</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
+                  <div className="text-3xl font-bold text-purple-400 mb-1">
+                    {engineStatus.stats.sequenced}
+                  </div>
+                  <div className="text-sm text-white/60">Sequences pretes</div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGoToForgeur}
-              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/15 transition-all flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-5 h-5" />
-              Modifier ma sequence
-            </motion.button>
+            {isError && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleRetry}
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/15 transition-all flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-5 h-5" />
+                Reessayer
+              </motion.button>
+            )}
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGoToDashboard}
-              className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-xl transition-all flex items-center justify-center gap-2"
-            >
-              <Rocket className="w-5 h-5" />
-              Commencer a prospecter
-              <ArrowRight className="w-5 h-5" />
-            </motion.button>
+            {isCompleted && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleGoToDashboard}
+                className="w-full sm:w-auto px-10 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              >
+                <Rocket className="w-5 h-5" />
+                Acceder a mon tableau de bord
+                <ArrowRight className="w-5 h-5" />
+              </motion.button>
+            )}
+
+            {isRunning && (
+              <p className="text-white/50 text-sm">
+                Veuillez patienter, cela peut prendre quelques minutes...
+              </p>
+            )}
           </motion.div>
-
-          {/* Info note */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="text-center text-white/40 text-sm mt-6"
-          >
-            Vous pouvez modifier votre strategie a tout moment dans les parametres
-          </motion.p>
         </div>
       </main>
     </div>

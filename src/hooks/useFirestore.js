@@ -886,6 +886,252 @@ export function useProspects(options = {}) {
 }
 
 /**
+ * Hook pour les stats REELLES du Dashboard (pas de mock data)
+ * Utilisé quand on n'est PAS en mode demo
+ */
+export function useRealDashboardStats() {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
+  const [stats, setStats] = useState({
+    // Prospects
+    totalProspects: 0,
+    hotLeads: 0,
+    warmLeads: 0,
+    coldLeads: 0,
+    // Campaigns
+    pendingCampaigns: 0,
+    activeCampaigns: 0,
+    totalSequences: 0,
+    // Today's work
+    todayToContact: 0,
+    todayContacted: 0,
+    todayReplies: 0,
+    todaySigned: 0,
+    // Totals
+    totalEmailsSent: 0,
+    totalSMSSent: 0,
+    totalMessages: 0,
+    openRate: 0,
+    replyRate: 0,
+    // Revenue (from converted)
+    converted: 0,
+    // By channel
+    byChannel: {
+      email: 0,
+      sms: 0,
+      whatsapp: 0,
+      instagram_dm: 0,
+      voicemail: 0,
+      courrier: 0,
+    },
+    repliesByChannel: {
+      email: 0,
+      sms: 0,
+      whatsapp: 0,
+      instagram_dm: 0,
+      voicemail: 0,
+      courrier: 0,
+    },
+  })
+  const [pendingCampaignsList, setPendingCampaignsList] = useState([])
+  const [hotProspects, setHotProspects] = useState([])
+  const [recentActivity, setRecentActivity] = useState([])
+  const [dailyStats, setDailyStats] = useState([])
+  const [loading, setLoading] = useState(!isDemo)
+
+  useEffect(() => {
+    if (isDemo || !currentOrg?.id) {
+      setLoading(false)
+      return
+    }
+
+    // Set up real-time listeners
+    const unsubscribers = []
+
+    // Listen to prospects
+    const prospectsRef = collection(db, 'organizations', currentOrg.id, 'prospects')
+    const prospectsQuery = query(prospectsRef, orderBy('createdAt', 'desc'), limit(500))
+
+    unsubscribers.push(
+      onSnapshot(prospectsQuery, (snapshot) => {
+        const prospects = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || null,
+        }))
+
+        // Calculate stats
+        const hot = prospects.filter((p) => p.score >= 80)
+        const warm = prospects.filter((p) => p.score >= 50 && p.score < 80)
+        const cold = prospects.filter((p) => p.score < 50)
+
+        setStats((prev) => ({
+          ...prev,
+          totalProspects: prospects.length,
+          hotLeads: hot.length,
+          warmLeads: warm.length,
+          coldLeads: cold.length,
+        }))
+
+        // Hot prospects with replies (for display)
+        const replied = prospects.filter(
+          (p) => p.status === 'replied' || p.reply
+        )
+        setHotProspects(replied.slice(0, 10))
+      })
+    )
+
+    // Listen to campaigns
+    const campaignsRef = collection(db, 'organizations', currentOrg.id, 'campaigns')
+    const campaignsQuery = query(campaignsRef, orderBy('createdAt', 'desc'))
+
+    unsubscribers.push(
+      onSnapshot(campaignsQuery, (snapshot) => {
+        const campaigns = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || null,
+        }))
+
+        const pending = campaigns.filter((c) => c.status === 'pending')
+        const active = campaigns.filter((c) => c.status === 'active' || c.status === 'running')
+
+        // Today's work
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const todayCampaigns = campaigns.filter((c) => {
+          const createdAt = c.createdAt
+          return createdAt && createdAt >= today
+        })
+
+        setStats((prev) => ({
+          ...prev,
+          pendingCampaigns: pending.length,
+          activeCampaigns: active.length,
+          totalSequences: campaigns.length,
+          todayToContact: pending.length,
+          todayContacted: active.length,
+        }))
+
+        setPendingCampaignsList(pending)
+      })
+    )
+
+    // Listen to interactions for activity feed
+    const interactionsRef = collection(db, 'organizations', currentOrg.id, 'interactions')
+    const interactionsQuery = query(interactionsRef, orderBy('createdAt', 'desc'), limit(20))
+
+    unsubscribers.push(
+      onSnapshot(interactionsQuery, (snapshot) => {
+        const interactions = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || new Date(),
+        }))
+
+        // Format for activity feed
+        const formatted = interactions.map((i) => ({
+          id: i.id,
+          type: i.type,
+          channel: i.channel || 'email',
+          message: i.prospectName || 'Prospect',
+          details: i.prospectCompany || i.subject || '',
+          timestamp: i.createdAt,
+          timeAgo: formatTimeAgo(i.createdAt),
+        }))
+
+        setRecentActivity(formatted)
+
+        // Calculate channel stats
+        const byChannel = {
+          email: 0,
+          sms: 0,
+          whatsapp: 0,
+          instagram_dm: 0,
+          voicemail: 0,
+          courrier: 0,
+        }
+        const repliesByChannel = { ...byChannel }
+
+        interactions.forEach((i) => {
+          const ch = i.channel || 'email'
+          if (i.direction === 'out' || i.type?.includes('sent')) {
+            byChannel[ch] = (byChannel[ch] || 0) + 1
+          }
+          if (i.type?.includes('reply') || i.type?.includes('replied')) {
+            repliesByChannel[ch] = (repliesByChannel[ch] || 0) + 1
+          }
+        })
+
+        const totalMessages = Object.values(byChannel).reduce((a, b) => a + b, 0)
+        const totalReplies = Object.values(repliesByChannel).reduce((a, b) => a + b, 0)
+
+        setStats((prev) => ({
+          ...prev,
+          byChannel,
+          repliesByChannel,
+          totalMessages,
+          todayReplies: totalReplies,
+          replyRate: totalMessages > 0 ? Math.round((totalReplies / totalMessages) * 100) : 0,
+        }))
+
+        // Calculate daily stats for chart
+        const last7Days = []
+        const now = new Date()
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(now)
+          date.setDate(date.getDate() - i)
+          date.setHours(0, 0, 0, 0)
+          const nextDate = new Date(date)
+          nextDate.setDate(nextDate.getDate() + 1)
+
+          const dayInteractions = interactions.filter((int) => {
+            const intDate = int.createdAt
+            return intDate >= date && intDate < nextDate
+          })
+
+          const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'short' })
+          last7Days.push({
+            name: dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1),
+            envoyes: dayInteractions.filter((i) => i.direction === 'out' || i.type?.includes('sent')).length,
+            ouverts: dayInteractions.filter((i) => i.type?.includes('open')).length,
+            reponses: dayInteractions.filter((i) => i.type?.includes('reply')).length,
+          })
+        }
+
+        setDailyStats(last7Days)
+      })
+    )
+
+    setLoading(false)
+
+    return () => {
+      unsubscribers.forEach((unsub) => unsub())
+    }
+  }, [currentOrg?.id, isDemo])
+
+  return {
+    stats,
+    pendingCampaigns: pendingCampaignsList,
+    hotProspects,
+    recentActivity,
+    dailyStats,
+    loading,
+  }
+}
+
+// Helper function for time ago
+function formatTimeAgo(date) {
+  if (!date) return ''
+  const seconds = Math.floor((new Date() - date) / 1000)
+  if (seconds < 60) return "A l'instant"
+  if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`
+  if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`
+  return `Il y a ${Math.floor(seconds / 86400)}j`
+}
+
+/**
  * Hook pour les analytics détaillées
  */
 export function useAnalytics(period = '30d') {
