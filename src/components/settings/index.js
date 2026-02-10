@@ -1,5 +1,6 @@
 export { default as ProspectionSettings } from './ProspectionSettings'
 export { default as ChannelsSettings } from './ChannelsSettings'
+export { default as EmailSetupSettings } from './EmailSetupSettings'
 export { default as SourcesSettings } from './SourcesSettings'
 export { default as ScheduleSettings } from './ScheduleSettings'
 export { default as NotificationsSettings } from './NotificationsSettings'

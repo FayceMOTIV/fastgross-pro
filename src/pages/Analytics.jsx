@@ -31,48 +31,48 @@ import { useAnalytics } from '@/hooks/useFirestore'
 import { useOrg } from '@/contexts/OrgContext'
 import TrendChart from '@/components/TrendChart'
 
-// Channel icons and styles
+// Channel icons and styles (Light theme)
 const CHANNELS = {
   email: {
     icon: Mail,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
     label: 'Email',
   },
   sms: {
     icon: Smartphone,
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/20',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
     label: 'SMS',
   },
   whatsapp: {
     icon: MessageCircle,
-    color: 'text-green-400',
-    bg: 'bg-green-500/10',
-    border: 'border-green-500/20',
+    color: 'text-green-600',
+    bg: 'bg-green-50',
+    border: 'border-green-200',
     label: 'WhatsApp',
   },
   instagram_dm: {
     icon: Instagram,
-    color: 'text-pink-400',
-    bg: 'bg-pink-500/10',
-    border: 'border-pink-500/20',
+    color: 'text-pink-600',
+    bg: 'bg-pink-50',
+    border: 'border-pink-200',
     label: 'Instagram',
   },
   voicemail: {
     icon: Mic,
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/20',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+    border: 'border-purple-200',
     label: 'Vocal',
   },
   courrier: {
     icon: MapPin,
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
     label: 'Courrier',
   },
 }
@@ -83,7 +83,7 @@ function PeriodComparisonCard({
   label,
   format = 'number',
   icon: Icon,
-  color = 'text-brand-400',
+  color = 'text-indigo-600',
 }) {
   const diff = previous > 0 ? ((current - previous) / previous) * 100 : 0
   const isPositive = diff >= 0
@@ -98,23 +98,23 @@ function PeriodComparisonCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-5"
+      className="card p-5"
     >
       <div className="flex items-center gap-2 mb-3">
         {Icon && <Icon className={`w-4 h-4 ${color}`} />}
-        <p className="text-xs text-dark-500 uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
       </div>
-      <p className="text-2xl font-display font-bold text-white">{formatValue(current)}</p>
+      <p className="text-2xl font-display font-bold text-gray-900">{formatValue(current)}</p>
       {previous > 0 && (
         <div
-          className={`flex items-center gap-1 mt-2 text-xs ${isPositive ? 'text-brand-400' : 'text-red-400'}`}
+          className={`flex items-center gap-1 mt-2 text-xs ${isPositive ? 'text-green-600' : 'text-red-600'}`}
         >
           {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           <span>
             {isPositive ? '+' : ''}
             {diff.toFixed(1)}%
           </span>
-          <span className="text-dark-500">vs periode prec.</span>
+          <span className="text-gray-400">vs periode prec.</span>
         </div>
       )}
     </motion.div>
@@ -141,7 +141,7 @@ function ChannelPerformanceCard({ channel, data }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`glass-card p-5 ${config.border}`}
+      className={`card p-5 border ${config.border}`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -149,8 +149,8 @@ function ChannelPerformanceCard({ channel, data }) {
             <Icon className={`w-5 h-5 ${config.color}`} />
           </div>
           <div>
-            <h3 className="font-medium text-white">{config.label}</h3>
-            <p className="text-xs text-dark-500">{sent.toLocaleString()} envoyes</p>
+            <h3 className="font-medium text-gray-900">{config.label}</h3>
+            <p className="text-xs text-gray-500">{sent.toLocaleString()} envoyes</p>
           </div>
         </div>
         <div className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.color}`}>
@@ -161,38 +161,32 @@ function ChannelPerformanceCard({ channel, data }) {
       {/* Funnel */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <div className="w-16 text-xs text-dark-500">Delivres</div>
-          <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${config.bg.replace('10', '40')}`}
-              style={{ width: `${deliveryRate}%` }}
-            />
+          <div className="w-16 text-xs text-gray-500">Delivres</div>
+          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full ${config.bg}`} style={{ width: `${deliveryRate}%` }} />
           </div>
-          <div className="w-12 text-xs text-dark-400 text-right">{deliveryRate}%</div>
+          <div className="w-12 text-xs text-gray-600 text-right">{deliveryRate}%</div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-16 text-xs text-dark-500">Ouverts</div>
-          <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${config.bg.replace('10', '40')}`}
-              style={{ width: `${openRate}%` }}
-            />
+          <div className="w-16 text-xs text-gray-500">Ouverts</div>
+          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className={`h-full ${config.bg}`} style={{ width: `${openRate}%` }} />
           </div>
-          <div className="w-12 text-xs text-dark-400 text-right">{openRate}%</div>
+          <div className="w-12 text-xs text-gray-600 text-right">{openRate}%</div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-16 text-xs text-dark-500">Repondus</div>
-          <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
-            <div className="h-full bg-brand-500" style={{ width: `${replyRate}%` }} />
+          <div className="w-16 text-xs text-gray-500">Repondus</div>
+          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-500" style={{ width: `${replyRate}%` }} />
           </div>
-          <div className="w-12 text-xs text-brand-400 text-right font-medium">{replyRate}%</div>
+          <div className="w-12 text-xs text-indigo-600 text-right font-medium">{replyRate}%</div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-16 text-xs text-dark-500">Convertis</div>
-          <div className="flex-1 h-2 bg-dark-800 rounded-full overflow-hidden">
+          <div className="w-16 text-xs text-gray-500">Convertis</div>
+          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-amber-500" style={{ width: `${conversionRate}%` }} />
           </div>
-          <div className="w-12 text-xs text-amber-400 text-right">{conversionRate}%</div>
+          <div className="w-12 text-xs text-amber-600 text-right">{conversionRate}%</div>
         </div>
       </div>
     </motion.div>
