@@ -28,7 +28,12 @@ import {
   Clock,
   Zap,
   TrendingUp,
+  MapPin,
+  Package,
+  Bot,
+  Bell,
 } from "lucide-react";
+import { PhoneMockup } from "@/components/ui/PhoneMockup";
 
 // ============================================
 // COMPOSANTS
@@ -153,6 +158,343 @@ function ConversationMockup() {
 }
 
 // ============================================
+// PHONE SCREEN MOCKUPS
+// ============================================
+
+function ScreenCommercial() {
+  return (
+    <div className="h-full bg-gray-50 text-[10px] leading-tight">
+      {/* Header */}
+      <div className="bg-blue-600 text-white px-3 pt-8 pb-3">
+        <p className="text-[8px] opacity-70">Bonjour</p>
+        <p className="text-[13px] font-bold">Sophie M.</p>
+        <div className="flex gap-1 mt-1">
+          <span className="bg-white/20 text-[7px] px-1.5 py-0.5 rounded-full">⭐ Rank #2</span>
+          <span className="bg-white/20 text-[7px] px-1.5 py-0.5 rounded-full">Top Performer</span>
+        </div>
+      </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-1.5 px-2 -mt-3">
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <p className="text-[8px] text-gray-400">CA Jour</p>
+          <p className="text-[13px] font-bold text-blue-600">12 580€</p>
+          <p className="text-[7px] text-green-500">+15.2%</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <p className="text-[8px] text-gray-400">Commandes</p>
+          <p className="text-[13px] font-bold text-blue-600">34</p>
+          <p className="text-[7px] text-green-500">+8.5%</p>
+        </div>
+      </div>
+      {/* Objectifs */}
+      <div className="px-2 mt-2">
+        <p className="text-[9px] font-bold text-gray-700 mb-1">Objectifs</p>
+        <div className="bg-white rounded-lg p-2 shadow-sm space-y-2">
+          <div>
+            <div className="flex justify-between"><span className="text-[8px] text-gray-500">CA Mensuel</span><span className="text-[8px] font-bold">74%</span></div>
+            <div className="h-1.5 bg-gray-100 rounded-full mt-0.5"><div className="h-full bg-cyan-500 rounded-full" style={{ width: "74%" }} /></div>
+          </div>
+          <div>
+            <div className="flex justify-between"><span className="text-[8px] text-gray-500">Nv. Clients</span><span className="text-[8px] font-bold">80%</span></div>
+            <div className="h-1.5 bg-gray-100 rounded-full mt-0.5"><div className="h-full bg-blue-500 rounded-full" style={{ width: "80%" }} /></div>
+          </div>
+          <div>
+            <div className="flex justify-between"><span className="text-[8px] text-gray-500">Conversion</span><span className="text-[8px] font-bold">68%</span></div>
+            <div className="h-1.5 bg-gray-100 rounded-full mt-0.5"><div className="h-full bg-violet-500 rounded-full" style={{ width: "68%" }} /></div>
+          </div>
+        </div>
+      </div>
+      {/* Visites */}
+      <div className="px-2 mt-2">
+        <p className="text-[9px] font-bold text-gray-700 mb-1">Visites du jour</p>
+        <div className="space-y-1">
+          {[
+            { time: "09:30", name: "Kebab Istanbul", status: "done", color: "bg-green-400" },
+            { time: "11:00", name: "Pizza Bella", status: "en cours", color: "bg-blue-400" },
+            { time: "14:30", name: "Tacos Avenue", status: "à venir", color: "bg-gray-300" },
+          ].map((v, i) => (
+            <div key={i} className="bg-white rounded-lg px-2 py-1.5 shadow-sm flex items-center gap-2">
+              <div className={`w-1.5 h-1.5 rounded-full ${v.color}`} />
+              <span className="text-[8px] text-gray-400 w-8">{v.time}</span>
+              <span className="text-[9px] font-medium text-gray-800 flex-1">{v.name}</span>
+              <span className="text-[7px] text-gray-400">{v.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenLivreur() {
+  return (
+    <div className="h-full bg-gray-50 text-[10px] leading-tight">
+      {/* Header */}
+      <div className="bg-green-600 text-white px-3 pt-8 pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[13px] font-bold">Mes livraisons</p>
+            <p className="text-[8px] opacity-70">8 restantes aujourd&apos;hui</p>
+          </div>
+          <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
+            <span className="text-[8px]">Disponible</span>
+          </div>
+        </div>
+      </div>
+      {/* Livraisons */}
+      <div className="px-2 mt-2 space-y-1.5">
+        {[
+          { name: "Le Gourmet", addr: "14 Rue Garibaldi, Lyon 3", items: 12, amount: "458€", status: "En cours", statusColor: "bg-blue-100 text-blue-700", eta: "10:30" },
+          { name: "Boulangerie Michel", addr: "8 Rue de la Barre, Lyon 2", items: 8, amount: "267€", status: "Suivant", statusColor: "bg-amber-100 text-amber-700", eta: "11:15" },
+          { name: "Café de la Place", addr: "23 Place Bellecour, Lyon 2", items: 6, amount: "132€", status: "En attente", statusColor: "bg-gray-100 text-gray-600", eta: "12:00" },
+          { name: "Pizzeria Napoli", addr: "5 Rue Mercière, Lyon 2", items: 15, amount: "567€", status: "En attente", statusColor: "bg-gray-100 text-gray-600", eta: "12:45" },
+        ].map((d, i) => (
+          <div key={i} className="bg-white rounded-lg p-2 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-[10px] font-bold text-gray-900">{d.name}</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-2 h-2 text-gray-400" />
+                  <p className="text-[7px] text-gray-400">{d.addr}</p>
+                </div>
+              </div>
+              <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-medium ${d.statusColor}`}>{d.status}</span>
+            </div>
+            <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-gray-50">
+              <div className="flex gap-2 text-[7px] text-gray-400">
+                <span>{d.items} articles</span>
+                <span className="font-bold text-gray-700">{d.amount}</span>
+              </div>
+              <span className="text-[8px] font-medium text-green-600">ETA {d.eta}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Nav button */}
+      <div className="px-2 mt-2">
+        <div className="bg-green-600 text-white rounded-lg py-2 text-center">
+          <p className="text-[10px] font-bold">▶ Démarrer navigation</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenManager() {
+  return (
+    <div className="h-full bg-gray-50 text-[10px] leading-tight">
+      {/* Header */}
+      <div className="bg-purple-600 text-white px-3 pt-8 pb-3">
+        <p className="text-[8px] opacity-70">Supervision</p>
+        <p className="text-[13px] font-bold">Vue globale</p>
+      </div>
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-1.5 px-2 -mt-3">
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <p className="text-[8px] text-gray-400">CA Jour</p>
+          <p className="text-[13px] font-bold text-purple-600">28 450€</p>
+          <p className="text-[7px] text-green-500">+8.5%</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <p className="text-[8px] text-gray-400">Commandes</p>
+          <p className="text-[13px] font-bold text-purple-600">47</p>
+          <p className="text-[7px] text-green-500">+12.3%</p>
+        </div>
+      </div>
+      {/* Dépôts */}
+      <div className="px-2 mt-2">
+        <p className="text-[9px] font-bold text-gray-700 mb-1">3 Dépôts</p>
+        <div className="space-y-1">
+          {[
+            { name: "Lyon (Siège)", orders: 28, ca: "16 800€", color: "border-l-purple-500" },
+            { name: "Montpellier", orders: 12, ca: "7 200€", color: "border-l-blue-500" },
+            { name: "Bordeaux", orders: 7, ca: "4 450€", color: "border-l-green-500" },
+          ].map((d, i) => (
+            <div key={i} className={`bg-white rounded-lg p-2 shadow-sm border-l-2 ${d.color}`}>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-[9px] font-bold text-gray-800">{d.name}</p>
+                  <p className="text-[7px] text-gray-400">{d.orders} commandes</p>
+                </div>
+                <p className="text-[10px] font-bold text-gray-900">{d.ca}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Équipe */}
+      <div className="px-2 mt-2">
+        <p className="text-[9px] font-bold text-gray-700 mb-1">Équipe (8)</p>
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <div className="space-y-1.5">
+            {[
+              { name: "Hamza K.", perf: 83, ca: "7 250€" },
+              { name: "Fatima Z.", perf: 72, ca: "5 400€" },
+              { name: "Karim B.", perf: 65, ca: "4 100€" },
+            ].map((m, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center text-[7px] font-bold text-purple-600">{m.name.charAt(0)}</div>
+                <span className="text-[8px] font-medium text-gray-800 w-14">{m.name}</span>
+                <div className="flex-1 h-1.5 bg-gray-100 rounded-full"><div className="h-full bg-purple-500 rounded-full" style={{ width: `${m.perf}%` }} /></div>
+                <span className="text-[8px] font-bold text-gray-700">{m.ca}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenAdmin() {
+  return (
+    <div className="h-full bg-gray-50 text-[10px] leading-tight">
+      {/* Header */}
+      <div className="bg-gray-700 text-white px-3 pt-8 pb-3">
+        <p className="text-[8px] opacity-70">Administration</p>
+        <p className="text-[13px] font-bold">Paramètres</p>
+      </div>
+      {/* Menu items */}
+      <div className="px-2 mt-3 space-y-1.5">
+        {[
+          { icon: Users, label: "Utilisateurs & Droits", detail: "8 actifs", active: true },
+          { icon: Package, label: "Catalogues & Tarifs", detail: "500 réf.", active: false },
+          { icon: Bell, label: "Notifications", detail: "Activées", active: false },
+          { icon: Shield, label: "Sécurité", detail: "2FA actif", active: false },
+        ].map((item, i) => (
+          <div key={i} className={`bg-white rounded-lg p-2.5 shadow-sm flex items-center gap-2.5 ${item.active ? "border border-gray-300" : ""}`}>
+            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.active ? "bg-gray-700 text-white" : "bg-gray-100"}`}>
+              <item.icon className={`w-3.5 h-3.5 ${item.active ? "" : "text-gray-500"}`} />
+            </div>
+            <div className="flex-1">
+              <p className="text-[9px] font-bold text-gray-800">{item.label}</p>
+              <p className="text-[7px] text-gray-400">{item.detail}</p>
+            </div>
+            <ArrowRight className="w-3 h-3 text-gray-300" />
+          </div>
+        ))}
+      </div>
+      {/* Users panel */}
+      <div className="px-2 mt-2">
+        <div className="bg-white rounded-lg p-2.5 shadow-sm">
+          <p className="text-[9px] font-bold text-gray-700 mb-2">Utilisateurs actifs</p>
+          <div className="space-y-1.5">
+            {[
+              { name: "Hamza K.", role: "Commercial Senior", status: "Actif" },
+              { name: "Fatima Z.", role: "Commercial", status: "Actif" },
+              { name: "Ahmed B.", role: "Directeur", status: "Actif" },
+              { name: "Nadia A.", role: "Commercial Junior", status: "Absent" },
+            ].map((u, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[7px] font-bold text-gray-600">{u.name.charAt(0)}</div>
+                <div className="flex-1">
+                  <p className="text-[8px] font-medium text-gray-800">{u.name}</p>
+                  <p className="text-[7px] text-gray-400">{u.role}</p>
+                </div>
+                <div className={`w-1.5 h-1.5 rounded-full ${u.status === "Actif" ? "bg-green-400" : "bg-gray-300"}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Export */}
+      <div className="px-2 mt-2">
+        <div className="bg-white rounded-lg p-2 shadow-sm flex items-center gap-2">
+          <Settings className="w-3.5 h-3.5 text-gray-400" />
+          <span className="text-[8px] text-gray-600">Export comptable automatique</span>
+          <div className="ml-auto w-6 h-3 bg-green-500 rounded-full relative">
+            <div className="absolute right-0.5 top-0.5 w-2 h-2 bg-white rounded-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScreenPortail() {
+  return (
+    <div className="h-full bg-gray-50 text-[10px] leading-tight">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 pt-8 pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[8px] opacity-80">Bienvenue</p>
+            <p className="text-[13px] font-bold">Kebab Istanbul</p>
+          </div>
+          <span className="bg-white/20 text-[7px] px-1.5 py-0.5 rounded-full">Client Gold ⭐</span>
+        </div>
+        <p className="text-[8px] opacity-70 mt-0.5">Mehmet Y. • -10% remise</p>
+      </div>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-1.5 px-2 -mt-3">
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <p className="text-[8px] text-gray-400">Commandes</p>
+          <p className="text-[13px] font-bold text-orange-600">8</p>
+          <p className="text-[7px] text-gray-400">ce mois</p>
+        </div>
+        <div className="bg-white rounded-lg p-2 shadow-sm">
+          <p className="text-[8px] text-gray-400">Total</p>
+          <p className="text-[13px] font-bold text-orange-600">12 450€</p>
+          <p className="text-[7px] text-gray-400">ce mois</p>
+        </div>
+      </div>
+      {/* Quick order */}
+      <div className="px-2 mt-2">
+        <p className="text-[9px] font-bold text-gray-700 mb-1">Commander vite</p>
+        <div className="space-y-1">
+          {[
+            { name: "Broche Kebab B/V 10kg", price: "67,50€", icon: "🥩" },
+            { name: "Pain Pita x100", price: "12,90€", icon: "🥖" },
+            { name: "Sauce Blanche 5L", price: "8,50€", icon: "🧴" },
+          ].map((p, i) => (
+            <div key={i} className="bg-white rounded-lg px-2 py-1.5 shadow-sm flex items-center gap-2">
+              <span className="text-[14px]">{p.icon}</span>
+              <div className="flex-1">
+                <p className="text-[8px] font-medium text-gray-800">{p.name}</p>
+                <p className="text-[8px] font-bold text-orange-600">{p.price}</p>
+              </div>
+              <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center">
+                <span className="text-white text-[10px]">+</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Recent orders */}
+      <div className="px-2 mt-2">
+        <p className="text-[9px] font-bold text-gray-700 mb-1">Dernières commandes</p>
+        <div className="space-y-1">
+          {[
+            { id: "1089", amount: "458€", items: 8, status: "En livraison", color: "bg-blue-100 text-blue-700" },
+            { id: "1082", amount: "672€", items: 12, status: "Livrée", color: "bg-green-100 text-green-700" },
+          ].map((o, i) => (
+            <div key={i} className="bg-white rounded-lg px-2 py-1.5 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-[8px] font-medium text-gray-800">CMD-{o.id}</p>
+                <p className="text-[7px] text-gray-400">{o.items} articles • {o.amount}</p>
+              </div>
+              <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-medium ${o.color}`}>{o.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Agent IA */}
+      <div className="px-2 mt-2">
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 flex items-center gap-2">
+          <Bot className="w-4 h-4 text-orange-500" />
+          <div className="flex-1">
+            <p className="text-[8px] font-bold text-orange-700">Agent IA 24/7</p>
+            <p className="text-[7px] text-orange-500">Posez vos questions !</p>
+          </div>
+          <ArrowRight className="w-3 h-3 text-orange-400" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // PAGE PRINCIPALE
 // ============================================
 
@@ -174,7 +516,11 @@ export default function OffreDistramPage() {
     { icon: MessageSquare, title: "Tout passe par WhatsApp", description: "Commandes par message vocal, réclamations perdues, aucune traçabilité. Si un commercial part, l'historique disparaît.", cost: "Zéro traçabilité" },
   ];
 
-  const espaces = [
+  const espaces: Array<{
+    icon: typeof Users; color: string; emoji: string; number: string;
+    title: string; subtitle: string; features: string[]; stat: string;
+    screen: React.ReactNode; link: string;
+  }> = [
     {
       icon: Users, color: "blue", emoji: "📱", number: "01",
       title: "Espace Commercial",
@@ -186,6 +532,8 @@ export default function OffreDistramPage() {
         "Géolocalisation et planning terrain",
       ],
       stat: "7 RDV/jour au lieu de 3",
+      screen: <ScreenCommercial />,
+      link: "/commercial",
     },
     {
       icon: Truck, color: "green", emoji: "🚚", number: "02",
@@ -198,6 +546,8 @@ export default function OffreDistramPage() {
         "Notifications automatiques aux clients",
       ],
       stat: "-30% de kilomètres",
+      screen: <ScreenLivreur />,
+      link: "/livreur",
     },
     {
       icon: BarChart3, color: "purple", emoji: "📊", number: "03",
@@ -210,6 +560,8 @@ export default function OffreDistramPage() {
         "Suivi performances équipes",
       ],
       stat: "100% visibilité",
+      screen: <ScreenManager />,
+      link: "/supervision",
     },
     {
       icon: Settings, color: "gray", emoji: "⚙️", number: "04",
@@ -222,6 +574,8 @@ export default function OffreDistramPage() {
         "Paramètres avancés",
       ],
       stat: "Autonomie totale",
+      screen: <ScreenAdmin />,
+      link: "/settings",
     },
     {
       icon: ShoppingCart, color: "orange", emoji: "🛒", number: "05",
@@ -234,6 +588,8 @@ export default function OffreDistramPage() {
         "L'IA vend pendant que tu dors",
       ],
       stat: "-70% d'appels",
+      screen: <ScreenPortail />,
+      link: "/portail",
     },
   ];
 
@@ -510,38 +866,61 @@ export default function OffreDistramPage() {
             </p>
           </Reveal>
 
-          <div className="space-y-6 max-w-5xl mx-auto">
+          <div className="space-y-16 md:space-y-24 max-w-6xl mx-auto">
             {espaces.map((espace, i) => {
               const c = colorMap[espace.color];
+              const isEven = i % 2 === 0;
               return (
                 <Reveal key={i} className={i > 0 ? `delay-${Math.min(i, 3)}00` : ""}>
-                  <div className={cn("rounded-2xl p-6 md:p-8 border-2", c.bg, c.border)}>
-                    <div className="flex flex-col md:flex-row md:items-start gap-6">
-                      <div className="flex items-center gap-4 md:min-w-[280px]">
-                        <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center text-2xl", c.light)}>
+                  <div className={cn(
+                    "flex flex-col items-center gap-8 md:gap-12",
+                    "md:flex-row",
+                    !isEven && "md:flex-row-reverse"
+                  )}>
+                    {/* Phone mockup */}
+                    <div className="flex-shrink-0">
+                      <PhoneMockup>
+                        {espace.screen}
+                      </PhoneMockup>
+                    </div>
+
+                    {/* Text content */}
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="flex items-center gap-3 justify-center md:justify-start mb-4">
+                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center text-xl", c.light)}>
                           {espace.emoji}
                         </div>
                         <div>
                           <p className={cn("text-xs font-bold", c.text)}>ESPACE {espace.number}</p>
-                          <h3 className="text-xl font-bold text-gray-900">{espace.title}</h3>
-                          <p className="text-sm text-gray-500">{espace.subtitle}</p>
+                          <h3 className="text-2xl md:text-3xl font-bold text-gray-900">{espace.title}</h3>
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {espace.features.map((f, j) => (
-                            <div key={j} className="flex items-start gap-2">
-                              <CheckCircle className={cn("w-4 h-4 mt-0.5 flex-shrink-0", c.text)} />
-                              <span className="text-sm text-gray-700">{f}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="md:text-right">
-                        <div className={cn("inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm", c.light, c.text)}>
+
+                      <p className="text-lg text-gray-600 mb-6">{espace.subtitle}</p>
+
+                      <ul className="space-y-3 mb-8">
+                        {espace.features.map((f, j) => (
+                          <li key={j} className="flex items-start gap-3 justify-center md:justify-start">
+                            <CheckCircle className={cn("w-5 h-5 mt-0.5 flex-shrink-0", c.text)} />
+                            <span className="text-gray-700">{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
+                        <div className={cn("inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm", c.light, c.text)}>
                           <TrendingUp className="w-4 h-4" />
                           {espace.stat}
                         </div>
+                        <Link
+                          href={espace.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:-translate-y-0.5"
+                          style={{ background: DISTRAM_COLORS.primary }}
+                        >
+                          Tester cet espace <ArrowRight className="w-4 h-4" />
+                        </Link>
                       </div>
                     </div>
                   </div>
