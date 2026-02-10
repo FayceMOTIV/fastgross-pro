@@ -144,12 +144,10 @@ export function OrgProvider({ children }) {
 
         // AUTO-CREATE ORG if user has none
         if (userOrgs.length === 0) {
-          console.log('No orgs found, auto-creating one for user')
           try {
             const orgName = user.displayName || user.email?.split('@')[0] || 'Mon Organisation'
             const newOrg = await createOrganization(user, { name: orgName })
             userOrgs = [newOrg]
-            console.log('Auto-created org:', newOrg.id)
           } catch (createErr) {
             console.error('Failed to auto-create org:', createErr)
             // Create a temporary local org so user can use the app

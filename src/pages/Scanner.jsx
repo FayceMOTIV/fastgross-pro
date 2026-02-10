@@ -528,11 +528,18 @@ export default function Scanner() {
     setProgress(0)
     setScanResult(null)
 
-    // Simulate scanning progress
-    const progressInterval = setInterval(() => {
+    // Simulate scanning progress with proper cleanup
+    let progressInterval = null
+    let isMounted = true
+
+    progressInterval = setInterval(() => {
+      if (!isMounted) {
+        clearInterval(progressInterval)
+        return
+      }
       setProgress((prev) => {
         if (prev >= 90) {
-          clearInterval(progressInterval)
+          if (progressInterval) clearInterval(progressInterval)
           return 90
         }
         return prev + Math.random() * 15
@@ -545,8 +552,16 @@ export default function Scanner() {
       // Try to call Cloud Function in production, use mock in demo
       if (!isDemo && functions) {
         try {
-          const scanWebsite = httpsCallable(functions, 'scanWebsite')
-          const response = await scanWebsite({ url: validUrl })
+          const scanWebsite = httpsCallable(functions, 'scanWebsite', { timeout: 60000 })
+          // Create a timeout promise
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Timeout: l\'analyse a pris trop de temps')), 55000)
+          })
+          // Race between the function call and the timeout
+          const response = await Promise.race([
+            scanWebsite({ url: validUrl }),
+            timeoutPromise
+          ])
           result = response.data
         } catch (funcError) {
           console.warn('Cloud Function not available, using mock:', funcError)
@@ -576,9 +591,10 @@ export default function Scanner() {
       toast.success('Analyse terminee !')
     } catch (error) {
       console.error('Scan error:', error)
-      toast.error('Erreur lors de l\'analyse')
+      toast.error(error.message || 'Erreur lors de l\'analyse')
     } finally {
-      clearInterval(progressInterval)
+      isMounted = false
+      if (progressInterval) clearInterval(progressInterval)
       setIsScanning(false)
     }
   }
@@ -643,7 +659,11 @@ export default function Scanner() {
         toast.success(`${scanResult.company_name} ajoute aux prospects !`)
       } else if (currentOrg?.id && user) {
         // Real mode: create prospect in Firestore
-        await createProspect(currentOrg.id, prospectData, user)
+        const createdProspect = await createProspect(currentOrg.id, prospectData, user)
+        // Validate the response
+        if (!createdProspect || !createdProspect.id) {
+          throw new Error('Echec de la creation du prospect')
+        }
         setAddedProspects(prev => new Set(prev).add(scanResult.website))
         toast.success(`${scanResult.company_name} ajoute aux prospects !`)
       } else {

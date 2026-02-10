@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import toast from 'react-hot-toast'
 import {
   Target,
   Flame,
@@ -330,19 +331,53 @@ export default function Radar() {
           { key: 'ice', label: 'Ice', count: stats.ice, color: 'gray', icon: Snowflake },
         ].map((stat) => {
           const Icon = stat.icon || Target
+          // Static Tailwind class mappings
+          const colorStyles = {
+            violet: {
+              border: 'border-violet-300',
+              bg: 'bg-violet-50',
+              icon: 'text-violet-500',
+              text: 'text-violet-600',
+            },
+            red: {
+              border: 'border-red-300',
+              bg: 'bg-red-50',
+              icon: 'text-red-500',
+              text: 'text-red-600',
+            },
+            orange: {
+              border: 'border-orange-300',
+              bg: 'bg-orange-50',
+              icon: 'text-orange-500',
+              text: 'text-orange-600',
+            },
+            blue: {
+              border: 'border-blue-300',
+              bg: 'bg-blue-50',
+              icon: 'text-blue-500',
+              text: 'text-blue-600',
+            },
+            gray: {
+              border: 'border-gray-300',
+              bg: 'bg-gray-50',
+              icon: 'text-gray-500',
+              text: 'text-gray-600',
+            },
+          }
+          const styles = colorStyles[stat.color] || colorStyles.violet
           return (
             <button
               key={stat.key}
               onClick={() => setSelectedCategory(stat.key)}
               className={`p-4 rounded-xl border-2 transition-all ${
                 selectedCategory === stat.key
-                  ? `border-${stat.color}-300 bg-${stat.color}-50`
+                  ? `${styles.border} ${styles.bg}`
                   : 'border-gray-100 bg-white hover:border-gray-200'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <Icon className={`w-5 h-5 text-${stat.color}-500`} />
-                <span className={`text-2xl font-bold text-${stat.color}-600`}>{stat.count}</span>
+                <Icon className={`w-5 h-5 ${styles.icon}`} />
+                <span className={`text-2xl font-bold ${styles.text}`}>{stat.count}</span>
               </div>
               <p className="text-sm text-gray-600">{stat.label}</p>
             </button>
@@ -439,11 +474,17 @@ export default function Radar() {
                 </div>
 
                 <div className="flex gap-2 pt-4">
-                  <button className="flex-1 py-3 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => toast.success('Redirection vers le Forgeur pour creer une sequence')}
+                    className="flex-1 py-3 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors flex items-center justify-center gap-2"
+                  >
                     <Send className="w-4 h-4" />
                     Message
                   </button>
-                  <button className="py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors">
+                  <button
+                    onClick={() => toast('Planification de RDV bientot disponible')}
+                    className="py-3 px-4 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
+                  >
                     <Calendar className="w-4 h-4" />
                   </button>
                 </div>

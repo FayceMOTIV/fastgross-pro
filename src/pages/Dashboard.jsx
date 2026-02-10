@@ -235,23 +235,25 @@ export default function Dashboard() {
 
   const leads = isDemo ? transformProspectsToLeads(demoClients) : realLeads
 
-  // Chart data
-  const chartData = isDemo
+  // Chart data - with null safety for demoDailyStats
+  const defaultChartData = [
+    { name: 'Lun', envoyes: 24, ouverts: 18, reponses: 3 },
+    { name: 'Mar', envoyes: 30, ouverts: 22, reponses: 5 },
+    { name: 'Mer', envoyes: 28, ouverts: 20, reponses: 4 },
+    { name: 'Jeu', envoyes: 35, ouverts: 28, reponses: 7 },
+    { name: 'Ven', envoyes: 32, ouverts: 25, reponses: 6 },
+    { name: 'Sam', envoyes: 8, ouverts: 6, reponses: 1 },
+    { name: 'Dim', envoyes: 0, ouverts: 0, reponses: 0 },
+  ]
+
+  const chartData = isDemo && Array.isArray(demoDailyStats) && demoDailyStats.length > 0
     ? demoDailyStats.slice(-7).map((d) => ({
-        name: d.dayLabel,
-        envoyes: d.emailed,
-        ouverts: d.opened,
-        reponses: d.replied,
+        name: d?.dayLabel || '',
+        envoyes: d?.emailed || 0,
+        ouverts: d?.opened || 0,
+        reponses: d?.replied || 0,
       }))
-    : [
-        { name: 'Lun', envoyes: 24, ouverts: 18, reponses: 3 },
-        { name: 'Mar', envoyes: 30, ouverts: 22, reponses: 5 },
-        { name: 'Mer', envoyes: 28, ouverts: 20, reponses: 4 },
-        { name: 'Jeu', envoyes: 35, ouverts: 28, reponses: 7 },
-        { name: 'Ven', envoyes: 32, ouverts: 25, reponses: 6 },
-        { name: 'Sam', envoyes: 8, ouverts: 6, reponses: 1 },
-        { name: 'Dim', envoyes: 0, ouverts: 0, reponses: 0 },
-      ]
+    : defaultChartData
 
   // Activity feed
   const recentActivities = isDemo
@@ -259,9 +261,11 @@ export default function Dashboard() {
     : (activities || []).map((event) => ({
         id: event.id,
         type: event.type,
+        channel: event.channel || 'email',
         message: event.leadName ? `${event.leadName}` : 'Lead anonyme',
         details: event.email || event.subject,
         timestamp: event.timestamp,
+        timeAgo: formatActivity({ timestamp: event.timestamp }).timeAgo,
       }))
 
   // Today's date
@@ -270,6 +274,18 @@ export default function Dashboard() {
     day: 'numeric',
     month: 'long',
   })
+
+  // Show loading state
+  if (!isDemo && (statsLoading || leadsLoading)) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-text-muted">Chargement du tableau de bord...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">

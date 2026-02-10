@@ -160,9 +160,17 @@ export default function OnboardingComplete() {
 
   useEffect(() => {
     // Try to get data from localStorage (saved during onboarding)
-    const savedData = localStorage.getItem('fmf_onboarding_complete')
-    if (savedData) {
-      const data = JSON.parse(savedData)
+    let data = null
+    try {
+      const savedData = localStorage.getItem('fmf_onboarding_complete')
+      if (savedData) {
+        data = JSON.parse(savedData)
+      }
+    } catch (error) {
+      console.error('Error parsing onboarding data:', error)
+    }
+
+    if (data && data.businessName) {
       setOnboardingData(data)
 
       // Simulate AI generation

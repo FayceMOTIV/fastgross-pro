@@ -12,16 +12,26 @@ import {
   CheckCircle,
 } from 'lucide-react'
 
+// Static color styles for Tailwind JIT compatibility
+const colorStyles = {
+  brand: { bg: 'bg-violet-500/10', text: 'text-violet-400' },
+  blue: { bg: 'bg-blue-500/10', text: 'text-blue-400' },
+  amber: { bg: 'bg-amber-500/10', text: 'text-amber-400' },
+  green: { bg: 'bg-green-500/10', text: 'text-green-400' },
+  purple: { bg: 'bg-purple-500/10', text: 'text-purple-400' },
+  red: { bg: 'bg-red-500/10', text: 'text-red-400' },
+}
+
 const eventConfig = {
-  email_sent: { icon: Mail, color: 'brand', label: 'Email envoyé' },
+  email_sent: { icon: Mail, color: 'brand', label: 'Email envoye' },
   email_opened: { icon: Eye, color: 'blue', label: 'Email ouvert' },
-  email_clicked: { icon: MousePointerClick, color: 'amber', label: 'Lien cliqué' },
-  email_replied: { icon: MessageSquare, color: 'green', label: 'Réponse reçue' },
+  email_clicked: { icon: MousePointerClick, color: 'amber', label: 'Lien clique' },
+  email_replied: { icon: MessageSquare, color: 'green', label: 'Reponse recue' },
   lead_added: { icon: UserPlus, color: 'purple', label: 'Nouveau lead' },
-  scan_completed: { icon: Scan, color: 'brand', label: 'Scan terminé' },
-  report_generated: { icon: FileText, color: 'purple', label: 'Rapport généré' },
+  scan_completed: { icon: Scan, color: 'brand', label: 'Scan termine' },
+  report_generated: { icon: FileText, color: 'purple', label: 'Rapport genere' },
   error: { icon: AlertCircle, color: 'red', label: 'Erreur' },
-  success: { icon: CheckCircle, color: 'brand', label: 'Succès' },
+  success: { icon: CheckCircle, color: 'brand', label: 'Succes' },
 }
 
 export default function ActivityFeed({ activities = [], maxItems = 10 }) {
@@ -53,9 +63,9 @@ export default function ActivityFeed({ activities = [], maxItems = 10 }) {
             className="flex items-start gap-3 p-3 rounded-lg hover:bg-dark-800/30 transition-colors"
           >
             <div
-              className={`w-8 h-8 rounded-lg bg-${config.color}-500/10 flex items-center justify-center flex-shrink-0`}
+              className={`w-8 h-8 rounded-lg ${colorStyles[config.color]?.bg || colorStyles.brand.bg} flex items-center justify-center flex-shrink-0`}
             >
-              <Icon className={`w-4 h-4 text-${config.color}-400`} />
+              <Icon className={`w-4 h-4 ${colorStyles[config.color]?.text || colorStyles.brand.text}`} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white">{activity.message || config.label}</p>

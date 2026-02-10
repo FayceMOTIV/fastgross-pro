@@ -24,11 +24,11 @@ import toast from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { CHANNELS, isChannelAvailable } from '@/services/plans'
 
-// Mock prospects for demo
+// Mock prospects for demo with phone numbers for all channels
 const mockProspects = [
-  { id: '1', name: 'Jean Dupont', company: 'TechCorp', email: 'jean@techcorp.fr', industry: 'SaaS' },
-  { id: '2', name: 'Marie Martin', company: 'InnovatLab', email: 'marie@innovatlab.com', industry: 'Conseil' },
-  { id: '3', name: 'Pierre Bernard', company: 'GrowthCo', email: 'pierre@growthco.fr', industry: 'Marketing' },
+  { id: '1', name: 'Jean Dupont', company: 'TechCorp', email: 'jean@techcorp.fr', phone: '+33 6 12 34 56 78', industry: 'SaaS' },
+  { id: '2', name: 'Marie Martin', company: 'InnovatLab', email: 'marie@innovatlab.com', phone: '+33 6 98 76 54 32', industry: 'Conseil' },
+  { id: '3', name: 'Pierre Bernard', company: 'GrowthCo', email: 'pierre@growthco.fr', phone: '+33 6 45 67 89 01', industry: 'Marketing' },
 ]
 
 const objectives = [
@@ -45,36 +45,55 @@ const tones = [
   { id: 'storyteller', label: 'Storyteller', emoji: '📖' },
 ]
 
-// Generate mock sequence
+// Tone-specific intros for personalization
+const toneIntros = {
+  professional: '',
+  friendly: 'J\'espere que vous allez bien ! ',
+  challenger: 'J\'ai une question directe pour vous : ',
+  storyteller: 'Laissez-moi vous raconter quelque chose... ',
+}
+
+// Objective-specific CTAs
+const objectiveCtas = {
+  rdv: 'Seriez-vous disponible pour un echange de 15 minutes cette semaine ?',
+  demo: 'Puis-je vous montrer une demo rapide de notre solution ?',
+  contact: 'J\'aimerais beaucoup echanger avec vous sur ce sujet.',
+  reactivation: 'Ca fait un moment ! Toujours interesse par notre solution ?',
+}
+
+// Generate mock sequence with tone and objective
 const generateMockSequence = (prospect, channels, objective, tone, steps) => {
+  const toneIntro = toneIntros[tone] || ''
+  const objectiveCta = objectiveCtas[objective] || objectiveCtas.rdv
+
   const templates = {
     email: [
       {
         subject: `${prospect.company} + [Votre entreprise] ?`,
-        body: `Bonjour ${prospect.name},\n\nJ'ai decouvert ${prospect.company} et votre approche innovante dans le ${prospect.industry}.\n\nNous aidons des entreprises comme la votre a automatiser leur prospection et generer 3x plus de leads qualifies.\n\nSeriez-vous disponible pour un echange de 15 minutes cette semaine ?\n\nCordialement`,
+        body: `Bonjour ${prospect.name},\n\n${toneIntro}J'ai decouvert ${prospect.company} et votre approche innovante dans le ${prospect.industry}.\n\nNous aidons des entreprises comme la votre a automatiser leur prospection et generer 3x plus de leads qualifies.\n\n${objectiveCta}\n\nCordialement`,
         cta: 'Repondre a cet email',
       },
       {
         subject: `Re: ${prospect.company}`,
-        body: `Bonjour ${prospect.name},\n\nJe me permets de vous relancer suite a mon precedent message.\n\nNos clients dans le ${prospect.industry} obtiennent en moyenne +45% de taux de reponse grace a notre approche multicanale.\n\nAvez-vous 10 minutes a m'accorder ?\n\nBien a vous`,
+        body: `Bonjour ${prospect.name},\n\n${toneIntro}Je me permets de vous relancer suite a mon precedent message.\n\nNos clients dans le ${prospect.industry} obtiennent en moyenne +45% de taux de reponse grace a notre approche multicanale.\n\n${objectiveCta}\n\nBien a vous`,
         cta: 'Proposer un creneau',
       },
     ],
     sms: [
       {
-        body: `Bonjour ${prospect.name.split(' ')[0]}, suite a mon email - disponible pour un call de 10min sur l'automatisation de votre prospection ?`,
+        body: `${toneIntro}${prospect.name.split(' ')[0]}, suite a mon email - ${objectiveCta.toLowerCase().replace('?', '')}?`,
         cta: 'Repondre oui/non',
       },
     ],
     whatsapp: [
       {
-        body: `Bonjour ${prospect.name.split(' ')[0]} ! 👋 Je vous ai envoye un email concernant l'automatisation de la prospection pour ${prospect.company}. Avez-vous eu le temps d'y jeter un oeil ?`,
+        body: `Bonjour ${prospect.name.split(' ')[0]} ! ${toneIntro}Je vous ai envoye un email concernant l'automatisation de la prospection pour ${prospect.company}. ${objectiveCta}`,
         cta: 'Engager la conversation',
       },
     ],
     voicemail: [
       {
-        body: `Bonjour ${prospect.name}, c'est [Votre nom] de [Votre entreprise]. Je vous laisse ce message suite a mes emails concernant l'optimisation de votre prospection chez ${prospect.company}. Je serais ravi d'echanger 10 minutes avec vous. Vous pouvez me rappeler au [numero] ou me repondre par email. A bientot !`,
+        body: `Bonjour ${prospect.name}, c'est [Votre nom] de [Votre entreprise]. ${toneIntro}Je vous laisse ce message suite a mes emails concernant l'optimisation de votre prospection chez ${prospect.company}. ${objectiveCta} Vous pouvez me rappeler au [numero] ou me repondre par email. A bientot !`,
         cta: 'Rappel telephonique',
       },
     ],
@@ -114,10 +133,22 @@ const channelIcons = {
   courrier: Send,
 }
 
+// Static color mappings for channels
+const channelColorStyles = {
+  email: { bg: 'bg-blue-100', border: 'border-blue-200', text: 'text-blue-600' },
+  sms: { bg: 'bg-emerald-100', border: 'border-emerald-200', text: 'text-emerald-600' },
+  whatsapp: { bg: 'bg-green-100', border: 'border-green-200', text: 'text-green-600' },
+  instagram: { bg: 'bg-pink-100', border: 'border-pink-200', text: 'text-pink-600' },
+  voicemail: { bg: 'bg-purple-100', border: 'border-purple-200', text: 'text-purple-600' },
+  courrier: { bg: 'bg-amber-100', border: 'border-amber-200', text: 'text-amber-600' },
+  violet: { bg: 'bg-violet-100', border: 'border-violet-200', text: 'text-violet-600' },
+}
+
 function SequenceStep({ step, onEdit, onRegenerate }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedBody, setEditedBody] = useState(step.body)
   const Icon = channelIcons[step.channel] || Mail
+  const colorStyle = channelColorStyles[step.channel] || channelColorStyles.violet
 
   const handleSave = () => {
     onEdit({ ...step, body: editedBody })
@@ -134,8 +165,8 @@ function SequenceStep({ step, onEdit, onRegenerate }) {
       <div className="flex gap-4">
         {/* Step indicator */}
         <div className="flex flex-col items-center">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-${step.channelInfo?.color || 'violet'}-100 border-2 border-${step.channelInfo?.color || 'violet'}-200`}>
-            <Icon className={`w-6 h-6 text-${step.channelInfo?.color || 'violet'}-600`} />
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorStyle.bg} border-2 ${colorStyle.border}`}>
+            <Icon className={`w-6 h-6 ${colorStyle.text}`} />
           </div>
           <div className="text-xs text-gray-400 mt-1">J+{step.delay_days}</div>
         </div>
@@ -217,7 +248,7 @@ function SequenceStep({ step, onEdit, onRegenerate }) {
 }
 
 export default function Forgeur() {
-  const { user } = useAuth()
+  const { user, userProfile } = useAuth()
   const [selectedProspect, setSelectedProspect] = useState(null)
   const [selectedChannels, setSelectedChannels] = useState(['email'])
   const [selectedObjective, setSelectedObjective] = useState('rdv')
@@ -226,8 +257,8 @@ export default function Forgeur() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [sequence, setSequence] = useState([])
 
-  // Demo: use mock plan
-  const currentPlan = 'pro'
+  // Get actual user plan from profile, fallback to starter
+  const currentPlan = userProfile?.plan || userProfile?.onboardingData?.selectedPlan || 'starter'
 
   const toggleChannel = (channelId) => {
     if (!isChannelAvailable(currentPlan, channelId)) {

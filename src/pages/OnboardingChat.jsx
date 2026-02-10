@@ -185,7 +185,15 @@ export default function OnboardingChat() {
   }, [currentStep, step])
 
   const handleNext = () => {
-    if (!inputValue.trim() && step?.type !== 'choice') return
+    // Validate input for text steps
+    if (step?.type !== 'choice' && !inputValue.trim()) {
+      return
+    }
+
+    // Validate that a choice was made for choice steps
+    if (step?.type === 'choice' && !answers[step.id]) {
+      return
+    }
 
     const newAnswers = { ...answers, [step.id]: inputValue.trim() }
     setAnswers(newAnswers)

@@ -41,6 +41,16 @@ const channelIcons = {
   courrier: Send,
 }
 
+// Static color mappings for channels
+const channelColorStyles = {
+  email: { bg: 'bg-blue-50', text: 'text-blue-600' },
+  sms: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+  whatsapp: { bg: 'bg-green-50', text: 'text-green-600' },
+  instagram: { bg: 'bg-pink-50', text: 'text-pink-600' },
+  voicemail: { bg: 'bg-purple-50', text: 'text-purple-600' },
+  courrier: { bg: 'bg-amber-50', text: 'text-amber-600' },
+}
+
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false)
   const [openFaq, setOpenFaq] = useState(null)
@@ -135,12 +145,13 @@ export default function Pricing() {
                 <tbody>
                   {Object.values(CHANNELS).map((channel, idx) => {
                     const Icon = channelIcons[channel.id] || Mail
+                    const colorStyle = channelColorStyles[channel.id] || channelColorStyles.email
                     return (
                       <tr key={channel.id} className={idx % 2 === 0 ? 'bg-gray-50/50' : ''}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg bg-${channel.color}-50 flex items-center justify-center`}>
-                              <Icon className={`w-4 h-4 text-${channel.color}-600`} />
+                            <div className={`w-8 h-8 rounded-lg ${colorStyle.bg} flex items-center justify-center`}>
+                              <Icon className={`w-4 h-4 ${colorStyle.text}`} />
                             </div>
                             <span className="text-sm font-medium text-gray-900">{channel.name}</span>
                           </div>

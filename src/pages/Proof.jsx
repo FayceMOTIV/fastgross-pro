@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import toast from 'react-hot-toast'
 import {
   TrendingUp,
   Users,
@@ -65,15 +66,26 @@ const periods = [
   { id: 'custom', label: 'Personnalise' },
 ]
 
+// Static color mappings for KPI cards
+const kpiColorStyles = {
+  violet: { bg: 'bg-violet-100', text: 'text-violet-600' },
+  blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-600' },
+  amber: { bg: 'bg-amber-100', text: 'text-amber-600' },
+  pink: { bg: 'bg-pink-100', text: 'text-pink-600' },
+  green: { bg: 'bg-green-100', text: 'text-green-600' },
+}
+
 // KPI Card component
 function KpiCard({ icon: Icon, label, value, trend, trendValue, color = 'violet' }) {
   const isPositive = trend === 'up'
+  const colorStyle = kpiColorStyles[color] || kpiColorStyles.violet
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
       <div className="flex items-center justify-between mb-3">
-        <div className={`w-10 h-10 rounded-lg bg-${color}-100 flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 text-${color}-600`} />
+        <div className={`w-10 h-10 rounded-lg ${colorStyle.bg} flex items-center justify-center`}>
+          <Icon className={`w-5 h-5 ${colorStyle.text}`} />
         </div>
         {trend && (
           <span className={`flex items-center gap-1 text-sm font-medium ${isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
@@ -118,7 +130,7 @@ function FunnelChart({ data }) {
 export default function Proof() {
   const [selectedPeriod, setSelectedPeriod] = useState('month')
 
-  // Mock KPIs
+  // Mock KPIs - no dependency on selectedPeriod since data is static
   const kpis = useMemo(() => ({
     prospects: { value: 456, trend: 'up', trendValue: '+12%' },
     sent: { value: 1234, trend: 'up', trendValue: '+8%' },
@@ -126,15 +138,15 @@ export default function Proof() {
     replyRate: { value: '14%', trend: 'up', trendValue: '+2%' },
     meetings: { value: 24, trend: 'up', trendValue: '+6' },
     costPerLead: { value: '12€', trend: 'down', trendValue: '-15%' },
-  }), [selectedPeriod])
+  }), [])
 
-  // ROI calculation
+  // ROI calculation - no dependency on selectedPeriod since data is static
   const roi = useMemo(() => {
     const cost = 297 // Plan Pro
     const leads = 24
     const avgClientValue = 500
     const revenue = leads * avgClientValue * 0.2 // 20% conversion
-    const roiPercent = ((revenue - cost) / cost) * 100
+    const roiPercent = cost > 0 ? ((revenue - cost) / cost) * 100 : 0
 
     return {
       cost,
@@ -143,7 +155,16 @@ export default function Proof() {
       roi: Math.round(roiPercent),
       costPerLead: leads > 0 ? Math.round(cost / leads) : 0,
     }
-  }, [selectedPeriod])
+  }, [])
+
+  // Handle PDF export
+  const handleExportPDF = () => {
+    toast.success('Export PDF en cours de preparation...')
+    // In production, this would call a Cloud Function to generate the PDF
+    setTimeout(() => {
+      toast('Fonctionnalite d\'export PDF bientot disponible')
+    }, 1000)
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -166,7 +187,10 @@ export default function Proof() {
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors">
+          <button
+            onClick={handleExportPDF}
+            className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors"
+          >
             <Download className="w-4 h-4" />
             Export PDF
           </button>

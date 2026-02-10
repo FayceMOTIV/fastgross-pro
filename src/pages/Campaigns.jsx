@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import {
   Play,
   Pause,
@@ -9,7 +10,6 @@ import {
   Eye,
   MousePointer,
   Reply,
-  AlertCircle,
   CheckCircle,
   Clock,
   Calendar,
@@ -110,12 +110,12 @@ const channelIcons = {
 }
 
 const statusConfig = {
-  active: { label: 'Active', color: 'emerald', icon: Play },
-  paused: { label: 'En pause', color: 'amber', icon: Pause },
-  completed: { label: 'Terminee', color: 'gray', icon: CheckCircle },
+  active: { label: 'Active', color: 'emerald', icon: Play, bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  paused: { label: 'En pause', color: 'amber', icon: Pause, bg: 'bg-amber-50', text: 'text-amber-700' },
+  completed: { label: 'Terminee', color: 'gray', icon: CheckCircle, bg: 'bg-gray-50', text: 'text-gray-700' },
 }
 
-function CampaignCard({ campaign }) {
+function CampaignCard({ campaign, onPause, onResume, onViewDetails }) {
   const status = statusConfig[campaign.status]
   const StatusIcon = status.icon
 
@@ -133,11 +133,14 @@ function CampaignCard({ campaign }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-${status.color}-50 text-${status.color}-700`}>
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}>
               <StatusIcon className="w-3 h-3" />
               {status.label}
             </span>
-            <button className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+            <button
+              onClick={() => toast('Menu campagne bientot disponible')}
+              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400"
+            >
               <MoreVertical className="w-4 h-4" />
             </button>
           </div>
@@ -204,17 +207,26 @@ function CampaignCard({ campaign }) {
         {/* Actions */}
         <div className="flex gap-2 mt-4">
           {campaign.status === 'active' ? (
-            <button className="flex-1 py-2 px-4 bg-amber-100 text-amber-700 font-medium rounded-lg hover:bg-amber-200 transition-colors flex items-center justify-center gap-2">
+            <button
+              onClick={() => onPause(campaign.id)}
+              className="flex-1 py-2 px-4 bg-amber-100 text-amber-700 font-medium rounded-lg hover:bg-amber-200 transition-colors flex items-center justify-center gap-2"
+            >
               <Pause className="w-4 h-4" />
               Pause
             </button>
           ) : campaign.status === 'paused' ? (
-            <button className="flex-1 py-2 px-4 bg-emerald-100 text-emerald-700 font-medium rounded-lg hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2">
+            <button
+              onClick={() => onResume(campaign.id)}
+              className="flex-1 py-2 px-4 bg-emerald-100 text-emerald-700 font-medium rounded-lg hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2"
+            >
               <Play className="w-4 h-4" />
               Reprendre
             </button>
           ) : null}
-          <button className="py-2 px-4 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors">
+          <button
+            onClick={() => onViewDetails(campaign.id)}
+            className="py-2 px-4 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+          >
             Details
           </button>
         </div>
@@ -243,8 +255,31 @@ function UpcomingSendItem({ send }) {
 export default function Campaigns() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [campaigns, setCampaigns] = useState(mockCampaigns)
 
-  const filteredCampaigns = mockCampaigns.filter((c) => {
+  const handlePauseCampaign = (id) => {
+    setCampaigns(prev => prev.map(c =>
+      c.id === id ? { ...c, status: 'paused', nextSend: null } : c
+    ))
+    toast.success('Campagne mise en pause')
+  }
+
+  const handleResumeCampaign = (id) => {
+    setCampaigns(prev => prev.map(c =>
+      c.id === id ? { ...c, status: 'active', nextSend: new Date().toISOString() } : c
+    ))
+    toast.success('Campagne reprise')
+  }
+
+  const handleViewDetails = (id) => {
+    toast('Details de la campagne bientot disponibles')
+  }
+
+  const handleNewCampaign = () => {
+    toast('Creation de campagne bientot disponible - utilisez le Forgeur pour generer des sequences')
+  }
+
+  const filteredCampaigns = campaigns.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === 'all' || c.status === statusFilter
     return matchesSearch && matchesStatus
@@ -268,7 +303,10 @@ export default function Campaigns() {
           <h1 className="text-2xl font-display font-bold text-gray-900">Campagnes</h1>
           <p className="text-gray-500 mt-1">Gerez vos sequences d'envoi multicanal</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors">
+        <button
+          onClick={handleNewCampaign}
+          className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors"
+        >
           <Zap className="w-4 h-4" />
           Nouvelle campagne
         </button>
@@ -355,7 +393,13 @@ export default function Campaigns() {
               </div>
             ) : (
               filteredCampaigns.map((campaign) => (
-                <CampaignCard key={campaign.id} campaign={campaign} />
+                <CampaignCard
+                  key={campaign.id}
+                  campaign={campaign}
+                  onPause={handlePauseCampaign}
+                  onResume={handleResumeCampaign}
+                  onViewDetails={handleViewDetails}
+                />
               ))
             )}
           </div>
@@ -377,7 +421,10 @@ export default function Campaigns() {
               ))}
             </div>
             <div className="p-4 border-t border-gray-100">
-              <button className="w-full py-2 text-sm text-violet-600 font-medium hover:text-violet-700 flex items-center justify-center gap-1">
+              <button
+                onClick={() => toast('Calendrier des envois bientot disponible')}
+                className="w-full py-2 text-sm text-violet-600 font-medium hover:text-violet-700 flex items-center justify-center gap-1"
+              >
                 Voir le calendrier complet
                 <ChevronRight className="w-4 h-4" />
               </button>

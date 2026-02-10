@@ -133,7 +133,12 @@ export default function OnboardingSequence() {
 
   const handleComplete = async () => {
     setIsSubmitting(true)
-    await completeOnboarding({ channels, tone, frequency })
+    try {
+      await completeOnboarding({ channels, tone, frequency })
+    } catch (error) {
+      console.error('Error completing onboarding:', error)
+      setIsSubmitting(false)
+    }
   }
 
   const loading = isSubmitting || contextLoading

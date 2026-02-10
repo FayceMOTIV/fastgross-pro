@@ -373,7 +373,12 @@ function InsightCard({ type, title, description, metric, action }) {
           </div>
           <p className="text-sm text-dark-400 mt-1">{description}</p>
           {action && (
-            <button className="text-xs text-brand-400 hover:underline mt-2">{action}</button>
+            <button
+              onClick={() => {}}
+              className="text-xs text-brand-400 hover:underline mt-2"
+            >
+              {action}
+            </button>
           )}
         </div>
       </div>
