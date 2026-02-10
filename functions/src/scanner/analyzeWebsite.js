@@ -3,7 +3,8 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Anthropic from '@anthropic-ai/sdk'
 import * as cheerio from 'cheerio'
 
-const db = getFirestore()
+// Get db lazily to avoid initialization order issues
+const getDb = () => getFirestore()
 
 /**
  * Cloud Function: scanWebsite
@@ -34,6 +35,7 @@ export const scanWebsite = onCall(
       const analysis = await analyzeWithClaude(url, websiteContent)
 
       // 3. Save to Firestore
+      const db = getDb()
       const scanRef = await db
         .collection('clients')
         .doc(clientId)

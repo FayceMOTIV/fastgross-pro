@@ -119,8 +119,8 @@ function CampaignCard({ campaign }) {
   const status = statusConfig[campaign.status]
   const StatusIcon = status.icon
 
-  const openRate = Math.round((campaign.stats.opened / campaign.stats.sent) * 100)
-  const replyRate = Math.round((campaign.stats.replied / campaign.stats.sent) * 100)
+  const openRate = campaign.stats.sent > 0 ? Math.round((campaign.stats.opened / campaign.stats.sent) * 100) : 0
+  const replyRate = campaign.stats.sent > 0 ? Math.round((campaign.stats.replied / campaign.stats.sent) * 100) : 0
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
@@ -302,7 +302,7 @@ export default function Campaigns() {
             <span className="text-sm text-gray-500">Taux ouverture</span>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            {Math.round((totalStats.opened / totalStats.sent) * 100)}%
+            {totalStats.sent > 0 ? Math.round((totalStats.opened / totalStats.sent) * 100) : 0}%
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -313,7 +313,7 @@ export default function Campaigns() {
             <span className="text-sm text-gray-500">Taux reponse</span>
           </div>
           <p className="text-2xl font-bold text-gray-900">
-            {Math.round((totalStats.replied / totalStats.sent) * 100)}%
+            {totalStats.sent > 0 ? Math.round((totalStats.replied / totalStats.sent) * 100) : 0}%
           </p>
         </div>
       </div>

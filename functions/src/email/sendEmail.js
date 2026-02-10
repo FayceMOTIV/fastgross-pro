@@ -4,7 +4,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { Resend } from 'resend'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Cloud Function: sendCampaignEmail
@@ -13,6 +13,7 @@ const db = getFirestore()
 export const sendCampaignEmail = onCall(
   { region: 'europe-west1' },
   async (request) => {
+    const db = getDb()
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Vous devez être connecté')
     }
@@ -90,6 +91,7 @@ export const sendCampaignEmail = onCall(
 export const handleEmailWebhook = onRequest(
   { region: 'europe-west1' },
   async (req, res) => {
+    const db = getDb()
     if (req.method !== 'POST') {
       res.status(405).send('Method not allowed')
       return

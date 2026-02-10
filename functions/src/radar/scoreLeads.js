@@ -8,7 +8,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, parseJsonResponse } from '../utils/gemini.js'
 import { checkQuota, incrementUsage } from '../utils/quotas.js'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Score a single lead or batch of leads
@@ -42,6 +42,7 @@ export const scoreLeads = onCall(
     }
 
     try {
+      const db = getDb()
       const scoredLeads = await scoreWithAI(leads)
 
       // Save scores to Firestore if orgId provided

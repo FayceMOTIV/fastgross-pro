@@ -7,7 +7,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getCurrentPeriod } from './quotas.js'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Reset usage counters for all users on the 1st of each month
@@ -21,6 +21,7 @@ export const resetMonthlyUsage = onSchedule(
     memory: '512MiB',
   },
   async () => {
+    const db = getDb()
     console.log('Starting monthly usage reset')
 
     const newPeriod = getCurrentPeriod()
@@ -102,6 +103,7 @@ export const manualResetUsage = onCall(
     region: 'europe-west1',
   },
   async (request) => {
+    const db = getDb()
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Vous devez etre connecte')
     }

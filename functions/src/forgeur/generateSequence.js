@@ -2,7 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Anthropic from '@anthropic-ai/sdk'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Cloud Function: generateSequence
@@ -15,6 +15,7 @@ export const generateSequence = onCall(
     memory: '512MiB',
   },
   async (request) => {
+    const db = getDb()
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Vous devez être connecté')
     }

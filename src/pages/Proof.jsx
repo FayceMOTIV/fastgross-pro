@@ -141,7 +141,7 @@ export default function Proof() {
       leads,
       revenue: Math.round(revenue),
       roi: Math.round(roiPercent),
-      costPerLead: Math.round(cost / leads),
+      costPerLead: leads > 0 ? Math.round(cost / leads) : 0,
     }
   }, [selectedPeriod])
 

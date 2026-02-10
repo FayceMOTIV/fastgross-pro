@@ -1,7 +1,7 @@
 import { onRequest } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Cloud Function: seedData
@@ -14,6 +14,7 @@ export const seedData = onRequest(
     timeoutSeconds: 120,
   },
   async (req, res) => {
+    const db = getDb()
     // Only allow in development/emulator environment
     if (process.env.FUNCTIONS_EMULATOR !== 'true' && process.env.NODE_ENV === 'production') {
       res.status(403).json({ error: 'Cette fonction est désactivée en production' })

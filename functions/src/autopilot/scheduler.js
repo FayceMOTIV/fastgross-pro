@@ -8,7 +8,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import * as cheerio from 'cheerio'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 // Configuration
 const WARMUP_LIMITS = { 1: 5, 4: 15, 8: 30, 15: 60, 22: 100, 31: null }
@@ -37,6 +37,7 @@ function isWeekend() {
  * Reinitialiser les compteurs quotidiens de tous les comptes
  */
 async function resetDailyCounters() {
+  const db = getDb()
   const orgsSnapshot = await db.collection('organizations').get()
 
   for (const orgDoc of orgsSnapshot.docs) {
@@ -60,6 +61,7 @@ async function resetDailyCounters() {
  * Incrementer le jour de warmup pour tous les comptes
  */
 async function incrementWarmupDays() {
+  const db = getDb()
   const orgsSnapshot = await db.collection('organizations').get()
 
   for (const orgDoc of orgsSnapshot.docs) {
@@ -90,6 +92,7 @@ async function incrementWarmupDays() {
  * Obtenir les organisations avec autopilot actif
  */
 async function getActiveAutopilotOrgs() {
+  const db = getDb()
   const configsSnapshot = await db
     .collectionGroup('autopilotConfig')
     .where('enabled', '==', true)
@@ -111,6 +114,7 @@ async function getActiveAutopilotOrgs() {
  * Rechercher des prospects via Google CSE
  */
 async function searchProspects(config, orgId) {
+  const db = getDb()
   if (!config.googleCseApiKey || !config.googleCseCxId) {
     console.log(`Org ${orgId}: Pas de cle Google CSE, skip recherche`)
     return []
@@ -180,6 +184,7 @@ async function searchProspects(config, orgId) {
  * Sauvegarder les prospects trouves
  */
 async function saveProspects(orgId, prospects) {
+  const db = getDb()
   const batch = db.batch()
   const saved = []
 
@@ -411,6 +416,7 @@ Bonne journee,
  * Executer le pipeline pour une organisation
  */
 async function runPipeline(orgId, config) {
+  const db = getDb()
   const stats = { found: 0, scraped: 0, scored: 0, ready: 0, sent: 0, errors: [] }
 
   try {
@@ -599,6 +605,7 @@ export const runAutoPilotManual = onCall(
     memory: '512MiB'
   },
   async (request) => {
+    const db = getDb()
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Vous devez etre connecte')
     }

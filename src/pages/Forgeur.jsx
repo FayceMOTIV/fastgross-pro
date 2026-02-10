@@ -250,23 +250,34 @@ export default function Forgeur() {
       return
     }
 
+    if (selectedChannels.length === 0) {
+      toast.error('Selectionnez au moins un canal')
+      return
+    }
+
     setIsGenerating(true)
     setSequence([])
 
-    // Simulate AI generation
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Simulate AI generation
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    const newSequence = generateMockSequence(
-      selectedProspect,
-      selectedChannels,
-      selectedObjective,
-      selectedTone,
-      stepCount
-    )
+      const newSequence = generateMockSequence(
+        selectedProspect,
+        selectedChannels,
+        selectedObjective,
+        selectedTone,
+        stepCount
+      )
 
-    setSequence(newSequence)
-    setIsGenerating(false)
-    toast.success('Sequence generee avec succes !')
+      setSequence(newSequence)
+      toast.success('Sequence generee avec succes !')
+    } catch (error) {
+      console.error('Error generating sequence:', error)
+      toast.error('Erreur lors de la generation')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleEditStep = (updatedStep) => {

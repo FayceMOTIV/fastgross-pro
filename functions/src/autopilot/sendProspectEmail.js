@@ -8,7 +8,7 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import nodemailer from 'nodemailer'
 import { google } from 'googleapis'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 // Warmup limits par jour
 const WARMUP_LIMITS = {
@@ -210,6 +210,7 @@ export const sendProspectEmail = onCall(
     memory: '256MiB'
   },
   async (request) => {
+    const db = getDb()
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Vous devez etre connecte')
     }

@@ -8,7 +8,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { checkQuota, incrementUsage, isChannelAvailable } from '../utils/quotas.js'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Process a sequence step for enrolled prospects
@@ -20,6 +20,7 @@ export const processSequence = onCall(
     memory: '1GiB',
   },
   async (request) => {
+    const db = getDb()
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Vous devez etre connecte')
     }
@@ -207,6 +208,7 @@ function replaceVariables(text, prospect, campaign) {
  * Send email via configured provider
  */
 async function sendEmail(to, subject, body, orgId) {
+  const db = getDb()
   // Get org email config
   const orgDoc = await db.collection('organizations').doc(orgId).get()
   const emailConfig = orgDoc.data()?.integrations?.email
@@ -317,6 +319,7 @@ export const scheduledCampaignProcessor = onSchedule(
     memory: '1GiB',
   },
   async () => {
+    const db = getDb()
     console.log('Running scheduled campaign processor')
 
     try {

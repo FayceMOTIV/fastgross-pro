@@ -297,8 +297,8 @@ export default function Radar() {
   const filteredLeads = useMemo(() => {
     return mockLeads.filter((lead) => {
       const matchesSearch =
-        lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.company.toLowerCase().includes(searchQuery.toLowerCase())
+        (lead.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (lead.company?.toLowerCase() || '').includes(searchQuery.toLowerCase())
       const matchesCategory = selectedCategory === 'all' || lead.category === selectedCategory
       return matchesSearch && matchesCategory
     })

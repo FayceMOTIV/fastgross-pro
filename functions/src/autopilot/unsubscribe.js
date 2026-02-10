@@ -6,7 +6,7 @@
 import { onRequest } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Page HTML de desinscription
@@ -125,6 +125,7 @@ export const handleUnsubscribe = onRequest(
     cors: true
   },
   async (req, res) => {
+    const db = getDb()
     const email = req.query.e || req.body?.e
     const orgId = req.query.o || req.body?.o
 
@@ -212,6 +213,7 @@ export const handleUnsubscribe = onRequest(
 export const handleProspectEmailWebhook = onRequest(
   { region: 'europe-west1' },
   async (req, res) => {
+    const db = getDb()
     if (req.method !== 'POST') {
       res.status(405).send('Method not allowed')
       return

@@ -5,7 +5,7 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 // Plan limits configuration
 const PLAN_LIMITS = {
@@ -51,6 +51,7 @@ export function getCurrentPeriod() {
  * @returns {Promise<{allowed: boolean, remaining: number, limit: number}>}
  */
 export async function checkQuota(userId, quotaType, amount = 1) {
+  const db = getDb()
   const userDoc = await db.collection('users').doc(userId).get()
 
   if (!userDoc.exists) {
@@ -101,6 +102,7 @@ export async function checkQuota(userId, quotaType, amount = 1) {
  * @param {number} amount - Amount to increment (default 1)
  */
 export async function incrementUsage(userId, quotaType, amount = 1) {
+  const db = getDb()
   const currentPeriod = getCurrentPeriod()
   const userRef = db.collection('users').doc(userId)
 
@@ -136,6 +138,7 @@ export async function incrementUsage(userId, quotaType, amount = 1) {
  * @returns {Promise<string>} - Plan name
  */
 export async function getUserPlan(userId) {
+  const db = getDb()
   const userDoc = await db.collection('users').doc(userId).get()
   if (!userDoc.exists) return 'starter'
   return userDoc.data()?.subscription?.plan || 'starter'

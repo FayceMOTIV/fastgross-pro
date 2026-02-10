@@ -114,7 +114,7 @@ export function OnboardingFlowProvider({ children }) {
             sector: finalData.sector,
             target: finalData.target,
             zone: finalData.zone,
-            objective: finalData.objective,
+            offer: finalData.offer,
             selectedPlan: finalData.selectedPlan,
           },
         })
