@@ -204,49 +204,49 @@ function ROICard({ data }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 border-brand-500/20"
+      className="card p-6 border border-indigo-100"
     >
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
-          <Euro className="w-5 h-5 text-brand-400" />
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+          <Euro className="w-5 h-5 text-indigo-600" />
         </div>
         <div>
-          <h3 className="font-medium text-white">Retour sur Investissement</h3>
-          <p className="text-xs text-dark-500">Analyse financiere de vos campagnes</p>
+          <h3 className="font-medium text-gray-900">Retour sur Investissement</h3>
+          <p className="text-xs text-gray-500">Analyse financiere de vos campagnes</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="text-center p-4 rounded-xl bg-dark-800/50">
-          <p className="text-xs text-dark-500 mb-1">Cout total</p>
-          <p className="text-lg font-bold text-white">{totalCost.toLocaleString()} EUR</p>
+        <div className="text-center p-4 rounded-xl bg-gray-50">
+          <p className="text-xs text-gray-500 mb-1">Cout total</p>
+          <p className="text-lg font-bold text-gray-900">{totalCost.toLocaleString()} EUR</p>
         </div>
-        <div className="text-center p-4 rounded-xl bg-dark-800/50">
-          <p className="text-xs text-dark-500 mb-1">Revenue genere</p>
-          <p className="text-lg font-bold text-brand-400">{totalRevenue.toLocaleString()} EUR</p>
+        <div className="text-center p-4 rounded-xl bg-gray-50">
+          <p className="text-xs text-gray-500 mb-1">Revenue genere</p>
+          <p className="text-lg font-bold text-indigo-600">{totalRevenue.toLocaleString()} EUR</p>
         </div>
-        <div className="text-center p-4 rounded-xl bg-dark-800/50">
-          <p className="text-xs text-dark-500 mb-1">Cout/Lead</p>
-          <p className="text-lg font-bold text-white">{costPerLead} EUR</p>
+        <div className="text-center p-4 rounded-xl bg-gray-50">
+          <p className="text-xs text-gray-500 mb-1">Cout/Lead</p>
+          <p className="text-lg font-bold text-gray-900">{costPerLead} EUR</p>
         </div>
-        <div className="text-center p-4 rounded-xl bg-dark-800/50">
-          <p className="text-xs text-dark-500 mb-1">Cout/Conversion</p>
-          <p className="text-lg font-bold text-white">{costPerConversion} EUR</p>
+        <div className="text-center p-4 rounded-xl bg-gray-50">
+          <p className="text-xs text-gray-500 mb-1">Cout/Conversion</p>
+          <p className="text-lg font-bold text-gray-900">{costPerConversion} EUR</p>
         </div>
       </div>
 
-      <div className="flex items-center justify-between p-4 rounded-xl bg-brand-500/10 border border-brand-500/20">
+      <div className="flex items-center justify-between p-4 rounded-xl bg-indigo-50 border border-indigo-100">
         <div>
-          <p className="text-sm text-dark-400">ROI Global</p>
-          <p className="text-3xl font-display font-bold text-brand-400">
+          <p className="text-sm text-gray-600">ROI Global</p>
+          <p className="text-3xl font-display font-bold text-indigo-600">
             {roi > 0 ? '+' : ''}
             {roi}%
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-dark-400">Benefice net</p>
+          <p className="text-sm text-gray-600">Benefice net</p>
           <p
-            className={`text-xl font-bold ${totalRevenue - totalCost >= 0 ? 'text-brand-400' : 'text-red-400'}`}
+            className={`text-xl font-bold ${totalRevenue - totalCost >= 0 ? 'text-indigo-600' : 'text-red-600'}`}
           >
             {(totalRevenue - totalCost).toLocaleString()} EUR
           </p>
@@ -262,7 +262,7 @@ function SequenceFunnel({ data }) {
     { key: 'contacted', label: 'Contactes', color: 'bg-cyan-500', value: data.contacted || 0 },
     { key: 'opened', label: 'Ouverts', color: 'bg-emerald-500', value: data.opened || 0 },
     { key: 'replied', label: 'Repondus', color: 'bg-amber-500', value: data.replied || 0 },
-    { key: 'converted', label: 'Convertis', color: 'bg-brand-500', value: data.converted || 0 },
+    { key: 'converted', label: 'Convertis', color: 'bg-indigo-500', value: data.converted || 0 },
   ]
 
   const maxValue = Math.max(...stages.map((s) => s.value), 1)
@@ -271,15 +271,15 @@ function SequenceFunnel({ data }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6"
+      className="card p-6"
     >
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-          <Target className="w-5 h-5 text-purple-400" />
+        <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+          <Target className="w-5 h-5 text-purple-600" />
         </div>
         <div>
-          <h3 className="font-medium text-white">Funnel des Sequences</h3>
-          <p className="text-xs text-dark-500">Progression des prospects dans vos sequences</p>
+          <h3 className="font-medium text-gray-900">Funnel des Sequences</h3>
+          <p className="text-xs text-gray-500">Progression des prospects dans vos sequences</p>
         </div>
       </div>
 
@@ -294,8 +294,8 @@ function SequenceFunnel({ data }) {
           return (
             <div key={stage.key} className="relative">
               <div className="flex items-center gap-3">
-                <div className="w-24 text-sm text-dark-400">{stage.label}</div>
-                <div className="flex-1 h-8 bg-dark-800 rounded-lg overflow-hidden relative">
+                <div className="w-24 text-sm text-gray-600">{stage.label}</div>
+                <div className="flex-1 h-8 bg-gray-100 rounded-lg overflow-hidden relative">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${width}%` }}
@@ -308,12 +308,12 @@ function SequenceFunnel({ data }) {
                   </motion.div>
                 </div>
                 {i > 0 && dropRate > 0 && (
-                  <div className="w-16 text-xs text-red-400 text-right">-{dropRate}%</div>
+                  <div className="w-16 text-xs text-red-500 text-right">-{dropRate}%</div>
                 )}
               </div>
               {i < stages.length - 1 && (
                 <div className="ml-24 pl-4 py-1">
-                  <ArrowRight className="w-4 h-4 text-dark-600" />
+                  <ArrowRight className="w-4 h-4 text-gray-400" />
                 </div>
               )}
             </div>
@@ -321,9 +321,9 @@ function SequenceFunnel({ data }) {
         })}
       </div>
 
-      <div className="mt-6 pt-4 border-t border-dark-800 flex items-center justify-between">
-        <div className="text-sm text-dark-400">Taux de conversion global</div>
-        <div className="text-lg font-bold text-brand-400">
+      <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="text-sm text-gray-600">Taux de conversion global</div>
+        <div className="text-lg font-bold text-indigo-600">
           {stages[0].value > 0 ? Math.round((stages[4].value / stages[0].value) * 100) : 0}%
         </div>
       </div>
@@ -335,21 +335,21 @@ function InsightCard({ type, title, description, metric, action }) {
   const configs = {
     success: {
       icon: Trophy,
-      color: 'text-brand-400',
-      bg: 'bg-brand-500/10',
-      border: 'border-brand-500/20',
+      color: 'text-indigo-600',
+      bg: 'bg-indigo-50',
+      border: 'border-indigo-100',
     },
     warning: {
       icon: AlertCircle,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-500/20',
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      border: 'border-amber-100',
     },
     info: {
       icon: Lightbulb,
-      color: 'text-blue-400',
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-500/20',
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
+      border: 'border-blue-100',
     },
   }
 
@@ -363,13 +363,13 @@ function InsightCard({ type, title, description, metric, action }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <p className={`font-medium ${config.color}`}>{title}</p>
-            {metric && <span className="text-sm font-bold text-white">{metric}</span>}
+            {metric && <span className="text-sm font-bold text-gray-900">{metric}</span>}
           </div>
-          <p className="text-sm text-dark-400 mt-1">{description}</p>
+          <p className="text-sm text-gray-600 mt-1">{description}</p>
           {action && (
             <button
               onClick={() => {}}
-              className="text-xs text-brand-400 hover:underline mt-2"
+              className="text-xs text-indigo-600 hover:underline mt-2"
             >
               {action}
             </button>
@@ -382,10 +382,10 @@ function InsightCard({ type, title, description, metric, action }) {
 
 function EmptyState() {
   return (
-    <div className="glass-card p-12 text-center">
-      <BarChart3 className="w-12 h-12 text-dark-600 mx-auto mb-4" />
-      <h3 className="text-lg font-display font-semibold text-dark-400">Pas encore de donnees</h3>
-      <p className="text-dark-500 text-sm mt-2 max-w-md mx-auto">
+    <div className="card p-12 text-center">
+      <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+      <h3 className="text-lg font-display font-semibold text-gray-600">Pas encore de donnees</h3>
+      <p className="text-gray-500 text-sm mt-2 max-w-md mx-auto">
         Lancez vos premieres sequences de prospection pour voir vos statistiques apparaitre ici. Les
         donnees s'accumuleront au fur et a mesure de vos campagnes.
       </p>
@@ -452,7 +452,7 @@ export default function Analytics() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
       </div>
     )
   }
@@ -470,20 +470,20 @@ export default function Analytics() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="page-title flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-purple-400" />
+            <BarChart3 className="w-8 h-8 text-purple-600" />
             Analytics
           </h1>
-          <p className="text-dark-400 mt-1">Vue detaillee de vos performances multicanales</p>
+          <p className="text-gray-600 mt-1">Vue detaillee de vos performances multicanales</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Period selector */}
-          <div className="flex gap-1 p-1 bg-dark-800/50 rounded-lg border border-dark-700">
+          <div className="flex gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200">
             {['7d', '30d', '90d'].map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  period === p ? 'bg-brand-500/20 text-brand-400' : 'text-dark-400 hover:text-white'
+                  period === p ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {p === '7d' ? '7j' : p === '30d' ? '30j' : '90j'}
@@ -508,8 +508,8 @@ export default function Analytics() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
-                  ? 'bg-brand-500/10 text-brand-400 border border-brand-500/30'
-                  : 'bg-dark-800/50 text-dark-400 border border-dark-700 hover:border-dark-600 hover:text-white'
+                  ? 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -533,7 +533,7 @@ export default function Analytics() {
                   previous={data.totals.previousEmailsSent}
                   label="Messages envoyes"
                   icon={Send}
-                  color="text-blue-400"
+                  color="text-blue-600"
                 />
                 <PeriodComparisonCard
                   current={data.totals.openRate}
@@ -541,7 +541,7 @@ export default function Analytics() {
                   label="Taux d'ouverture"
                   format="percent"
                   icon={Eye}
-                  color="text-emerald-400"
+                  color="text-emerald-600"
                 />
                 <PeriodComparisonCard
                   current={data.totals.replyRate}
@@ -549,14 +549,14 @@ export default function Analytics() {
                   label="Taux de reponse"
                   format="percent"
                   icon={Reply}
-                  color="text-amber-400"
+                  color="text-amber-600"
                 />
                 <PeriodComparisonCard
                   current={enhancedData.funnel.converted}
                   previous={15}
                   label="Conversions"
                   icon={Trophy}
-                  color="text-brand-400"
+                  color="text-indigo-600"
                 />
               </div>
 
@@ -623,33 +623,33 @@ export default function Analytics() {
               </div>
 
               {/* Channel comparison table */}
-              <div className="glass-card p-6">
-                <h3 className="font-medium text-white mb-4">Comparaison des canaux</h3>
+              <div className="card p-6">
+                <h3 className="font-medium text-gray-900 mb-4">Comparaison des canaux</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-dark-800">
-                        <th className="text-left px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                           Canal
                         </th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                           Envoyes
                         </th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                           Ouverture
                         </th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                           Reponse
                         </th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                           Conversion
                         </th>
-                        <th className="text-right px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                        <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                           Cout/Conv.
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-dark-800/50">
+                    <tbody className="divide-y divide-gray-100">
                       {Object.entries(enhancedData.channels).map(([channel, d]) => {
                         const config = CHANNELS[channel]
                         if (!config) return null
@@ -662,34 +662,34 @@ export default function Analytics() {
                           d.replied > 0 ? Math.round((d.converted / d.replied) * 100) : 0
 
                         return (
-                          <tr key={channel} className="hover:bg-dark-800/30">
+                          <tr key={channel} className="hover:bg-gray-50">
                             <td className="px-4 py-4">
                               <div className="flex items-center gap-2">
                                 <Icon className={`w-4 h-4 ${config.color}`} />
-                                <span className="text-sm font-medium text-white">
+                                <span className="text-sm font-medium text-gray-900">
                                   {config.label}
                                 </span>
                               </div>
                             </td>
-                            <td className="px-4 py-4 text-sm text-dark-300 text-right">{d.sent}</td>
+                            <td className="px-4 py-4 text-sm text-gray-600 text-right">{d.sent}</td>
                             <td className="px-4 py-4 text-sm text-right">
-                              <span className={openRate >= 50 ? 'text-brand-400' : 'text-dark-400'}>
+                              <span className={openRate >= 50 ? 'text-indigo-600' : 'text-gray-600'}>
                                 {openRate}%
                               </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-right">
                               <span
-                                className={replyRate >= 15 ? 'text-brand-400' : 'text-dark-400'}
+                                className={replyRate >= 15 ? 'text-indigo-600' : 'text-gray-600'}
                               >
                                 {replyRate}%
                               </span>
                             </td>
                             <td className="px-4 py-4 text-sm text-right">
-                              <span className={convRate >= 10 ? 'text-brand-400' : 'text-dark-400'}>
+                              <span className={convRate >= 10 ? 'text-indigo-600' : 'text-gray-600'}>
                                 {convRate}%
                               </span>
                             </td>
-                            <td className="px-4 py-4 text-sm text-dark-300 text-right">
+                            <td className="px-4 py-4 text-sm text-gray-600 text-right">
                               {d.converted > 0 ? Math.round(50 / d.converted) : '-'} EUR
                             </td>
                           </tr>
@@ -709,8 +709,8 @@ export default function Analytics() {
 
               {/* Cost breakdown */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass-card p-6">
-                  <h3 className="font-medium text-white mb-4">Repartition des couts</h3>
+                <div className="card p-6">
+                  <h3 className="font-medium text-gray-900 mb-4">Repartition des couts</h3>
                   <div className="space-y-3">
                     {[
                       { label: 'Emails (Amazon SES)', cost: 12, color: 'bg-orange-500' },
@@ -720,36 +720,36 @@ export default function Analytics() {
                       { label: 'Courrier (Merci Facteur)', cost: 18, color: 'bg-amber-500' },
                     ].map((item) => (
                       <div key={item.label} className="flex items-center gap-3">
-                        <div className="w-32 text-sm text-dark-400">{item.label}</div>
-                        <div className="flex-1 h-3 bg-dark-800 rounded-full overflow-hidden">
+                        <div className="w-32 text-sm text-gray-600">{item.label}</div>
+                        <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${item.color}`}
                             style={{ width: `${(item.cost / 450) * 100}%` }}
                           />
                         </div>
-                        <div className="w-16 text-sm text-dark-300 text-right">{item.cost} EUR</div>
+                        <div className="w-16 text-sm text-gray-700 text-right">{item.cost} EUR</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="glass-card p-6">
-                  <h3 className="font-medium text-white mb-4">Revenue par source</h3>
+                <div className="card p-6">
+                  <h3 className="font-medium text-gray-900 mb-4">Revenue par source</h3>
                   <div className="space-y-3">
                     {[
-                      { label: 'Clients directs', revenue: 1800, color: 'bg-brand-500' },
+                      { label: 'Clients directs', revenue: 1800, color: 'bg-indigo-500' },
                       { label: 'Upsells', revenue: 650, color: 'bg-purple-500' },
                       { label: 'Referrals', revenue: 350, color: 'bg-cyan-500' },
                     ].map((item) => (
                       <div key={item.label} className="flex items-center gap-3">
-                        <div className="w-32 text-sm text-dark-400">{item.label}</div>
-                        <div className="flex-1 h-3 bg-dark-800 rounded-full overflow-hidden">
+                        <div className="w-32 text-sm text-gray-600">{item.label}</div>
+                        <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${item.color}`}
                             style={{ width: `${(item.revenue / 2800) * 100}%` }}
                           />
                         </div>
-                        <div className="w-20 text-sm text-dark-300 text-right">
+                        <div className="w-20 text-sm text-gray-700 text-right">
                           {item.revenue} EUR
                         </div>
                       </div>
@@ -759,23 +759,23 @@ export default function Analytics() {
               </div>
 
               {/* LTV/CAC */}
-              <div className="glass-card p-6">
+              <div className="card p-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   <div className="text-center">
-                    <p className="text-xs text-dark-500 mb-1">CAC (Cout d'acquisition)</p>
-                    <p className="text-2xl font-bold text-white">37.50 EUR</p>
+                    <p className="text-xs text-gray-500 mb-1">CAC (Cout d'acquisition)</p>
+                    <p className="text-2xl font-bold text-gray-900">37.50 EUR</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-dark-500 mb-1">LTV (Valeur client)</p>
-                    <p className="text-2xl font-bold text-brand-400">233 EUR</p>
+                    <p className="text-xs text-gray-500 mb-1">LTV (Valeur client)</p>
+                    <p className="text-2xl font-bold text-indigo-600">233 EUR</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-dark-500 mb-1">Ratio LTV/CAC</p>
-                    <p className="text-2xl font-bold text-brand-400">6.2x</p>
+                    <p className="text-xs text-gray-500 mb-1">Ratio LTV/CAC</p>
+                    <p className="text-2xl font-bold text-indigo-600">6.2x</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-dark-500 mb-1">Payback period</p>
-                    <p className="text-2xl font-bold text-white">1.2 mois</p>
+                    <p className="text-xs text-gray-500 mb-1">Payback period</p>
+                    <p className="text-2xl font-bold text-gray-900">1.2 mois</p>
                   </div>
                 </div>
               </div>
@@ -825,20 +825,20 @@ export default function Analytics() {
               </div>
 
               {/* Recommendations */}
-              <div className="glass-card p-6">
-                <h3 className="font-medium text-white mb-4 flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5 text-amber-400" />
+              <div className="card p-6">
+                <h3 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-500" />
                   Recommandations IA
                 </h3>
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-dark-800/50 border border-dark-700">
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-brand-500/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-brand-400">1</span>
+                      <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-indigo-600">1</span>
                       </div>
                       <div>
-                        <p className="font-medium text-white">Augmentez l'utilisation du SMS</p>
-                        <p className="text-sm text-dark-400 mt-1">
+                        <p className="font-medium text-gray-900">Augmentez l'utilisation du SMS</p>
+                        <p className="text-sm text-gray-600 mt-1">
                           Avec 23% de taux de reponse, le SMS est votre canal le plus performant
                           mais represente seulement 8% de vos envois. Doublez son utilisation pour
                           maximiser vos conversions.
@@ -846,14 +846,14 @@ export default function Analytics() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-4 rounded-xl bg-dark-800/50 border border-dark-700">
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-brand-500/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-brand-400">2</span>
+                      <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-indigo-600">2</span>
                       </div>
                       <div>
-                        <p className="font-medium text-white">Optimisez vos objets d'email</p>
-                        <p className="text-sm text-dark-400 mt-1">
+                        <p className="font-medium text-gray-900">Optimisez vos objets d'email</p>
+                        <p className="text-sm text-gray-600 mt-1">
                           Les objets contenant une question ont 34% d'ouverture en plus. Testez des
                           formulations comme "Question rapide sur [sujet]" ou "Avez-vous 2 minutes
                           ?"
@@ -861,14 +861,14 @@ export default function Analytics() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-4 rounded-xl bg-dark-800/50 border border-dark-700">
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-brand-500/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-brand-400">3</span>
+                      <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-indigo-600">3</span>
                       </div>
                       <div>
-                        <p className="font-medium text-white">Ajoutez une etape vocale</p>
-                        <p className="text-sm text-dark-400 mt-1">
+                        <p className="font-medium text-gray-900">Ajoutez une etape vocale</p>
+                        <p className="text-sm text-gray-600 mt-1">
                           Les sequences avec message vocal en etape 4 ont 18% de conversions en
                           plus. Ajoutez un voicemail personnalise apres vos emails.
                         </p>
@@ -882,54 +882,54 @@ export default function Analytics() {
 
           {/* Performance by client (always shown at bottom) */}
           {data.byClient.length > 0 && (
-            <div className="glass-card p-6">
+            <div className="card p-6">
               <h2 className="section-title mb-4">Performance par client</h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-dark-800/50">
-                      <th className="text-left px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                         Client
                       </th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                      <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                         Envoyes
                       </th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                      <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                         Taux ouv.
                       </th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                      <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                         Taux rep.
                       </th>
-                      <th className="text-center px-4 py-3 text-xs font-medium text-dark-400 uppercase">
+                      <th className="text-center px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                         Performance
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-dark-800/30">
+                  <tbody className="divide-y divide-gray-100">
                     {data.byClient.map((client, i) => (
-                      <tr key={i} className="hover:bg-dark-800/30">
-                        <td className="px-4 py-4 text-sm font-medium text-white">{client.name}</td>
-                        <td className="px-4 py-4 text-sm text-dark-300 text-center">
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 text-sm font-medium text-gray-900">{client.name}</td>
+                        <td className="px-4 py-4 text-sm text-gray-600 text-center">
                           {client.sent}
                         </td>
                         <td className="px-4 py-4 text-sm text-center">
                           <span
-                            className={client.openRate >= 55 ? 'text-brand-400' : 'text-dark-300'}
+                            className={client.openRate >= 55 ? 'text-indigo-600' : 'text-gray-600'}
                           >
                             {client.openRate}%
                           </span>
                         </td>
                         <td className="px-4 py-4 text-sm text-center">
                           <span
-                            className={client.replyRate >= 12 ? 'text-brand-400' : 'text-dark-300'}
+                            className={client.replyRate >= 12 ? 'text-indigo-600' : 'text-gray-600'}
                           >
                             {client.replyRate}%
                           </span>
                         </td>
                         <td className="px-4 py-4 text-center">
-                          <div className="w-full bg-dark-800 rounded-full h-2 max-w-[100px] mx-auto">
+                          <div className="w-full bg-gray-100 rounded-full h-2 max-w-[100px] mx-auto">
                             <div
-                              className="bg-brand-500 h-2 rounded-full"
+                              className="bg-indigo-500 h-2 rounded-full"
                               style={{ width: `${Math.min(client.replyRate * 5, 100)}%` }}
                             />
                           </div>
