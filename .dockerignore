@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+functions/node_modules/
+
+# Build outputs
+.next/
+out/
+functions/lib/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Misc
+*.log
+npm-debug.log*
+coverage/
+.pytest_cache/
+__pycache__/
+
+# Firebase (deploy artifacts, not needed in container)
+.firebase/
+.firebaserc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed in image)
+docs/
+DOCUMENTATION.md
+README.md

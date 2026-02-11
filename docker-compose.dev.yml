@@ -1,0 +1,32 @@
+services:
+  # ─── DEVELOPMENT: Node.js with hot-reload ────────────
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "${DEV_PORT:-3000}:3000"
+    volumes:
+      # Bind mount for hot-reload
+      - .:/app
+      # Protect node_modules inside container
+      - /app/node_modules
+      - /app/.next
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - distram-network
+
+networks:
+  distram-network:
+    driver: bridge
