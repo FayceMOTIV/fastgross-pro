@@ -1,11 +1,11 @@
 # Dependencies
 node_modules/
-functions/node_modules/
 
-# Build outputs
+# Firebase Cloud Functions (separate deploy, own deps)
+functions/
+
+# Build cache (not needed, out/ IS needed for prebuilt)
 .next/
-out/
-functions/lib/
 
 # Environment
 .env

@@ -14,9 +14,9 @@ up-logs:
 down:
 	docker compose down
 
-# Rebuild l'image (après changement de code/deps)
+# Build Next.js + rebuild image Docker
 build:
-	docker compose build --no-cache
+	npm run build && docker compose build --no-cache
 
 # Voir les logs
 logs:
