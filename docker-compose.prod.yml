@@ -1,0 +1,48 @@
+# ============================================
+# Face Media Factory - Docker Compose Production
+# ============================================
+# Override pour production (build optimise + Nginx)
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  # ─────────────────────────────────────────────
+  # Frontend Production (Nginx)
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: production
+      args:
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
+        VITE_APP_NAME: ${VITE_APP_NAME:-Face Media Factory}
+        VITE_APP_URL: ${VITE_APP_URL}
+    container_name: fmf-frontend-prod
+    restart: always
+    environment:
+      # Pas d'emulateurs en prod
+      VITE_USE_EMULATORS: "false"
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    volumes: []  # Pas de bind mounts en prod
+    depends_on: []  # Pas de Firebase local en prod
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ─────────────────────────────────────────────
+  # Firebase desactive en production
+  # (utiliser les services Firebase cloud)
+  # ─────────────────────────────────────────────
+  firebase:
+    profiles:
+      - donotstart

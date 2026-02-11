@@ -1,0 +1,146 @@
+# ============================================
+# Face Media Factory - Docker Compose
+# ============================================
+# Stack complet : Frontend + Firebase Emulators
+#
+# Usage:
+#   Development: docker compose up
+#   Production:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Ports exposes:
+#   - 5173: Frontend Vite (dev)
+#   - 9099: Firebase Auth Emulator
+#   - 5001: Firebase Functions Emulator
+#   - 8080: Firestore Emulator
+#   - 4000: Firebase Emulator UI
+
+services:
+  # ─────────────────────────────────────────────
+  # Firebase Emulators (Auth, Firestore, Functions)
+  # ─────────────────────────────────────────────
+  firebase:
+    build:
+      context: .
+      dockerfile: Dockerfile.firebase
+    container_name: fmf-firebase
+    restart: unless-stopped
+    environment:
+      # Gemini API (pour les Cloud Functions)
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+      # Email APIs
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@facemedia.app}
+
+      # SMS API
+      BUDGETSMS_API_KEY: ${BUDGETSMS_API_KEY:-}
+      BUDGETSMS_USERNAME: ${BUDGETSMS_USERNAME:-}
+      BUDGETSMS_HANDLE: ${BUDGETSMS_HANDLE:-FMFACTORY}
+
+      # WhatsApp API
+      EVOLUTION_API_URL: ${EVOLUTION_API_URL:-}
+      EVOLUTION_API_KEY: ${EVOLUTION_API_KEY:-}
+      EVOLUTION_INSTANCE: ${EVOLUTION_INSTANCE:-}
+
+      # OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+
+      # App
+      APP_URL: ${APP_URL:-http://localhost:5173}
+
+      # Firebase Emulator config
+      FIREBASE_AUTH_EMULATOR_HOST: localhost:9099
+      FIRESTORE_EMULATOR_HOST: localhost:8080
+      FUNCTIONS_EMULATOR: "true"
+    ports:
+      - "${FIREBASE_AUTH_PORT:-9099}:9099"
+      - "${FIREBASE_FUNCTIONS_PORT:-5001}:5001"
+      - "${FIREBASE_FIRESTORE_PORT:-8080}:8080"
+      - "${FIREBASE_UI_PORT:-4000}:4000"
+    volumes:
+      # Persistance des donnees des emulateurs
+      - firebase_data:/app/.firebase-data
+      # Hot-reload du code des functions (dev)
+      - ./functions/src:/app/functions/src:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - fmf-network
+
+  # ─────────────────────────────────────────────
+  # Frontend (Vite Dev Server)
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: development
+    container_name: fmf-frontend
+    restart: unless-stopped
+    environment:
+      # Firebase config (mode emulateur)
+      VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-demo-api-key}
+      VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-demo-project.firebaseapp.com}
+      VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-demo-project}
+      VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-demo-project.appspot.com}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-123456789}
+      VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-1:123456789:web:abc123}
+
+      # Activer les emulateurs
+      VITE_USE_EMULATORS: "true"
+
+      # App config
+      VITE_APP_NAME: ${VITE_APP_NAME:-Face Media Factory}
+      VITE_APP_URL: ${VITE_APP_URL:-http://localhost:5173}
+
+      # Emulators hosts (depuis le conteneur)
+      VITE_FIREBASE_AUTH_EMULATOR_HOST: firebase:9099
+      VITE_FIREBASE_FIRESTORE_EMULATOR_HOST: firebase:8080
+      VITE_FIREBASE_FUNCTIONS_EMULATOR_HOST: firebase:5001
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      # Hot-reload du code source
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.js:/app/vite.config.js
+      - ./tailwind.config.js:/app/tailwind.config.js
+      - ./postcss.config.js:/app/postcss.config.js
+      # Proteger node_modules installe dans le conteneur
+      - /app/node_modules
+    depends_on:
+      firebase:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - fmf-network
+
+# ─────────────────────────────────────────────
+# Volumes nommes pour la persistance
+# ─────────────────────────────────────────────
+volumes:
+  firebase_data:
+    name: fmf-firebase-data
+
+# ─────────────────────────────────────────────
+# Reseau isole
+# ─────────────────────────────────────────────
+networks:
+  fmf-network:
+    name: fmf-network
+    driver: bridge

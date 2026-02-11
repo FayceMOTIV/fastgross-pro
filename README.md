@@ -30,14 +30,80 @@ SaaS multi-tenant qui utilise l'IA (Claude) pour analyser les clients, générer
 
 ---
 
-## 🚀 Installation
+## 🐳 Quick Start (Docker)
 
-### Prérequis
+La methode la plus simple pour demarrer le projet.
+
+### Prerequis
+- [Docker](https://docs.docker.com/get-docker/) (v20+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (v2+)
+
+### Lancement
+
+```bash
+# 1. Cloner le repo
+git clone <repo_url> && cd face-media-factory
+
+# 2. Configurer les variables d'environnement
+cp .env.docker.example .env
+# Editer .env avec vos cles API (optionnel pour le dev)
+
+# 3. Demarrer tout le stack
+make up
+# ou : docker compose up -d
+
+# 4. Acceder a l'application
+# Frontend : http://localhost:5173
+# Firebase UI : http://localhost:4000
+# Firestore : http://localhost:8080
+```
+
+### Commandes Docker utiles
+
+| Commande | Description |
+|----------|-------------|
+| `make up` | Demarrer tous les services |
+| `make down` | Arreter tous les services |
+| `make logs` | Voir les logs en temps reel |
+| `make build` | Rebuild apres changement de dependances |
+| `make shell-frontend` | Shell dans le conteneur frontend |
+| `make shell-firebase` | Shell dans le conteneur Firebase |
+| `make test` | Lancer les tests |
+| `make clean` | Tout supprimer |
+| `make help` | Afficher toutes les commandes |
+
+### Architecture Docker
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    docker-compose.yml                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐      ┌──────────────────────────────┐ │
+│  │    Frontend      │      │     Firebase Emulators       │ │
+│  │  (Vite + React)  │ ───► │  Auth | Firestore | Funcs    │ │
+│  │   Port: 5173     │      │  9099 |   8080    |  5001    │ │
+│  └──────────────────┘      │                              │ │
+│                            │      Emulator UI: 4000       │ │
+│                            └──────────────────────────────┘ │
+│                                        │                     │
+│                            ┌───────────▼────────────┐       │
+│                            │   firebase_data        │       │
+│                            │   (Volume persistant)  │       │
+│                            └────────────────────────┘       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Installation (Sans Docker)
+
+### Prerequis
 - Node.js 20+
 - Firebase CLI (`npm install -g firebase-tools`)
 - Compte Firebase (Blaze plan pour les Cloud Functions)
-- Clé API Anthropic
-- Clé API Resend
+- Cle API Anthropic
+- Cle API Resend
 
 ### 1. Cloner et installer
 

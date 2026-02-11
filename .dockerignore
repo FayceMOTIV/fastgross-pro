@@ -1,0 +1,80 @@
+# ============================================
+# Face Media Factory - Docker Ignore
+# ============================================
+
+# Dependencies (installed in container)
+node_modules/
+functions/node_modules/
+
+# Build outputs
+dist/
+.next/
+build/
+coverage/
+
+# Environment files (secrets)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files
+*.test.js
+*.spec.js
+__tests__/
+.pytest_cache/
+.vitest/
+
+# Documentation (pas necessaire dans l'image)
+*.md
+!README.md
+docs/
+
+# Firebase local data
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*.local
+
+# Docker files (no inception)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Development tools
+.eslintrc*
+.prettierrc*
+.prettierignore
+vitest.config.js
+
+# Audit/Report files
+*AUDIT*.md
+*REPORT*.md
+*TODO*.md
+CHANGELOG.md
+STACK.md
+
+# Test scripts
+functions/test-*.mjs
