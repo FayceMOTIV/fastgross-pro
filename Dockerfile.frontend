@@ -24,7 +24,8 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 
 # Installer les dependances (cache layer)
-RUN npm ci
+# --legacy-peer-deps pour resoudre les conflits eslint
+RUN npm ci --legacy-peer-deps
 
 # ─────────────────────────────────────────────
 # Stage 3: Development
