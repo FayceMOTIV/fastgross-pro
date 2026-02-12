@@ -274,6 +274,68 @@ service cloud.firestore {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
       }
+
+      // ------------------------------------------
+      // COMPLIANCE AUDIT - RGPD audit trail
+      // ------------------------------------------
+      match /complianceAudit/{auditId} {
+        allow read: if canAdmin(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // CHANNEL ANALYTICS - Per-channel stats
+      // ------------------------------------------
+      match /channelAnalytics/{dateId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // CHANNEL TEMPLATES - SMS, WhatsApp, etc.
+      // ------------------------------------------
+      match /channelTemplates/{templateId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // VOICE CLONES - Voicemail AI voices
+      // ------------------------------------------
+      match /voiceClones/{voiceId} {
+        allow read: if canRead(orgId);
+        allow create: if canAdmin(orgId);
+        allow update: if canAdmin(orgId);
+        allow delete: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // POSTAL TEMPLATES - Mail piece designs
+      // ------------------------------------------
+      match /postalTemplates/{templateId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // WHATSAPP SESSIONS - 24h window tracking
+      // ------------------------------------------
+      match /whatsappSessions/{sessionId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // INSTAGRAM INTERACTIONS - DM tracking
+      // ------------------------------------------
+      match /instagramInteractions/{interactionId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
     }
 
     // ============================================

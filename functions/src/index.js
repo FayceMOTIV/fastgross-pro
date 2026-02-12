@@ -75,6 +75,46 @@ export { canSendTo, addToSuppressionList, processUnsubscribe, getComplianceStats
 export { createABTest, selectVariant, recordEvent, getActiveTests, getTestHistory } from './engine/abTesting.js'
 
 // ============================================
+// Multichannel Infrastructure v5.0
+// ============================================
+
+// --- SMS (Twilio) ---
+export { sendSMS, sendSMSBatch } from './channels/sms/sender.js'
+export { smsStatusWebhook, smsInboundWebhook } from './channels/sms/webhooks.js'
+export { createSMSTemplate, getSMSTemplates, validateSMSContent } from './channels/sms/templates.js'
+
+// --- WhatsApp (Meta Cloud API) ---
+export { sendWhatsApp, markAsRead } from './channels/whatsapp/sender.js'
+export { isInSessionWindow, createSession } from './channels/whatsapp/sessionManager.js'
+export { getApprovedTemplate, syncTemplatesFromMeta, submitTemplateForApproval } from './channels/whatsapp/templates.js'
+export { checkWhatsAppAvailability, checkBatchAvailability } from './channels/whatsapp/reachability.js'
+
+// --- Instagram (Meta Graph API) ---
+export { sendInstagramDM, sendPrivateReply } from './channels/instagram/dmSender.js'
+export { instagramWebhookVerify, instagramWebhookHandler } from './channels/instagram/webhookHandler.js'
+export { processCommentTrigger, createCommentTrigger } from './channels/instagram/commentTrigger.js'
+
+// --- Voicemail (Drop Cowboy) ---
+export { sendVoicemailDrop, getDropStatus, cancelDrop } from './channels/voicemail/dropSender.js'
+export { createVoiceClone, listVoices, getVoice, deleteVoice, previewTTS } from './channels/voicemail/voiceClone.js'
+export { generateScript, generateScriptWithAI, createScriptTemplate, listScriptTemplates } from './channels/voicemail/scriptGenerator.js'
+export { voicemailWebhook, recordInboundCall, getCallbackStats } from './channels/voicemail/callbackTracker.js'
+
+// --- Postal (PostGrid) ---
+export { sendLetter, sendPostcard, getMailStatus, cancelMail } from './channels/postal/mailSender.js'
+export { validateAddress, validateAddressBatch, validateAndUpdateProspect, autocompleteAddress } from './channels/postal/addressValidator.js'
+export { generatePostalHTML, createPostalTemplate, listPostalTemplates, previewTemplate } from './channels/postal/templateGenerator.js'
+export { postalTrackingWebhook, postalDeliveryWebhook, createTrackingCode, createPURL, recordConversion, getTrackingStats } from './channels/postal/trackingManager.js'
+
+// --- Unified Compliance Engine ---
+export { canContactOnChannel, recordOptIn, recordOptOut, recordGlobalSuppression, recordTouchpoint, resetTouchpoints, getProspectComplianceStatus } from './compliance/unifiedOptManager.js'
+
+// --- Channel Orchestration Engine ---
+export { selectOptimalChannel, selectChannelsForSequence, recommendChannelStrategy, getChannelPerformanceStats } from './engine/channelRouter.js'
+export { checkFallbackNeeded, executeFallback, scanPendingFallbacks, setFallbackRules, getFallbackStats, previewFallbackChain } from './engine/fallbackManager.js'
+export { canAddTouchpoint, recordTouchpoint as recordTouchpointLimit, getTouchpointStatus, resetExpiredTouchpoints, setCustomLimits, getOrgTouchpointStats, simulateSequenceTouchpoints } from './engine/touchpointLimiter.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData } from './dev/seedData.js'
