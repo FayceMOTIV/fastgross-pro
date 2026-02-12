@@ -1,6 +1,7 @@
 /**
  * Quota management for Cloud Functions
  * Checks user subscription limits before operations
+ * Beta users get unlimited access to everything
  */
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
@@ -33,6 +34,29 @@ const PLAN_LIMITS = {
     scansPerMonth: -1, // unlimited
     sequencesPerMonth: -1, // unlimited
   },
+  // Beta users get unlimited everything
+  beta: {
+    prospectsPerMonth: -1,
+    emailsPerMonth: -1,
+    smsPerMonth: -1,
+    whatsappPerMonth: -1,
+    scansPerMonth: -1,
+    sequencesPerMonth: -1,
+    instagramPerMonth: -1,
+    voicemailPerMonth: -1,
+    postalPerMonth: -1,
+  },
+}
+
+/**
+ * Check if user is a beta user (unlimited access)
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>}
+ */
+export async function isBetaUser(userId) {
+  const db = getDb()
+  const betaDoc = await db.collection('betaUsers').doc(userId).get()
+  return betaDoc.exists
 }
 
 /**
@@ -45,13 +69,21 @@ export function getCurrentPeriod() {
 
 /**
  * Check if user can perform an action based on quota
+ * Beta users always get unlimited access
  * @param {string} userId - User ID
  * @param {string} quotaType - Type of quota (emails, sms, whatsapp, scans, sequences, prospects)
  * @param {number} amount - Amount to check (default 1)
- * @returns {Promise<{allowed: boolean, remaining: number, limit: number}>}
+ * @returns {Promise<{allowed: boolean, remaining: number, limit: number, isBeta?: boolean}>}
  */
 export async function checkQuota(userId, quotaType, amount = 1) {
   const db = getDb()
+
+  // First check if user is a beta user - they get unlimited access
+  const isBeta = await isBetaUser(userId)
+  if (isBeta) {
+    return { allowed: true, remaining: -1, limit: -1, isBeta: true }
+  }
+
   const userDoc = await db.collection('users').doc(userId).get()
 
   if (!userDoc.exists) {
@@ -146,11 +178,18 @@ export async function getUserPlan(userId) {
 
 /**
  * Check if a channel is available for user's plan
+ * Beta users have access to all channels
  * @param {string} userId - User ID
  * @param {string} channel - Channel name
  * @returns {Promise<boolean>}
  */
 export async function isChannelAvailable(userId, channel) {
+  // Beta users have access to all channels
+  const isBeta = await isBetaUser(userId)
+  if (isBeta) {
+    return true
+  }
+
   const plan = await getUserPlan(userId)
 
   const channelsByPlan = {
@@ -161,4 +200,54 @@ export async function isChannelAvailable(userId, channel) {
 
   const availableChannels = channelsByPlan[plan] || channelsByPlan.starter
   return availableChannels.includes(channel)
+}
+
+/**
+ * Get quota info for a user
+ * Beta users get special unlimited response
+ * @param {string} userId - User ID
+ * @returns {Promise<Object>}
+ */
+export async function getQuotaInfo(userId) {
+  const db = getDb()
+
+  // Check if beta user
+  const isBeta = await isBetaUser(userId)
+  if (isBeta) {
+    return {
+      isBeta: true,
+      plan: 'beta',
+      limits: PLAN_LIMITS.beta,
+      usage: {},
+      channels: ['email', 'sms', 'whatsapp', 'instagram_dm', 'voicemail', 'courrier']
+    }
+  }
+
+  const userDoc = await db.collection('users').doc(userId).get()
+  if (!userDoc.exists) {
+    return {
+      plan: 'starter',
+      limits: PLAN_LIMITS.starter,
+      usage: {},
+      channels: ['email']
+    }
+  }
+
+  const userData = userDoc.data()
+  const plan = userData.subscription?.plan || 'starter'
+  const limits = PLAN_LIMITS[plan] || PLAN_LIMITS.starter
+
+  const channelsByPlan = {
+    starter: ['email'],
+    pro: ['email', 'sms', 'whatsapp'],
+    enterprise: ['email', 'sms', 'whatsapp', 'instagram_dm', 'voicemail', 'courrier'],
+  }
+
+  return {
+    isBeta: false,
+    plan,
+    limits,
+    usage: userData.usage || {},
+    channels: channelsByPlan[plan] || channelsByPlan.starter
+  }
 }

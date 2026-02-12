@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
 import { usePermissions } from '@/hooks/usePermissions'
+import { useAdminStatus } from '@/hooks/useCloudFunctions'
 import CommandPalette from '@/components/CommandPalette'
 import NotificationPanel from '@/components/NotificationPanel'
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp'
@@ -36,6 +37,8 @@ import {
   Target,
   Send,
   Award,
+  Mail,
+  Wrench,
 } from 'lucide-react'
 
 // Navigation items with permissions - v4.0
@@ -78,6 +81,7 @@ export default function Layout() {
     limits,
   } = useOrg()
   const { can } = usePermissions()
+  const { getAdminStatus } = useAdminStatus()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -86,9 +90,25 @@ export default function Layout() {
   const [shortcutsHelpOpen, setShortcutsHelpOpen] = useState(false)
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [adminStatus, setAdminStatus] = useState({ isSuperAdmin: false, isBetaUser: false })
 
   const orgDropdownRef = useRef(null)
   const userMenuRef = useRef(null)
+
+  // Check admin status on mount
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const status = await getAdminStatus()
+        setAdminStatus(status)
+      } catch (error) {
+        // Silently fail - user is not admin
+      }
+    }
+    if (user) {
+      checkAdmin()
+    }
+  }, [user])
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -312,6 +332,64 @@ export default function Layout() {
               </NavLink>
             )
           })}
+
+          {/* Admin links - only for super admins */}
+          {adminStatus.isSuperAdmin && (
+            <>
+              <div className="pt-2 mt-2 border-t border-accent/10">
+                <p className="px-3 py-2 text-[10px] font-semibold text-warning uppercase tracking-wider flex items-center gap-1">
+                  <Wrench className="w-3 h-3" />
+                  Admin
+                </p>
+              </div>
+              <NavLink
+                to="/app/admin"
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-warning/10 text-warning'
+                      : 'text-warning/70 hover:text-warning hover:bg-warning/5'
+                  }`
+                }
+              >
+                <Shield className="w-5 h-5" />
+                <span>Panel Admin</span>
+              </NavLink>
+              <NavLink
+                to="/app/test-email"
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-warning/10 text-warning'
+                      : 'text-warning/70 hover:text-warning hover:bg-warning/5'
+                  }`
+                }
+              >
+                <Mail className="w-5 h-5" />
+                <span>Test Email</span>
+              </NavLink>
+            </>
+          )}
+
+          {/* Beta user indicator (non-admin betas) */}
+          {adminStatus.isBetaUser && !adminStatus.isSuperAdmin && (
+            <NavLink
+              to="/app/test-email"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-success/10 text-success'
+                    : 'text-success/70 hover:text-success hover:bg-success/5'
+                }`
+              }
+            >
+              <Mail className="w-5 h-5" />
+              <span>Test Email</span>
+            </NavLink>
+          )}
         </div>
 
         {/* User section */}

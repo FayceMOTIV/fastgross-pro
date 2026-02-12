@@ -30,6 +30,8 @@ import {
   Clock,
   Pause,
   Power,
+  Crown,
+  Infinity,
 } from 'lucide-react'
 import {
   Chart as ChartJS,
@@ -57,6 +59,7 @@ ChartJS.register(
 import { useRealDashboardStats, useEngineStatus } from '@/hooks/useFirestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
+import { useAdminStatus } from '@/hooks/useCloudFunctions'
 
 // Channel icon mapping
 const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
@@ -511,6 +514,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { currentOrg } = useOrg()
+  const { getAdminStatus } = useAdminStatus()
 
   // Real stats from Firestore
   const {
@@ -530,6 +534,24 @@ export default function Dashboard() {
   const [isLaunching, setIsLaunching] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [launchProgress, setLaunchProgress] = useState({ current: 0, total: 0 })
+
+  // Beta status
+  const [betaStatus, setBetaStatus] = useState({ isBetaUser: false, isSuperAdmin: false })
+
+  // Check beta status on mount
+  useEffect(() => {
+    const checkBeta = async () => {
+      try {
+        const status = await getAdminStatus()
+        setBetaStatus(status)
+      } catch (error) {
+        // Silently fail
+      }
+    }
+    if (user) {
+      checkBeta()
+    }
+  }, [user])
 
   // Chart data
   const defaultChartData = [
@@ -611,6 +633,58 @@ export default function Dashboard() {
         isLaunching={isLaunching}
         launchProgress={launchProgress}
       />
+
+      {/* Beta Banner */}
+      {betaStatus.isBetaUser && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-4 bg-gradient-to-r from-emerald-500/10 via-green-50/50 to-teal-50/30 border-emerald-500/20"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-emerald-500/20 rounded-xl">
+                <Crown className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-emerald-700">
+                    Mode Beta Illimite
+                  </h3>
+                  {betaStatus.isSuperAdmin && (
+                    <span className="px-2 py-0.5 text-xs bg-amber-500/20 text-amber-700 rounded-full font-medium">
+                      Super Admin
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-emerald-600/80">
+                  Vous avez un acces illimite a toutes les fonctionnalites
+                </p>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center gap-6">
+              <div className="text-center">
+                <div className="flex items-center gap-1 text-emerald-600">
+                  <Infinity className="w-5 h-5" />
+                  <span className="text-xl font-bold">Prospects</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center gap-1 text-emerald-600">
+                  <Infinity className="w-5 h-5" />
+                  <span className="text-xl font-bold">Campagnes</span>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center gap-1 text-emerald-600">
+                  <Infinity className="w-5 h-5" />
+                  <span className="text-xl font-bold">Emails</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Intelligent Status Widget */}
       <StatusWidget

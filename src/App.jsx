@@ -44,6 +44,10 @@ const Radar = lazy(() => import('@/pages/Radar'))
 const Campaigns = lazy(() => import('@/pages/Campaigns'))
 const Proof = lazy(() => import('@/pages/Proof'))
 
+// Lazy loaded pages - Admin (super admin / beta users)
+const Admin = lazy(() => import('@/pages/Admin'))
+const TestEmail = lazy(() => import('@/pages/TestEmail'))
+
 // Auth guard - simplified, no forced onboarding
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -305,6 +309,10 @@ export default function App() {
                         {/* Settings */}
                         <Route path="settings" element={<Settings />} />
                         <Route path="settings/:section" element={<Settings />} />
+
+                        {/* Admin Pages (super admin / beta users) */}
+                        <Route path="admin" element={<Admin />} />
+                        <Route path="test-email" element={<TestEmail />} />
                       </Route>
 
                       {/* ============================================ */}

@@ -115,6 +115,13 @@ export { checkFallbackNeeded, executeFallback, scanPendingFallbacks, setFallback
 export { canAddTouchpoint, recordTouchpoint as recordTouchpointLimit, getTouchpointStatus, resetExpiredTouchpoints, setCustomLimits, getOrgTouchpointStats, simulateSequenceTouchpoints } from './engine/touchpointLimiter.js'
 
 // ============================================
+// Admin Functions (Super Admin / Beta Users)
+// ============================================
+export { checkFirstUser, getAdminStatus } from './admin/autoSuperAdmin.js'
+export { addBetaUser, removeBetaUser, listBetaUsers, checkBetaStatus, listSuperAdmins } from './admin/betaUsers.js'
+export { sendTestEmail, getTestEmailLogs, verifyResendConfig } from './admin/testEmail.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData } from './dev/seedData.js'

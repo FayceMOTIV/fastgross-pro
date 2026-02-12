@@ -354,5 +354,31 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if false; // Admin only via console
     }
+
+    // ============================================
+    // SUPER ADMINS - Platform administrators
+    // ============================================
+    function isSuperAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/superAdmins/$(request.auth.uid));
+    }
+
+    match /superAdmins/{userId} {
+      // Super admins can read list
+      allow read: if isSuperAdmin() || isOwner(userId);
+      // Only Cloud Functions can write (autoSuperAdmin)
+      allow write: if false;
+    }
+
+    // ============================================
+    // BETA USERS - Unlimited quota users
+    // ============================================
+    match /betaUsers/{userId} {
+      // Super admins can read/write beta users
+      allow read: if isSuperAdmin() || isOwner(userId);
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
   }
 }

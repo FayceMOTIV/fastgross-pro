@@ -67,3 +67,65 @@ export function useProof() {
 
   return { generateReport, report: data, generating: loading, reportError: error }
 }
+
+// ============================================
+// Admin Functions
+// ============================================
+
+/**
+ * Check first user / admin status
+ */
+export function useAdminStatus() {
+  const checkFirst = useCloudFunction('checkFirstUser')
+  const getStatus = useCloudFunction('getAdminStatus')
+
+  return {
+    checkFirstUser: checkFirst.call,
+    getAdminStatus: getStatus.call,
+    loading: checkFirst.loading || getStatus.loading,
+    error: checkFirst.error || getStatus.error
+  }
+}
+
+/**
+ * Beta users management (super admin only)
+ */
+export function useBetaUsers() {
+  const add = useCloudFunction('addBetaUser')
+  const remove = useCloudFunction('removeBetaUser')
+  const list = useCloudFunction('listBetaUsers')
+  const check = useCloudFunction('checkBetaStatus')
+  const listAdmins = useCloudFunction('listSuperAdmins')
+
+  return {
+    addBetaUser: add.call,
+    removeBetaUser: remove.call,
+    listBetaUsers: list.call,
+    checkBetaStatus: check.call,
+    listSuperAdmins: listAdmins.call,
+    betaUsers: list.data?.betaUsers || [],
+    superAdmins: listAdmins.data?.superAdmins || [],
+    loading: add.loading || remove.loading || list.loading,
+    error: add.error || remove.error || list.error
+  }
+}
+
+/**
+ * Test email functions
+ */
+export function useTestEmail() {
+  const send = useCloudFunction('sendTestEmail')
+  const logs = useCloudFunction('getTestEmailLogs')
+  const verify = useCloudFunction('verifyResendConfig')
+
+  return {
+    sendTestEmail: send.call,
+    getTestEmailLogs: logs.call,
+    verifyResendConfig: verify.call,
+    emailLogs: logs.data?.logs || [],
+    resendConfig: verify.data,
+    sending: send.loading,
+    loading: logs.loading || verify.loading,
+    error: send.error || logs.error || verify.error
+  }
+}
