@@ -8,7 +8,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { isGSM7, getSegmentCount } from './sender.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // TEMPLATES PAR DEFAUT (GSM-7, <160 chars)
@@ -272,10 +272,10 @@ export function optimizeForGSM7(content) {
     'ç': 'c',
     'œ': 'oe',
     'æ': 'ae',
-    ''': "'",
-    ''': "'",
-    '"': '"',
-    '"': '"',
+    '\u2018': "'",
+    '\u2019': "'",
+    '\u201C': '"',
+    '\u201D': '"',
     '…': '...',
     '–': '-',
     '—': '-'

@@ -11,7 +11,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { sendPrivateReply } from './dmSender.js';
 import { incrementDailyCount } from './compliance.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // TRAITER TRIGGER COMMENTAIRE

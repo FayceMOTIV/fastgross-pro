@@ -9,7 +9,7 @@
 
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // Duree de la session en millisecondes (24 heures)
 const SESSION_DURATION_MS = 24 * 60 * 60 * 1000;

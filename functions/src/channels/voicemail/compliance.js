@@ -11,7 +11,7 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // HORAIRES LEGAUX FRANCE

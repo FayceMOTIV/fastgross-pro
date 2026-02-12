@@ -14,7 +14,7 @@ import { validateAddress } from './addressValidator.js';
 import { generatePostalHTML } from './templateGenerator.js';
 import { createTrackingCode, createPURL } from './trackingManager.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // POSTGRID API CONFIG

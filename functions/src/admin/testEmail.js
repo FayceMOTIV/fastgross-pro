@@ -5,19 +5,22 @@
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { defineSecret } from 'firebase-functions/params'
 
-const db = getFirestore()
-const resendApiKey = defineSecret('RESEND_API_KEY')
+const getDb = () => getFirestore()
+
+// Get Resend API key from environment or config
+const getResendApiKey = () => {
+  return process.env.RESEND_API_KEY || null
+}
 
 /**
  * Check if user is a super admin or beta user
  */
 async function canTestEmail(userId) {
-  const superAdminDoc = await db.collection('superAdmins').doc(userId).get()
+  const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
   if (superAdminDoc.exists) return true
 
-  const betaUserDoc = await db.collection('betaUsers').doc(userId).get()
+  const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
   return betaUserDoc.exists
 }
 
@@ -26,8 +29,7 @@ async function canTestEmail(userId) {
  */
 export const sendTestEmail = onCall({
   region: 'europe-west1',
-  cors: true,
-  secrets: [resendApiKey]
+  cors: true
 }, async (request) => {
   const { auth, data } = request
 
@@ -60,7 +62,7 @@ export const sendTestEmail = onCall({
     </p>
   `
 
-  const apiKey = resendApiKey.value()
+  const apiKey = getResendApiKey()
 
   if (!apiKey) {
     throw new HttpsError('failed-precondition', 'Resend API key not configured')
@@ -85,7 +87,7 @@ export const sendTestEmail = onCall({
 
     if (!response.ok) {
       // Log the error
-      await db.collection('emailTestLogs').add({
+      await getDb().collection('emailTestLogs').add({
         userId: auth.uid,
         userEmail: auth.token.email,
         to,
@@ -99,7 +101,7 @@ export const sendTestEmail = onCall({
     }
 
     // Log successful test
-    await db.collection('emailTestLogs').add({
+    await getDb().collection('emailTestLogs').add({
       userId: auth.uid,
       userEmail: auth.token.email,
       to,
@@ -120,7 +122,7 @@ export const sendTestEmail = onCall({
     }
 
     // Log the error
-    await db.collection('emailTestLogs').add({
+    await getDb().collection('emailTestLogs').add({
       userId: auth.uid,
       userEmail: auth.token.email,
       to,
@@ -148,11 +150,11 @@ export const getTestEmailLogs = onCall({
   }
 
   // Only super admins can view all logs
-  const superAdminDoc = await db.collection('superAdmins').doc(auth.uid).get()
+  const superAdminDoc = await getDb().collection('superAdmins').doc(auth.uid).get()
   const isSuperAdmin = superAdminDoc.exists
 
   // Build query
-  let query = db.collection('emailTestLogs')
+  let query = getDb().collection('emailTestLogs')
     .orderBy('timestamp', 'desc')
     .limit(data?.limit || 50)
 
@@ -181,8 +183,7 @@ export const getTestEmailLogs = onCall({
  */
 export const verifyResendConfig = onCall({
   region: 'europe-west1',
-  cors: true,
-  secrets: [resendApiKey]
+  cors: true
 }, async (request) => {
   const { auth } = request
 
@@ -196,7 +197,7 @@ export const verifyResendConfig = onCall({
     throw new HttpsError('permission-denied', 'Only super admins and beta users can verify config')
   }
 
-  const apiKey = resendApiKey.value()
+  const apiKey = getResendApiKey()
 
   if (!apiKey) {
     return {

@@ -12,7 +12,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { canContactOnChannel, recordTouchpoint } from '../../compliance/unifiedOptManager.js';
 import { checkRateLimit, incrementDailyCount } from './compliance.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // META GRAPH API CONFIG

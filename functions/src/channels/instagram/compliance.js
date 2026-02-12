@@ -10,7 +10,7 @@
 
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // LIMITES

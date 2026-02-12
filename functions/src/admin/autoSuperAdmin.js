@@ -6,13 +6,13 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Check if there are any super admins in the system
  */
 async function hasSuperAdmins() {
-  const snapshot = await db.collection('superAdmins').limit(1).get()
+  const snapshot = await getDb().collection('superAdmins').limit(1).get()
   return !snapshot.empty
 }
 
@@ -20,7 +20,7 @@ async function hasSuperAdmins() {
  * Make user a super admin
  */
 async function makeSuperAdmin(userId, email) {
-  await db.collection('superAdmins').doc(userId).set({
+  await getDb().collection('superAdmins').doc(userId).set({
     email,
     createdAt: FieldValue.serverTimestamp(),
     isFirstUser: true
@@ -52,7 +52,7 @@ export const checkFirstUser = onCall({
     await makeSuperAdmin(userId, email)
 
     // Also add them as beta user for unlimited quotas
-    await db.collection('betaUsers').doc(userId).set({
+    await getDb().collection('betaUsers').doc(userId).set({
       email,
       addedBy: 'system',
       addedAt: FieldValue.serverTimestamp(),
@@ -68,11 +68,11 @@ export const checkFirstUser = onCall({
   }
 
   // Check if already super admin
-  const superAdminDoc = await db.collection('superAdmins').doc(userId).get()
+  const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
   const isSuperAdmin = superAdminDoc.exists
 
   // Check if beta user
-  const betaUserDoc = await db.collection('betaUsers').doc(userId).get()
+  const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
   const isBetaUser = betaUserDoc.exists
 
   return {
@@ -99,11 +99,11 @@ export const getAdminStatus = onCall({
   const userId = auth.uid
 
   // Check super admin status
-  const superAdminDoc = await db.collection('superAdmins').doc(userId).get()
+  const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
   const isSuperAdmin = superAdminDoc.exists
 
   // Check beta user status
-  const betaUserDoc = await db.collection('betaUsers').doc(userId).get()
+  const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
   const isBetaUser = betaUserDoc.exists
 
   return {

@@ -12,7 +12,7 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { selectOptimalChannel } from './channelRouter.js';
 import { canContactOnChannel } from '../compliance/unifiedOptManager.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // REGLES DE FALLBACK PAR DEFAUT

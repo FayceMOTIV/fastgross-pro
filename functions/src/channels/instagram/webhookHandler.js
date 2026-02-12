@@ -15,7 +15,7 @@ import { findProspectByIgUserId } from './dmSender.js';
 import { processCommentTrigger } from './commentTrigger.js';
 import { updateSessionInbound } from '../whatsapp/sessionManager.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // VERIFIER SIGNATURE WEBHOOK

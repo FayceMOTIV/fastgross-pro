@@ -11,7 +11,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { recordOptOut } from '../../compliance/unifiedOptManager.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // JOURS FERIES FRANCE 2025-2026

@@ -10,7 +10,7 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // WEBHOOK DROP COWBOY

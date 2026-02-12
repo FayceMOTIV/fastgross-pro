@@ -10,7 +10,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { recordOptOut } from '../../compliance/unifiedOptManager.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // MOTS-CLES OPT-OUT WHATSAPP

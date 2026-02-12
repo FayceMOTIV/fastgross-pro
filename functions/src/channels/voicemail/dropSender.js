@@ -13,7 +13,7 @@ import { canContactOnChannel, recordTouchpoint } from '../../compliance/unifiedO
 import { generateScript } from './scriptGenerator.js';
 import { checkVoicemailCompliance, isWithinBusinessHours } from './compliance.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // DROP COWBOY API CONFIG

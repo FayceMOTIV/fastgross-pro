@@ -12,7 +12,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import twilio from 'twilio';
 import { processInboundSMS } from './compliance.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // VALIDER SIGNATURE TWILIO

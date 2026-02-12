@@ -8,7 +8,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { formatWhatsAppNumber } from './sender.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // META API CONFIG

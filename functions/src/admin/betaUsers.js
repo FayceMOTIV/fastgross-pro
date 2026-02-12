@@ -6,13 +6,13 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
-const db = getFirestore()
+const getDb = () => getFirestore()
 
 /**
  * Check if user is a super admin
  */
 async function isSuperAdmin(userId) {
-  const doc = await db.collection('superAdmins').doc(userId).get()
+  const doc = await getDb().collection('superAdmins').doc(userId).get()
   return doc.exists
 }
 
@@ -42,7 +42,7 @@ export const addBetaUser = onCall({
   }
 
   // Find user by email
-  const usersSnapshot = await db.collection('users')
+  const usersSnapshot = await getDb().collection('users')
     .where('email', '==', email.toLowerCase())
     .limit(1)
     .get()
@@ -55,13 +55,13 @@ export const addBetaUser = onCall({
   const userId = userDoc.id
 
   // Check if already beta user
-  const existingBeta = await db.collection('betaUsers').doc(userId).get()
+  const existingBeta = await getDb().collection('betaUsers').doc(userId).get()
   if (existingBeta.exists) {
     throw new HttpsError('already-exists', 'User is already a beta user')
   }
 
   // Add as beta user
-  await db.collection('betaUsers').doc(userId).set({
+  await getDb().collection('betaUsers').doc(userId).set({
     email: email.toLowerCase(),
     addedBy: auth.uid,
     addedByEmail: auth.token.email,
@@ -103,21 +103,21 @@ export const removeBetaUser = onCall({
   }
 
   // Check if user exists in beta users
-  const betaDoc = await db.collection('betaUsers').doc(userId).get()
+  const betaDoc = await getDb().collection('betaUsers').doc(userId).get()
   if (!betaDoc.exists) {
     throw new HttpsError('not-found', 'User is not a beta user')
   }
 
   // Cannot remove self if you're the last super admin
-  const superAdminsSnapshot = await db.collection('superAdmins').get()
-  const superAdminDoc = await db.collection('superAdmins').doc(userId).get()
+  const superAdminsSnapshot = await getDb().collection('superAdmins').get()
+  const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
 
   if (superAdminDoc.exists && superAdminsSnapshot.size === 1) {
     throw new HttpsError('failed-precondition', 'Cannot remove the only super admin from beta')
   }
 
   // Remove beta user
-  await db.collection('betaUsers').doc(userId).delete()
+  await getDb().collection('betaUsers').doc(userId).delete()
 
   return {
     success: true,
@@ -146,7 +146,7 @@ export const listBetaUsers = onCall({
   }
 
   // Get all beta users
-  const snapshot = await db.collection('betaUsers').orderBy('addedAt', 'desc').get()
+  const snapshot = await getDb().collection('betaUsers').orderBy('addedAt', 'desc').get()
 
   const betaUsers = snapshot.docs.map(doc => ({
     id: doc.id,
@@ -184,7 +184,7 @@ export const checkBetaStatus = onCall({
     }
   }
 
-  const betaDoc = await db.collection('betaUsers').doc(targetUserId).get()
+  const betaDoc = await getDb().collection('betaUsers').doc(targetUserId).get()
 
   return {
     isBetaUser: betaDoc.exists,
@@ -215,7 +215,7 @@ export const listSuperAdmins = onCall({
   }
 
   // Get all super admins
-  const snapshot = await db.collection('superAdmins').orderBy('createdAt', 'desc').get()
+  const snapshot = await getDb().collection('superAdmins').orderBy('createdAt', 'desc').get()
 
   const superAdmins = snapshot.docs.map(doc => ({
     id: doc.id,

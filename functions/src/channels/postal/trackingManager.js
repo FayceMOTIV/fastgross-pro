@@ -11,7 +11,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onRequest } from 'firebase-functions/v2/https';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // CONFIG

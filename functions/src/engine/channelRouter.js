@@ -12,7 +12,7 @@
 import { getFirestore } from 'firebase-admin/firestore';
 import { canContactOnChannel } from '../compliance/unifiedOptManager.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // PRIORITE DES CANAUX PAR SCORE

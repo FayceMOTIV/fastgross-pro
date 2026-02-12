@@ -10,7 +10,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { callAI } from '../../utils/gemini.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // DUREE OPTIMALE VOICEMAIL

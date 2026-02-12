@@ -13,7 +13,7 @@ import { canContactOnChannel, recordTouchpoint } from '../../compliance/unifiedO
 import { isInSessionWindow, updateSession, createSession } from './sessionManager.js';
 import { getApprovedTemplate, validateTemplateParams } from './templates.js';
 
-const db = getFirestore();
+const getDb = () => getFirestore();
 
 // ============================================
 // CONFIGURATION META CLOUD API

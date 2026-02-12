@@ -7,7 +7,8 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
-const db = getFirestore();
+// Lazy getter for Firestore to avoid initialization error
+const getDb = () => getFirestore();
 
 // ============================================
 // MATRICE COMPLIANCE RGPD FRANCE B2B
@@ -101,7 +102,7 @@ export async function canContactOnChannel(orgId, prospectId, channel) {
     result.checks.push({ check: 'channel_exists', passed: true });
 
     // 2. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -307,7 +308,7 @@ const TOUCHPOINT_LIMITS = {
 
 async function checkTouchpointLimits(orgId, prospectId, channel) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -366,7 +367,7 @@ async function checkTouchpointLimits(orgId, prospectId, channel) {
 // ============================================
 export async function recordOptIn(orgId, prospectId, channel, proof = null) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     const optInData = {
@@ -404,7 +405,7 @@ export async function recordOptIn(orgId, prospectId, channel, proof = null) {
 // ============================================
 export async function recordOptOut(orgId, prospectId, channel, reason = 'user_request') {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     const optOutData = {
@@ -437,7 +438,7 @@ export async function recordOptOut(orgId, prospectId, channel, reason = 'user_re
 // ============================================
 export async function recordGlobalSuppression(orgId, prospectId, reason = 'user_request') {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -467,7 +468,7 @@ export async function recordGlobalSuppression(orgId, prospectId, reason = 'user_
 // ============================================
 export async function recordTouchpoint(orgId, prospectId, channel) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -490,7 +491,7 @@ export async function recordTouchpoint(orgId, prospectId, channel) {
 // ============================================
 export async function resetTouchpoints(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -520,7 +521,7 @@ export async function resetTouchpoints(orgId, prospectId) {
 // ============================================
 async function logComplianceEvent(orgId, prospectId, eventType, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('complianceAudit').add({
         prospectId,
         eventType,
@@ -537,7 +538,7 @@ async function logComplianceEvent(orgId, prospectId, eventType, data) {
 // ============================================
 export async function getProspectComplianceStatus(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
