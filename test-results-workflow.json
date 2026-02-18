@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-02-18T19:29:10.241Z",
+  "success": true,
+  "testOrgId": "test-workflow-1771442936787",
+  "verdict": "BIJOU",
+  "stepResults": {
+    "configSave": {
+      "success": true
+    },
+    "prospectGeneration": {
+      "success": true,
+      "count": 5
+    },
+    "dashboardRetrieval": {
+      "success": true,
+      "total": 5,
+      "hot": 3,
+      "withEmail": 4,
+      "pending": 5
+    },
+    "statusUpdates": {
+      "success": true,
+      "contacted": 2,
+      "responded": 1,
+      "pending": 2
+    },
+    "statsComputation": {
+      "success": true,
+      "stats": {
+        "total": 5,
+        "contacted": 2,
+        "responded": 1,
+        "pending": 2,
+        "avgScore": 81.6,
+        "hotCount": 3,
+        "withEmail": 4,
+        "channels": {
+          "whatsapp": 1,
+          "email": 1,
+          "instagram": 1
+        },
+        "responseRate": 33
+      }
+    },
+    "realOrgCheck": {
+      "success": true,
+      "orgCount": 7
+    },
+    "cleanup": {
+      "success": true
+    }
+  },
+  "passCount": 6,
+  "totalSteps": 6
+}

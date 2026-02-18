@@ -1,0 +1,168 @@
+{
+  "timestamp": "2026-02-18T19:28:42.255Z",
+  "success": true,
+  "verdict": "BIJOU! AI genere des angles EXCELLENTS",
+  "icon": "BIJOU",
+  "providers": [
+    {
+      "name": "Groq",
+      "status": "ONLINE",
+      "latency": 1449,
+      "error": null,
+      "model": null
+    },
+    {
+      "name": "OpenRouter",
+      "status": "OFFLINE",
+      "latency": 1120,
+      "error": "Provider returned error",
+      "model": null
+    },
+    {
+      "name": "Gemini",
+      "status": "OFFLINE",
+      "latency": 386,
+      "error": "All Gemini models failed",
+      "model": null
+    }
+  ],
+  "providerUsed": "Groq",
+  "results": [
+    {
+      "prospect": "Le Comptoir du Marais",
+      "success": true,
+      "angles": [
+        "Felicitations pour l'ouverture prochaine de Le Comptoir du Marais ! Avec votre chef forme chez Alain Ducasse, je suis sur que votre cuisine francaise moderne va plaire a beaucoup de gens. Pour vous aider a attirer encore plus de clients, je propose que nous discutons de la creation de contenu video professionnel pour votre restaurant, qui pourrait vous aider a augmenter votre engagement Instagram de 300% et attirer 50 nouveaux clients par an, voulez-vous prendre un rendez-vous pour en parler ?",
+        "Avec 2.3K followers sur Instagram, vous avez deja une bonne base de fans pour votre restaurant, mais imaginez combien vous pourriez en gagner avec des videos virales qui mettent en valeur votre cuisine locale et moderne ! Je propose que nous echangions sur les possibilites de creation de contenu video pour Le Comptoir du Marais, qui pourraient vous aider a convertir vos followers en clients reels, seriez-vous disponible pour un appel cette semaine ?",
+        "En tant que restaurant bistronomique au coeur du Marais, vous avez une histoire a raconter et une experience culinaire unique a partager avec vos clients. Je propose que nous creions ensemble des videos qui mettent en valeur votre chef, vos produits locaux et votre cuisine francaise moderne, pour vous aider a atteindre un ROI mesurable et garanti, voulez-vous que nous organisions une reunion pour discuter des details de notre proposition de valeur ?"
+      ],
+      "qualityScore": 100,
+      "personalized": true,
+      "relevant": true,
+      "actionable": true,
+      "creative": true,
+      "details": [
+        "Mentionne le nom/instagram du prospect",
+        "Mentionne 8 details specifiques de la bio",
+        "Pertinent (6/8 mots-cles)",
+        "Appel a l'action present",
+        "Mentionne des resultats concrets",
+        "Approche creative (pas de phrases bateau)",
+        "Accroche storytelling originale"
+      ],
+      "latency": 1449,
+      "meetsExpectation": true,
+      "error": null
+    },
+    {
+      "prospect": "Sophie Food Stories",
+      "success": true,
+      "angles": [
+        "Bonjour Sophie, nous avons été impressionnés par vos critiques de restaurants et vos recettes délicieuses sur @sophiefoodstories ! Nous croyons que nos vidéos professionnelles pourraient vous aider à augmenter votre engagement Instagram de 300% et à attirer de nouveaux clients. Discutons de la façon dont nous pouvons vous aider à créer des contenus vidéo viraux et à mesurer leur impact sur votre entreprise.",
+        "En tant que food blogger à Paris avec 14.2K followers, vous avez déjà une belle communauté autour de vous. Nous proposons de vous aider à la faire grandir encore plus en créant des vidéos Instagram et TikTok qui convertissent en clients réels. Prenez un rendez-vous avec nous pour découvrir comment nos services peuvent vous aider à atteindre vos objectifs de croissance.",
+        "Nous avons vu que vous avez déjà travaillé avec des marques comme Airbnb et HelloFresh, et nous croyons que nos vidéos professionnelles pourraient vous aider à renforcer vos partenariats et à attirer de nouveaux clients. Échangeons quelques idées sur la façon dont nous pouvons vous aider à créer des contenus vidéo qui vous permettront de dépasser vos objectifs de 50 nouveaux clients par an. Appelez-nous pour discuter de votre projet et voir comment nous pouvons vous aider à le réaliser."
+      ],
+      "qualityScore": 80,
+      "personalized": true,
+      "relevant": true,
+      "actionable": true,
+      "creative": false,
+      "details": [
+        "Mentionne le nom/instagram du prospect",
+        "Mentionne 6 details specifiques de la bio",
+        "Pertinent (5/8 mots-cles)",
+        "Appel a l'action present",
+        "Mentionne des resultats concrets",
+        "Utilise des phrases generiques"
+      ],
+      "latency": 1282,
+      "meetsExpectation": true,
+      "error": null
+    },
+    {
+      "prospect": "Sushi Master Takeshi",
+      "success": true,
+      "angles": [
+        "Félicitations pour votre titre de meilleur sushi selon TimeOut Paris, Sushi Master Takeshi ! Nous pouvons aider à amplifier votre réputation en créant des vidéos virales pour Instagram et TikTok qui attireront de nouveaux clients dans votre restaurant du 11ème arrondissement de Paris. Discutons de la façon dont nous pouvons travailler ensemble pour augmenter votre engagement et vos ventes.",
+        "Avec 20 ans d'expérience à Tokyo et une présence établie à Paris, votre authenticité japonaise est une force majeure. Nous proposons de capturer l'essence de votre cuisine à travers des vidéos professionnelles qui mettent en valeur vos créations culinaires et votre histoire. Prenez un rendez-vous avec nous pour explorer comment nos vidéos peuvent vous aider à atteindre 50 nouveaux clients par an.",
+        "Votre communauté de 5 800 followers sur Instagram est un excellent départ pour développer votre présence en ligne. Nous pouvons vous aider à créer des contenus vidéo qui non seulement augmenteront votre engagement de 300%, mais également convertiront vos followers en clients réels. Échangeons sur les possibilités de collaboration pour que nous puissions vous aider à atteindre ces objectifs ambitieux."
+      ],
+      "qualityScore": 70,
+      "personalized": true,
+      "relevant": true,
+      "actionable": true,
+      "creative": false,
+      "details": [
+        "Mentionne le nom/instagram du prospect",
+        "Mentionne 6 details specifiques de la bio",
+        "Pertinent (5/8 mots-cles)",
+        "Appel a l'action present",
+        "Utilise des phrases generiques"
+      ],
+      "latency": 1391,
+      "meetsExpectation": true,
+      "error": null
+    },
+    {
+      "prospect": "La Patisserie de Luna",
+      "success": true,
+      "angles": [
+        "Bonjour La Patisserie de Luna, nous avons ete impressionnes par vos creations uniques et votre presence sur Instagram avec 11,5K followers. Nous croyons que nos videos professionnelles pourraient vous aider a augmenter votre engagement et a attirer de nouveaux clients. Discutons ensemble de la facon dont nous pouvons vous aider a atteindre vos objectifs, prenez un rendez-vous avec nous pour en savoir plus.",
+        "En tant que chef patissiere formee MOF, vous devez savoir l'importance de la presentation et de la qualite de vos plats. Nos videos professionnelles peuvent vous aider a mettre en valeur vos creations et a les partager avec un public plus large. Echangeons sur les possibilites de collaboration et voyons comment nous pouvons vous aider a atteindre un engagement Instagram de +300%.",
+        "Avec une presenceAlready solide sur Instagram, nous pensons que La Patisserie de Luna a le potentiel pour devenir une reference dans le domaine de la patisserie artisanale francaise. Nos videos professionnelles pourraient vous aider a convertir vos followers en clients reels et a atteindre vos objectifs commerciaux. Pour en savoir plus sur notre proposition de valeur et nos resultats typiques, prenez un appel avec nous pour discuter de la facon dont nous pouvons vous aider."
+      ],
+      "qualityScore": 90,
+      "personalized": true,
+      "relevant": true,
+      "actionable": true,
+      "creative": false,
+      "details": [
+        "Mentionne le nom/instagram du prospect",
+        "Mentionne 8 details specifiques de la bio",
+        "Pertinent (5/8 mots-cles)",
+        "Appel a l'action present",
+        "Mentionne des resultats concrets",
+        "Approche creative (pas de phrases bateau)"
+      ],
+      "latency": 1295,
+      "meetsExpectation": true,
+      "error": null
+    },
+    {
+      "prospect": "Chef Martin - Cours Cuisine",
+      "success": true,
+      "angles": [
+        "Bonjour Chef Martin, nous avons été impressionnés par vos 18 ans d'expérience dans les restaurants étoilés et votre spécialisation dans la cuisine française. Nous croyons que nos services de création de contenu vidéo professionnel pourraient vous aider à mettre en valeur vos cours de cuisine et à attirer de nouveaux clients. Pouvez-vous prendre quelques minutes pour discuter de la façon dont nous pouvons vous aider à créer des vidéos virales sur Instagram et TikTok ?",
+        "Avec 7 200 followers sur Instagram, vous avez déjà une base solide pour promouvoir vos cours de cuisine. Cependant, nous pensons que nos vidéos professionnelles pourraient vous aider à augmenter votre engagement de 300% et à attirer 50 nouveaux clients par an. Nous aimerions prendre rendez-vous pour vous présenter nos services et discuter de la façon dont nous pouvons vous aider à atteindre vos objectifs.",
+        "En tant que spécialiste de la cuisine française, vous savez certainement l'importance de la présentation et de la qualité visuelle pour attirer les clients. Nos vidéos professionnelles pourraient vous aider à mettre en valeur vos plats et vos cours de cuisine de manière créative et engageante. Pouvez-vous échanger quelques idées avec nous sur la façon dont nous pouvons vous aider à créer des vidéos qui convertissent en clients réels et à mesurer le ROI de vos campagnes publicitaires ?"
+      ],
+      "qualityScore": 70,
+      "personalized": false,
+      "relevant": true,
+      "actionable": true,
+      "creative": true,
+      "details": [
+        "Ne mentionne PAS le nom du prospect",
+        "Mentionne 2 detail(s) specifique(s) (insuffisant)",
+        "Pertinent (5/8 mots-cles)",
+        "Appel a l'action present",
+        "Mentionne des resultats concrets",
+        "Utilise des phrases generiques",
+        "Accroche storytelling originale"
+      ],
+      "latency": 1190,
+      "meetsExpectation": true,
+      "error": null
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "meetsExpectations": 5,
+    "avgQuality": "82.0",
+    "avgLatency": 1321,
+    "allPersonalized": false,
+    "allRelevant": true,
+    "allActionable": true
+  }
+}
