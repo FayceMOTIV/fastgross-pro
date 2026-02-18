@@ -12,22 +12,26 @@ class OpenRouterProvider {
     this.client = process.env.OPENROUTER_API_KEY
       ? new OpenAI({
           apiKey: process.env.OPENROUTER_API_KEY,
-          baseURL: 'https://openrouter.ai/api/v1'
+          baseURL: 'https://openrouter.ai/api/v1',
+          defaultHeaders: {
+            'HTTP-Referer': 'https://face-media-factory.web.app',
+            'X-Title': 'Face Media Factory'
+          }
         })
       : null
 
     this.config = {
       name: 'openrouter',
-      dailyLimit: 1000, // Conservative (20 req/min * 50 models rotation)
+      dailyLimit: 1000,
       models: [
-        'meta-llama/llama-3.3-70b-instruct:free',
-        'google/gemma-2-9b-it:free',
-        'mistralai/mistral-7b-instruct:free',
-        'qwen/qwen-2-7b-instruct:free'
+        'nvidia/nemotron-nano-9b-v2:free',
+        'stepfun/step-3.5-flash:free',
+        'z-ai/glm-4.5-air:free',
+        'arcee-ai/trinity-mini:free'
       ],
       currentModelIndex: 0,
       priority: 2, // Medium priority (fallback)
-      maxTokens: 500,
+      maxTokens: 1000,
       temperature: 0.7
     }
 

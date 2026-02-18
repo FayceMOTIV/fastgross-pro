@@ -7,6 +7,12 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+const GEMINI_MODELS = [
+  'gemini-2.0-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
+]
+
 class GeminiProvider {
   constructor() {
     this.client = process.env.GEMINI_API_KEY
@@ -15,9 +21,9 @@ class GeminiProvider {
 
     this.config = {
       name: 'gemini',
-      dailyLimit: 1000, // Conservative (Flash: 1500/day free tier)
-      model: 'gemini-1.5-flash',
-      priority: 3, // Lowest priority (backup)
+      dailyLimit: 1000,
+      model: GEMINI_MODELS[0],
+      priority: 3,
       maxTokens: 500,
       temperature: 0.7
     }
@@ -50,13 +56,14 @@ class GeminiProvider {
     return this.usage.current < this.config.dailyLimit && !!process.env.GEMINI_API_KEY && this.client !== null
   }
 
-  async generatePersonalization(prospect) {
+  async generatePersonalization(prospect, retryCount = 0) {
     if (!this.isAvailable()) {
       throw new Error('Gemini daily limit reached or API key not configured')
     }
 
     const startTime = Date.now()
-    const model = this.client.getGenerativeModel({ model: this.config.model })
+    const modelName = GEMINI_MODELS[retryCount] || GEMINI_MODELS[0]
+    const model = this.client.getGenerativeModel({ model: modelName })
 
     const prompt = `Tu es un expert en prospection B2B. Analyse ce prospect Instagram et genere 3 angles de personnalisation pour une approche commerciale.
 
@@ -86,23 +93,37 @@ FORMAT DE REPONSE (JSON strict, sans markdown) :
       const latency = Date.now() - startTime
       this.usage.current++
 
-      let responseText = result.response.text()
+      const response_obj = result.response
+      if (!response_obj || !response_obj.candidates || response_obj.candidates.length === 0) {
+        throw new Error('Empty or blocked response from Gemini')
+      }
+
+      let responseText = response_obj.text()
 
       // Clean response (remove markdown if present)
       responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 
       const response = JSON.parse(responseText)
 
+      this.config.model = modelName
+
       return {
         angles: [response.angle1, response.angle2, response.angle3],
         provider: 'gemini',
-        model: this.config.model,
-        tokensUsed: 0, // Gemini doesn't return token count in free tier
+        model: modelName,
+        tokensUsed: response_obj.usageMetadata?.totalTokenCount || 0,
         latency: latency,
         fromCache: false
       }
     } catch (error) {
-      console.error('[Gemini] Error:', error.message)
+      console.error(`[Gemini] Error with model ${modelName}:`, error.message)
+
+      // Retry with next model (max 3 attempts)
+      if (retryCount < GEMINI_MODELS.length - 1) {
+        console.log(`[Gemini] Trying next model, retry ${retryCount + 1}/${GEMINI_MODELS.length - 1}`)
+        return this.generatePersonalization(prospect, retryCount + 1)
+      }
+
       throw error
     }
   }
@@ -115,7 +136,8 @@ FORMAT DE REPONSE (JSON strict, sans markdown) :
       usage: this.usage.current,
       limit: this.config.dailyLimit,
       resetTime: this.usage.resetTime,
-      priority: this.config.priority
+      priority: this.config.priority,
+      currentModel: this.config.model
     }
   }
 }

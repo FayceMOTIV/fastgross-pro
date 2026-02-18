@@ -12,6 +12,8 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
+import { sendEmail as sendEmailViaRouter } from '../email/emailRouter.js'
+import { searchProspects as searchCSE } from '../scraping/googleCSE.js'
 
 const getDb = () => getFirestore()
 
@@ -27,19 +29,19 @@ async function callAI(prompt, maxTokens = 1000) {
       name: 'groq',
       url: 'https://api.groq.com/openai/v1/chat/completions',
       key: process.env.GROQ_API_KEY,
-      model: 'llama-3.1-70b-versatile'
+      model: 'llama-3.3-70b-versatile'
     },
     {
       name: 'openrouter',
       url: 'https://openrouter.ai/api/v1/chat/completions',
       key: process.env.OPENROUTER_API_KEY,
-      model: 'meta-llama/llama-3.1-70b-instruct'
+      model: 'nvidia/nemotron-nano-9b-v2:free'
     },
     {
       name: 'gemini',
-      url: 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent',
+      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
       key: process.env.GEMINI_API_KEY,
-      model: 'gemini-1.5-flash'
+      model: 'gemini-2.0-flash'
     }
   ]
 
@@ -60,13 +62,22 @@ async function callAI(prompt, maxTokens = 1000) {
           }
         )
         const data = await response.json()
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+        if (data.error) {
+          throw new Error(data.error.message || 'Gemini API error')
+        }
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+        if (!text) throw new Error('Empty response from Gemini')
+        return text
       } else {
         const response = await fetch(provider.url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${provider.key}`
+            'Authorization': `Bearer ${provider.key}`,
+            ...(provider.name === 'openrouter' && {
+              'HTTP-Referer': 'https://face-media-factory.web.app',
+              'X-Title': 'Face Media Factory'
+            })
           },
           body: JSON.stringify({
             model: provider.model,
@@ -75,7 +86,12 @@ async function callAI(prompt, maxTokens = 1000) {
           })
         })
         const data = await response.json()
-        return data.choices?.[0]?.message?.content || ''
+        if (data.error) {
+          throw new Error(data.error.message || `${provider.name} API error`)
+        }
+        const content = data.choices?.[0]?.message?.content
+        if (!content) throw new Error(`Empty response from ${provider.name}`)
+        return content
       }
     } catch (error) {
       console.warn(`AI provider ${provider.name} failed:`, error.message)
@@ -90,6 +106,11 @@ async function callAI(prompt, maxTokens = 1000) {
 // Helper: Search Google for Prospects
 // ============================================
 async function searchGoogle(query, apiKey, cxId, num = 10) {
+  // Try the CSE wrapper first (has caching, rate limiting, dedup)
+  const cseResults = await searchCSE(query, { maxResults: num })
+  if (cseResults.length > 0) return cseResults
+
+  // Direct fallback if CSE wrapper returns empty
   if (!apiKey || !cxId) return []
 
   try {
@@ -526,9 +547,16 @@ export const sendAutoPilotMessage = onCall(
           if (!prospect.emails || prospect.emails.length === 0) {
             throw new Error('No email address')
           }
-          // Use existing email infrastructure
-          // For now, just log it - actual sending handled by processSequence
-          result = { queued: true, email: prospect.emails[0] }
+          // Send via emailRouter (Resend → SMTP fallback)
+          const emailResult = await sendEmailViaRouter({
+            to: prospect.emails[0],
+            subject: `${prospect.businessName || prospect.name} - Collaboration`,
+            html: formatProspectEmailHtml(message, prospect),
+            text: message,
+            orgId,
+            prospectId
+          })
+          result = { sent: true, email: prospect.emails[0], provider: emailResult.provider, messageId: emailResult.messageId }
           break
 
         case 'instagram':
@@ -570,6 +598,25 @@ export const sendAutoPilotMessage = onCall(
     return { success: true, channel: effectiveChannel, result }
   }
 )
+
+// ============================================
+// Helper: Format Prospect Email HTML
+// ============================================
+function formatProspectEmailHtml(message, prospect) {
+  const paragraphs = message
+    .split('\n')
+    .filter((p) => p.trim())
+    .map((p) => `<p style="margin: 0 0 12px 0; line-height: 1.6;">${p}</p>`)
+    .join('')
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; color: #1a1a2e; max-width: 600px; margin: 0 auto; padding: 20px;">
+  ${paragraphs}
+</body>
+</html>`
+}
 
 // ============================================
 // Schedule Meeting with Prospect
