@@ -336,6 +336,46 @@ service cloud.firestore {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
       }
+
+      // ------------------------------------------
+      // INSTAGRAM ACCOUNTS - Multi-account DM sending
+      // ------------------------------------------
+      match /instagramAccounts/{accountId} {
+        allow read: if canRead(orgId);
+        allow create: if canAdmin(orgId);
+        allow update: if canAdmin(orgId);
+        allow delete: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // EMAIL SEQUENCES - Multi-step email automation
+      // ------------------------------------------
+      match /emailSequences/{sequenceId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // EMAIL CAMPAIGNS - Prospect email sequences
+      // ------------------------------------------
+      match /emailCampaigns/{campaignId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // NOTIFICATIONS - User notifications
+      // ------------------------------------------
+      match /notifications/{notificationId} {
+        allow read: if canRead(orgId);
+        allow create: if false; // Only Cloud Functions
+        allow update: if canWrite(orgId); // Mark as read
+        allow delete: if canWrite(orgId);
+      }
     }
 
     // ============================================
@@ -353,6 +393,22 @@ service cloud.firestore {
     match /system/{docId} {
       allow read: if isAuthenticated();
       allow write: if false; // Admin only via console
+    }
+
+    // ============================================
+    // SUBSCRIPTION PLANS - Pricing tiers
+    // ============================================
+    match /subscriptionPlans/{planId} {
+      allow read: if true; // Public for pricing page
+      allow write: if isSuperAdmin(); // Only super admins
+    }
+
+    // ============================================
+    // WHATSAPP STATS - Daily sending statistics
+    // ============================================
+    match /whatsappStats/{dateId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
     }
 
     // ============================================

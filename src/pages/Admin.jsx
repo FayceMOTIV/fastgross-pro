@@ -17,10 +17,13 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Loader2
+  Loader2,
+  CreditCard,
+  Database
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBetaUsers, useAdminStatus } from '@/hooks/useCloudFunctions'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 
 export default function Admin() {
   const navigate = useNavigate()
@@ -42,6 +45,27 @@ export default function Admin() {
   const [newReason, setNewReason] = useState('')
   const [adding, setAdding] = useState(false)
   const [removing, setRemoving] = useState(null)
+  const [seedingPlans, setSeedingPlans] = useState(false)
+
+  const functions = getFunctions()
+
+  const handleSeedPlans = async () => {
+    if (!confirm('Creer/mettre a jour les plans de tarification Hunter V2 ?')) return
+
+    setSeedingPlans(true)
+    const toastId = toast.loading('Creation des plans...')
+
+    try {
+      const seedPlans = httpsCallable(functions, 'seedSubscriptionPlans')
+      const result = await seedPlans({})
+      toast.success(result.data.message || 'Plans crees avec succes', { id: toastId })
+    } catch (error) {
+      console.error('Error seeding plans:', error)
+      toast.error(`Erreur: ${error.message}`, { id: toastId })
+    } finally {
+      setSeedingPlans(false)
+    }
+  }
 
   // Check admin status on mount
   useEffect(() => {
@@ -423,6 +447,73 @@ export default function Admin() {
               <p className="font-medium text-white">Tous les canaux</p>
               <p className="text-sm text-dark-400">Acces a tous les canaux de communication</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Database Management */}
+      <div className="card p-6 border-amber-500/20 bg-amber-500/5">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Database className="w-5 h-5 text-amber-400" />
+          Gestion Base de Donnees
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 bg-dark-800/50 rounded-xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <CreditCard className="w-5 h-5 text-indigo-400" />
+              </div>
+              <div>
+                <p className="font-medium text-white">Plans de Tarification</p>
+                <p className="text-sm text-dark-400">Hunter V2: Email Pro, Instagram, Hunter Pro</p>
+              </div>
+            </div>
+            <button
+              onClick={handleSeedPlans}
+              disabled={seedingPlans}
+              className="w-full btn-secondary flex items-center justify-center gap-2"
+            >
+              {seedingPlans ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Creation...
+                </>
+              ) : (
+                <>
+                  <Database className="w-4 h-4" />
+                  Creer/MAJ Plans Tarification
+                </>
+              )}
+            </button>
+          </div>
+          <div className="p-4 bg-dark-800/50 rounded-xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <Shield className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="font-medium text-white">Plans Disponibles</p>
+                <p className="text-sm text-dark-400">4 plans Hunter V2</p>
+              </div>
+            </div>
+            <ul className="space-y-2 text-sm">
+              <li className="flex justify-between text-dark-300">
+                <span>Email Pro</span>
+                <span className="text-green-400">49€/mois</span>
+              </li>
+              <li className="flex justify-between text-dark-300">
+                <span>Instagram Standard</span>
+                <span className="text-green-400">79€/mois</span>
+              </li>
+              <li className="flex justify-between text-dark-300">
+                <span>Instagram Premium</span>
+                <span className="text-green-400">149€/mois</span>
+              </li>
+              <li className="flex justify-between text-dark-300">
+                <span>Hunter Pro</span>
+                <span className="text-green-400">249€/mois</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>

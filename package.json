@@ -17,7 +17,8 @@
     "deploy": "npm run build && firebase deploy",
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "deploy:functions": "cd functions && npm run deploy",
-    "deploy:rules": "firebase deploy --only firestore:rules"
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "setup-whatsapp": "bash configure-firebase.sh"
   },
   "dependencies": {
     "@radix-ui/react-tooltip": "^1.2.8",

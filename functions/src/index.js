@@ -41,6 +41,19 @@ export { generateReport } from './proof/generateReport.js'
 export { sendProspectEmail, testSmtpConnection } from './autopilot/sendProspectEmail.js'
 export { dailyAutoPilot, runAutoPilotManual } from './autopilot/scheduler.js'
 export { handleUnsubscribe, handleProspectEmailWebhook } from './autopilot/unsubscribe.js'
+export { sendWhatsAppToProspect } from './autopilot/sendWhatsAppToProspect.js'
+
+// ============================================
+// Revolutionary AutoPilot Engine
+// ============================================
+export {
+  generateAutoPilotPreview,
+  launchAutoPilot,
+  sendAutoPilotMessage,
+  scheduleMeetingWithProspect,
+  getAutoPilotDashboardStats,
+  toggleAutoPilot
+} from './autopilot/autoPilotEngine.js'
 
 // ============================================
 // Usage & Quota Functions (v4.0)
@@ -122,6 +135,57 @@ export { addBetaUser, removeBetaUser, listBetaUsers, checkBetaStatus, listSuperA
 export { sendTestEmail, getTestEmailLogs, verifyResendConfig } from './admin/testEmail.js'
 
 // ============================================
+// Hunter Agent V2 (Instagram + TikTok + Email)
+// ============================================
+
+// --- Instagram Hunter ---
+export { instagramHunter, runInstagramHunterManual, getHunterStats } from './hunters/instagram/instagramHunter.js'
+export { instagramDmSender, sendManualDM, getDMStats } from './hunters/instagram/instagramDmSender.js'
+
+// --- Instagram Multi-Account DM Sender ---
+export {
+  multiAccountDmSender,
+  resetHourlyCounts,
+  resetDailyCounts,
+  addInstagramAccount,
+  removeInstagramAccount,
+  listInstagramAccounts,
+  updateAccountStatus
+} from './hunters/instagram/multiAccountDmSender.js'
+
+// --- TikTok Hunter ---
+export { tiktokHunter, runTikTokHunterManual, getTikTokHunterStats } from './hunters/tiktok/tiktokHunter.js'
+
+// --- Email Sequence Sender ---
+export {
+  emailSequenceSender,
+  createEmailSequence,
+  startEmailCampaign,
+  listEmailSequences,
+  getEmailCampaignStats,
+  trackEmailOpen
+} from './hunters/email/emailSequenceSender.js'
+
+// --- WhatsApp Hunter (Evolution API - Free) ---
+export { whatsappChecker, checkWhatsAppManual } from './hunters/whatsapp/whatsappChecker.js'
+export { whatsappSender, sendWhatsAppManual, getWhatsAppStats } from './hunters/whatsapp/whatsappSender.js'
+
+// ============================================
+// AI Personalization (Multi-Provider System)
+// ============================================
+export { personalizeMessage, getAIStatus } from './ai/personalizeMessage.js'
+
+// ============================================
+// Email Enrichment (Derrick > Apollo > Hunter Waterfall)
+// ============================================
+export { enrichEmail, enrichEmailsBatch, getEnrichmentStatus } from './enrichment/enrichEmail.js'
+
+// ============================================
+// Multi-Platform Posting (Postiz > Late API)
+// ============================================
+export { createMultiPlatformPost, getPostStatus, cancelPost, getPostingStatus } from './posting/createPost.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
-export { seedData } from './dev/seedData.js'
+export { seedData, seedSubscriptionPlans } from './dev/seedData.js'

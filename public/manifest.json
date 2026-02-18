@@ -1,11 +1,11 @@
 {
-  "name": "Face Media Factory",
+  "name": "Face Media Factory V2.0",
   "short_name": "FMF",
-  "description": "Plateforme de prospection B2B multicanale propulsee par l'IA",
+  "description": "AI-powered B2B prospecting platform with multi-providers AI, email enrichment, and 13-platform posting",
   "start_url": "/app",
   "display": "standalone",
-  "background_color": "#0d0d1a",
-  "theme_color": "#00d49a",
+  "background_color": "#FAFBFE",
+  "theme_color": "#4F6EF7",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "fr",
@@ -29,29 +29,36 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "Voir le tableau de bord",
+      "description": "Vue d'ensemble",
       "url": "/app",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Prospects",
-      "short_name": "Prospects",
-      "description": "Gerer les prospects",
-      "url": "/app/prospects",
+      "name": "AI Generation",
+      "short_name": "AI",
+      "description": "Generation de messages IA",
+      "url": "/app/ai",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Sequences",
-      "short_name": "Sequences",
-      "description": "Voir les sequences",
-      "url": "/app/sequences",
+      "name": "Enrichment",
+      "short_name": "Enrich",
+      "description": "Enrichissement emails",
+      "url": "/app/enrichment",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Analytics",
-      "short_name": "Stats",
-      "description": "Voir les statistiques",
-      "url": "/app/analytics",
+      "name": "Posting",
+      "short_name": "Post",
+      "description": "Publication 13 plateformes",
+      "url": "/app/posting",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Monitoring",
+      "short_name": "Monitor",
+      "description": "Stats en temps reel",
+      "url": "/app/monitoring",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ],

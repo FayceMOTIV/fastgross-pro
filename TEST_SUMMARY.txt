@@ -1,0 +1,47 @@
+FACE MEDIA FACTORY - RESUME TESTS
+=================================
+
+Date: 2026-02-18 20:18 CET
+Agent: Claude Code
+
+DEPLOIEMENT:
+[OK] Functions deployed (80+ fonctions)
+[OK] Frontend built (3271 modules)
+[OK] Hosting deployed (face-media-factory.web.app)
+[OK] API Keys configurees (temporaires)
+
+TESTS AUTOMATIQUES:
+[OK] AI Generation (Groq) - 5/5 prospects, 9.6/10 qualite, ~1s latence
+[!!] OpenRouter - OFFLINE (erreur API)
+[!!] Gemini - OFFLINE (modele deprecie)
+[OK] Firestore Read/Write - 5 orgs, write+cleanup OK
+[OK] AutoPilot Workflow - save+query+config OK
+[OK] Functions Logs - toutes ACTIVE, pas d'erreurs
+
+PROVIDERS AI:
+  Groq:       ONLINE  (1389ms) - Provider principal
+  OpenRouter: OFFLINE (erreur) - Fallback a verifier
+  Gemini:     OFFLINE (modele) - Backup a migrer
+
+TESTS MANUELS: EN ATTENTE
+[ ] Wizard Setup (/app/autopilot/setup)
+[ ] Dashboard (/app/autopilot)
+[ ] Test AutoPilot (/app/test-autopilot)
+
+ACTIONS REQUISES:
+1. Tests manuels frontend
+2. CHANGEMENT DES API KEYS (URGENT!) -> voir CLEANUP_INSTRUCTIONS.md
+3. Configurer Google CSE pour scraping
+4. Configurer Evolution API pour WhatsApp
+5. Fix OpenRouter/Gemini (optionnel)
+
+FICHIERS:
+- TEST_REPORT.md (details complets)
+- CLEANUP_INSTRUCTIONS.md (procedure securite)
+- TEST_SUMMARY.txt (ce fichier)
+- scripts/test-real-ai.mjs (test AI)
+- functions/test-firestore-local.mjs (test Firestore)
+
+VERDICT: PARTIELLEMENT OPERATIONNEL (8/10)
+Le coeur fonctionne (AI + Firestore + Deployment).
+Services externes a configurer pour production complete.

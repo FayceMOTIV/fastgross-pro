@@ -48,6 +48,26 @@ const Proof = lazy(() => import('@/pages/Proof'))
 const Admin = lazy(() => import('@/pages/Admin'))
 const TestEmail = lazy(() => import('@/pages/TestEmail'))
 
+// Lazy loaded pages - Hunter Agent
+const Hunter = lazy(() => import('@/pages/Hunter'))
+const HunterPricing = lazy(() => import('@/pages/HunterPricing'))
+const EmailSequences = lazy(() => import('@/pages/EmailSequences'))
+const WhatsAppDashboard = lazy(() => import('@/pages/WhatsAppDashboard'))
+
+// Lazy loaded pages - AI Personalization & Tools
+const AIPersonalization = lazy(() => import('@/pages/AIPersonalization'))
+const MonitoringDashboard = lazy(() => import('@/pages/MonitoringDashboard'))
+const EmailEnrichment = lazy(() => import('@/pages/EmailEnrichment'))
+const MultiPlatformPosting = lazy(() => import('@/pages/MultiPlatformPosting'))
+
+// Lazy loaded pages - Autopilot System
+const DailyProspects = lazy(() => import('@/pages/DailyProspects'))
+const TestAutopilot = lazy(() => import('@/pages/TestAutopilot'))
+
+// Lazy loaded pages - Revolutionary AutoPilot System
+const AutoPilotSetup = lazy(() => import('@/pages/AutoPilotSetup'))
+const AutoPilotDashboard = lazy(() => import('@/pages/AutoPilotDashboard'))
+
 // Auth guard - simplified, no forced onboarding
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -309,6 +329,26 @@ export default function App() {
                         {/* Settings */}
                         <Route path="settings" element={<Settings />} />
                         <Route path="settings/:section" element={<Settings />} />
+
+                        {/* Hunter Agent (Instagram + TikTok prospecting) */}
+                        <Route path="hunter" element={<Hunter />} />
+                        <Route path="hunter-pricing" element={<HunterPricing />} />
+                        <Route path="email-sequences" element={<EmailSequences />} />
+                        <Route path="whatsapp" element={<WhatsAppDashboard />} />
+
+                        {/* AI Personalization (Multi-Provider System) */}
+                        <Route path="ai" element={<AIPersonalization />} />
+                        <Route path="monitoring" element={<MonitoringDashboard />} />
+                        <Route path="enrichment" element={<EmailEnrichment />} />
+                        <Route path="posting" element={<MultiPlatformPosting />} />
+
+                        {/* Autopilot System */}
+                        <Route path="daily-prospects" element={<DailyProspects />} />
+                        <Route path="test-autopilot" element={<TestAutopilot />} />
+
+                        {/* Revolutionary AutoPilot System */}
+                        <Route path="autopilot" element={<AutoPilotDashboard />} />
+                        <Route path="autopilot/setup" element={<AutoPilotSetup />} />
 
                         {/* Admin Pages (super admin / beta users) */}
                         <Route path="admin" element={<Admin />} />

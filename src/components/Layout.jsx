@@ -39,21 +39,42 @@ import {
   Award,
   Mail,
   Wrench,
+  CreditCard,
+  Phone,
+  CalendarCheck,
+  TestTube,
+  Rocket,
+  Sparkles,
 } from 'lucide-react'
 
 // Navigation items with permissions - v4.0
+const autoPilotItems = [
+  { to: '/app/autopilot', icon: Rocket, label: 'AutoPilot', badge: 'AI', premium: true },
+  { to: '/app/autopilot/setup', icon: Sparkles, label: 'Configuration' },
+]
+
 const navItems = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/app/daily-prospects', icon: CalendarCheck, label: 'Daily Prospects', badge: 'NEW' },
+  { to: '/app/test-autopilot', icon: TestTube, label: 'Test Autopilot' },
+  { to: '/app/ai', icon: Wand2, label: 'AI Generation', badge: 'V2' },
+  { to: '/app/enrichment', icon: Mail, label: 'Enrichment', badge: 'V2' },
+  { to: '/app/posting', icon: Send, label: 'Posting', badge: 'V2' },
+  { to: '/app/monitoring', icon: BarChart3, label: 'Monitoring', badge: 'V2' },
+  { to: '/app/hunter', icon: Zap, label: 'Hunter' },
   { to: '/app/prospects', icon: Users, label: 'Prospects' },
   { to: '/app/scanner', icon: Scan, label: 'Scanner' },
-  { to: '/app/forgeur', icon: Wand2, label: 'Forgeur' },
+  { to: '/app/forgeur', icon: Target, label: 'Forgeur' },
   { to: '/app/radar', icon: Target, label: 'Radar' },
+  { to: '/app/email-sequences', icon: Mail, label: 'Sequences' },
+  { to: '/app/whatsapp', icon: Phone, label: 'WhatsApp' },
   { to: '/app/campaigns', icon: Send, label: 'Campagnes' },
   { to: '/app/proof', icon: Award, label: 'Proof' },
   { to: '/app/analytics', icon: BarChart3, label: 'Analytics' },
 ]
 
 const bottomNavItems = [
+  { to: '/app/hunter-pricing', icon: CreditCard, label: 'Tarifs Hunter' },
   { to: '/app/team', icon: UserPlus, label: 'Equipe', permission: 'team:read' },
   { to: '/app/integrations', icon: Plug, label: 'Integrations', permission: 'integrations:read' },
   { to: '/app/settings', icon: Settings, label: 'Parametres' },
@@ -282,10 +303,40 @@ export default function Layout() {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {/* AutoPilot Section - Premium */}
+          <div className="mb-4 p-3 rounded-xl bg-gradient-to-br from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20">
+            <p className="px-1 pb-2 text-[10px] font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Rocket className="w-3 h-3" />
+              AutoPilot AI
+            </p>
+            {autoPilotItems.map(({ to, icon: Icon, label, badge, premium }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/10'
+                      : 'text-purple-300/70 hover:text-purple-300 hover:bg-purple-500/10'
+                  }`
+                }
+              >
+                <Icon className={`w-5 h-5 ${premium ? 'animate-pulse' : ''}`} />
+                <span className="flex-1">{label}</span>
+                {badge && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded shadow-lg shadow-purple-500/30">
+                    {badge}
+                  </span>
+                )}
+              </NavLink>
+            ))}
+          </div>
+
           <p className="px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
             Menu principal
           </p>
-          {navItems.map(({ to, icon: Icon, label, end }) => (
+          {navItems.map(({ to, icon: Icon, label, end, badge }) => (
             <NavLink
               key={to}
               to={to}
@@ -300,7 +351,12 @@ export default function Layout() {
               }
             >
               <Icon className="w-5 h-5" />
-              <span>{label}</span>
+              <span className="flex-1">{label}</span>
+              {badge && (
+                <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded">
+                  {badge}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

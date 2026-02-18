@@ -1,7 +1,131 @@
 import { onRequest } from 'firebase-functions/v2/https'
+import { onCall } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
 const getDb = () => getFirestore()
+
+/**
+ * Subscription Plans for Hunter Agent V2
+ */
+const SUBSCRIPTION_PLANS = [
+  {
+    id: 'email_pro',
+    name: 'Email Pro',
+    price: 49,
+    currency: 'EUR',
+    interval: 'month',
+    features: {
+      emailsPerMonth: 50000,
+      emailSequences: true,
+      emailSequenceSteps: 7,
+      aiPersonalization: true,
+      tiktokScraping: true,
+      instagramAccounts: 0,
+      instagramDmsPerDay: 0,
+    },
+    description: 'Sequences email illimitees avec IA',
+    popular: false,
+    displayOrder: 1,
+  },
+  {
+    id: 'instagram_standard',
+    name: 'Instagram Standard',
+    price: 79,
+    currency: 'EUR',
+    interval: 'month',
+    features: {
+      emailsPerMonth: 0,
+      emailSequences: false,
+      instagramAccounts: 1,
+      instagramAccountType: 'client',
+      instagramDmsPerDay: 30,
+      aiPersonalization: true,
+      tiktokScraping: false,
+    },
+    description: '1 compte Instagram, vous gerez le risque',
+    popular: false,
+    displayOrder: 2,
+  },
+  {
+    id: 'instagram_premium',
+    name: 'Instagram Premium',
+    price: 149,
+    currency: 'EUR',
+    interval: 'month',
+    features: {
+      emailsPerMonth: 0,
+      emailSequences: false,
+      instagramAccounts: 10,
+      instagramAccountType: 'burner',
+      instagramDmsPerDay: 320,
+      aiPersonalization: true,
+      tiktokScraping: false,
+      zeroRiskForClient: true,
+    },
+    description: 'Comptes burner fournis, zero risque pour vous',
+    popular: true,
+    displayOrder: 3,
+  },
+  {
+    id: 'hunter_pro',
+    name: 'Hunter Pro',
+    price: 249,
+    currency: 'EUR',
+    interval: 'month',
+    features: {
+      emailsPerMonth: 50000,
+      emailSequences: true,
+      emailSequenceSteps: 7,
+      instagramAccounts: 10,
+      instagramAccountType: 'burner',
+      instagramDmsPerDay: 320,
+      aiPersonalization: true,
+      tiktokScraping: true,
+      linkedinOptional: true,
+      zeroRiskForClient: true,
+    },
+    description: 'Email + Instagram + TikTok - Pack complet',
+    popular: false,
+    displayOrder: 4,
+  },
+]
+
+/**
+ * Cloud Function: seedSubscriptionPlans
+ * Creates subscription plans in Firestore (safe for production)
+ */
+export const seedSubscriptionPlans = onCall(
+  {
+    region: 'europe-west1',
+  },
+  async (request) => {
+    const db = getDb()
+
+    try {
+      const batch = db.batch()
+
+      for (const plan of SUBSCRIPTION_PLANS) {
+        const planRef = db.collection('subscriptionPlans').doc(plan.id)
+        batch.set(planRef, {
+          ...plan,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        })
+      }
+
+      await batch.commit()
+
+      return {
+        success: true,
+        message: `${SUBSCRIPTION_PLANS.length} plans crees avec succes`,
+        plans: SUBSCRIPTION_PLANS.map(p => p.id),
+      }
+    } catch (error) {
+      console.error('Seed plans error:', error)
+      throw new Error(error.message)
+    }
+  }
+)
 
 /**
  * Cloud Function: seedData

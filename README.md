@@ -1,324 +1,121 @@
-# ⚡ Face Media Factory
+# Face Media Factory v2.0
 
-**Growth Intelligence Platform — Transformez votre prospection en machine à leads.**
+AI-powered B2B prospecting platform with multi-providers AI, email enrichment, and 13-platform posting.
 
-SaaS multi-tenant qui utilise l'IA (Claude) pour analyser les clients, générer des séquences email personnalisées, scorer les leads et prouver le ROI.
+## Features
 
----
+### AI Personalization (492K/month FREE)
+- **Groq**: 14,400 req/day, 10x faster (300 tok/sec)
+- **OpenRouter**: 1,000 req/day, 18 free models
+- **Gemini**: 1,000 req/day, 1M context
+- **Puter.js**: Unlimited (user-pays, client-side)
 
-## 🏗️ Architecture
+### Email Enrichment (310/month FREE)
+- Waterfall: Derrick (200) -> Apollo (60) -> Hunter (50)
+- 40-50% success rate
+- Batch processing with CSV export
 
-```
-100% Firebase Stack
-├── Frontend      → React + Vite + Tailwind CSS
-├── Auth          → Firebase Authentication (Email + Google)
-├── Database      → Cloud Firestore (multi-tenant via orgId)
-├── Backend       → Firebase Cloud Functions (Node.js 20)
-├── IA            → API Anthropic Claude (Sonnet 4.5)
-├── Emails        → Resend API
-└── Hosting       → Firebase Hosting
-```
+### Multi-Platform Posting (UNLIMITED)
+- 13 platforms: Instagram, TikTok, LinkedIn, Twitter, Facebook, Threads, YouTube, Pinterest, Reddit, Bluesky, Mastodon, Dribbble, Discord
+- Postiz self-hosted (unlimited)
+- Late API fallback (20/month)
 
-## 📦 Les 4 Modules
+### Monitoring & Analytics
+- Real-time dashboards
+- Charts & graphs (Recharts)
+- Cost analysis
+- Provider status
 
-| Module | Description | Statut |
-|--------|-------------|--------|
-| 🔍 **Scanner** | Analyse le site web d'un client → génère profil de prospection IA | ✅ Prêt |
-| ✉️ **Forgeur** | Génère des séquences email personnalisées (4 tons disponibles) | ✅ Prêt |
-| 📡 **Radar** | Dashboard de scoring des leads (ouvertures, clics, réponses) | ✅ Prêt |
-| 📊 **Proof** | Rapports de valeur automatiques pour prouver le ROI client | ✅ Prêt |
+## Quick Start
 
----
-
-## 🐳 Quick Start (Docker)
-
-La methode la plus simple pour demarrer le projet.
-
-### Prerequis
-- [Docker](https://docs.docker.com/get-docker/) (v20+)
-- [Docker Compose](https://docs.docker.com/compose/install/) (v2+)
-
-### Lancement
-
+### Auto Setup (Recommended)
 ```bash
-# 1. Cloner le repo
-git clone <repo_url> && cd face-media-factory
-
-# 2. Configurer les variables d'environnement
-cp .env.docker.example .env
-# Editer .env avec vos cles API (optionnel pour le dev)
-
-# 3. Demarrer tout le stack
-make up
-# ou : docker compose up -d
-
-# 4. Acceder a l'application
-# Frontend : http://localhost:5173
-# Firebase UI : http://localhost:4000
-# Firestore : http://localhost:8080
+cd ~/Projects/face-media-factory
+./scripts/setup.sh
 ```
 
-### Commandes Docker utiles
-
-| Commande | Description |
-|----------|-------------|
-| `make up` | Demarrer tous les services |
-| `make down` | Arreter tous les services |
-| `make logs` | Voir les logs en temps reel |
-| `make build` | Rebuild apres changement de dependances |
-| `make shell-frontend` | Shell dans le conteneur frontend |
-| `make shell-firebase` | Shell dans le conteneur Firebase |
-| `make test` | Lancer les tests |
-| `make clean` | Tout supprimer |
-| `make help` | Afficher toutes les commandes |
-
-### Architecture Docker
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    docker-compose.yml                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────┐      ┌──────────────────────────────┐ │
-│  │    Frontend      │      │     Firebase Emulators       │ │
-│  │  (Vite + React)  │ ───► │  Auth | Firestore | Funcs    │ │
-│  │   Port: 5173     │      │  9099 |   8080    |  5001    │ │
-│  └──────────────────┘      │                              │ │
-│                            │      Emulator UI: 4000       │ │
-│                            └──────────────────────────────┘ │
-│                                        │                     │
-│                            ┌───────────▼────────────┐       │
-│                            │   firebase_data        │       │
-│                            │   (Volume persistant)  │       │
-│                            └────────────────────────┘       │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🚀 Installation (Sans Docker)
-
-### Prerequis
-- Node.js 20+
-- Firebase CLI (`npm install -g firebase-tools`)
-- Compte Firebase (Blaze plan pour les Cloud Functions)
-- Cle API Anthropic
-- Cle API Resend
-
-### 1. Cloner et installer
-
+### Manual Setup
 ```bash
-# Cloner le projet
-cd face-media-factory
-
-# Installer les dépendances frontend
+# Install dependencies
 npm install
+cd functions && npm install
 
-# Installer les dépendances des Cloud Functions
-cd functions && npm install && cd ..
+# Configure API keys
+cp functions/.env.example functions/.env
+# Edit functions/.env with your API keys
+
+# Deploy
+firebase deploy
 ```
 
-### 2. Configurer Firebase
+See [docs/QUICK_START.md](docs/QUICK_START.md) for details.
 
-```bash
-# Se connecter à Firebase
-firebase login
+## Cost
 
-# Initialiser le projet (sélectionner votre projet Firebase)
-firebase init
-# → Sélectionner: Firestore, Functions, Hosting
-# → Utiliser les fichiers existants (ne pas écraser)
-```
+| Item | Cost |
+|------|------|
+| VPS (Hetzner) | 4 EUR/mo |
+| Firebase | 10-20 EUR/mo |
+| APIs | 0 EUR |
+| **Total** | **14-24 EUR/mo** |
 
-### 3. Configurer les variables d'environnement
+**vs Market**: 423 EUR/month
+**Savings**: 94% (399 EUR/month)
 
-**Frontend (.env.local):**
-```bash
-cp .env.example .env.local
-# Remplir avec vos clés Firebase depuis la console Firebase
-# Project Settings > General > Your apps > Web app
-```
+## Capacity
 
-**Cloud Functions:**
-```bash
-# Depuis la console Firebase ou via CLI
-firebase functions:config:set anthropic.api_key="sk-ant-..."
-firebase functions:config:set resend.api_key="re_..."
+| Feature | Monthly Capacity | Cost |
+|---------|-----------------|------|
+| AI Generation | 492,000 | FREE |
+| Email Enrichment | 310 | FREE |
+| Multi-Platform Posts | Unlimited | FREE |
 
-# Ou créer functions/.env pour le développement local
-echo 'ANTHROPIC_API_KEY=sk-ant-...' > functions/.env
-echo 'RESEND_API_KEY=re_...' >> functions/.env
-```
+## Pages
 
-### 4. Configurer Firebase Console
+| Page | URL | Description |
+|------|-----|-------------|
+| Dashboard | /app | Overview with quick actions |
+| AI Personalization | /app/ai | Generate personalized messages |
+| Email Enrichment | /app/enrichment | Enrich emails (single & batch) |
+| Multi-Platform | /app/posting | Post to 13 platforms |
+| Monitoring | /app/monitoring | Real-time stats & analytics |
+| Hunter | /app/hunter | Instagram prospecting |
 
-1. **Authentication** : Activer Email/Password + Google
-2. **Firestore** : Créer la base de données (mode production)
-3. **Deploy les rules** : `firebase deploy --only firestore:rules`
+## Tech Stack
 
-### 5. Lancer en local
+- **Frontend**: React 18 + Vite + Tailwind CSS
+- **Backend**: Firebase Cloud Functions (Node.js 20)
+- **Database**: Cloud Firestore
+- **Auth**: Firebase Authentication
+- **AI**: Groq, OpenRouter, Gemini, Puter.js
+- **Charts**: Recharts
+- **Hosting**: Firebase Hosting
 
-```bash
-# Terminal 1 : Frontend
-npm run dev
+## Documentation
 
-# Terminal 2 : Emulateurs Firebase (optionnel)
-firebase emulators:start
-```
+- [Quick Start Guide](docs/QUICK_START.md)
+- [Setup Guide](docs/SETUP_GUIDE.md)
+- [API Documentation](docs/API_DOCS.md)
 
-### 6. Déployer
+## API Keys Required
 
-```bash
-# Tout déployer
-npm run deploy
+| Service | URL | Free Tier |
+|---------|-----|-----------|
+| Groq | https://console.groq.com | 14,400/day |
+| OpenRouter | https://openrouter.ai | 1,000/day |
+| Gemini | https://aistudio.google.com | 1,000/day |
+| Derrick (opt) | https://derrick.app | 200/month |
+| Apollo (opt) | https://apollo.io | 60/month |
+| Hunter (opt) | https://hunter.io | 50/month |
 
-# Ou séparément
-npm run deploy:hosting    # Frontend uniquement
-npm run deploy:functions  # Cloud Functions uniquement
-npm run deploy:rules      # Firestore rules uniquement
-```
+## Contributing
 
-> **Note** : Pour un guide de déploiement détaillé avec toutes les étapes de configuration Firebase Console, voir [DEPLOY-TODO.md](./DEPLOY-TODO.md).
+PRs welcome! Please read the contributing guidelines first.
 
----
+## License
 
-## 📁 Structure du projet
+MIT
 
-```
-face-media-factory/
-├── src/                          # Frontend React
-│   ├── App.jsx                   # Router + Auth guards
-│   ├── main.jsx                  # Entry point
-│   ├── components/
-│   │   ├── Layout.jsx            # Sidebar + navigation
-│   │   ├── StatsCard.jsx         # Carte de statistique
-│   │   └── LeadTable.jsx         # Table des leads avec score
-│   ├── contexts/
-│   │   ├── AuthContext.jsx       # Firebase Auth state
-│   │   └── OrgContext.jsx        # Multi-tenant org state
-│   ├── hooks/
-│   │   ├── useFirestore.js       # CRUD hooks + real-time listeners
-│   │   └── useCloudFunctions.js  # Hooks pour appeler les CF
-│   ├── lib/
-│   │   └── firebase.js           # Firebase init + config
-│   ├── pages/
-│   │   ├── Login.jsx             # Page de connexion
-│   │   ├── Signup.jsx            # Page d'inscription
-│   │   ├── Onboarding.jsx        # Onboarding en 3 étapes
-│   │   ├── Dashboard.jsx         # Vue d'ensemble + stats
-│   │   ├── Scanner.jsx           # Module 1: Analyse de site
-│   │   ├── Forgeur.jsx           # Module 2: Séquences email
-│   │   ├── Radar.jsx             # Module 3: Scoring leads
-│   │   ├── Clients.jsx           # Gestion des clients
-│   │   └── Proof.jsx             # Module 4: Rapports de valeur
-│   └── styles/
-│       └── globals.css           # Tailwind + composants CSS
-├── functions/                    # Firebase Cloud Functions
-│   └── src/
-│       ├── index.js              # Entry point + exports
-│       ├── scanner/
-│       │   └── analyzeWebsite.js # Scraping + analyse IA
-│       ├── forgeur/
-│       │   └── generateSequence.js # Génération séquences IA
-│       ├── email/
-│       │   └── sendEmail.js      # Envoi Resend + webhooks
-│       └── proof/
-│           └── generateReport.js # Génération rapports
-├── firebase.json                 # Config Firebase
-├── firestore.rules               # Sécurité Firestore (multi-tenant)
-├── firestore.indexes.json        # Index Firestore
-├── tailwind.config.js            # Config Tailwind + thème
-└── .env.example                  # Template variables d'env
-```
+## Author
 
----
-
-## 🔐 Sécurité Multi-Tenant
-
-Chaque donnée est isolée par `orgId`. Les Firestore Rules garantissent que :
-- Un utilisateur ne voit que les données de son organisation
-- Seuls les admins peuvent supprimer ou modifier les rôles
-- Les Cloud Functions (webhooks) sont les seuls à écrire les events email
-- Les rapports sont générés côté serveur uniquement
-
----
-
-## 🎨 Design System
-
-- **Thème** : Dark mode premium (#0d0d1a base)
-- **Accent** : Vert émeraude/teal (#00d49a)
-- **Fonts** : Outfit (display) + DM Sans (body) + JetBrains Mono (code)
-- **Composants** : Glass cards, badges, boutons avec micro-animations
-
----
-
-## 📈 Modèle de scoring (Radar)
-
-| Événement | Points |
-|-----------|--------|
-| Email ouvert | +1 |
-| Lien cliqué | +3 |
-| Réponse reçue | +10 |
-| Email bounced | -5 |
-
-**Catégories :**
-- 🔥 Lead chaud : score ≥ 7
-- 🌡️ Lead tiède : score 4-6  
-- ❄️ Lead froid : score 0-3
-
----
-
-## 🆕 Nouvelles fonctionnalités (v1.1.0)
-
-### Pages ajoutées
-- **Landing page** (`/`) — Page d'accueil publique spectaculaire
-- **Settings** (`/app/settings`) — Paramètres complets (Profil, Organisation, Email, Plan, Équipe)
-- **ClientDetail** (`/app/clients/:id`) — Vue détaillée par client avec onglets
-
-### Composants UI
-- `Modal` — Modal animé réutilisable
-- `Tabs` — Composant tabs avec icônes
-- `EmptyState` — États vides élégants
-- `ActivityFeed` — Feed d'activité temps réel
-- `KanbanBoard` — Board drag & drop pour les leads
-- `LeadDrawer` — Panneau latéral détails lead
-- `ProgressSteps` — Steps animés pour le Scanner
-- `EmailPreview` — Preview email style Gmail
-
-### Cloud Functions
-- `seedData` — Peuplement données de démo (dev only)
-
----
-
-## 🛠️ Prochaines étapes (roadmap)
-
-- [x] ~~Landing page publique~~ (v1.2.0 - contenu complet)
-- [x] ~~Page Settings complète~~
-- [x] ~~Vue détail client~~
-- [x] ~~Composants UI réutilisables~~
-- [x] ~~Seed data pour démo~~
-- [x] ~~Pages légales (CGV, Confidentialité, Mentions)~~ (v1.2.0)
-- [x] ~~Séquences email de démo (4 tons)~~ (v1.2.0)
-- [x] ~~Toast notifications partout~~ (v1.2.0)
-- [ ] Import CSV de leads
-- [ ] Programmation automatique des envois (scheduler)
-- [ ] Intégration calendrier (Cal.com / Calendly)
-- [ ] Export PDF des rapports Proof
-- [ ] A/B testing des objets d'email
-- [ ] Webhooks entrants pour détecter les réponses
-- [ ] Stripe pour le billing
-- [ ] White-label mode (plan Agency)
-
----
-
-## 💰 Pricing prévu
-
-| Plan | Prix | Limites |
-|------|------|---------|
-| Solo | 79€/mois | 1 client, 200 emails/mois |
-| Pro | 199€/mois | 3 clients, 1000 emails/mois |
-| Agency | 499€/mois | Illimité, white-label, API |
-
----
-
-Built with ⚡ by Face Media Factory
+Faical Kriouar - Face Media Factory
