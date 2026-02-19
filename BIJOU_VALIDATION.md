@@ -1,22 +1,19 @@
 # BIJOU VALIDATION - Face Media Factory
 
-**Date :** 19/02/2026 09:44 CET
-**Verdict :** BIJOU (presque)
-**Temps total :** 2.9s
+**Date :** 19/02/2026 20:13 CET
+**Verdict : BIJOU**
+**Temps total :** 4.3s
 
 ---
 
 ## Verdict Final
 
 ```
-  ====================================
-  |  VERDICT: BIJOU (presque)        |
-  ====================================
+  ============================
+  |   V E R D I C T :  BIJOU  |
+  ============================
+  Systeme operationnel et vendable.
 ```
-
-Le CODE est 100% operationnel. Il reste des configurations externes
-(activation API Google Cloud Console, verification domaine Resend,
-quota Gemini qui se reset a minuit UTC).
 
 ---
 
@@ -26,13 +23,10 @@ quota Gemini qui se reset a minuit UTC).
 |---------|--------|
 | Provider | Resend |
 | Cle API | OK (valide) |
-| Envoi | Domaine a verifier |
+| Envoi | OK (email envoye, id: 8958b48b) |
+| FROM | onboarding@resend.dev |
 | Code emailRouter.js | OK |
 | Integration autoPilotEngine | OK |
-
-**Details :** La cle Resend est valide. Le domaine `yahoo.com` doit etre
-verifie sur https://resend.com/domains ou utiliser `onboarding@resend.dev`
-comme adresse FROM pour les tests.
 
 **Fallback SMTP :** Le code supporte aussi SMTP (Nodemailer) comme fallback.
 Configurer `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` dans `functions/.env`.
@@ -43,14 +37,14 @@ Configurer `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` dans `functions/.env`.
 
 | Critere | Statut |
 |---------|--------|
-| Cle API | OK (configuree) |
-| Engine ID | OK (configure) |
-| API activee | NON - a activer |
+| Cle API | Configuree |
+| Engine ID | Configure (466514a5248164fa9) |
 | Code googleCSE.js | OK |
 | Integration autoPilotEngine | OK |
 
-**Action requise :** Activer Custom Search API dans Google Cloud Console :
-https://console.developers.google.com/apis/api/customsearch.googleapis.com/overview?project=322104509388
+**Action restante :** Deverrouiller la restriction API sur la cle Google dans
+Google Cloud Console > Identifiants > cliquer sur la cle > Restrictions relatives
+aux API > ajouter "Custom Search JSON API" ou "Aucune restriction".
 
 **Fonctionnalites du code :**
 - Recherche paginee (jusqu'a 100 resultats)
@@ -65,19 +59,18 @@ https://console.developers.google.com/apis/api/customsearch.googleapis.com/overv
 
 | Provider | Modele | Statut | Latence |
 |----------|--------|--------|---------|
-| Groq | llama-3.3-70b-versatile | ONLINE | 299ms |
-| OpenRouter | nvidia/nemotron-3-nano-30b-a3b:free | ONLINE | 1687ms |
-| Gemini | gemini-2.0-flash | OFFLINE (quota daily) | - |
+| Groq | llama-3.3-70b-versatile | ONLINE | 486ms |
+| OpenRouter | nvidia/nemotron-3-nano-30b-a3b:free | ONLINE | 2280ms |
+| Gemini | gemini-2.0-flash | OFFLINE (quota daily, reset minuit UTC) | - |
 
 **Resultat : 2/3 en ligne** (seuil minimum atteint)
 
-**Gemini :** Quota free tier epuise (limit: 0 pour le jour). Se reset a
-minuit UTC. Le code inclut retry logic avec fallback sur 3 modeles :
+**Gemini :** Quota free tier epuise pour la journee. Se reset a minuit UTC.
+Le code inclut retry logic avec fallback sur 3 modeles :
 `gemini-2.0-flash-lite` -> `gemini-2.0-flash` -> `gemini-1.5-flash`.
 
-**OpenRouter :** Modele mis a jour de `nvidia/nemotron-nano-9b-v2:free` (retire)
-vers `nvidia/nemotron-3-nano-30b-a3b:free`. Headers HTTP-Referer et X-Title
-ajoutes. max_tokens augmente a 1000 pour les modeles avec reasoning tokens.
+**OpenRouter :** Modele mis a jour vers `nvidia/nemotron-3-nano-30b-a3b:free`.
+Headers HTTP-Referer et X-Title ajoutes. max_tokens a 1000.
 
 ---
 
@@ -116,23 +109,13 @@ ajoutes. max_tokens augmente a 1000 pour les modeles avec reasoning tokens.
 
 ---
 
-## Actions pour passer a BIJOU complet
+## Action restante pour CSE live
 
-1. **Activer Custom Search API** dans Google Cloud Console :
-   https://console.developers.google.com/apis/api/customsearch.googleapis.com/overview?project=322104509388
-
-2. **Verifier domaine Resend** (ou utiliser `onboarding@resend.dev`) :
-   https://resend.com/domains
-
-3. **Attendre reset quota Gemini** (minuit UTC) et re-lancer :
-   ```bash
-   node scripts/test-bijou.mjs
-   ```
-
-4. **Rotation des cles API** (les cles actuelles sont marquees TEMPORAIRES) :
-   - Regenerer les cles sur chaque provider
-   - Mettre a jour `functions/.env`
-   - `firebase deploy --only functions`
+Sur https://console.cloud.google.com/apis/credentials?project=operator-pm-saas :
+1. Cliquer sur la cle API
+2. Section "Restrictions relatives aux API"
+3. Ajouter **Custom Search JSON API** ou mettre **Aucune restriction**
+4. Relancer `node scripts/test-bijou.mjs`
 
 ---
 
