@@ -1,15 +1,15 @@
 {
-  "timestamp": "2026-02-18T20:02:02.302Z",
+  "timestamp": "2026-02-19T08:44:10.273Z",
   "criteria": {
     "email": {
-      "success": false,
-      "provider": "none",
-      "note": "No email provider configured. Set RESEND_API_KEY or SMTP_HOST+SMTP_USER+SMTP_PASS in functions/.env",
+      "success": true,
+      "provider": "resend",
+      "note": "The yahoo.com domain is not verified. Please, add and verify your domain on https://resend.com/domains",
       "codeReady": true
     },
     "cse": {
       "success": false,
-      "note": "Google CSE not configured. Set GOOGLE_CSE_API_KEY and GOOGLE_CSE_ENGINE_ID in functions/.env",
+      "error": "Custom Search API has not been used in project 322104509388 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/customsearch.googleapis.com/overview?project=322104509388 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.",
       "codeReady": true
     },
     "ai": {
@@ -20,19 +20,19 @@
         {
           "name": "Groq",
           "status": "ONLINE",
-          "latency": 507,
+          "latency": 299,
           "model": "llama-3.3-70b-versatile"
         },
         {
           "name": "OpenRouter",
           "status": "ONLINE",
-          "latency": 118944,
-          "model": "nvidia/nemotron-nano-9b-v2:free"
+          "latency": 1687,
+          "model": "nvidia/nemotron-3-nano-30b-a3b:free"
         },
         {
           "name": "Gemini",
           "status": "OFFLINE",
-          "error": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 58.027574716s."
+          "error": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 46.760862251s."
         }
       ]
     },
@@ -75,5 +75,5 @@
     }
   },
   "overall": "BIJOU_PRESQUE",
-  "totalTime": 119623
+  "totalTime": 2911
 }

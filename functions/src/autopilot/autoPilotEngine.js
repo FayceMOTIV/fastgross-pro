@@ -35,7 +35,7 @@ async function callAI(prompt, maxTokens = 1000) {
       name: 'openrouter',
       url: 'https://openrouter.ai/api/v1/chat/completions',
       key: process.env.OPENROUTER_API_KEY,
-      model: 'nvidia/nemotron-nano-9b-v2:free'
+      model: 'nvidia/nemotron-3-nano-30b-a3b:free'
     },
     {
       name: 'gemini',

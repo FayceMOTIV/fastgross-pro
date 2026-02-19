@@ -39,7 +39,7 @@ const PROVIDERS = [
     name: 'OpenRouter',
     url: 'https://openrouter.ai/api/v1/chat/completions',
     key: process.env.OPENROUTER_API_KEY,
-    model: 'nvidia/nemotron-nano-9b-v2:free',
+    model: 'nvidia/nemotron-3-nano-30b-a3b:free',
     type: 'openai'
   },
   {

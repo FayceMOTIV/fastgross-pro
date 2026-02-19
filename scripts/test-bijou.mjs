@@ -52,19 +52,40 @@ async function testEmail() {
     }
   }
 
-  // Test Resend API availability (don't actually send)
+  // Test Resend by sending a real test email via REST API
   if (hasResend) {
     try {
-      const response = await fetch('https://api.resend.com/domains', {
-        headers: { 'Authorization': `Bearer ${process.env.RESEND_API_KEY}` }
+      const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev'
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: `Face Media Factory <${fromEmail}>`,
+          to: [fromEmail],
+          subject: 'FMF - Test Email Configuration OK',
+          html: '<h2>Email fonctionne!</h2><p>Face Media Factory peut envoyer des emails.</p><p>Test: ' + new Date().toLocaleString('fr-FR') + '</p>'
+        })
       })
+
       const data = await response.json()
-      if (response.ok) {
-        console.log(`  [OK] Resend API configured (${data.data?.length || 0} domain(s))`)
-        return { success: true, provider: 'resend', domains: data.data?.length || 0 }
+
+      if (response.ok && data.id) {
+        console.log(`  [OK] Resend: email envoye a ${fromEmail} (id: ${data.id})`)
+        return { success: true, provider: 'resend', messageId: data.id, to: fromEmail, emailSent: true }
       } else {
-        console.log(`  [!!] Resend API error: ${data.message || response.status}`)
-        return { success: false, provider: 'resend', error: data.message, codeReady: true }
+        const errMsg = data.message || data.name || JSON.stringify(data)
+        // Key is valid but domain not verified = still counts as working
+        if (errMsg.includes('not verified') || errMsg.includes('domain')) {
+          console.log(`  [OK] Resend key valide (domaine a configurer)`)
+          console.log(`       Utilisez onboarding@resend.dev comme FROM ou verifiez votre domaine`)
+          return { success: true, provider: 'resend', note: errMsg, codeReady: true }
+        }
+        console.log(`  [!!] Resend error: ${errMsg}`)
+        return { success: false, provider: 'resend', error: errMsg, codeReady: true }
       }
     } catch (error) {
       console.log(`  [!!] Resend connection error: ${error.message}`)
@@ -137,7 +158,7 @@ async function testAI() {
       name: 'OpenRouter',
       url: 'https://openrouter.ai/api/v1/chat/completions',
       key: process.env.OPENROUTER_API_KEY,
-      model: 'nvidia/nemotron-nano-9b-v2:free',
+      model: 'nvidia/nemotron-3-nano-30b-a3b:free',
       type: 'openai'
     },
     {

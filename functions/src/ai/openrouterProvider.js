@@ -24,7 +24,7 @@ class OpenRouterProvider {
       name: 'openrouter',
       dailyLimit: 1000,
       models: [
-        'nvidia/nemotron-nano-9b-v2:free',
+        'nvidia/nemotron-3-nano-30b-a3b:free',
         'stepfun/step-3.5-flash:free',
         'z-ai/glm-4.5-air:free',
         'arcee-ai/trinity-mini:free'
