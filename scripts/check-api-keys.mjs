@@ -37,8 +37,7 @@ const KEYS_CONFIG = {
     'SMTP_HOST': { prefix: null, description: 'SMTP fallback for email' },
     'SMTP_USER': { prefix: null, description: 'SMTP username' },
     'SMTP_PASS': { prefix: null, description: 'SMTP password' },
-    'GOOGLE_CSE_API_KEY': { prefix: 'AIzaSy', description: 'Google prospect search' },
-    'GOOGLE_CSE_ENGINE_ID': { prefix: null, description: 'Google CSE engine ID' },
+    'SERPER_API_KEY': { prefix: null, description: 'Serper.dev prospect search' },
     'EVOLUTION_API_URL': { prefix: 'http', description: 'WhatsApp API URL' },
     'EVOLUTION_API_KEY': { prefix: null, description: 'WhatsApp API key' },
   }

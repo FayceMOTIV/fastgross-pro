@@ -100,40 +100,43 @@ async function testEmail() {
 }
 
 // ============================================
-// TEST 2: GOOGLE CSE
+// TEST 2: SERPER.DEV (PROSPECT SEARCH)
 // ============================================
 async function testCSE() {
-  console.log('\n--- TEST 2: GOOGLE CSE ---')
+  console.log('\n--- TEST 2: SERPER.DEV (SEARCH) ---')
 
-  const hasCSE = !!(process.env.GOOGLE_CSE_API_KEY && (process.env.GOOGLE_CSE_ENGINE_ID || process.env.GOOGLE_CSE_CX_ID))
-
-  if (!hasCSE) {
-    console.log('  [--] Google CSE not configured')
-    console.log('  Set GOOGLE_CSE_API_KEY and GOOGLE_CSE_ENGINE_ID in functions/.env')
+  if (!process.env.SERPER_API_KEY) {
+    console.log('  [--] Serper not configured')
+    console.log('  Set SERPER_API_KEY in functions/.env')
     return {
       success: false,
-      note: 'Google CSE not configured. Set GOOGLE_CSE_API_KEY and GOOGLE_CSE_ENGINE_ID in functions/.env',
-      codeReady: true // The googleCSE.js wrapper is ready, just needs keys
+      note: 'Serper not configured. Set SERPER_API_KEY in functions/.env',
+      codeReady: true
     }
   }
 
-  // Test with a real query
   try {
-    const cxId = process.env.GOOGLE_CSE_ENGINE_ID || process.env.GOOGLE_CSE_CX_ID
-    const url = `https://www.googleapis.com/customsearch/v1?key=${process.env.GOOGLE_CSE_API_KEY}&cx=${cxId}&q=agence+marketing+Paris&num=5`
-    const response = await fetch(url)
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': process.env.SERPER_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ q: 'agence marketing Paris', gl: 'fr', hl: 'fr', num: 5 })
+    })
+
     const data = await response.json()
 
-    if (data.error) {
-      console.log(`  [!!] CSE API error: ${data.error.message}`)
-      return { success: false, error: data.error.message, codeReady: true }
+    if (!response.ok) {
+      console.log(`  [!!] Serper error: ${data.message || response.statusText}`)
+      return { success: false, error: data.message || response.statusText, codeReady: true }
     }
 
-    const count = data.items?.length || 0
-    console.log(`  [OK] CSE returned ${count} results for "agence marketing Paris"`)
-    return { success: count >= 3, resultCount: count }
+    const count = data.organic?.length || 0
+    console.log(`  [OK] Serper returned ${count} results for "agence marketing Paris"`)
+    return { success: count >= 3, resultCount: count, provider: 'serper.dev' }
   } catch (error) {
-    console.log(`  [!!] CSE error: ${error.message}`)
+    console.log(`  [!!] Serper error: ${error.message}`)
     return { success: false, error: error.message, codeReady: true }
   }
 }
@@ -255,14 +258,15 @@ async function testInfrastructure() {
     checks.push({ name: 'emailRouter', exists: false })
   }
 
-  // Check googleCSE exists
+  // Check search module exists (Serper.dev)
   try {
-    readFileSync(resolve(__dirname, '../functions/src/scraping/googleCSE.js'))
-    console.log('  [OK] googleCSE.js exists (search + cache + dedup)')
-    checks.push({ name: 'googleCSE', exists: true })
+    const searchFile = readFileSync(resolve(__dirname, '../functions/src/scraping/googleCSE.js'), 'utf-8')
+    const hasSerper = searchFile.includes('serper.dev') || searchFile.includes('SERPER_API_KEY')
+    console.log(`  [${hasSerper ? 'OK' : '!!'}] googleCSE.js exists (Serper.dev + cache + dedup)`)
+    checks.push({ name: 'searchModule', exists: true, serper: hasSerper })
   } catch {
     console.log('  [!!] googleCSE.js missing')
-    checks.push({ name: 'googleCSE', exists: false })
+    checks.push({ name: 'searchModule', exists: false })
   }
 
   // Check updated autoPilotEngine

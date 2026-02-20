@@ -106,23 +106,9 @@ async function callAI(prompt, maxTokens = 1000) {
 // Helper: Search Google for Prospects
 // ============================================
 async function searchGoogle(query, apiKey, cxId, num = 10) {
-  // Try the CSE wrapper first (has caching, rate limiting, dedup)
-  const cseResults = await searchCSE(query, { maxResults: num })
-  if (cseResults.length > 0) return cseResults
-
-  // Direct fallback if CSE wrapper returns empty
-  if (!apiKey || !cxId) return []
-
-  try {
-    const response = await fetch(
-      `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cxId}&q=${encodeURIComponent(query)}&num=${num}`
-    )
-    const data = await response.json()
-    return data.items || []
-  } catch (error) {
-    console.error('Google search error:', error)
-    return []
-  }
+  // Use Serper.dev wrapper (has caching, dedup, relevance scoring)
+  const results = await searchCSE(query, { maxResults: num })
+  return results
 }
 
 // ============================================
@@ -200,8 +186,8 @@ export const generateAutoPilotPreview = onCall(
       .get()
 
     const config = configDoc.exists ? configDoc.data() : {}
-    const googleApiKey = config.googleCseApiKey || process.env.GOOGLE_CSE_API_KEY
-    const googleCxId = config.googleCseCxId || process.env.GOOGLE_CSE_CX_ID
+    // Serper.dev is configured via SERPER_API_KEY env var (no per-org config needed)
+    const _unused = config // preserve config read for future use
 
     // Build search queries based on avatar
     const searchQueries = []
@@ -219,7 +205,7 @@ export const generateAutoPilotPreview = onCall(
     // Search for real prospects
     const allResults = []
     for (const query of searchQueries) {
-      const results = await searchGoogle(query, googleApiKey, googleCxId, 5)
+      const results = await searchGoogle(query, null, null, 5)
       allResults.push(...results)
     }
 
