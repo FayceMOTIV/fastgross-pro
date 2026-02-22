@@ -14,7 +14,7 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { callAI } from '../../ai/callAI.js'
 
 const getDb = () => getFirestore()
 
@@ -314,15 +314,10 @@ async function personalizeTemplate(template, prospect, orgData) {
  * Apply AI personalization to template sections
  */
 async function applyAiPersonalization(template, prospect, orgData) {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return template.replace(/{ai:[^}]+}/g, '')
-
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-
     // Find all AI placeholders
-    const aiMatches = template.matchAll(/{ai:([^}]+)}/g)
+    const aiMatches = [...template.matchAll(/{ai:([^}]+)}/g)]
+    if (aiMatches.length === 0) return template
 
     for (const match of aiMatches) {
       const instruction = match[1]
@@ -343,16 +338,14 @@ INSTRUCTION: ${instruction}
 
 Reponds UNIQUEMENT avec le texte demande (1-2 phrases max, pas de guillemets):`
 
-      const result = await model.generateContent(prompt)
-      const aiText = result.response.text().trim().replace(/^["']|["']$/g, '')
-
+      const aiText = (await callAI(prompt, 200)).trim().replace(/^["']|["']$/g, '')
       template = template.replace(match[0], aiText)
     }
 
     return template
 
   } catch (error) {
-    console.error('AI personalization error:', error)
+    console.error('AI personalization error:', error.message)
     return template.replace(/{ai:[^}]+}/g, '')
   }
 }

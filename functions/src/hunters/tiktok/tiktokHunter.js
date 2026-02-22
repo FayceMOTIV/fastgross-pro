@@ -9,7 +9,7 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { callAI, extractJSON } from '../../ai/callAI.js'
 
 const getDb = () => getFirestore()
 
@@ -74,7 +74,7 @@ export const tiktokHunter = onSchedule({
               if (qualification.score >= 70) {
                 stats.qualified++
 
-                // Check if prospect already exists
+                // Check if prospect already exists (same platform)
                 const existingSnapshot = await db
                   .collection('organizations')
                   .doc(orgId)
@@ -84,7 +84,47 @@ export const tiktokHunter = onSchedule({
                   .limit(1)
                   .get()
 
-                if (existingSnapshot.empty) {
+                if (!existingSnapshot.empty) continue
+
+                // Cross-platform dedup: check by email
+                let crossPlatformDoc = null
+                if (prospect.email) {
+                  const emailCheck = await db
+                    .collection('organizations')
+                    .doc(orgId)
+                    .collection('prospects')
+                    .where('email', '==', prospect.email)
+                    .limit(1)
+                    .get()
+                  if (!emailCheck.empty) crossPlatformDoc = emailCheck.docs[0]
+                }
+
+                // Cross-platform dedup: check by Instagram handle
+                if (!crossPlatformDoc && prospect.instagram) {
+                  const igCheck = await db
+                    .collection('organizations')
+                    .doc(orgId)
+                    .collection('prospects')
+                    .where('username', '==', prospect.instagram)
+                    .where('platform', '==', 'instagram')
+                    .limit(1)
+                    .get()
+                  if (!igCheck.empty) crossPlatformDoc = igCheck.docs[0]
+                }
+
+                if (crossPlatformDoc) {
+                  // Merge TikTok data into existing prospect
+                  await crossPlatformDoc.ref.update({
+                    tiktokUsername: prospect.username,
+                    tiktokFollowers: prospect.followers || 0,
+                    tiktokUrl: `https://tiktok.com/@${prospect.username}`,
+                    tiktokVideoCount: prospect.videoCount || 0,
+                    tiktokLikes: prospect.likes || 0,
+                    platforms: FieldValue.arrayUnion('tiktok'),
+                    updatedAt: FieldValue.serverTimestamp()
+                  })
+                  stats.saved++
+                } else {
                   // Save new prospect
                   await db
                     .collection('organizations')
@@ -105,6 +145,9 @@ export const tiktokHunter = onSchedule({
                       email: prospect.email || null,
                       instagramHandle: prospect.instagram || null,
                       websiteUrl: prospect.website || null,
+
+                      // Multi-platform tracking
+                      platforms: ['tiktok'],
 
                       // AI Qualification
                       score: qualification.score,
@@ -223,7 +266,47 @@ export const runTikTokHunterManual = onCall({
           .limit(1)
           .get()
 
-        if (existingSnapshot.empty) {
+        if (!existingSnapshot.empty) continue
+
+        // Cross-platform dedup: check by email
+        let crossPlatformDoc = null
+        if (prospect.email) {
+          const emailCheck = await db
+            .collection('organizations')
+            .doc(orgId)
+            .collection('prospects')
+            .where('email', '==', prospect.email)
+            .limit(1)
+            .get()
+          if (!emailCheck.empty) crossPlatformDoc = emailCheck.docs[0]
+        }
+
+        // Cross-platform dedup: check by Instagram handle
+        if (!crossPlatformDoc && prospect.instagram) {
+          const igCheck = await db
+            .collection('organizations')
+            .doc(orgId)
+            .collection('prospects')
+            .where('username', '==', prospect.instagram)
+            .where('platform', '==', 'instagram')
+            .limit(1)
+            .get()
+          if (!igCheck.empty) crossPlatformDoc = igCheck.docs[0]
+        }
+
+        if (crossPlatformDoc) {
+          // Merge TikTok data into existing prospect
+          await crossPlatformDoc.ref.update({
+            tiktokUsername: prospect.username,
+            tiktokFollowers: prospect.followers || 0,
+            tiktokUrl: `https://tiktok.com/@${prospect.username}`,
+            tiktokVideoCount: prospect.videoCount || 0,
+            tiktokLikes: prospect.likes || 0,
+            platforms: FieldValue.arrayUnion('tiktok'),
+            updatedAt: FieldValue.serverTimestamp()
+          })
+          stats.saved++
+        } else {
           await db
             .collection('organizations')
             .doc(orgId)
@@ -240,6 +323,7 @@ export const runTikTokHunterManual = onCall({
               email: prospect.email || null,
               instagramHandle: prospect.instagram || null,
               websiteUrl: prospect.website || null,
+              platforms: ['tiktok'],
               score: qualification.score,
               qualificationReason: qualification.reason,
               suggestedApproach: qualification.approach,
@@ -446,21 +530,7 @@ function getMockTikTokProspects(hashtag) {
  * Qualify TikTok prospect using Gemini AI
  */
 async function qualifyTikTokProspectWithAI(prospect, icp) {
-  const apiKey = process.env.GEMINI_API_KEY
-
-  if (!apiKey) {
-    console.warn('Gemini API key not configured, using default score')
-    return {
-      score: prospect.followers > 5000 ? 75 : 50,
-      reason: 'API non configuree - score base sur followers',
-      approach: 'Message generique de prospection'
-    }
-  }
-
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-
     const prompt = `Tu es un expert en qualification de prospects B2B. Analyse ce profil TikTok et donne un score de 0 a 100.
 
 PROFIL TIKTOK:
@@ -499,16 +569,10 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
   "approach": "<suggestion d'approche personnalisee>"
 }`
 
-    const result = await model.generateContent(prompt)
-    const text = result.response.text()
+    const text = await callAI(prompt, 500)
+    const analysis = extractJSON(text)
+    if (!analysis) throw new Error('No JSON in response')
 
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error('No JSON in response')
-    }
-
-    const analysis = JSON.parse(jsonMatch[0])
     return {
       score: Math.min(100, Math.max(0, analysis.score || 0)),
       reason: analysis.reason || 'Score calcule par IA',
@@ -516,7 +580,7 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
     }
 
   } catch (error) {
-    console.error('AI qualification error:', error)
+    console.error('AI qualification error:', error.message)
     return {
       score: prospect.followers > 5000 ? 65 : 45,
       reason: 'Erreur IA - score base sur followers',

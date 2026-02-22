@@ -10,7 +10,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { callAI, extractJSON } from '../../ai/callAI.js'
 
 const getDb = () => getFirestore()
 
@@ -103,6 +103,14 @@ export const instagramHunter = onSchedule({
                       bio: prospect.bio || '',
                       followers: prospect.followers || 0,
                       profileUrl: `https://instagram.com/${prospect.username}`,
+
+                      // Contact info (extracted from profile)
+                      email: prospect.email || '',
+                      phone: prospect.phone || '',
+                      websiteUrl: prospect.websiteUrl || '',
+                      isBusiness: prospect.isBusiness || false,
+                      businessCategory: prospect.businessCategory || '',
+                      whatsappNumber: prospect.phone || '',
 
                       // AI Qualification
                       score: qualification.score,
@@ -233,6 +241,15 @@ export const runInstagramHunterManual = onCall({
               bio: prospect.bio || '',
               followers: prospect.followers || 0,
               profileUrl: `https://instagram.com/${prospect.username}`,
+
+              // Contact info
+              email: prospect.email || '',
+              phone: prospect.phone || '',
+              websiteUrl: prospect.websiteUrl || '',
+              isBusiness: prospect.isBusiness || false,
+              businessCategory: prospect.businessCategory || '',
+              whatsappNumber: prospect.phone || '',
+
               score: qualification.score,
               qualificationReason: qualification.reason,
               suggestedApproach: qualification.approach,
@@ -308,6 +325,14 @@ try:
     prospects = []
     seen = set()
 
+    import re as _re
+
+    def extract_from_bio(bio_text):
+        """Fallback: extract email/phone from bio text via regex"""
+        emails = _re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', bio_text or '')
+        phones = _re.findall(r'(?:\\+?\\d{1,3}[\\s.-]?)?(?:\\(?\\d{2,4}\\)?[\\s.-]?)?\\d{6,10}', bio_text or '')
+        return emails[0] if emails else '', phones[0] if phones else ''
+
     for media in list(medias)[:20]:
         try:
             likers = cl.media_likers(media.pk)
@@ -319,12 +344,34 @@ try:
                 time.sleep(1)  # Rate limiting
                 user = cl.user_info(liker.pk)
 
+                # Filter by follower range (skip very small and very large accounts)
+                follower_count = user.follower_count or 0
+                if follower_count < 500 or follower_count > 100000:
+                    continue
+
+                # Extract native business fields
+                public_email = getattr(user, 'public_email', '') or ''
+                contact_phone = getattr(user, 'contact_phone_number', '') or ''
+                external_url = getattr(user, 'external_url', '') or ''
+                is_business = getattr(user, 'is_business', False) or False
+                category_name = getattr(user, 'category_name', '') or ''
+
+                # Fallback: parse bio for email/phone if not available natively
+                bio_email, bio_phone = extract_from_bio(user.biography)
+                final_email = public_email or bio_email
+                final_phone = contact_phone or bio_phone
+
                 prospects.append({
                     'username': user.username,
                     'fullName': user.full_name or '',
                     'bio': user.biography or '',
-                    'followers': user.follower_count or 0,
-                    'pk': str(user.pk)
+                    'followers': follower_count,
+                    'pk': str(user.pk),
+                    'email': final_email,
+                    'phone': final_phone,
+                    'websiteUrl': external_url,
+                    'isBusiness': is_business,
+                    'businessCategory': category_name
                 })
 
                 if len(prospects) >= ${RATE_LIMITS.maxProfilesPerScan}:
@@ -392,23 +439,38 @@ function getMockProspects(hashtag) {
     {
       username: `${hashtag}_prospect_1`,
       fullName: 'Jean-Pierre Martin',
-      bio: `CEO @startup_${hashtag} | Entrepreneur | Looking to grow my business`,
+      bio: `CEO @startup_${hashtag} | Entrepreneur | Looking to grow my business | jp.martin@startup.fr`,
       followers: 2500,
-      pk: `mock_${Date.now()}_1`
+      pk: `mock_${Date.now()}_1`,
+      email: 'jp.martin@startup.fr',
+      phone: '',
+      websiteUrl: 'https://startup-example.fr',
+      isBusiness: true,
+      businessCategory: 'Entrepreneur'
     },
     {
       username: `${hashtag}_prospect_2`,
       fullName: 'Marie Dupont',
-      bio: `Founder @${hashtag}company | Business Coach | DM for collabs`,
+      bio: `Founder @${hashtag}company | Business Coach | DM for collabs | +33612345678`,
       followers: 5000,
-      pk: `mock_${Date.now()}_2`
+      pk: `mock_${Date.now()}_2`,
+      email: '',
+      phone: '+33612345678',
+      websiteUrl: '',
+      isBusiness: true,
+      businessCategory: 'Business Coach'
     },
     {
       username: `${hashtag}_business_3`,
       fullName: 'Restaurant Le Gourmet',
-      bio: `Restaurant gastronomique Paris | Reservation: contact@legourmet.fr`,
+      bio: `Restaurant gastronomique Paris | Reservation: contact@legourmet.fr | 01 42 36 00 00`,
       followers: 8500,
-      pk: `mock_${Date.now()}_3`
+      pk: `mock_${Date.now()}_3`,
+      email: 'contact@legourmet.fr',
+      phone: '0142360000',
+      websiteUrl: 'https://legourmet.fr',
+      isBusiness: true,
+      businessCategory: 'Restaurant'
     }
   ]
 }
@@ -417,21 +479,7 @@ function getMockProspects(hashtag) {
  * Qualify prospect using Gemini AI
  */
 async function qualifyProspectWithAI(prospect, icp) {
-  const apiKey = process.env.GEMINI_API_KEY
-
-  if (!apiKey) {
-    console.warn('Gemini API key not configured, using default score')
-    return {
-      score: prospect.followers > 1000 ? 75 : 50,
-      reason: 'API non configuree - score base sur followers',
-      approach: 'Message generique de prospection'
-    }
-  }
-
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-
     const prompt = `Tu es un expert en qualification de prospects B2B. Analyse ce profil Instagram et donne un score de 0 a 100.
 
 PROFIL INSTAGRAM:
@@ -459,16 +507,10 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
   "approach": "<suggestion d'approche personnalisee>"
 }`
 
-    const result = await model.generateContent(prompt)
-    const text = result.response.text()
+    const text = await callAI(prompt, 500)
+    const analysis = extractJSON(text)
+    if (!analysis) throw new Error('No JSON in response')
 
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error('No JSON in response')
-    }
-
-    const analysis = JSON.parse(jsonMatch[0])
     return {
       score: Math.min(100, Math.max(0, analysis.score || 0)),
       reason: analysis.reason || 'Score calcule par IA',
@@ -476,7 +518,7 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
     }
 
   } catch (error) {
-    console.error('AI qualification error:', error)
+    console.error('AI qualification error:', error.message)
     return {
       score: prospect.followers > 1000 ? 65 : 45,
       reason: 'Erreur IA - score base sur followers',
@@ -521,7 +563,7 @@ export const getHunterStats = onCall({
       .collection('organizations')
       .doc(orgId)
       .collection('prospects')
-      .where('source', 'in', ['instagram_hunter', 'tiktok_hunter'])
+      .where('source', 'in', ['instagram_hunter', 'tiktok_hunter', 'facebook_hunter'])
       .orderBy('createdAt', 'desc')
       .limit(50)
       .get()
@@ -544,7 +586,8 @@ export const getHunterStats = onCall({
     // Count by platform
     const byPlatform = {
       instagram: prospects.filter(p => p.platform === 'instagram').length,
-      tiktok: prospects.filter(p => p.platform === 'tiktok').length
+      tiktok: prospects.filter(p => p.platform === 'tiktok').length,
+      facebook: prospects.filter(p => p.platform === 'facebook').length
     }
 
     return {

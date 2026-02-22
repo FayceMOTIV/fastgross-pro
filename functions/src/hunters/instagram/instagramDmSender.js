@@ -15,7 +15,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { callAI } from '../../ai/callAI.js'
 
 const getDb = () => getFirestore()
 
@@ -425,10 +425,7 @@ export const sendManualDM = onCall({
  * Generate personalized DM using AI
  */
 async function generatePersonalizedDM(prospect, template, orgInfo) {
-  const apiKey = process.env.GEMINI_API_KEY
-
-  // Default template if no AI
-  if (!apiKey) {
+  const fallbackMessage = () => {
     const firstName = prospect.fullName?.split(' ')[0] || prospect.username
     return `Salut ${firstName} 👋
 
@@ -440,9 +437,6 @@ ${orgInfo.cta}`
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-
     const customTemplate = template?.content || ''
 
     const prompt = `Tu es un expert en cold outreach Instagram. Genere un DM personnalise et engageant.
@@ -471,8 +465,7 @@ REGLES:
 
 Reponds UNIQUEMENT avec le message DM (pas de guillemets, pas d'explications):`
 
-    const result = await model.generateContent(prompt)
-    let message = result.response.text().trim()
+    let message = await callAI(prompt, 500)
 
     // Clean up
     message = message.replace(/^["']|["']$/g, '').trim()
@@ -485,17 +478,8 @@ Reponds UNIQUEMENT avec le message DM (pas de guillemets, pas d'explications):`
     return message
 
   } catch (error) {
-    console.error('AI DM generation failed:', error)
-
-    // Fallback to simple template
-    const firstName = prospect.fullName?.split(' ')[0] || prospect.username
-    return `Salut ${firstName} 👋
-
-J'ai decouvert ton profil et je pense que ${orgInfo.name} pourrait t'interesser.
-
-On aide les entrepreneurs a trouver plus de clients automatiquement.
-
-${orgInfo.cta}`
+    console.error('AI DM generation failed:', error.message)
+    return fallbackMessage()
   }
 }
 
