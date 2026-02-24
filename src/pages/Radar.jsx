@@ -1,5 +1,10 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import toast from 'react-hot-toast'
+import { collection, query, getDocs, orderBy } from 'firebase/firestore'
+import { httpsCallable } from 'firebase/functions'
+import { db, functions } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import {
   Target,
   Flame,
@@ -20,9 +25,11 @@ import {
   Check,
   X,
   User,
+  Loader2,
+  Zap,
 } from 'lucide-react'
 
-// Mock leads with scores
+// Mock leads for demo mode
 const mockLeads = [
   {
     id: '1',
@@ -290,35 +297,130 @@ function LeadCard({ lead, onSelect, isSelected }) {
   )
 }
 
+function getCategory(score) {
+  if (score >= 80) return 'hot'
+  if (score >= 50) return 'warm'
+  if (score >= 20) return 'cold'
+  return 'ice'
+}
+
 export default function Radar() {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedLead, setSelectedLead] = useState(null)
+  const [leads, setLeads] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [scoring, setScoring] = useState(false)
+
+  useEffect(() => {
+    if (isDemo) {
+      setLeads(mockLeads)
+      setLoading(false)
+      return
+    }
+    if (!currentOrg?.id) { setLoading(false); return }
+
+    const loadProspects = async () => {
+      try {
+        const q = query(collection(db, 'organizations', currentOrg.id, 'prospects'), orderBy('createdAt', 'desc'))
+        const snap = await getDocs(q)
+        const loaded = snap.docs.map((d) => {
+          const data = d.data()
+          const score = data.score || 0
+          return {
+            id: d.id,
+            name: data.name || data.contactName || 'Inconnu',
+            company: data.company || data.companyName || '',
+            email: data.email || '',
+            phone: data.phone || null,
+            score,
+            category: getCategory(score),
+            lastInteraction: data.lastInteraction || '-',
+            scoring: data.scoring || { profile: 0, size: 0, engagement: 0, signals: 0, recency: 0 },
+            status: data.status || 'new',
+            emailsOpened: data.emailsOpened || 0,
+            replies: data.replies || 0,
+            industry: data.industry || data.sector || '',
+          }
+        })
+        setLeads(loaded.length > 0 ? loaded : mockLeads)
+      } catch (err) {
+        console.error('Radar: failed to load prospects', err)
+        setLeads(mockLeads)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProspects()
+  }, [currentOrg?.id, isDemo])
+
+  const handleScoreAll = async () => {
+    if (isDemo) { toast.success('Scoring simule en mode demo'); return }
+    setScoring(true)
+    try {
+      const scoreLeads = httpsCallable(functions, 'scoreLeads')
+      const leadIds = leads.map((l) => l.id)
+      const result = await scoreLeads({ orgId: currentOrg.id, leadIds })
+      if (result.data?.scores) {
+        setLeads((prev) => prev.map((l) => {
+          const s = result.data.scores[l.id]
+          if (!s) return l
+          return { ...l, score: s.total || s.score || l.score, scoring: s.breakdown || l.scoring, category: getCategory(s.total || s.score || l.score) }
+        }))
+        toast.success('Scoring IA termine')
+      }
+    } catch (err) {
+      console.error('Score error:', err)
+      toast.error('Erreur lors du scoring')
+    } finally {
+      setScoring(false)
+    }
+  }
 
   const filteredLeads = useMemo(() => {
-    return mockLeads.filter((lead) => {
+    return leads.filter((lead) => {
       const matchesSearch =
         (lead.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
         (lead.company?.toLowerCase() || '').includes(searchQuery.toLowerCase())
       const matchesCategory = selectedCategory === 'all' || lead.category === selectedCategory
       return matchesSearch && matchesCategory
     })
-  }, [searchQuery, selectedCategory])
+  }, [searchQuery, selectedCategory, leads])
 
   const stats = useMemo(() => ({
-    hot: mockLeads.filter((l) => l.category === 'hot').length,
-    warm: mockLeads.filter((l) => l.category === 'warm').length,
-    cold: mockLeads.filter((l) => l.category === 'cold').length,
-    ice: mockLeads.filter((l) => l.category === 'ice').length,
-    total: mockLeads.length,
-  }), [])
+    hot: leads.filter((l) => l.category === 'hot').length,
+    warm: leads.filter((l) => l.category === 'warm').length,
+    cold: leads.filter((l) => l.category === 'cold').length,
+    ice: leads.filter((l) => l.category === 'ice').length,
+    total: leads.length,
+  }), [leads])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-display font-bold text-gray-900">Radar</h1>
-        <p className="text-gray-500 mt-1">Scoring IA et priorisation de vos leads</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-gray-900">Radar</h1>
+          <p className="text-gray-500 mt-1">Scoring IA et priorisation de vos leads</p>
+        </div>
+        <button
+          onClick={handleScoreAll}
+          disabled={scoring}
+          className="btn-primary flex items-center gap-2"
+        >
+          {scoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+          {scoring ? 'Scoring...' : 'Scorer tous les leads'}
+        </button>
       </div>
 
       {/* Stats */}

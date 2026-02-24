@@ -25,7 +25,7 @@ const VALIDATION_CACHE_DAYS = 30;
 // ============================================
 async function getConfig(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('postal');
     const configSnap = await configRef.get();
 
@@ -218,7 +218,7 @@ function formatName(name) {
 async function getCachedValidation(orgId, address) {
   try {
     const cacheKey = generateCacheKey(address);
-    const cacheRef = db.collection('organizations').doc(orgId)
+    const cacheRef = getDb().collection('organizations').doc(orgId)
       .collection('addressValidationCache').doc(cacheKey);
     const cacheSnap = await cacheRef.get();
 
@@ -247,7 +247,7 @@ async function getCachedValidation(orgId, address) {
 async function cacheValidation(orgId, address, result) {
   try {
     const cacheKey = generateCacheKey(address);
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('addressValidationCache').doc(cacheKey)
       .set({
         original: address,
@@ -311,7 +311,7 @@ export async function validateAddressBatch(orgId, addresses) {
 // ============================================
 export async function validateAndUpdateProspect(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -455,7 +455,7 @@ export function parseAddressText(text, country = 'FR') {
 // ============================================
 export async function getValidationStats(orgId) {
   try {
-    const prospectsSnap = await db.collection('organizations').doc(orgId)
+    const prospectsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('prospects')
       .get();
 

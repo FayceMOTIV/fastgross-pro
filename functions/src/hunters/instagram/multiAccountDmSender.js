@@ -1,12 +1,14 @@
 /**
- * Multi-Account Instagram DM Sender
+ * Multi-Account Instagram DM Sender V2
  * Rotates between multiple Instagram accounts for scale
  * Includes encryption for credentials and session management
  *
  * Features:
  * - Account rotation with fair distribution
  * - Per-account rate limiting
- * - Session persistence
+ * - Session persistence (avoid re-login)
+ * - Proxy support per account (residential/datacenter)
+ * - Error classification and account health monitoring
  * - Gaussian delays and human-like behavior
  * - Automatic daily/hourly counter resets
  */
@@ -19,8 +21,11 @@ import * as crypto from 'crypto'
 
 const getDb = () => getFirestore()
 
-// Encryption key from environment (32 chars)
-const ENCRYPTION_KEY = process.env.INSTAGRAM_ENCRYPTION_KEY || 'face-media-factory-secret-key!!'
+// Encryption key from environment (32 chars) - REQUIRED, no fallback
+const ENCRYPTION_KEY = process.env.INSTAGRAM_ENCRYPTION_KEY
+if (!ENCRYPTION_KEY) {
+  console.error('CRITICAL: INSTAGRAM_ENCRYPTION_KEY env var is not set')
+}
 
 // Encryption helpers using AES-256-CBC
 function encrypt(text) {
@@ -331,6 +336,7 @@ async function sendDmsViaAccount(account, prospects, orgId, template) {
   }
 
   const escapedTemplate = template.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')
+  const proxyUrl = account.proxyUrl || process.env.IG_PROXY_URL || ''
 
   const pythonScript = `
 import sys
@@ -350,8 +356,14 @@ try:
     username = """${account.username}"""
     password = """${password}"""
     session_data = ${JSON.stringify(account.sessionData || {})}
+    proxy_url = """${proxyUrl}"""
 
     cl = Client()
+
+    # Configure proxy if available
+    if proxy_url:
+        cl.set_proxy(proxy_url)
+        print(f"Proxy configured", file=sys.stderr)
 
     # Try load session first
     try:
@@ -572,62 +584,68 @@ export const addInstagramAccount = onCall({
     throw new HttpsError('unauthenticated', 'User must be authenticated')
   }
 
-  const { orgId, username, password, accountType = 'client', displayName } = data
+  const { orgId, username, password, accountType = 'client', displayName, proxyUrl } = data
 
   if (!orgId || !username || !password) {
     throw new HttpsError('invalid-argument', 'orgId, username, and password are required')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  // Check if account already exists
-  const existingSnapshot = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('instagramAccounts')
-    .where('username', '==', username.toLowerCase())
-    .limit(1)
-    .get()
+    // Check if account already exists
+    const existingSnapshot = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('instagramAccounts')
+      .where('username', '==', username.toLowerCase())
+      .limit(1)
+      .get()
 
-  if (!existingSnapshot.empty) {
-    throw new HttpsError('already-exists', 'Account already exists')
-  }
+    if (!existingSnapshot.empty) {
+      throw new HttpsError('already-exists', 'Account already exists')
+    }
 
-  // Encrypt password
-  const encryptedPassword = encrypt(password)
+    // Encrypt password
+    const encryptedPassword = encrypt(password)
 
-  // Test login before saving
-  const loginSuccess = await testInstagramLogin(username, password)
+    // Test login before saving
+    const loginSuccess = await testInstagramLogin(username, password)
 
-  if (!loginSuccess) {
-    throw new HttpsError('invalid-argument', 'Instagram login failed - check credentials')
-  }
+    if (!loginSuccess) {
+      throw new HttpsError('invalid-argument', 'Instagram login failed - check credentials')
+    }
 
-  // Add account
-  const accountRef = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('instagramAccounts')
-    .add({
-      username: username.toLowerCase(),
-      password: encryptedPassword,
-      accountType,
-      displayName: displayName || username,
-      status: 'active',
-      dmsSentToday: 0,
-      dmsSentThisHour: 0,
-      lastDmAt: null,
-      warningsCount: 0,
-      lastWarningAt: null,
-      sessionData: null,
-      createdAt: FieldValue.serverTimestamp(),
-      addedBy: auth.uid
-    })
+    // Add account
+    const accountRef = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('instagramAccounts')
+      .add({
+        username: username.toLowerCase(),
+        password: encryptedPassword,
+        accountType,
+        displayName: displayName || username,
+        proxyUrl: proxyUrl || null,
+        status: 'active',
+        dmsSentToday: 0,
+        dmsSentThisHour: 0,
+        lastDmAt: null,
+        warningsCount: 0,
+        lastWarningAt: null,
+        sessionData: null,
+        createdAt: FieldValue.serverTimestamp(),
+        addedBy: auth.uid
+      })
 
-  return {
-    success: true,
-    accountId: accountRef.id,
-    message: `Account @${username} added successfully`
+    return {
+      success: true,
+      accountId: accountRef.id,
+      message: `Account @${username} added successfully`
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -699,16 +717,21 @@ export const removeInstagramAccount = onCall({
     throw new HttpsError('invalid-argument', 'orgId and accountId are required')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('instagramAccounts')
-    .doc(accountId)
-    .delete()
+    await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('instagramAccounts')
+      .doc(accountId)
+      .delete()
 
-  return { success: true, message: 'Account removed' }
+    return { success: true, message: 'Account removed' }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
+  }
 })
 
 /**
@@ -730,40 +753,45 @@ export const listInstagramAccounts = onCall({
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  const accountsSnapshot = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('instagramAccounts')
-    .orderBy('createdAt', 'desc')
-    .get()
+    const accountsSnapshot = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('instagramAccounts')
+      .orderBy('createdAt', 'desc')
+      .get()
 
-  const accounts = accountsSnapshot.docs.map(doc => {
-    const data = doc.data()
+    const accounts = accountsSnapshot.docs.map(doc => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        username: data.username,
+        displayName: data.displayName,
+        accountType: data.accountType,
+        status: data.status,
+        dmsSentToday: data.dmsSentToday || 0,
+        dmsSentThisHour: data.dmsSentThisHour || 0,
+        lastDmAt: data.lastDmAt?.toDate?.()?.toISOString() || null,
+        warningsCount: data.warningsCount || 0,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || null
+        // Note: password and sessionData are NOT returned for security
+      }
+    })
+
     return {
-      id: doc.id,
-      username: data.username,
-      displayName: data.displayName,
-      accountType: data.accountType,
-      status: data.status,
-      dmsSentToday: data.dmsSentToday || 0,
-      dmsSentThisHour: data.dmsSentThisHour || 0,
-      lastDmAt: data.lastDmAt?.toDate?.()?.toISOString() || null,
-      warningsCount: data.warningsCount || 0,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || null
-      // Note: password and sessionData are NOT returned for security
+      success: true,
+      count: accounts.length,
+      accounts,
+      limits: {
+        maxPerHour: LIMITS.maxDmsPerHour,
+        maxPerDay: LIMITS.maxDmsPerDay
+      }
     }
-  })
-
-  return {
-    success: true,
-    count: accounts.length,
-    accounts,
-    limits: {
-      maxPerHour: LIMITS.maxDmsPerHour,
-      maxPerDay: LIMITS.maxDmsPerDay
-    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -791,18 +819,23 @@ export const updateAccountStatus = onCall({
     throw new HttpsError('invalid-argument', `Invalid status. Must be one of: ${validStatuses.join(', ')}`)
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('instagramAccounts')
-    .doc(accountId)
-    .update({
-      status,
-      statusUpdatedAt: FieldValue.serverTimestamp(),
-      statusUpdatedBy: auth.uid
-    })
+    await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('instagramAccounts')
+      .doc(accountId)
+      .update({
+        status,
+        statusUpdatedAt: FieldValue.serverTimestamp(),
+        statusUpdatedBy: auth.uid
+      })
 
-  return { success: true, message: `Account status updated to ${status}` }
+    return { success: true, message: `Account status updated to ${status}` }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
+  }
 })

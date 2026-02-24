@@ -28,7 +28,7 @@ const DAILY_DM_LIMIT = 70;
 // ============================================
 async function getInstagramConfig(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('instagram');
     const configSnap = await configRef.get();
 
@@ -81,7 +81,7 @@ export async function sendInstagramDM(orgId, prospectId, message, options = {}) 
     }
 
     // 3. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -274,7 +274,7 @@ export async function getConversationHistory(orgId, prospectId, limit = 20) {
     const config = await getInstagramConfig(orgId);
 
     // Recuperer l'IG user ID du prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -345,7 +345,7 @@ function replaceVariables(message, prospect, options = {}) {
 
   let result = message;
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replace(new RegExp(key, 'gi'), value);
+    result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value);
   }
 
   return result.trim();
@@ -356,7 +356,7 @@ function replaceVariables(message, prospect, options = {}) {
 // ============================================
 async function logInstagramInteraction(orgId, prospectId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         ...data,
         prospectId,
@@ -374,7 +374,7 @@ async function logInstagramInteraction(orgId, prospectId, data) {
 // ============================================
 export async function findProspectByIgUserId(orgId, igUserId) {
   try {
-    const snapshot = await db.collection('organizations').doc(orgId)
+    const snapshot = await getDb().collection('organizations').doc(orgId)
       .collection('prospects')
       .where('channels.instagram.igUserId', '==', igUserId)
       .limit(1)

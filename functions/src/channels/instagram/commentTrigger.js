@@ -156,7 +156,7 @@ function personalizeMessage(template, from) {
 
   let message = template;
   for (const [key, value] of Object.entries(variables)) {
-    message = message.replace(new RegExp(key, 'gi'), value);
+    message = message.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value);
   }
 
   return message;
@@ -168,7 +168,7 @@ function personalizeMessage(template, from) {
 async function createLeadFromComment(orgId, from, commentId, media) {
   try {
     // Verifier si le prospect existe deja
-    const existingSnapshot = await db.collection('organizations').doc(orgId)
+    const existingSnapshot = await getDb().collection('organizations').doc(orgId)
       .collection('prospects')
       .where('channels.instagram.igUserId', '==', from.id)
       .limit(1)
@@ -177,7 +177,7 @@ async function createLeadFromComment(orgId, from, commentId, media) {
     if (!existingSnapshot.empty) {
       // Mettre a jour l'interaction
       const prospectId = existingSnapshot.docs[0].id;
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           'channels.instagram.lastInteraction': FieldValue.serverTimestamp(),
@@ -187,7 +187,7 @@ async function createLeadFromComment(orgId, from, commentId, media) {
     }
 
     // Creer nouveau prospect
-    const prospectRef = await db.collection('organizations').doc(orgId)
+    const prospectRef = await getDb().collection('organizations').doc(orgId)
       .collection('prospects').add({
         source: 'instagram_comment',
         status: 'new',
@@ -223,7 +223,7 @@ async function addToEngagementSequence(orgId, from, sequenceId) {
     if (!prospectId) return;
 
     // Ajouter a la sequence
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('sequences').doc(sequenceId)
       .collection('enrollments').add({
         prospectId,
@@ -243,7 +243,7 @@ async function addToEngagementSequence(orgId, from, sequenceId) {
 // ============================================
 async function hasRespondedToComment(orgId, commentId) {
   try {
-    const snapshot = await db.collection('organizations').doc(orgId)
+    const snapshot = await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggerLogs')
       .where('commentId', '==', commentId)
       .limit(1)
@@ -263,7 +263,7 @@ async function hasRecentlySentTo(orgId, igUserId, hoursAgo = 24) {
     const threshold = new Date();
     threshold.setHours(threshold.getHours() - hoursAgo);
 
-    const snapshot = await db.collection('organizations').doc(orgId)
+    const snapshot = await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggerLogs')
       .where('fromId', '==', igUserId)
       .where('executedAt', '>=', threshold)
@@ -281,7 +281,7 @@ async function hasRecentlySentTo(orgId, igUserId, hoursAgo = 24) {
 // ============================================
 async function getActiveCommentTriggers(orgId) {
   try {
-    const snapshot = await db.collection('organizations').doc(orgId)
+    const snapshot = await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggers')
       .where('type', '==', 'comment')
       .where('enabled', '==', true)
@@ -313,7 +313,7 @@ export async function createCommentTrigger(orgId, triggerData) {
       updatedAt: FieldValue.serverTimestamp()
     };
 
-    const ref = await db.collection('organizations').doc(orgId)
+    const ref = await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggers').add(trigger);
 
     return { success: true, triggerId: ref.id };
@@ -328,7 +328,7 @@ export async function createCommentTrigger(orgId, triggerData) {
 // ============================================
 async function logTriggerExecution(orgId, triggerId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggerLogs').add({
         triggerId,
         ...data,
@@ -336,7 +336,7 @@ async function logTriggerExecution(orgId, triggerId, data) {
       });
 
     // Incrementer compteur du trigger
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggers').doc(triggerId)
       .update({
         executionCount: FieldValue.increment(1),

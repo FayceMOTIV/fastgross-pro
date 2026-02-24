@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { httpsCallable } from 'firebase/functions'
 import { db, functions } from '@/lib/firebase'
@@ -126,7 +127,7 @@ export default function AutoPilotSetup() {
       setPreviewProspects(result.data.prospects || [])
     } catch (error) {
       console.error('Preview error:', error)
-      // Mock preview for demo
+      toast('Apercu avec donnees d\'exemple - les vrais prospects seront charges au lancement', { icon: '💡', duration: 4000 })
       setPreviewProspects([
         {
           name: 'Studio Lumiere Paris',
@@ -203,7 +204,7 @@ export default function AutoPilotSetup() {
       navigate('/app/autopilot')
     } catch (error) {
       console.error('Launch error:', error)
-      alert('Erreur lors du lancement: ' + error.message)
+      toast.error('Erreur lors du lancement: ' + error.message)
     } finally {
       setLoading(false)
     }

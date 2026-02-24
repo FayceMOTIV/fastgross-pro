@@ -1,5 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Clock, Save, Loader2 } from 'lucide-react'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import toast from 'react-hot-toast'
 
 const dayLabels = {
@@ -13,10 +17,25 @@ const dayLabels = {
 }
 
 export default function ScheduleSettings({ saving, setSaving }) {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [sendStartHour, setSendStartHour] = useState(9)
   const [sendEndHour, setSendEndHour] = useState(18)
   const [sendDays, setSendDays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])
   const [timezone, setTimezone] = useState('Europe/Paris')
+
+  useEffect(() => {
+    if (!currentOrg?.id || isDemo) return
+    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'schedule')).then((snap) => {
+      if (snap.exists()) {
+        const d = snap.data()
+        if (d.sendStartHour !== undefined) setSendStartHour(d.sendStartHour)
+        if (d.sendEndHour !== undefined) setSendEndHour(d.sendEndHour)
+        if (d.sendDays !== undefined) setSendDays(d.sendDays)
+        if (d.timezone !== undefined) setTimezone(d.timezone)
+      }
+    }).catch(() => {})
+  }, [currentOrg?.id])
 
   const toggleDay = (day) => {
     if (sendDays.includes(day)) {
@@ -29,6 +48,11 @@ export default function ScheduleSettings({ saving, setSaving }) {
   const handleSave = async () => {
     setSaving(true)
     try {
+      if (currentOrg?.id && !isDemo) {
+        await setDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'schedule'), {
+          sendStartHour, sendEndHour, sendDays, timezone, updatedAt: new Date()
+        }, { merge: true })
+      }
       toast.success('Planification sauvegardee')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')

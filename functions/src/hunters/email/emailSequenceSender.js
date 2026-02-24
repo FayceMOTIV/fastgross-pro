@@ -404,32 +404,37 @@ export const createEmailSequence = onCall({
     throw new HttpsError('invalid-argument', 'Maximum 7 steps allowed')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  // Validate steps
-  const validatedSteps = steps.map((step, index) => ({
-    stepNumber: index + 1,
-    delayDays: step.delayDays || (index === 0 ? 0 : 3),
-    subject: step.subject || `Follow-up ${index + 1}`,
-    template: step.template || ''
-  }))
+    // Validate steps
+    const validatedSteps = steps.map((step, index) => ({
+      stepNumber: index + 1,
+      delayDays: step.delayDays || (index === 0 ? 0 : 3),
+      subject: step.subject || `Follow-up ${index + 1}`,
+      template: step.template || ''
+    }))
 
-  const sequenceRef = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('emailSequences')
-    .add({
-      name,
-      steps: validatedSteps,
-      status: 'active',
-      createdBy: auth.uid,
-      createdAt: FieldValue.serverTimestamp()
-    })
+    const sequenceRef = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('emailSequences')
+      .add({
+        name,
+        steps: validatedSteps,
+        status: 'active',
+        createdBy: auth.uid,
+        createdAt: FieldValue.serverTimestamp()
+      })
 
-  return {
-    success: true,
-    sequenceId: sequenceRef.id,
-    message: `Sequence "${name}" created with ${validatedSteps.length} steps`
+    return {
+      success: true,
+      sequenceId: sequenceRef.id,
+      message: `Sequence "${name}" created with ${validatedSteps.length} steps`
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -452,88 +457,93 @@ export const startEmailCampaign = onCall({
     throw new HttpsError('invalid-argument', 'orgId, prospectId, and sequenceId are required')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  // Get sequence
-  const sequenceDoc = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('emailSequences')
-    .doc(sequenceId)
-    .get()
+    // Get sequence
+    const sequenceDoc = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('emailSequences')
+      .doc(sequenceId)
+      .get()
 
-  if (!sequenceDoc.exists) {
-    throw new HttpsError('not-found', 'Sequence not found')
-  }
-
-  const sequence = sequenceDoc.data()
-
-  // Get prospect
-  const prospectDoc = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('prospects')
-    .doc(prospectId)
-    .get()
-
-  if (!prospectDoc.exists) {
-    throw new HttpsError('not-found', 'Prospect not found')
-  }
-
-  const prospect = prospectDoc.data()
-
-  if (!prospect.email) {
-    throw new HttpsError('failed-precondition', 'Prospect has no email address')
-  }
-
-  // Check if campaign already exists
-  const existingCampaign = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('emailCampaigns')
-    .where('prospectId', '==', prospectId)
-    .where('status', 'in', ['active', 'scheduled'])
-    .limit(1)
-    .get()
-
-  if (!existingCampaign.empty) {
-    throw new HttpsError('already-exists', 'Active campaign already exists for this prospect')
-  }
-
-  // Create campaign steps from sequence
-  const campaignSteps = sequence.steps.map((step, index) => {
-    const scheduledFor = new Date()
-    scheduledFor.setDate(scheduledFor.getDate() + step.delayDays)
-
-    return {
-      stepNumber: step.stepNumber,
-      scheduledFor: index === 0 ? Timestamp.now() : Timestamp.fromDate(scheduledFor),
-      status: index === 0 ? 'scheduled' : 'pending',
-      sentAt: null,
-      openedAt: null,
-      clickedAt: null
+    if (!sequenceDoc.exists) {
+      throw new HttpsError('not-found', 'Sequence not found')
     }
-  })
 
-  // Create campaign
-  const campaignRef = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('emailCampaigns')
-    .add({
-      prospectId,
-      sequenceId,
-      currentStep: 0,
-      steps: campaignSteps,
-      status: 'active',
-      createdBy: auth.uid,
-      createdAt: FieldValue.serverTimestamp()
+    const sequence = sequenceDoc.data()
+
+    // Get prospect
+    const prospectDoc = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('prospects')
+      .doc(prospectId)
+      .get()
+
+    if (!prospectDoc.exists) {
+      throw new HttpsError('not-found', 'Prospect not found')
+    }
+
+    const prospect = prospectDoc.data()
+
+    if (!prospect.email) {
+      throw new HttpsError('failed-precondition', 'Prospect has no email address')
+    }
+
+    // Check if campaign already exists
+    const existingCampaign = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('emailCampaigns')
+      .where('prospectId', '==', prospectId)
+      .where('status', 'in', ['active', 'scheduled'])
+      .limit(1)
+      .get()
+
+    if (!existingCampaign.empty) {
+      throw new HttpsError('already-exists', 'Active campaign already exists for this prospect')
+    }
+
+    // Create campaign steps from sequence
+    const campaignSteps = sequence.steps.map((step, index) => {
+      const scheduledFor = new Date()
+      scheduledFor.setDate(scheduledFor.getDate() + step.delayDays)
+
+      return {
+        stepNumber: step.stepNumber,
+        scheduledFor: index === 0 ? Timestamp.now() : Timestamp.fromDate(scheduledFor),
+        status: index === 0 ? 'scheduled' : 'pending',
+        sentAt: null,
+        openedAt: null,
+        clickedAt: null
+      }
     })
 
-  return {
-    success: true,
-    campaignId: campaignRef.id,
-    message: `Email campaign started for ${prospect.email}`
+    // Create campaign
+    const campaignRef = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('emailCampaigns')
+      .add({
+        prospectId,
+        sequenceId,
+        currentStep: 0,
+        steps: campaignSteps,
+        status: 'active',
+        createdBy: auth.uid,
+        createdAt: FieldValue.serverTimestamp()
+      })
+
+    return {
+      success: true,
+      campaignId: campaignRef.id,
+      message: `Email campaign started for ${prospect.email}`
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -556,25 +566,30 @@ export const listEmailSequences = onCall({
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  const sequencesSnapshot = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('emailSequences')
-    .orderBy('createdAt', 'desc')
-    .get()
+    const sequencesSnapshot = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('emailSequences')
+      .orderBy('createdAt', 'desc')
+      .get()
 
-  const sequences = sequencesSnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null
-  }))
+    const sequences = sequencesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || null
+    }))
 
-  return {
-    success: true,
-    count: sequences.length,
-    sequences
+    return {
+      success: true,
+      count: sequences.length,
+      sequences
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -597,49 +612,54 @@ export const getEmailCampaignStats = onCall({
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
 
-  const db = getDb()
+  try {
+    const db = getDb()
 
-  // Get campaigns
-  const campaignsSnapshot = await db
-    .collection('organizations')
-    .doc(orgId)
-    .collection('emailCampaigns')
-    .get()
+    // Get campaigns
+    const campaignsSnapshot = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('emailCampaigns')
+      .get()
 
-  const campaigns = campaignsSnapshot.docs.map(doc => doc.data())
+    const campaigns = campaignsSnapshot.docs.map(doc => doc.data())
 
-  // Calculate stats
-  const stats = {
-    total: campaigns.length,
-    active: campaigns.filter(c => c.status === 'active').length,
-    completed: campaigns.filter(c => c.status === 'completed').length,
-    replied: campaigns.filter(c => c.status === 'replied').length,
-    unsubscribed: campaigns.filter(c => c.status === 'unsubscribed').length
-  }
-
-  // Calculate email stats
-  let totalSent = 0
-  let totalOpened = 0
-  let totalClicked = 0
-
-  campaigns.forEach(campaign => {
-    campaign.steps?.forEach(step => {
-      if (step.status === 'sent') totalSent++
-      if (step.openedAt) totalOpened++
-      if (step.clickedAt) totalClicked++
-    })
-  })
-
-  return {
-    success: true,
-    stats,
-    emails: {
-      sent: totalSent,
-      opened: totalOpened,
-      clicked: totalClicked,
-      openRate: totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : 0,
-      clickRate: totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) : 0
+    // Calculate stats
+    const stats = {
+      total: campaigns.length,
+      active: campaigns.filter(c => c.status === 'active').length,
+      completed: campaigns.filter(c => c.status === 'completed').length,
+      replied: campaigns.filter(c => c.status === 'replied').length,
+      unsubscribed: campaigns.filter(c => c.status === 'unsubscribed').length
     }
+
+    // Calculate email stats
+    let totalSent = 0
+    let totalOpened = 0
+    let totalClicked = 0
+
+    campaigns.forEach(campaign => {
+      campaign.steps?.forEach(step => {
+        if (step.status === 'sent') totalSent++
+        if (step.openedAt) totalOpened++
+        if (step.clickedAt) totalClicked++
+      })
+    })
+
+    return {
+      success: true,
+      stats,
+      emails: {
+        sent: totalSent,
+        opened: totalOpened,
+        clicked: totalClicked,
+        openRate: totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : 0,
+        clickRate: totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) : 0
+      }
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -650,14 +670,21 @@ export const trackEmailOpen = onCall({
   region: 'europe-west1',
   cors: true
 }, async (request) => {
-  const { data } = request
+  const { auth, data } = request
+
+  if (!auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated')
+  }
+
   const { org, prospect, campaign } = data
 
-  if (!org || !prospect || !campaign) return { success: false }
-
-  const db = getDb()
+  if (!org || !prospect || !campaign) {
+    throw new HttpsError('invalid-argument', 'org, prospect and campaign are required')
+  }
 
   try {
+    const db = getDb()
+
     const campaignDoc = await db
       .collection('organizations')
       .doc(org)
@@ -681,6 +708,7 @@ export const trackEmailOpen = onCall({
 
     return { success: true }
   } catch (error) {
-    return { success: false }
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })

@@ -34,7 +34,7 @@ export async function createTrackingCode(orgId, prospectId, mailType) {
     const qrCodeUrl = `${QR_CODE_API}/?size=200x200&format=png&data=${encodeURIComponent(trackingUrl)}`;
 
     // Sauvegarder
-    const ref = await db.collection('organizations').doc(orgId)
+    const ref = await getDb().collection('organizations').doc(orgId)
       .collection('postalTracking').add({
         code,
         prospectId,
@@ -69,7 +69,7 @@ export async function createTrackingCode(orgId, prospectId, mailType) {
 export async function createPURL(orgId, prospectId, template = 'default') {
   try {
     // Recuperer prospect pour personnalisation
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -112,7 +112,7 @@ export async function createPURL(orgId, prospectId, template = 'default') {
     destinationUrl = `${destinationUrl}${destinationUrl.includes('?') ? '&' : '?'}${utmParams}`;
 
     // Sauvegarder
-    const ref = await db.collection('organizations').doc(orgId)
+    const ref = await getDb().collection('organizations').doc(orgId)
       .collection('postalPURLs').add({
         slug,
         prospectId,
@@ -188,11 +188,11 @@ export const postalTrackingWebhook = onRequest(
 async function findTrackingByCode(code) {
   try {
     // Chercher dans postalTracking (QR codes)
-    const orgsSnap = await db.collection('organizations').get();
+    const orgsSnap = await getDb().collection('organizations').get();
 
     for (const orgDoc of orgsSnap.docs) {
       // Chercher dans tracking codes
-      const trackingSnap = await db.collection('organizations').doc(orgDoc.id)
+      const trackingSnap = await getDb().collection('organizations').doc(orgDoc.id)
         .collection('postalTracking')
         .where('code', '==', code)
         .limit(1)
@@ -210,7 +210,7 @@ async function findTrackingByCode(code) {
       }
 
       // Chercher dans PURLs
-      const purlSnap = await db.collection('organizations').doc(orgDoc.id)
+      const purlSnap = await getDb().collection('organizations').doc(orgDoc.id)
         .collection('postalPURLs')
         .where('slug', '==', code)
         .limit(1)
@@ -243,7 +243,7 @@ async function recordScan(orgId, trackingId, type, scanData) {
   try {
     const collection = type === 'qr' ? 'postalTracking' : 'postalPURLs';
 
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection(collection).doc(trackingId)
       .update({
         [`${type === 'qr' ? 'scans' : 'visits'}`]: FieldValue.arrayUnion(scanData),
@@ -252,7 +252,7 @@ async function recordScan(orgId, trackingId, type, scanData) {
       });
 
     // Recuperer prospectId pour mise a jour
-    const docSnap = await db.collection('organizations').doc(orgId)
+    const docSnap = await getDb().collection('organizations').doc(orgId)
       .collection(collection).doc(trackingId).get();
 
     if (docSnap.exists) {
@@ -260,7 +260,7 @@ async function recordScan(orgId, trackingId, type, scanData) {
 
       if (data.prospectId) {
         // Mettre a jour prospect
-        await db.collection('organizations').doc(orgId)
+        await getDb().collection('organizations').doc(orgId)
           .collection('prospects').doc(data.prospectId)
           .update({
             'channels.postal.lastScanAt': FieldValue.serverTimestamp(),
@@ -269,7 +269,7 @@ async function recordScan(orgId, trackingId, type, scanData) {
           });
 
         // Logger interaction
-        await db.collection('organizations').doc(orgId)
+        await getDb().collection('organizations').doc(orgId)
           .collection('interactions').add({
             type: type === 'qr' ? 'postal_qr_scan' : 'postal_purl_visit',
             channel: 'postal',
@@ -296,14 +296,14 @@ async function recordScan(orgId, trackingId, type, scanData) {
 export async function recordConversion(orgId, prospectId, conversionType, value = null) {
   try {
     // Trouver le tracking/PURL associe
-    const trackingSnap = await db.collection('organizations').doc(orgId)
+    const trackingSnap = await getDb().collection('organizations').doc(orgId)
       .collection('postalTracking')
       .where('prospectId', '==', prospectId)
       .orderBy('createdAt', 'desc')
       .limit(1)
       .get();
 
-    const purlSnap = await db.collection('organizations').doc(orgId)
+    const purlSnap = await getDb().collection('organizations').doc(orgId)
       .collection('postalPURLs')
       .where('prospectId', '==', prospectId)
       .orderBy('createdAt', 'desc')
@@ -317,7 +317,7 @@ export async function recordConversion(orgId, prospectId, conversionType, value 
     };
 
     if (!trackingSnap.empty) {
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('postalTracking').doc(trackingSnap.docs[0].id)
         .update({
           conversions: FieldValue.arrayUnion(conversionData),
@@ -327,7 +327,7 @@ export async function recordConversion(orgId, prospectId, conversionType, value 
     }
 
     if (!purlSnap.empty) {
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('postalPURLs').doc(purlSnap.docs[0].id)
         .update({
           conversions: FieldValue.arrayUnion(conversionData),
@@ -419,7 +419,7 @@ export const postalDeliveryWebhook = onRequest(
 async function handleDelivery(orgId, prospectId, mailId, data) {
   try {
     // Mettre a jour interaction
-    const interactionsSnap = await db.collection('organizations').doc(orgId)
+    const interactionsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('mailId', '==', mailId)
       .limit(1)
@@ -434,7 +434,7 @@ async function handleDelivery(orgId, prospectId, mailId, data) {
 
     // Mettre a jour prospect
     if (prospectId) {
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           'channels.postal.lastDelivered': FieldValue.serverTimestamp(),
@@ -456,7 +456,7 @@ async function handleDelivery(orgId, prospectId, mailId, data) {
 async function handleReturn(orgId, prospectId, mailId, data) {
   try {
     // Mettre a jour interaction
-    const interactionsSnap = await db.collection('organizations').doc(orgId)
+    const interactionsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('mailId', '==', mailId)
       .limit(1)
@@ -472,7 +472,7 @@ async function handleReturn(orgId, prospectId, mailId, data) {
 
     // Marquer adresse comme non delivrable
     if (prospectId) {
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           'channels.postal.deliverable': false,
@@ -494,7 +494,7 @@ async function handleReturn(orgId, prospectId, mailId, data) {
 // ============================================
 async function updateMailStatus(orgId, mailId, status, data = {}) {
   try {
-    const interactionsSnap = await db.collection('organizations').doc(orgId)
+    const interactionsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('mailId', '==', mailId)
       .limit(1)
@@ -530,7 +530,7 @@ export async function getTrackingStats(orgId, days = 30) {
     startDate.setDate(startDate.getDate() - days);
 
     // QR scans
-    const trackingSnap = await db.collection('organizations').doc(orgId)
+    const trackingSnap = await getDb().collection('organizations').doc(orgId)
       .collection('postalTracking')
       .where('createdAt', '>=', startDate)
       .get();
@@ -547,7 +547,7 @@ export async function getTrackingStats(orgId, days = 30) {
     });
 
     // PURLs
-    const purlSnap = await db.collection('organizations').doc(orgId)
+    const purlSnap = await getDb().collection('organizations').doc(orgId)
       .collection('postalPURLs')
       .where('createdAt', '>=', startDate)
       .get();
@@ -564,7 +564,7 @@ export async function getTrackingStats(orgId, days = 30) {
     });
 
     // Courriers
-    const mailSnap = await db.collection('organizations').doc(orgId)
+    const mailSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('channel', '==', 'postal')
       .where('direction', '==', 'out')
@@ -642,7 +642,7 @@ function generateShortCode() {
 
 async function getOrgDefaultUrl(orgId) {
   try {
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     if (orgSnap.exists) {
       return orgSnap.data().postalConfig?.defaultUrl || 'https://facemediafactory.com';
@@ -653,7 +653,7 @@ async function getOrgDefaultUrl(orgId) {
 
 async function getOrgCalendlyUrl(orgId) {
   try {
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     if (orgSnap.exists) {
       return orgSnap.data().postalConfig?.calendlyUrl || await getOrgDefaultUrl(orgId);
@@ -664,7 +664,7 @@ async function getOrgCalendlyUrl(orgId) {
 
 async function getOrgLandingUrl(orgId) {
   try {
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     if (orgSnap.exists) {
       return orgSnap.data().postalConfig?.landingUrl || await getOrgDefaultUrl(orgId);
@@ -675,7 +675,7 @@ async function getOrgLandingUrl(orgId) {
 
 async function getOrgOfferUrl(orgId) {
   try {
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     if (orgSnap.exists) {
       return orgSnap.data().postalConfig?.offerUrl || await getOrgDefaultUrl(orgId);
@@ -688,7 +688,7 @@ async function updatePostalAnalytics(orgId, metric) {
   const today = new Date().toISOString().split('T')[0];
 
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('channelAnalytics').doc(today)
       .set({
         date: today,

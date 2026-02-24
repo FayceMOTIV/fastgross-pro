@@ -1,30 +1,30 @@
 {
-  "timestamp": "2026-02-19T08:27:58.965Z",
+  "timestamp": "2026-02-20T16:14:19.936Z",
   "results": [
     {
       "name": "Groq",
       "model": "llama-3.3-70b-versatile",
       "status": "ONLINE",
-      "latency": 721,
-      "contentLength": 546,
-      "preview": "Bonjour Julien, je suis ravi de découvrir le charmant univers de Le Petit Bistro ! Je suis spécialisé dans la création de vidéos courtes pour les rése...",
+      "latency": 769,
+      "contentLength": 466,
+      "preview": "Bonjour l'équipe du Petit Bistro, \nj'ai découvert votre charmant restaurant bistronomique à Paris et j'ai été impressionné par vos créations culinaire...",
       "error": null
     },
     {
       "name": "OpenRouter",
-      "model": "nvidia/nemotron-nano-9b-v2:free",
+      "model": "nvidia/nemotron-3-nano-30b-a3b:free",
       "status": "ONLINE",
-      "latency": 7966,
-      "contentLength": 340,
-      "preview": "Bonjour Chef Julien, votre bistro à Paris 11e avec produits frais et terrasseippet a un potentiel narratif pour Instagram/TikTok. Des vidéos courtes p...",
+      "latency": 5688,
+      "contentLength": 458,
+      "preview": "Bonjour Julien, je suis admiratif du concept du Petit Bistro – votre cuisine fraîche du marché et votre terrasse sont vraiment attractifs. J’aimerais ...",
       "error": null
     },
     {
       "name": "Gemini",
       "model": "gemini-2.0-flash",
       "status": "OFFLINE",
-      "latency": 155,
-      "error": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 950.525893ms."
+      "latency": 395,
+      "error": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\nPlease retry in 40.12392316s."
     }
   ],
   "online": 2,

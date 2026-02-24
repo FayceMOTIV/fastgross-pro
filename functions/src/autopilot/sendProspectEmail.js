@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import nodemailer from 'nodemailer'
 import { google } from 'googleapis'
+import * as crypto from 'crypto'
 
 const getDb = () => getFirestore()
 
@@ -32,11 +33,32 @@ function getEffectiveLimit(account) {
 }
 
 /**
- * Dechiffrer les credentials (simple base64 pour l'exemple)
- * En production, utiliser Cloud KMS ou Secret Manager
+ * Cle de chiffrement pour les credentials email (32 chars pour AES-256)
+ */
+const EMAIL_ENCRYPTION_KEY = process.env.EMAIL_ENCRYPTION_KEY
+if (!EMAIL_ENCRYPTION_KEY) {
+  console.error('CRITICAL: EMAIL_ENCRYPTION_KEY env var is not set')
+}
+
+/**
+ * Dechiffrer les credentials avec AES-256-CBC
+ * Supporte aussi le fallback base64 pour migration des anciennes donnees
  */
 function decryptCredentials(encrypted) {
   try {
+    // Format AES: iv_hex:encrypted_hex
+    if (typeof encrypted === 'string' && encrypted.includes(':') && EMAIL_ENCRYPTION_KEY) {
+      const parts = encrypted.split(':')
+      const iv = Buffer.from(parts[0], 'hex')
+      const encryptedText = parts[1]
+      const key = Buffer.from(EMAIL_ENCRYPTION_KEY.padEnd(32).slice(0, 32))
+      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv)
+      let decrypted = decipher.update(encryptedText, 'hex', 'utf8')
+      decrypted += decipher.final('utf8')
+      return JSON.parse(decrypted)
+    }
+
+    // Fallback base64 (donnees legacy)
     const decoded = Buffer.from(encrypted, 'base64').toString('utf-8')
     return JSON.parse(decoded)
   } catch {
@@ -45,17 +67,32 @@ function decryptCredentials(encrypted) {
 }
 
 /**
- * Chiffrer les credentials
+ * Chiffrer les credentials avec AES-256-CBC
  */
 export function encryptCredentials(credentials) {
   const json = JSON.stringify(credentials)
-  return Buffer.from(json).toString('base64')
+
+  if (!EMAIL_ENCRYPTION_KEY) {
+    console.warn('EMAIL_ENCRYPTION_KEY not set, falling back to base64')
+    return Buffer.from(json).toString('base64')
+  }
+
+  const iv = crypto.randomBytes(16)
+  const key = Buffer.from(EMAIL_ENCRYPTION_KEY.padEnd(32).slice(0, 32))
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
+  let encrypted = cipher.update(json, 'utf8', 'hex')
+  encrypted += cipher.final('hex')
+  return iv.toString('hex') + ':' + encrypted
 }
 
 /**
  * Envoyer via Gmail API (OAuth2)
  */
 async function sendViaGmailAPI(emailData, credentials) {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    throw new Error('GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET requis pour Gmail OAuth')
+  }
+
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET
@@ -98,6 +135,10 @@ async function sendViaGmailAPI(emailData, credentials) {
  * Envoyer via Microsoft Graph API (OAuth2)
  */
 async function sendViaMSGraph(emailData, credentials) {
+  if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {
+    throw new Error('MICROSOFT_CLIENT_ID et MICROSOFT_CLIENT_SECRET requis pour Outlook OAuth')
+  }
+
   const tokenEndpoint = `https://login.microsoftonline.com/common/oauth2/v2.0/token`
 
   // Rafraichir le token

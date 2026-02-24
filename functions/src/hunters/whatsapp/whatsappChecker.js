@@ -143,14 +143,19 @@ async function checkWhatsAppNumber(phone) {
   }
 
   try {
-    // Clean phone number (remove + and spaces)
+    // Clean phone number (remove + and spaces), add WhatsApp suffix
     const cleanPhone = phone.replace(/[^\d]/g, '')
 
-    const response = await axios.get(
-      `${EVOLUTION_API_URL}/chat/whatsappNumbers/${EVOLUTION_INSTANCE_NAME}`,
+    const response = await axios.post(
+      `${EVOLUTION_API_URL}/chat/checkIsWhatsApp/${EVOLUTION_INSTANCE_NAME}`,
       {
-        headers: { apikey: EVOLUTION_API_KEY },
-        params: { numbers: [cleanPhone] },
+        numbers: [`${cleanPhone}@s.whatsapp.net`]
+      },
+      {
+        headers: {
+          'apikey': EVOLUTION_API_KEY,
+          'Content-Type': 'application/json'
+        },
         timeout: 10000,
       }
     )

@@ -1,5 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { collection, query, onSnapshot, doc, updateDoc, orderBy } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import {
   Play,
   Pause,
@@ -20,6 +25,8 @@ import {
   Zap,
   Filter,
   Search,
+  Loader2,
+  Wand2,
 } from 'lucide-react'
 
 // Mock campaigns data
@@ -253,20 +260,67 @@ function UpcomingSendItem({ send }) {
 }
 
 export default function Campaigns() {
+  const navigate = useNavigate()
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [campaigns, setCampaigns] = useState(mockCampaigns)
+  const [campaigns, setCampaigns] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const handlePauseCampaign = (id) => {
+  useEffect(() => {
+    if (isDemo) {
+      setCampaigns(mockCampaigns)
+      setLoading(false)
+      return
+    }
+    if (!currentOrg?.id) { setLoading(false); return }
+
+    const q = query(collection(db, 'organizations', currentOrg.id, 'campaigns'), orderBy('createdAt', 'desc'))
+    const unsub = onSnapshot(q, (snap) => {
+      const loaded = snap.docs.map((d) => {
+        const data = d.data()
+        return {
+          id: d.id,
+          name: data.name || 'Campagne sans nom',
+          status: data.status || 'active',
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+          channels: data.channels || ['email'],
+          stats: data.stats || { prospects: 0, sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
+          nextSend: data.nextSend || null,
+          progress: data.progress || 0,
+        }
+      })
+      setCampaigns(loaded.length > 0 ? loaded : mockCampaigns)
+      setLoading(false)
+    }, (err) => {
+      console.error('Campaigns listener error:', err)
+      setCampaigns(mockCampaigns)
+      setLoading(false)
+    })
+    return () => unsub()
+  }, [currentOrg?.id, isDemo])
+
+  const handlePauseCampaign = async (id) => {
+    if (!isDemo && currentOrg?.id) {
+      try {
+        await updateDoc(doc(db, 'organizations', currentOrg.id, 'campaigns', id), { status: 'paused', nextSend: null })
+      } catch (err) { console.error(err) }
+    }
     setCampaigns(prev => prev.map(c =>
       c.id === id ? { ...c, status: 'paused', nextSend: null } : c
     ))
     toast.success('Campagne mise en pause')
   }
 
-  const handleResumeCampaign = (id) => {
+  const handleResumeCampaign = async (id) => {
+    if (!isDemo && currentOrg?.id) {
+      try {
+        await updateDoc(doc(db, 'organizations', currentOrg.id, 'campaigns', id), { status: 'active' })
+      } catch (err) { console.error(err) }
+    }
     setCampaigns(prev => prev.map(c =>
-      c.id === id ? { ...c, status: 'active', nextSend: new Date().toISOString() } : c
+      c.id === id ? { ...c, status: 'active' } : c
     ))
     toast.success('Campagne reprise')
   }
@@ -276,7 +330,7 @@ export default function Campaigns() {
   }
 
   const handleNewCampaign = () => {
-    toast('Creation de campagne bientot disponible - utilisez le Forgeur pour generer des sequences')
+    navigate('/app/forgeur')
   }
 
   const filteredCampaigns = campaigns.filter((c) => {
@@ -285,15 +339,23 @@ export default function Campaigns() {
     return matchesSearch && matchesStatus
   })
 
-  const totalStats = mockCampaigns.reduce(
+  const totalStats = campaigns.reduce(
     (acc, c) => ({
-      prospects: acc.prospects + c.stats.prospects,
-      sent: acc.sent + c.stats.sent,
-      opened: acc.opened + c.stats.opened,
-      replied: acc.replied + c.stats.replied,
+      prospects: acc.prospects + (c.stats?.prospects || 0),
+      sent: acc.sent + (c.stats?.sent || 0),
+      opened: acc.opened + (c.stats?.opened || 0),
+      replied: acc.replied + (c.stats?.replied || 0),
     }),
     { prospects: 0, sent: 0, opened: 0, replied: 0 }
   )
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -387,9 +449,16 @@ export default function Campaigns() {
           <div className="space-y-4">
             {filteredCampaigns.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
-                <Send className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <Wand2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune campagne</h3>
-                <p className="text-gray-500">Creez votre premiere campagne pour commencer</p>
+                <p className="text-gray-500 mb-4">Creez votre premiere sequence dans le Forgeur pour lancer une campagne</p>
+                <button
+                  onClick={() => navigate('/app/forgeur')}
+                  className="px-6 py-3 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors inline-flex items-center gap-2"
+                >
+                  <Wand2 className="w-4 h-4" />
+                  Aller au Forgeur
+                </button>
               </div>
             ) : (
               filteredCampaigns.map((campaign) => (

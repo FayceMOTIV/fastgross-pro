@@ -65,7 +65,7 @@ export async function selectOptimalChannel(orgId, prospectId, options = {}) {
 
   try {
     // 1. Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -77,7 +77,7 @@ export async function selectOptimalChannel(orgId, prospectId, options = {}) {
     const prospect = prospectSnap.data();
 
     // 2. Recuperer organisation et forfait
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     const org = orgSnap.exists ? orgSnap.data() : {};
     const plan = org.plan || 'starter';
@@ -228,7 +228,7 @@ export async function selectChannelsForSequence(orgId, prospectId, sequenceConfi
 
   try {
     // Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -311,7 +311,7 @@ export async function recommendChannelStrategy(orgId, prospectId) {
 
   try {
     // Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -421,7 +421,7 @@ export async function getChannelPerformanceStats(orgId, days = 30) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const interactionsSnap = await db.collection('organizations').doc(orgId)
+    const interactionsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('createdAt', '>=', startDate)
       .get();

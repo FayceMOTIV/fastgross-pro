@@ -41,6 +41,10 @@ export const enrichEmail = onCall(
     memory: '256MiB'
   },
   async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required')
+    }
+
     try {
       const { email } = request.data
 
@@ -99,6 +103,10 @@ export const enrichEmailsBatch = onCall(
     memory: '512MiB'
   },
   async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required')
+    }
+
     try {
       const { emails, concurrency = 3, continueOnError = true } = request.data
 
@@ -148,7 +156,11 @@ export const getEnrichmentStatus = onCall(
   {
     region: 'europe-west1'
   },
-  async () => {
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required')
+    }
+
     try {
       const waterfall = getEmailWaterfall()
       const statuses = waterfall.getAllStatus()

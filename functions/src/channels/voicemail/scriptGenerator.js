@@ -78,7 +78,7 @@ export async function generateScript(orgId, templateId, prospect, customVariable
     let template;
 
     // Chercher dans les templates custom
-    const customRef = db.collection('organizations').doc(orgId)
+    const customRef = getDb().collection('organizations').doc(orgId)
       .collection('voicemailScripts').doc(templateId);
     const customSnap = await customRef.get();
 
@@ -91,7 +91,7 @@ export async function generateScript(orgId, templateId, prospect, customVariable
     }
 
     // 2. Recuperer les infos de l'organisation
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     const org = orgSnap.exists ? orgSnap.data() : {};
 
@@ -117,7 +117,8 @@ export async function generateScript(orgId, templateId, prospect, customVariable
     // 4. Remplacer les variables
     let script = template.template;
     for (const [key, value] of Object.entries(variables)) {
-      script = script.replace(new RegExp(`\\{${key}\\}`, 'gi'), value);
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      script = script.replace(new RegExp(`\\{${escapedKey}\\}`, 'gi'), value);
     }
 
     // 5. Verifier la longueur
@@ -227,7 +228,7 @@ export async function createScriptTemplate(orgId, templateData) {
     const variables = (template.match(/\{(\w+)\}/g) || [])
       .map(v => v.replace(/[{}]/g, ''));
 
-    const ref = await db.collection('organizations').doc(orgId)
+    const ref = await getDb().collection('organizations').doc(orgId)
       .collection('voicemailScripts').add({
         name,
         template,
@@ -256,7 +257,7 @@ export async function createScriptTemplate(orgId, templateData) {
 // ============================================
 export async function listScriptTemplates(orgId, category = null) {
   try {
-    let query = db.collection('organizations').doc(orgId)
+    let query = getDb().collection('organizations').doc(orgId)
       .collection('voicemailScripts');
 
     if (category) {
@@ -302,7 +303,8 @@ export function previewScript(template, prospect, customVariables = {}) {
 
   let preview = template;
   for (const [key, value] of Object.entries(variables)) {
-    preview = preview.replace(new RegExp(`\\{${key}\\}`, 'gi'), value);
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    preview = preview.replace(new RegExp(`\\{${escapedKey}\\}`, 'gi'), value);
   }
 
   const wordCount = preview.split(/\s+/).length;

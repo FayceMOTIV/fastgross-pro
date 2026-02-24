@@ -40,7 +40,7 @@ export async function checkWhatsAppCompliance(orgId, prospectId) {
 
   try {
     // 1. Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -201,7 +201,7 @@ export async function processInboundWhatsApp(orgId, prospectId, message, message
 // ============================================
 export async function handleProspectBlocked(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -225,7 +225,7 @@ export async function handleProspectBlocked(orgId, prospectId) {
 // ============================================
 export async function handleSpamReport(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -263,7 +263,7 @@ export async function checkAccountQuality(orgId) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const interactionsRef = db.collection('organizations').doc(orgId)
+    const interactionsRef = getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('channel', '==', 'whatsapp')
       .where('createdAt', '>=', thirtyDaysAgo);
@@ -325,7 +325,7 @@ export async function checkAccountQuality(orgId) {
 // ============================================
 async function logWhatsAppEvent(orgId, prospectId, eventType, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         type: `whatsapp_${eventType}`,
         channel: 'whatsapp',
@@ -340,7 +340,7 @@ async function logWhatsAppEvent(orgId, prospectId, eventType, data) {
 
 async function logWhatsAppReply(orgId, prospectId, text, messageId, isPositive) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         type: 'whatsapp_reply',
         channel: 'whatsapp',
@@ -353,7 +353,7 @@ async function logWhatsAppReply(orgId, prospectId, text, messageId, isPositive) 
       });
 
     // Mettre a jour le prospect
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         status: isPositive ? 'replied_positive' : 'replied',
@@ -368,7 +368,7 @@ async function logWhatsAppReply(orgId, prospectId, text, messageId, isPositive) 
 
 async function alertTeam(orgId, alertType, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('alerts').add({
         type: alertType,
         data,

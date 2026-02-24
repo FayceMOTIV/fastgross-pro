@@ -27,7 +27,7 @@ export async function isInSessionWindow(orgId, prospectId) {
   };
 
   try {
-    const sessionRef = db.collection('organizations').doc(orgId)
+    const sessionRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions').doc(prospectId);
     const sessionSnap = await sessionRef.get();
 
@@ -63,7 +63,7 @@ export async function isInSessionWindow(orgId, prospectId) {
 // ============================================
 export async function createSession(orgId, prospectId, phoneNumber) {
   try {
-    const sessionRef = db.collection('organizations').doc(orgId)
+    const sessionRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions').doc(prospectId);
 
     await sessionRef.set({
@@ -92,7 +92,7 @@ export async function createSession(orgId, prospectId, phoneNumber) {
 // ============================================
 export async function updateSessionInbound(orgId, prospectId) {
   try {
-    const sessionRef = db.collection('organizations').doc(orgId)
+    const sessionRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions').doc(prospectId);
 
     await sessionRef.set({
@@ -114,7 +114,7 @@ export async function updateSessionInbound(orgId, prospectId) {
 // ============================================
 export async function updateSessionOutbound(orgId, prospectId) {
   try {
-    const sessionRef = db.collection('organizations').doc(orgId)
+    const sessionRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions').doc(prospectId);
 
     await sessionRef.set({
@@ -142,7 +142,7 @@ export async function getSessionStatus(orgId, prospectId) {
   };
 
   try {
-    const sessionRef = db.collection('organizations').doc(orgId)
+    const sessionRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions').doc(prospectId);
     const sessionSnap = await sessionRef.get();
 
@@ -181,7 +181,7 @@ export async function getSessionStatus(orgId, prospectId) {
 // ============================================
 export async function closeSession(orgId, prospectId, reason = 'manual') {
   try {
-    const sessionRef = db.collection('organizations').doc(orgId)
+    const sessionRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions').doc(prospectId);
 
     await sessionRef.update({
@@ -209,7 +209,7 @@ export async function cleanupExpiredSessions(orgId) {
   };
 
   try {
-    const sessionsRef = db.collection('organizations').doc(orgId)
+    const sessionsRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappSessions');
 
     const expiredThreshold = Timestamp.fromMillis(Date.now() - SESSION_DURATION_MS);

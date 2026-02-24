@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Mail,
   Zap,
@@ -13,9 +13,15 @@ import {
   ToggleRight,
 } from 'lucide-react'
 import { CHANNEL_STYLES } from '@/engine/multiChannelEngine'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import toast from 'react-hot-toast'
 
 export default function ChannelsSettings({ saving, setSaving }) {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [smsEnabled, setSmsEnabled] = useState(true)
   const [smsPhone, setSmsPhone] = useState('')
   const [instagramEnabled, setInstagramEnabled] = useState(true)
@@ -27,9 +33,36 @@ export default function ChannelsSettings({ saving, setSaving }) {
   const [courrierMonthlyBudget, setCourrierMonthlyBudget] = useState(50)
   const [courrierAddress, setCourrierAddress] = useState('')
 
+  useEffect(() => {
+    if (!currentOrg?.id || isDemo) return
+    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'channels')).then((snap) => {
+      if (snap.exists()) {
+        const d = snap.data()
+        if (d.smsEnabled !== undefined) setSmsEnabled(d.smsEnabled)
+        if (d.smsPhone !== undefined) setSmsPhone(d.smsPhone)
+        if (d.instagramEnabled !== undefined) setInstagramEnabled(d.instagramEnabled)
+        if (d.instagramHandle !== undefined) setInstagramHandle(d.instagramHandle)
+        if (d.voicemailEnabled !== undefined) setVoicemailEnabled(d.voicemailEnabled)
+        if (d.voicemailMethod !== undefined) setVoicemailMethod(d.voicemailMethod)
+        if (d.voicemailVoice !== undefined) setVoicemailVoice(d.voicemailVoice)
+        if (d.courrierEnabled !== undefined) setCourrierEnabled(d.courrierEnabled)
+        if (d.courrierMonthlyBudget !== undefined) setCourrierMonthlyBudget(d.courrierMonthlyBudget)
+        if (d.courrierAddress !== undefined) setCourrierAddress(d.courrierAddress)
+      }
+    }).catch(() => {})
+  }, [currentOrg?.id])
+
   const handleSave = async () => {
     setSaving(true)
     try {
+      if (currentOrg?.id && !isDemo) {
+        await setDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'channels'), {
+          smsEnabled, smsPhone, instagramEnabled, instagramHandle,
+          voicemailEnabled, voicemailMethod, voicemailVoice,
+          courrierEnabled, courrierMonthlyBudget, courrierAddress,
+          updatedAt: new Date()
+        }, { merge: true })
+      }
       toast.success('Configuration des canaux sauvegardee')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')

@@ -565,14 +565,16 @@ export default function Scanner() {
           result = response.data
         } catch (funcError) {
           console.warn('Cloud Function not available, using mock:', funcError)
-          // Fall back to mock if Cloud Function fails
           await new Promise((resolve) => setTimeout(resolve, 1500))
           result = generateMockScan(validUrl)
+          result._isDemo = true
+          toast('Apercu avec donnees d\'exemple', { icon: '💡' })
         }
       } else {
         // Demo mode: use mock data
         await new Promise((resolve) => setTimeout(resolve, 2000))
         result = generateMockScan(validUrl)
+        result._isDemo = true
       }
 
       setScanResult(result)

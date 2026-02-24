@@ -22,7 +22,12 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import { CHANNELS, isChannelAvailable } from '@/services/plans'
+import { collection, query, getDocs, addDoc, serverTimestamp, orderBy, limit } from 'firebase/firestore'
+import { httpsCallable } from 'firebase/functions'
+import { db, functions } from '@/lib/firebase'
 
 // Mock prospects for demo with phone numbers for all channels
 const mockProspects = [
@@ -249,6 +254,8 @@ function SequenceStep({ step, onEdit, onRegenerate }) {
 
 export default function Forgeur() {
   const { user, userProfile } = useAuth()
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [selectedProspect, setSelectedProspect] = useState(null)
   const [selectedChannels, setSelectedChannels] = useState(['email'])
   const [selectedObjective, setSelectedObjective] = useState('rdv')
@@ -256,9 +263,37 @@ export default function Forgeur() {
   const [stepCount, setStepCount] = useState(4)
   const [isGenerating, setIsGenerating] = useState(false)
   const [sequence, setSequence] = useState([])
+  const [prospects, setProspects] = useState(mockProspects)
+  const [savingSequence, setSavingSequence] = useState(false)
 
   // Get actual user plan from profile, fallback to starter
   const currentPlan = userProfile?.plan || userProfile?.onboardingData?.selectedPlan || 'starter'
+
+  useEffect(() => {
+    if (isDemo || !currentOrg?.id) return
+    const loadProspects = async () => {
+      try {
+        const q = query(collection(db, 'organizations', currentOrg.id, 'prospects'), orderBy('createdAt', 'desc'), limit(20))
+        const snap = await getDocs(q)
+        if (snap.empty) return
+        const loaded = snap.docs.map((d) => {
+          const data = d.data()
+          return {
+            id: d.id,
+            name: data.name || data.contactName || 'Inconnu',
+            company: data.company || data.companyName || '',
+            email: data.email || '',
+            phone: data.phone || null,
+            industry: data.industry || data.sector || '',
+          }
+        })
+        setProspects(loaded)
+      } catch (err) {
+        console.error('Forgeur: failed to load prospects', err)
+      }
+    }
+    loadProspects()
+  }, [currentOrg?.id, isDemo])
 
   const toggleChannel = (channelId) => {
     if (!isChannelAvailable(currentPlan, channelId)) {
@@ -290,9 +325,35 @@ export default function Forgeur() {
     setSequence([])
 
     try {
-      // Simulate AI generation
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      if (!isDemo) {
+        try {
+          const generateSequence = httpsCallable(functions, 'generateSequence')
+          const result = await generateSequence({
+            orgId: currentOrg?.id,
+            prospect: selectedProspect,
+            channels: selectedChannels,
+            objective: selectedObjective,
+            tone: selectedTone,
+            steps: stepCount,
+          })
+          if (result.data?.sequence?.length > 0) {
+            const mapped = result.data.sequence.map((s, i) => ({
+              ...s,
+              step: i + 1,
+              channelInfo: CHANNELS[s.channel] || CHANNELS.email,
+            }))
+            setSequence(mapped)
+            toast.success('Sequence generee par l\'IA')
+            return
+          }
+        } catch (err) {
+          console.warn('Cloud Function fallback:', err.message)
+          toast('Generation locale (mode hors-ligne)', { icon: '⚡' })
+        }
+      }
 
+      // Fallback to mock generation
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       const newSequence = generateMockSequence(
         selectedProspect,
         selectedChannels,
@@ -300,9 +361,8 @@ export default function Forgeur() {
         selectedTone,
         stepCount
       )
-
       setSequence(newSequence)
-      toast.success('Sequence generee avec succes !')
+      toast.success('Sequence generee')
     } catch (error) {
       console.error('Error generating sequence:', error)
       toast.error('Erreur lors de la generation')
@@ -321,8 +381,49 @@ export default function Forgeur() {
     // In production, this would call the AI API
   }
 
-  const handleActivateSequence = () => {
-    toast.success('Sequence activee ! Les messages seront envoyes automatiquement.')
+  const handleSaveSequence = async () => {
+    if (isDemo || !currentOrg?.id) { toast.success('Sauvegarde simulee en mode demo'); return }
+    setSavingSequence(true)
+    try {
+      await addDoc(collection(db, 'organizations', currentOrg.id, 'sequences'), {
+        prospect: selectedProspect,
+        channels: selectedChannels,
+        objective: selectedObjective,
+        tone: selectedTone,
+        steps: sequence,
+        status: 'draft',
+        createdAt: serverTimestamp(),
+        createdBy: user?.uid,
+      })
+      toast.success('Sequence sauvegardee')
+    } catch (err) {
+      console.error('Save error:', err)
+      toast.error('Erreur lors de la sauvegarde')
+    } finally {
+      setSavingSequence(false)
+    }
+  }
+
+  const handleActivateSequence = async () => {
+    if (isDemo || !currentOrg?.id) { toast.success('Sequence activee en mode demo'); return }
+    try {
+      await addDoc(collection(db, 'organizations', currentOrg.id, 'campaigns'), {
+        name: `Sequence - ${selectedProspect?.name}`,
+        prospect: selectedProspect,
+        channels: selectedChannels,
+        objective: selectedObjective,
+        tone: selectedTone,
+        steps: sequence,
+        status: 'active',
+        stats: { prospects: 1, sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
+        createdAt: serverTimestamp(),
+        createdBy: user?.uid,
+      })
+      toast.success('Sequence activee ! Les messages seront envoyes automatiquement.')
+    } catch (err) {
+      console.error('Activate error:', err)
+      toast.error('Erreur lors de l\'activation')
+    }
   }
 
   return (
@@ -343,7 +444,7 @@ export default function Forgeur() {
               Prospect
             </h3>
             <div className="space-y-2">
-              {mockProspects.map((prospect) => (
+              {prospects.map((prospect) => (
                 <button
                   key={prospect.id}
                   onClick={() => setSelectedProspect(prospect)}
@@ -491,13 +592,23 @@ export default function Forgeur() {
                   </h2>
                   <p className="text-sm text-gray-500">{sequence.length} etapes sur {selectedChannels.length} canal(aux)</p>
                 </div>
-                <button
-                  onClick={handleActivateSequence}
-                  className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
-                >
-                  <Play className="w-5 h-5" />
-                  Activer
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSaveSequence}
+                    disabled={savingSequence}
+                    className="flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    {savingSequence ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Sauvegarder
+                  </button>
+                  <button
+                    onClick={handleActivateSequence}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
+                  >
+                    <Play className="w-5 h-5" />
+                    Activer
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-8">

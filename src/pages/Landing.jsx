@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
+import { getAllPlans } from '@/services/plans'
 import {
   Zap,
   ArrowRight,
@@ -133,45 +134,15 @@ const steps = [
   },
 ]
 
-// Pricing data
-const plans = [
-  {
-    name: 'Bootstrap',
-    price: 33,
-    desc: 'Pour demarrer',
-    features: ['200 emails/mois', '2 canaux actifs', '1 sequence', 'Support email'],
-    cta: 'Commencer',
-    popular: false,
-  },
-  {
-    name: 'Growth',
-    price: 50,
-    desc: 'Le plus populaire',
-    features: [
-      '1 000 emails/mois',
-      '6 canaux actifs',
-      '5 sequences',
-      'Multi-contact entreprise',
-      'Support prioritaire',
-    ],
-    cta: 'Essai gratuit 14j',
-    popular: true,
-  },
-  {
-    name: 'Scale',
-    price: 73,
-    desc: 'Pour les pros',
-    features: [
-      '5 000 emails/mois',
-      '6 canaux actifs',
-      'Sequences illimitees',
-      'API access',
-      'Account manager',
-    ],
-    cta: 'Nous contacter',
-    popular: false,
-  },
-]
+// Pricing data - loaded from plans.js (source of truth)
+const plans = getAllPlans().map((p) => ({
+  name: p.name,
+  price: p.priceMonthly,
+  desc: p.description,
+  features: p.features.slice(0, 6),
+  cta: p.popular ? 'Essai gratuit 14j' : p.id === 'enterprise' ? 'Nous contacter' : 'Commencer',
+  popular: p.popular,
+}))
 
 // Testimonials data
 const testimonials = [
@@ -777,9 +748,8 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold text-text mb-4">Ressources</h4>
               <ul className="space-y-2 text-sm text-text-secondary">
-                <li><a href="#" className="hover:text-accent">Blog</a></li>
-                <li><a href="#" className="hover:text-accent">Documentation</a></li>
-                <li><a href="#" className="hover:text-accent">Support</a></li>
+                <li><a href="mailto:support@facemediafactory.com" className="hover:text-accent">Support</a></li>
+                <li><Link to="/signup" className="hover:text-accent">Essai gratuit</Link></li>
               </ul>
             </div>
 

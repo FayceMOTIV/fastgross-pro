@@ -1,0 +1,244 @@
+{
+  "runAt": "2026-02-21T10:25:34.576Z",
+  "orgId": "IGtZSfpd8eyoIzn6W0ba",
+  "config": {
+    "enabled": true,
+    "keywords": [
+      "agence marketing Paris",
+      "restaurant Lyon",
+      "coiffeur Bordeaux"
+    ],
+    "location": "France",
+    "sector": "video et marketing digital",
+    "emailsPerDay": 10,
+    "pauseWeekends": false,
+    "senderName": "Faical Kriouar",
+    "maxProspectsPerRun": 10
+  },
+  "stats": {
+    "found": 27,
+    "scraped": 16,
+    "scored": 16,
+    "ready": 10,
+    "sent": 0
+  },
+  "prospects": [
+    {
+      "name": "Les 10 meilleures agences de marketing à Paris",
+      "domain": "sortlist.fr",
+      "url": "https://www.sortlist.fr/l/paris-fr"
+    },
+    {
+      "name": "Agence marketing Paris",
+      "domain": "o-communication.com",
+      "url": "https://www.o-communication.com/agence-de-communication/agence-de-communication-paris/agence-marketing-paris-2/"
+    },
+    {
+      "name": "Agence marketing à Paris 75007, France",
+      "domain": "fr.mappy.com",
+      "url": "https://fr.mappy.com/activite/marketing-agences/75007-paris"
+    },
+    {
+      "name": "TOP 10 des meilleures agences marketing digital à Paris",
+      "domain": "agence404.com",
+      "url": "https://agence404.com/marketing/agence-marketing-digital-paris/"
+    },
+    {
+      "name": "Contactez nous",
+      "domain": "agency.visionarymarketing.com",
+      "url": "https://agency.visionarymarketing.com/fr/contactez-nous/"
+    },
+    {
+      "name": "Agence Marketing Paris",
+      "domain": "yumensbtob.fr",
+      "url": "https://www.yumensbtob.fr/agences/paris/"
+    },
+    {
+      "name": "Agence street marketing à Paris",
+      "domain": "veymont.com",
+      "url": "https://www.veymont.com/veymont/nos-agences/agence-street-marketing-a-paris/"
+    },
+    {
+      "name": "3 Meilleures Agences De Marketing à Paris, France",
+      "domain": "threebestrated.fr",
+      "url": "https://threebestrated.fr/fr-agences-de-marketing-en-paris"
+    },
+    {
+      "name": "Agence de communication globale à Paris",
+      "domain": "mediaction.com",
+      "url": "https://www.mediaction.com/fr/contact.php"
+    },
+    {
+      "name": "Léon de Lyon",
+      "domain": "leon-de-lyon.com",
+      "url": "https://www.leon-de-lyon.com/"
+    },
+    {
+      "name": "Le Poêlon d'Or",
+      "domain": "lepoelondor-restaurant.fr",
+      "url": "https://www.lepoelondor-restaurant.fr/"
+    },
+    {
+      "name": "Tous les restaurants",
+      "domain": "visiterlyon.com",
+      "url": "https://www.visiterlyon.com/se-regaler/restaurants-et-gastronomie/tous-les-restaurants"
+    },
+    {
+      "name": "Restaurant Bulle : restaurant du chef étoilé Guy Lassausaie ...",
+      "domain": "bullerestaurantfourviere.fr",
+      "url": "https://www.bullerestaurantfourviere.fr/"
+    },
+    {
+      "name": "Brasserie Georges – Bonne Bière et Bonne Chère à Lyon ...",
+      "domain": "brasseriegeorges.com",
+      "url": "https://www.brasseriegeorges.com/"
+    },
+    {
+      "name": "Tous les restaurants",
+      "domain": "traveltrade.lyon-france.com",
+      "url": "https://traveltrade.lyon-france.com/decouvrir-lyon/restaurants/Tous-les-restaurants"
+    },
+    {
+      "name": "Roliko",
+      "domain": "roliko.fr",
+      "url": "https://www.roliko.fr/"
+    },
+    {
+      "name": "Restaurant semi",
+      "domain": "mrestaurant.fr",
+      "url": "https://www.mrestaurant.fr/"
+    },
+    {
+      "name": "RESTAURANT LE VIEUX LYON",
+      "domain": "restaurant-le-vieux-lyon.com",
+      "url": "https://restaurant-le-vieux-lyon.com/"
+    },
+    {
+      "name": "Circle Lyon",
+      "domain": "circlelyon.fr",
+      "url": "https://circlelyon.fr/"
+    },
+    {
+      "name": "Les meilleurs coiffeurs à Bordeaux 33000",
+      "domain": "planity.com",
+      "url": "https://www.planity.com/coiffeur/33000-bordeaux"
+    },
+    {
+      "name": "Rémi Poitout Haute Coiffure Française",
+      "domain": "remipoitout.com",
+      "url": "https://www.remipoitout.com/"
+    },
+    {
+      "name": "Salon de Haute Coiffure Dissemblance Bordeaux",
+      "domain": "dissemblancebordeaux.fr",
+      "url": "https://www.dissemblancebordeaux.fr/"
+    },
+    {
+      "name": "Salon de coiffure Le coiffeur de la cour à Bordeaux",
+      "domain": "lecoiffeurdelacour.fr",
+      "url": "https://www.lecoiffeurdelacour.fr/"
+    },
+    {
+      "name": "Guest coiffure Bordeaux",
+      "domain": "guestcoiffure.com",
+      "url": "https://guestcoiffure.com/"
+    },
+    {
+      "name": "Hypnotic Coiffure St Genès coiffeur à Bordeaux",
+      "domain": "hypnoticcoiffure.fr",
+      "url": "https://www.hypnoticcoiffure.fr/access-contact"
+    },
+    {
+      "name": "Coiffeurs et salons de coiffure à Bordeaux",
+      "domain": "treatwell.fr",
+      "url": "https://www.treatwell.fr/salons/soins-groupe-coiffure/offre-type-local/dans-bordeaux-france/"
+    },
+    {
+      "name": "Tchip Coiffure Bordeaux Pey",
+      "domain": "salons.tchip.fr",
+      "url": "https://salons.tchip.fr/38797624993170/salon-coiffure-bordeaux"
+    }
+  ],
+  "generatedEmails": [
+    {
+      "domain": "dissemblancebordeaux.fr",
+      "name": "Salon de Haute Coiffure Dissemblance Bordeaux",
+      "score": 85,
+      "email": "contact@dissemblancebordeaux.fr",
+      "subject": "Salon de Haute Coiffure Dissemblance Bordeaux -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "lecoiffeurdelacour.fr",
+      "name": "Salon de coiffure Le coiffeur de la cour à Bordeaux",
+      "score": 80,
+      "email": "wavy@treatwell.fr",
+      "subject": "Salon de coiffure Le coiffeur de la cour à Bordeaux -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "brasseriegeorges.com",
+      "name": "Brasserie Georges – Bonne Bière et Bonne Chère à Lyon ...",
+      "score": 80,
+      "email": "contact@brasseriegeorges.com",
+      "subject": "Brasserie Georges – Bonne Bière et Bonne Chère à Lyon ... -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "restaurant-le-vieux-lyon.com",
+      "name": "RESTAURANT LE VIEUX LYON",
+      "score": 80,
+      "email": "nom@domain.com",
+      "subject": "RESTAURANT LE VIEUX LYON -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "mrestaurant.fr",
+      "name": "Restaurant semi",
+      "score": 80,
+      "email": "mrestaurant@orange.fr",
+      "subject": "Restaurant semi -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "guestcoiffure.com",
+      "name": "Guest coiffure Bordeaux",
+      "score": 80,
+      "email": "guestcoiffure33@gmail.com",
+      "subject": "Guest coiffure Bordeaux -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "leon-de-lyon.com",
+      "name": "Léon de Lyon",
+      "score": 80,
+      "email": "commercial@maisons-de-lyon.com",
+      "subject": "Léon de Lyon -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    },
+    {
+      "domain": "sortlist.fr",
+      "name": "Les 10 meilleures agences de marketing à Paris",
+      "score": 80,
+      "email": "contact@adeliom.com",
+      "subject": "Les 10 meilleures agences de marketing à Paris -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Pour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France.\n\nE..."
+    },
+    {
+      "domain": "salons.tchip.fr",
+      "name": "Tchip Coiffure Bordeaux Pey",
+      "score": 75,
+      "email": "pam33000@hotmail.fr",
+      "subject": "Tchip Coiffure Bordeaux Pey -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Du,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France.\n\nEn ..."
+    },
+    {
+      "domain": "agence404.com",
+      "name": "TOP 10 des meilleures agences marketing digital à Paris",
+      "score": 75,
+      "email": "bonjour@agence404.com",
+      "subject": "TOP 10 des meilleures agences marketing digital à Paris -- une idee pour booster votre visibilite",
+      "bodyPreview": "Bonjour Bonjour,\n\nJe m'appelle Faical Kriouar et je realise des videos courtes pour les professionnels du secteur video et marketing digital a France...."
+    }
+  ]
+}

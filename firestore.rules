@@ -376,6 +376,180 @@ service cloud.firestore {
         allow update: if canWrite(orgId); // Mark as read
         allow delete: if canWrite(orgId);
       }
+
+      // ------------------------------------------
+      // AUTOPILOT CONFIG - Autopilot settings
+      // ------------------------------------------
+      match /autoPilotConfig/{configId} {
+        allow read: if canRead(orgId);
+        allow write: if canAdmin(orgId);
+      }
+      match /autopilotConfig/{configId} {
+        allow read: if canRead(orgId);
+        allow write: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // AUTOPILOT LOGS - Autopilot execution logs
+      // ------------------------------------------
+      match /autoPilotLogs/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ALERTS - System alerts
+      // ------------------------------------------
+      match /alerts/{alertId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // CHANNEL ALERTS - Per-channel alerts
+      // ------------------------------------------
+      match /channelAlerts/{alertId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // CONVERSATIONS - Chat/messaging threads
+      // ------------------------------------------
+      match /conversations/{conversationId} {
+        allow read: if canRead(orgId);
+        allow write: if canWrite(orgId);
+      }
+
+      // ------------------------------------------
+      // DISPATCH LOG - Multi-channel dispatch history
+      // ------------------------------------------
+      match /dispatchLog/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // FALLBACK LOGS - Channel fallback tracking
+      // ------------------------------------------
+      match /fallbackLogs/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // HUNTING CAMPAIGNS - Lead hunting campaigns
+      // ------------------------------------------
+      match /huntingCampaigns/{campaignId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // INSTAGRAM TRIGGERS - Auto-reply triggers
+      // ------------------------------------------
+      match /instagramTriggers/{triggerId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // INSTAGRAM TRIGGER LOGS - Trigger execution logs
+      // ------------------------------------------
+      match /instagramTriggerLogs/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // MEETINGS - Scheduled meetings
+      // ------------------------------------------
+      match /meetings/{meetingId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // POSTAL PURLs - Personal URLs for postal
+      // ------------------------------------------
+      match /postalPURLs/{purlId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // POSTAL TRACKING - Postal delivery tracking
+      // ------------------------------------------
+      match /postalTracking/{trackingId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // RATE LIMITS - Channel rate limit tracking
+      // ------------------------------------------
+      match /rateLimits/{limitId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // SCANS - Website scan results (org-level)
+      // ------------------------------------------
+      match /scans/{scanId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // TOUCHPOINT HISTORY - Prospect contact history
+      // ------------------------------------------
+      match /touchpointHistory/{touchpointId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // VOICEMAIL SCRIPTS - Custom voicemail templates
+      // ------------------------------------------
+      match /voicemailScripts/{scriptId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // WHATSAPP AVAILABILITY - Sending window tracking
+      // ------------------------------------------
+      match /whatsappAvailability/{availId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ADDRESS VALIDATION CACHE - Postal address cache
+      // ------------------------------------------
+      match /addressValidationCache/{cacheId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // EMAIL EVENTS - Email delivery events (org-level)
+      // ------------------------------------------
+      match /emailEvents/{eventId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
     }
 
     // ============================================
@@ -435,6 +609,104 @@ service cloud.firestore {
       allow create: if isSuperAdmin();
       allow update: if isSuperAdmin();
       allow delete: if isSuperAdmin();
+    }
+
+    // ============================================
+    // BOUNCES - Email bounce tracking
+    // ============================================
+    match /bounces/{bounceId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions (SES webhooks)
+    }
+
+    // ============================================
+    // COMPLAINTS - Email complaint tracking
+    // ============================================
+    match /complaints/{complaintId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions (SES webhooks)
+    }
+
+    // ============================================
+    // CSE CACHE - Custom Search Engine cache
+    // ============================================
+    match /cse_cache/{cacheId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // EMAIL EVENTS - Global email delivery events
+    // ============================================
+    match /emailEvents/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // EMAIL LOGS - Email sending logs
+    // ============================================
+    match /email_logs/{logId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // EMAIL TEST LOGS - Test email logs
+    // ============================================
+    match /emailTestLogs/{logId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // LEADS - Legacy leads collection
+    // ============================================
+    match /leads/{leadId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================
+    // ORPHANED WEBHOOKS - Unmatched webhook events
+    // ============================================
+    match /orphanedWebhooks/{webhookId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // REPORTS - Generated reports
+    // ============================================
+    match /reports/{reportId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // SCANS - Global website scan results
+    // ============================================
+    match /scans/{scanId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if false;
+    }
+
+    // ============================================
+    // UNKNOWN OPT-OUTS - Unmatched unsubscribes
+    // ============================================
+    match /unknownOptOuts/{optOutId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // CLIENTS - Legacy client collection
+    // ============================================
+    match /clients/{clientId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
     }
   }
 }

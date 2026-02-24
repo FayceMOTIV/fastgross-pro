@@ -145,7 +145,7 @@ export const DEFAULT_TEMPLATES = {
 export async function getApprovedTemplate(orgId, templateName) {
   try {
     // 1. Chercher dans les templates de l'org
-    const templateRef = db.collection('organizations').doc(orgId)
+    const templateRef = getDb().collection('organizations').doc(orgId)
       .collection('channelTemplates')
       .where('channel', '==', 'whatsapp')
       .where('name', '==', templateName)
@@ -179,7 +179,7 @@ export async function getApprovedTemplate(orgId, templateName) {
 // ============================================
 export async function listApprovedTemplates(orgId, category = null) {
   try {
-    let query = db.collection('organizations').doc(orgId)
+    let query = getDb().collection('organizations').doc(orgId)
       .collection('channelTemplates')
       .where('channel', '==', 'whatsapp')
       .where('status', '==', 'APPROVED');
@@ -235,7 +235,7 @@ export async function syncTemplatesFromMeta(orgId) {
 
   try {
     // Recuperer config Meta
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('whatsapp');
     const configSnap = await configRef.get();
 
@@ -269,7 +269,7 @@ export async function syncTemplatesFromMeta(orgId) {
     const batch = db.batch();
 
     for (const metaTemplate of metaTemplates) {
-      const templateRef = db.collection('organizations').doc(orgId)
+      const templateRef = getDb().collection('organizations').doc(orgId)
         .collection('channelTemplates').doc(`wa_${metaTemplate.id}`);
 
       batch.set(templateRef, {
@@ -315,7 +315,7 @@ export async function submitTemplateForApproval(orgId, templateData) {
 
   try {
     // Recuperer config Meta
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('whatsapp');
     const configSnap = await configRef.get();
 
@@ -355,7 +355,7 @@ export async function submitTemplateForApproval(orgId, templateData) {
     }
 
     // Sauvegarder localement
-    const templateRef = await db.collection('organizations').doc(orgId)
+    const templateRef = await getDb().collection('organizations').doc(orgId)
       .collection('channelTemplates').add({
         channel: 'whatsapp',
         metaId: data.id,

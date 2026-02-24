@@ -69,7 +69,7 @@ export async function checkFallbackNeeded(orgId, prospectId, interactionId) {
 
   try {
     // 1. Recuperer l'interaction originale
-    const interactionRef = db.collection('organizations').doc(orgId)
+    const interactionRef = getDb().collection('organizations').doc(orgId)
       .collection('interactions').doc(interactionId);
     const interactionSnap = await interactionRef.get();
 
@@ -154,7 +154,7 @@ async function evaluateFallbackCondition(orgId, prospectId, interaction, conditi
 
     case 'no_callback':
       // Verifier si un callback a ete recu
-      const callbackSnap = await db.collection('organizations').doc(orgId)
+      const callbackSnap = await getDb().collection('organizations').doc(orgId)
         .collection('interactions')
         .where('prospectId', '==', prospectId)
         .where('type', '==', 'voicemail_callback')
@@ -165,7 +165,7 @@ async function evaluateFallbackCondition(orgId, prospectId, interaction, conditi
 
     case 'not_engaged':
       // Verifier QR scan ou PURL visite
-      const prospectRef = db.collection('organizations').doc(orgId)
+      const prospectRef = getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId);
       const prospectSnap = await prospectRef.get();
       if (prospectSnap.exists) {
@@ -176,7 +176,7 @@ async function evaluateFallbackCondition(orgId, prospectId, interaction, conditi
 
     case 'no_reply':
       // Verifier si une reponse a ete recue
-      const replySnap = await db.collection('organizations').doc(orgId)
+      const replySnap = await getDb().collection('organizations').doc(orgId)
         .collection('interactions')
         .where('prospectId', '==', prospectId)
         .where('direction', '==', 'in')
@@ -196,7 +196,7 @@ async function evaluateFallbackCondition(orgId, prospectId, interaction, conditi
 async function getFallbackRules(orgId, channel) {
   try {
     // Chercher regles custom
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('settings').doc('fallbackRules');
     const configSnap = await configRef.get();
 
@@ -227,7 +227,7 @@ export async function executeFallback(orgId, prospectId, originalInteractionId, 
 
   try {
     // 1. Recuperer interaction originale
-    const originalRef = db.collection('organizations').doc(orgId)
+    const originalRef = getDb().collection('organizations').doc(orgId)
       .collection('interactions').doc(originalInteractionId);
     const originalSnap = await originalRef.get();
 
@@ -262,7 +262,7 @@ export async function executeFallback(orgId, prospectId, originalInteractionId, 
       createdAt: FieldValue.serverTimestamp()
     };
 
-    const newRef = await db.collection('organizations').doc(orgId)
+    const newRef = await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add(fallbackData);
 
     result.success = true;
@@ -303,7 +303,7 @@ export async function scanPendingFallbacks(orgId) {
     threshold.setHours(threshold.getHours() - 24);
 
     // Trouver interactions outbound non engagees
-    const interactionsSnap = await db.collection('organizations').doc(orgId)
+    const interactionsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('direction', '==', 'out')
       .where('fallbackExecuted', '==', null)
@@ -361,7 +361,7 @@ export async function scanPendingFallbacks(orgId) {
 // ============================================
 export async function setFallbackRules(orgId, channel, rules) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('settings').doc('fallbackRules');
 
     await configRef.set({
@@ -387,7 +387,7 @@ export async function getFallbackStats(orgId, days = 30) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const fallbackSnap = await db.collection('organizations').doc(orgId)
+    const fallbackSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('isFallback', '==', true)
       .where('createdAt', '>=', Timestamp.fromDate(startDate))
@@ -440,7 +440,7 @@ export async function disableFallbackForProspect(orgId, prospectId, channel = nu
       ? { [`fallbackDisabled.${channel}`]: true }
       : { fallbackDisabledGlobal: true };
 
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update(updateData);
 
@@ -457,7 +457,7 @@ export async function disableFallbackForProspect(orgId, prospectId, channel = nu
 // ============================================
 async function logFallbackEvent(orgId, eventData) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('fallbackLogs').add({
         ...eventData,
         createdAt: FieldValue.serverTimestamp()

@@ -337,130 +337,135 @@ export const launchAutoPilot = onCall(
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
 
-    const db = getDb()
+    try {
+      const db = getDb()
 
-    // Verify user belongs to org
-    const memberDoc = await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('members')
-      .doc(request.auth.uid)
-      .get()
+      // Verify user belongs to org
+      const memberDoc = await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('members')
+        .doc(request.auth.uid)
+        .get()
 
-    if (!memberDoc.exists) {
-      throw new HttpsError('permission-denied', 'Not a member of this organization')
-    }
-
-    // Build keywords from avatar
-    const keywords = []
-    if (clientAvatar.avatarKeywords) {
-      keywords.push(...clientAvatar.avatarKeywords)
-    }
-    if (clientAvatar.avatarTitle) {
-      keywords.push(clientAvatar.avatarTitle)
-    }
-    if (clientAvatar.avatarIndustry) {
-      keywords.push(clientAvatar.avatarIndustry)
-    }
-
-    // Save AutoPilot config
-    const autoPilotConfig = {
-      enabled: true,
-      launchedAt: Timestamp.now(),
-      launchedBy: request.auth.uid,
-
-      // Company Profile
-      companyProfile: {
-        name: companyProfile.companyName,
-        industry: companyProfile.industry,
-        service: companyProfile.mainService,
-        uniqueValue: companyProfile.uniqueValue,
-        typicalResults: companyProfile.typicalResults,
-        priceRange: companyProfile.priceRange,
-        caseStudy: companyProfile.caseStudy
-      },
-
-      // Client Avatar
-      clientAvatar: {
-        title: clientAvatar.avatarTitle,
-        industry: clientAvatar.avatarIndustry,
-        size: clientAvatar.avatarSize,
-        painPoints: clientAvatar.avatarPainPoints || [],
-        signals: clientAvatar.avatarSignals || [],
-        location: clientAvatar.avatarLocation || 'France',
-        keywords: clientAvatar.avatarKeywords || []
-      },
-
-      // Channel Settings
-      channels: {
-        whatsapp: channelSettings?.whatsappEnabled ?? true,
-        instagram: channelSettings?.instagramEnabled ?? true,
-        email: channelSettings?.emailEnabled ?? true,
-        linkedin: channelSettings?.linkedinEnabled ?? false
-      },
-
-      // Automation Settings
-      prospectsPerDay: channelSettings?.prospectsPerDay || 20,
-      autoSend: channelSettings?.autoSend ?? false,
-      autoRespond: channelSettings?.autoRespond ?? false,
-
-      // Search Config (for dailyAutoPilot)
-      keywords: [...new Set(keywords)].slice(0, 10),
-      location: clientAvatar.avatarLocation || 'France',
-      sector: clientAvatar.avatarIndustry || 'general',
-
-      // Stats
-      stats: {
-        totalProspects: 0,
-        totalContacted: 0,
-        totalResponses: 0,
-        totalMeetings: 0,
-        lastRunAt: null
+      if (!memberDoc.exists) {
+        throw new HttpsError('permission-denied', 'Not a member of this organization')
       }
-    }
 
-    await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('autoPilotConfig')
-      .doc('main')
-      .set(autoPilotConfig, { merge: true })
+      // Build keywords from avatar
+      const keywords = []
+      if (clientAvatar.avatarKeywords) {
+        keywords.push(...clientAvatar.avatarKeywords)
+      }
+      if (clientAvatar.avatarTitle) {
+        keywords.push(clientAvatar.avatarTitle)
+      }
+      if (clientAvatar.avatarIndustry) {
+        keywords.push(clientAvatar.avatarIndustry)
+      }
 
-    // Also update the old autopilotConfig for backward compatibility with dailyAutoPilot
-    await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('autopilotConfig')
-      .doc('settings')
-      .set({
+      // Save AutoPilot config
+      const autoPilotConfig = {
         enabled: true,
-        keywords: autoPilotConfig.keywords,
-        location: autoPilotConfig.location,
-        sector: autoPilotConfig.sector,
-        emailsPerDay: autoPilotConfig.prospectsPerDay,
-        pauseWeekends: true,
-        senderName: companyProfile.companyName,
-        updatedAt: Timestamp.now()
-      }, { merge: true })
+        launchedAt: Timestamp.now(),
+        launchedBy: request.auth.uid,
 
-    // Log the launch
-    await db.collection('organizations').doc(orgId).collection('autoPilotLogs').add({
-      type: 'launch',
-      message: 'AutoPilot launched successfully',
-      config: {
-        companyName: companyProfile.companyName,
-        avatarTitle: clientAvatar.avatarTitle,
-        channels: autoPilotConfig.channels,
-        prospectsPerDay: autoPilotConfig.prospectsPerDay
-      },
-      createdAt: Timestamp.now(),
-      createdBy: request.auth.uid
-    })
+        // Company Profile
+        companyProfile: {
+          name: companyProfile.companyName,
+          industry: companyProfile.industry,
+          service: companyProfile.mainService,
+          uniqueValue: companyProfile.uniqueValue,
+          typicalResults: companyProfile.typicalResults,
+          priceRange: companyProfile.priceRange,
+          caseStudy: companyProfile.caseStudy
+        },
 
-    return {
-      success: true,
-      message: 'AutoPilot lance avec succes! Les premiers prospects arriveront demain matin.',
-      config: autoPilotConfig
+        // Client Avatar
+        clientAvatar: {
+          title: clientAvatar.avatarTitle,
+          industry: clientAvatar.avatarIndustry,
+          size: clientAvatar.avatarSize,
+          painPoints: clientAvatar.avatarPainPoints || [],
+          signals: clientAvatar.avatarSignals || [],
+          location: clientAvatar.avatarLocation || 'France',
+          keywords: clientAvatar.avatarKeywords || []
+        },
+
+        // Channel Settings
+        channels: {
+          whatsapp: channelSettings?.whatsappEnabled ?? true,
+          instagram: channelSettings?.instagramEnabled ?? true,
+          email: channelSettings?.emailEnabled ?? true,
+          linkedin: channelSettings?.linkedinEnabled ?? false
+        },
+
+        // Automation Settings
+        prospectsPerDay: channelSettings?.prospectsPerDay || 20,
+        autoSend: channelSettings?.autoSend ?? false,
+        autoRespond: channelSettings?.autoRespond ?? false,
+
+        // Search Config (for dailyAutoPilot)
+        keywords: [...new Set(keywords)].slice(0, 10),
+        location: clientAvatar.avatarLocation || 'France',
+        sector: clientAvatar.avatarIndustry || 'general',
+
+        // Stats
+        stats: {
+          totalProspects: 0,
+          totalContacted: 0,
+          totalResponses: 0,
+          totalMeetings: 0,
+          lastRunAt: null
+        }
+      }
+
+      await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('autoPilotConfig')
+        .doc('main')
+        .set(autoPilotConfig, { merge: true })
+
+      // Also update the old autopilotConfig for backward compatibility with dailyAutoPilot
+      await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('autopilotConfig')
+        .doc('settings')
+        .set({
+          enabled: true,
+          keywords: autoPilotConfig.keywords,
+          location: autoPilotConfig.location,
+          sector: autoPilotConfig.sector,
+          emailsPerDay: autoPilotConfig.prospectsPerDay,
+          pauseWeekends: true,
+          senderName: companyProfile.companyName,
+          updatedAt: Timestamp.now()
+        }, { merge: true })
+
+      // Log the launch
+      await db.collection('organizations').doc(orgId).collection('autoPilotLogs').add({
+        type: 'launch',
+        message: 'AutoPilot launched successfully',
+        config: {
+          companyName: companyProfile.companyName,
+          avatarTitle: clientAvatar.avatarTitle,
+          channels: autoPilotConfig.channels,
+          prospectsPerDay: autoPilotConfig.prospectsPerDay
+        },
+        createdAt: Timestamp.now(),
+        createdBy: request.auth.uid
+      })
+
+      return {
+        success: true,
+        message: 'AutoPilot lance avec succes! Les premiers prospects arriveront demain matin.',
+        config: autoPilotConfig
+      }
+    } catch (error) {
+      if (error instanceof HttpsError) throw error
+      throw new HttpsError('internal', error.message)
     }
   }
 )
@@ -619,67 +624,68 @@ export const scheduleMeetingWithProspect = onCall(
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
 
-    const db = getDb()
+    try {
+      const db = getDb()
 
-    // Get prospect
-    const prospectDoc = await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('prospects')
-      .doc(prospectId)
-      .get()
+      // Get prospect
+      const prospectDoc = await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('prospects')
+        .doc(prospectId)
+        .get()
 
-    if (!prospectDoc.exists) {
-      throw new HttpsError('not-found', 'Prospect not found')
-    }
+      if (!prospectDoc.exists) {
+        throw new HttpsError('not-found', 'Prospect not found')
+      }
 
-    const prospect = prospectDoc.data()
+      const prospect = prospectDoc.data()
 
-    // Create meeting record
-    const meeting = {
-      prospectId,
-      prospectName: prospect.name || prospect.contactName,
-      prospectCompany: prospect.domain,
-      prospectEmail: prospect.emails?.[0],
-      prospectPhone: prospect.phone,
+      // Create meeting record
+      const meeting = {
+        prospectId,
+        prospectName: prospect.name || prospect.contactName,
+        prospectCompany: prospect.domain,
+        prospectEmail: prospect.emails?.[0],
+        prospectPhone: prospect.phone,
 
-      scheduledAt: meetingDate ? Timestamp.fromDate(new Date(meetingDate)) : null,
-      type: meetingType || 'discovery',
-      status: 'scheduled',
-      notes: notes || '',
+        scheduledAt: meetingDate ? Timestamp.fromDate(new Date(meetingDate)) : null,
+        type: meetingType || 'discovery',
+        status: 'scheduled',
+        notes: notes || '',
 
-      createdAt: Timestamp.now(),
-      createdBy: request.auth.uid
-    }
+        createdAt: Timestamp.now(),
+        createdBy: request.auth.uid
+      }
 
-    const meetingRef = await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('meetings')
-      .add(meeting)
+      const meetingRef = await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('meetings')
+        .add(meeting)
 
-    // Update prospect
-    await prospectDoc.ref.update({
-      status: 'meeting_scheduled',
-      meetingId: meetingRef.id,
-      meetingScheduledAt: meeting.scheduledAt,
-      updatedAt: Timestamp.now()
-    })
+      // Update prospect
+      await prospectDoc.ref.update({
+        status: 'meeting_scheduled',
+        meetingId: meetingRef.id,
+        meetingScheduledAt: meeting.scheduledAt,
+        updatedAt: Timestamp.now()
+      })
 
-    // Update AutoPilot stats
-    const configRef = db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('autoPilotConfig')
-      .doc('main')
+      // Update AutoPilot stats
+      const configRef = db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('autoPilotConfig')
+        .doc('main')
 
-    await configRef.update({
-      'stats.totalMeetings': FieldValue.increment(1)
-    })
+      await configRef.update({
+        'stats.totalMeetings': FieldValue.increment(1)
+      })
 
-    // Send confirmation message if contact info available
-    if (prospect.phone || (prospect.emails && prospect.emails.length > 0)) {
-      const confirmationMessage = `Bonjour ${prospect.contactName || ''},
+      // Send confirmation message if contact info available
+      if (prospect.phone || (prospect.emails && prospect.emails.length > 0)) {
+        const confirmationMessage = `Bonjour ${prospect.contactName || ''},
 
 Merci pour votre interet! Je vous confirme notre rendez-vous${meetingDate ? ` le ${new Date(meetingDate).toLocaleDateString('fr-FR')}` : ''}.
 
@@ -687,26 +693,30 @@ ${meetingType === 'call' ? 'Je vous appellerai au numero indique.' : 'Vous recev
 
 A bientot!`
 
-      // Queue confirmation (don't wait)
-      db.collection('organizations')
-        .doc(orgId)
-        .collection('prospects')
-        .doc(prospectId)
-        .collection('conversations')
-        .add({
-          type: 'outbound',
-          channel: prospect.phone ? 'whatsapp' : 'email',
-          message: confirmationMessage,
-          isConfirmation: true,
-          sentAt: Timestamp.now(),
-          sentBy: request.auth.uid
-        })
-    }
+        // Queue confirmation (don't wait)
+        db.collection('organizations')
+          .doc(orgId)
+          .collection('prospects')
+          .doc(prospectId)
+          .collection('conversations')
+          .add({
+            type: 'outbound',
+            channel: prospect.phone ? 'whatsapp' : 'email',
+            message: confirmationMessage,
+            isConfirmation: true,
+            sentAt: Timestamp.now(),
+            sentBy: request.auth.uid
+          })
+      }
 
-    return {
-      success: true,
-      meetingId: meetingRef.id,
-      meeting
+      return {
+        success: true,
+        meetingId: meetingRef.id,
+        meeting
+      }
+    } catch (error) {
+      if (error instanceof HttpsError) throw error
+      throw new HttpsError('internal', error.message)
     }
   }
 )
@@ -726,105 +736,110 @@ export const getAutoPilotDashboardStats = onCall(
       throw new HttpsError('invalid-argument', 'Missing orgId')
     }
 
-    const db = getDb()
+    try {
+      const db = getDb()
 
-    // Get today's date range
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+      // Get today's date range
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
 
-    // Get today's prospects
-    const prospectsSnapshot = await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('prospects')
-      .where('createdAt', '>=', Timestamp.fromDate(today))
-      .where('createdAt', '<', Timestamp.fromDate(tomorrow))
-      .get()
+      // Get today's prospects
+      const prospectsSnapshot = await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('prospects')
+        .where('createdAt', '>=', Timestamp.fromDate(today))
+        .where('createdAt', '<', Timestamp.fromDate(tomorrow))
+        .get()
 
-    const prospects = prospectsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
+      const prospects = prospectsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
 
-    // Calculate stats
-    const stats = {
-      todayProspects: prospects.length,
-      totalContacted: prospects.filter(p => p.status === 'contacted').length,
-      positiveResponses: prospects.filter(p => p.responseType === 'positive').length,
-      meetingsScheduled: prospects.filter(p => p.status === 'meeting_scheduled').length,
-      conversionRate: prospects.length > 0
-        ? Math.round((prospects.filter(p => p.responseType === 'positive').length / prospects.length) * 100)
-        : 0
-    }
+      // Calculate stats
+      const stats = {
+        todayProspects: prospects.length,
+        totalContacted: prospects.filter(p => p.status === 'contacted').length,
+        positiveResponses: prospects.filter(p => p.responseType === 'positive').length,
+        meetingsScheduled: prospects.filter(p => p.status === 'meeting_scheduled').length,
+        conversionRate: prospects.length > 0
+          ? Math.round((prospects.filter(p => p.responseType === 'positive').length / prospects.length) * 100)
+          : 0
+      }
 
-    // Get hot prospects (positive responses not yet converted to meeting)
-    const hotProspects = prospects
-      .filter(p => p.responseType === 'positive' && p.status !== 'meeting_scheduled')
-      .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
-      .slice(0, 10)
+      // Get hot prospects (positive responses not yet converted to meeting)
+      const hotProspects = prospects
+        .filter(p => p.responseType === 'positive' && p.status !== 'meeting_scheduled')
+        .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+        .slice(0, 10)
 
-    // Get recent conversations
-    const conversationsQuery = await db
-      .collectionGroup('conversations')
-      .where('sentAt', '>=', Timestamp.fromDate(today))
-      .orderBy('sentAt', 'desc')
-      .limit(20)
-      .get()
+      // Get recent conversations
+      const conversationsQuery = await db
+        .collectionGroup('conversations')
+        .where('sentAt', '>=', Timestamp.fromDate(today))
+        .orderBy('sentAt', 'desc')
+        .limit(20)
+        .get()
 
-    const conversations = conversationsQuery.docs.map(doc => ({
-      id: doc.id,
-      prospectId: doc.ref.parent.parent.id,
-      ...doc.data()
-    }))
+      const conversations = conversationsQuery.docs.map(doc => ({
+        id: doc.id,
+        prospectId: doc.ref.parent.parent.id,
+        ...doc.data()
+      }))
 
-    // Get config
-    const configDoc = await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('autoPilotConfig')
-      .doc('main')
-      .get()
+      // Get config
+      const configDoc = await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('autoPilotConfig')
+        .doc('main')
+        .get()
 
-    const config = configDoc.exists ? configDoc.data() : null
+      const config = configDoc.exists ? configDoc.data() : null
 
-    // Generate AI insight
-    let aiInsight = null
-    if (prospects.length > 0) {
-      const avgScore = Math.round(
-        prospects.reduce((sum, p) => sum + (p.matchScore || 70), 0) / prospects.length
-      )
+      // Generate AI insight
+      let aiInsight = null
+      if (prospects.length > 0) {
+        const avgScore = Math.round(
+          prospects.reduce((sum, p) => sum + (p.matchScore || 70), 0) / prospects.length
+        )
 
-      if (stats.positiveResponses > 0) {
-        aiInsight = {
-          type: 'success',
-          message: `Excellent! ${stats.positiveResponses} prospects ont repondu positivement aujourd'hui. Score moyen: ${avgScore}/100.`,
-          recommendation: 'Planifiez des meetings rapidement pour maintenir l\'elan.'
-        }
-      } else if (stats.totalContacted > 0) {
-        aiInsight = {
-          type: 'info',
-          message: `${stats.totalContacted} prospects contactes. En attente de reponses.`,
-          recommendation: 'Les reponses arrivent generalement dans les 24-48h.'
-        }
-      } else {
-        aiInsight = {
-          type: 'action',
-          message: `${stats.todayProspects} nouveaux prospects prets a etre contactes.`,
-          recommendation: 'Commencez par les prospects avec le score le plus eleve.'
+        if (stats.positiveResponses > 0) {
+          aiInsight = {
+            type: 'success',
+            message: `Excellent! ${stats.positiveResponses} prospects ont repondu positivement aujourd'hui. Score moyen: ${avgScore}/100.`,
+            recommendation: 'Planifiez des meetings rapidement pour maintenir l\'elan.'
+          }
+        } else if (stats.totalContacted > 0) {
+          aiInsight = {
+            type: 'info',
+            message: `${stats.totalContacted} prospects contactes. En attente de reponses.`,
+            recommendation: 'Les reponses arrivent generalement dans les 24-48h.'
+          }
+        } else {
+          aiInsight = {
+            type: 'action',
+            message: `${stats.todayProspects} nouveaux prospects prets a etre contactes.`,
+            recommendation: 'Commencez par les prospects avec le score le plus eleve.'
+          }
         }
       }
-    }
 
-    return {
-      success: true,
-      stats,
-      hotProspects,
-      conversations,
-      config,
-      aiInsight,
-      isActive: config?.enabled ?? false
+      return {
+        success: true,
+        stats,
+        hotProspects,
+        conversations,
+        config,
+        aiInsight,
+        isActive: config?.enabled ?? false
+      }
+    } catch (error) {
+      if (error instanceof HttpsError) throw error
+      throw new HttpsError('internal', error.message)
     }
   }
 )
@@ -844,36 +859,41 @@ export const toggleAutoPilot = onCall(
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
 
-    const db = getDb()
+    try {
+      const db = getDb()
 
-    // Update both config locations
-    await Promise.all([
-      db
+      // Update both config locations
+      await Promise.all([
+        db
+          .collection('organizations')
+          .doc(orgId)
+          .collection('autoPilotConfig')
+          .doc('main')
+          .update({ enabled, updatedAt: Timestamp.now() }),
+        db
+          .collection('organizations')
+          .doc(orgId)
+          .collection('autopilotConfig')
+          .doc('settings')
+          .update({ enabled, updatedAt: Timestamp.now() })
+      ])
+
+      // Log the change
+      await db
         .collection('organizations')
         .doc(orgId)
-        .collection('autoPilotConfig')
-        .doc('main')
-        .update({ enabled, updatedAt: Timestamp.now() }),
-      db
-        .collection('organizations')
-        .doc(orgId)
-        .collection('autopilotConfig')
-        .doc('settings')
-        .update({ enabled, updatedAt: Timestamp.now() })
-    ])
+        .collection('autoPilotLogs')
+        .add({
+          type: enabled ? 'resume' : 'pause',
+          message: enabled ? 'AutoPilot resumed' : 'AutoPilot paused',
+          createdAt: Timestamp.now(),
+          createdBy: request.auth.uid
+        })
 
-    // Log the change
-    await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('autoPilotLogs')
-      .add({
-        type: enabled ? 'resume' : 'pause',
-        message: enabled ? 'AutoPilot resumed' : 'AutoPilot paused',
-        createdAt: Timestamp.now(),
-        createdBy: request.auth.uid
-      })
-
-    return { success: true, enabled }
+      return { success: true, enabled }
+    } catch (error) {
+      if (error instanceof HttpsError) throw error
+      throw new HttpsError('internal', error.message)
+    }
   }
 )

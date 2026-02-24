@@ -165,7 +165,7 @@ export async function checkVoicemailCompliance(orgId, prospectId) {
 
   try {
     // 1. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -300,7 +300,7 @@ function isMobileNumber(phone) {
 // ============================================
 export async function recordVoicemailOptIn(orgId, prospectId, proof = {}) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         'channels.voicemail.optIn': 'explicit',
@@ -311,7 +311,7 @@ export async function recordVoicemailOptIn(orgId, prospectId, proof = {}) {
       });
 
     // Log audit
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('complianceAudit').add({
         type: 'opt_in',
         channel: 'voicemail',
@@ -332,7 +332,7 @@ export async function recordVoicemailOptIn(orgId, prospectId, proof = {}) {
 // ============================================
 export async function recordVoicemailOptOut(orgId, prospectId, reason = '') {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         'channels.voicemail.optIn': 'opt_out',
@@ -342,7 +342,7 @@ export async function recordVoicemailOptOut(orgId, prospectId, reason = '') {
       });
 
     // Log audit
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('complianceAudit').add({
         type: 'opt_out',
         channel: 'voicemail',
@@ -363,7 +363,7 @@ export async function recordVoicemailOptOut(orgId, prospectId, reason = '') {
 // ============================================
 export async function markNumberInvalid(orgId, prospectId, errorCode, errorMessage) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         'channels.voicemail.vmEnabled': false,
@@ -384,7 +384,7 @@ export async function markNumberInvalid(orgId, prospectId, errorCode, errorMessa
 // ============================================
 export async function getVoicemailComplianceStats(orgId) {
   try {
-    const prospectsSnap = await db.collection('organizations').doc(orgId)
+    const prospectsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('prospects')
       .get();
 

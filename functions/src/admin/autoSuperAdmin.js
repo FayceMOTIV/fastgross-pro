@@ -41,45 +41,50 @@ export const checkFirstUser = onCall({
     throw new HttpsError('unauthenticated', 'User must be authenticated')
   }
 
-  const userId = auth.uid
-  const email = auth.token.email
+  try {
+    const userId = auth.uid
+    const email = auth.token.email
 
-  // Check if super admins exist
-  const hasAdmins = await hasSuperAdmins()
+    // Check if super admins exist
+    const hasAdmins = await hasSuperAdmins()
 
-  if (!hasAdmins) {
-    // First user - make them super admin
-    await makeSuperAdmin(userId, email)
+    if (!hasAdmins) {
+      // First user - make them super admin
+      await makeSuperAdmin(userId, email)
 
-    // Also add them as beta user for unlimited quotas
-    await getDb().collection('betaUsers').doc(userId).set({
-      email,
-      addedBy: 'system',
-      addedAt: FieldValue.serverTimestamp(),
-      reason: 'First user - auto super admin'
-    })
+      // Also add them as beta user for unlimited quotas
+      await getDb().collection('betaUsers').doc(userId).set({
+        email,
+        addedBy: 'system',
+        addedAt: FieldValue.serverTimestamp(),
+        reason: 'First user - auto super admin'
+      })
+
+      return {
+        success: true,
+        isSuperAdmin: true,
+        isBetaUser: true,
+        message: 'You are the first user - promoted to super admin with beta access'
+      }
+    }
+
+    // Check if already super admin
+    const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
+    const isSuperAdmin = superAdminDoc.exists
+
+    // Check if beta user
+    const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
+    const isBetaUser = betaUserDoc.exists
 
     return {
       success: true,
-      isSuperAdmin: true,
-      isBetaUser: true,
-      message: 'You are the first user - promoted to super admin with beta access'
+      isSuperAdmin,
+      isBetaUser,
+      message: 'User status checked'
     }
-  }
-
-  // Check if already super admin
-  const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
-  const isSuperAdmin = superAdminDoc.exists
-
-  // Check if beta user
-  const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
-  const isBetaUser = betaUserDoc.exists
-
-  return {
-    success: true,
-    isSuperAdmin,
-    isBetaUser,
-    message: 'User status checked'
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 
@@ -96,20 +101,25 @@ export const getAdminStatus = onCall({
     throw new HttpsError('unauthenticated', 'User must be authenticated')
   }
 
-  const userId = auth.uid
+  try {
+    const userId = auth.uid
 
-  // Check super admin status
-  const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
-  const isSuperAdmin = superAdminDoc.exists
+    // Check super admin status
+    const superAdminDoc = await getDb().collection('superAdmins').doc(userId).get()
+    const isSuperAdmin = superAdminDoc.exists
 
-  // Check beta user status
-  const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
-  const isBetaUser = betaUserDoc.exists
+    // Check beta user status
+    const betaUserDoc = await getDb().collection('betaUsers').doc(userId).get()
+    const isBetaUser = betaUserDoc.exists
 
-  return {
-    isSuperAdmin,
-    isBetaUser,
-    superAdminData: isSuperAdmin ? superAdminDoc.data() : null,
-    betaUserData: isBetaUser ? betaUserDoc.data() : null
+    return {
+      isSuperAdmin,
+      isBetaUser,
+      superAdminData: isSuperAdmin ? superAdminDoc.data() : null,
+      betaUserData: isBetaUser ? betaUserDoc.data() : null
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })

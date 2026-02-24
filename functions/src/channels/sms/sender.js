@@ -94,7 +94,7 @@ export async function sendSMS(orgId, prospectId, message, options = {}) {
     }
 
     // 3. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -260,7 +260,7 @@ function replaceVariables(message, prospect, options = {}) {
 
   let result = message;
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replace(new RegExp(key, 'gi'), value);
+    result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value);
   }
 
   return result.trim();
@@ -288,7 +288,7 @@ function ensureStopFooter(message) {
 // ============================================
 async function logSMSInteraction(orgId, prospectId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         ...data,
         prospectId,

@@ -1,19 +1,45 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bell, Save, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import toast from 'react-hot-toast'
 
 export default function NotificationsSettings({ saving, setSaving }) {
   const { user } = useAuth()
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [notifyOnReply, setNotifyOnReply] = useState(true)
   const [notifyOnOpen, setNotifyOnOpen] = useState(false)
   const [notifyDailyDigest, setNotifyDailyDigest] = useState(true)
   const [notifyWeeklyReport, setNotifyWeeklyReport] = useState(true)
 
+  useEffect(() => {
+    if (!currentOrg?.id || isDemo) return
+    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'notifications')).then((snap) => {
+      if (snap.exists()) {
+        const d = snap.data()
+        if (d.emailNotifications !== undefined) setEmailNotifications(d.emailNotifications)
+        if (d.notifyOnReply !== undefined) setNotifyOnReply(d.notifyOnReply)
+        if (d.notifyOnOpen !== undefined) setNotifyOnOpen(d.notifyOnOpen)
+        if (d.notifyDailyDigest !== undefined) setNotifyDailyDigest(d.notifyDailyDigest)
+        if (d.notifyWeeklyReport !== undefined) setNotifyWeeklyReport(d.notifyWeeklyReport)
+      }
+    }).catch(() => {})
+  }, [currentOrg?.id])
+
   const handleSave = async () => {
     setSaving(true)
     try {
+      if (currentOrg?.id && !isDemo) {
+        await setDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'notifications'), {
+          emailNotifications, notifyOnReply, notifyOnOpen,
+          notifyDailyDigest, notifyWeeklyReport, updatedAt: new Date()
+        }, { merge: true })
+      }
       toast.success('Notifications sauvegardees')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')

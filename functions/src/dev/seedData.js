@@ -1,5 +1,5 @@
 import { onRequest } from 'firebase-functions/v2/https'
-import { onCall } from 'firebase-functions/v2/https'
+import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
 const getDb = () => getFirestore()
@@ -99,6 +99,10 @@ export const seedSubscriptionPlans = onCall(
     region: 'europe-west1',
   },
   async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required')
+    }
+
     const db = getDb()
 
     try {
@@ -122,7 +126,7 @@ export const seedSubscriptionPlans = onCall(
       }
     } catch (error) {
       console.error('Seed plans error:', error)
-      throw new Error(error.message)
+      throw new HttpsError('internal', error.message)
     }
   }
 )

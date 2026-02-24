@@ -80,7 +80,7 @@ async function handleDelivered(payload) {
 
     if (interaction) {
       // Mettre a jour le statut
-      await db.collection('organizations').doc(interaction.orgId)
+      await getDb().collection('organizations').doc(interaction.orgId)
         .collection('interactions').doc(interaction.id)
         .update({
           status: 'delivered',
@@ -89,7 +89,7 @@ async function handleDelivered(payload) {
         });
 
       // Mettre a jour le prospect
-      await db.collection('organizations').doc(interaction.orgId)
+      await getDb().collection('organizations').doc(interaction.orgId)
         .collection('prospects').doc(interaction.prospectId)
         .update({
           'channels.voicemail.lastDelivered': FieldValue.serverTimestamp()
@@ -114,7 +114,7 @@ async function handleFailed(payload) {
     const interaction = await findInteractionByDropId(id);
 
     if (interaction) {
-      await db.collection('organizations').doc(interaction.orgId)
+      await getDb().collection('organizations').doc(interaction.orgId)
         .collection('interactions').doc(interaction.id)
         .update({
           status: 'failed',
@@ -125,7 +125,7 @@ async function handleFailed(payload) {
 
       // Marquer le prospect comme non-joignable en voicemail
       if (error_code === 'invalid_number' || error_code === 'not_mobile') {
-        await db.collection('organizations').doc(interaction.orgId)
+        await getDb().collection('organizations').doc(interaction.orgId)
           .collection('prospects').doc(interaction.prospectId)
           .update({
             'channels.voicemail.vmEnabled': false,
@@ -153,7 +153,7 @@ async function handleCallback(payload) {
 
     if (prospect) {
       // Enregistrer le callback
-      await db.collection('organizations').doc(prospect.orgId)
+      await getDb().collection('organizations').doc(prospect.orgId)
         .collection('interactions').add({
           type: 'voicemail_callback',
           channel: 'voicemail',
@@ -166,7 +166,7 @@ async function handleCallback(payload) {
         });
 
       // Mettre a jour le prospect
-      await db.collection('organizations').doc(prospect.orgId)
+      await getDb().collection('organizations').doc(prospect.orgId)
         .collection('prospects').doc(prospect.id)
         .update({
           status: 'callback_received',
@@ -214,7 +214,7 @@ export async function recordInboundCall(orgId, callData) {
     // Verifier si c'est potentiellement un callback voicemail
     const recentVoicemail = await findRecentVoicemail(orgId, targetProspectId, 72); // 72h
 
-    const interactionRef = await db.collection('organizations').doc(orgId)
+    const interactionRef = await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         type: recentVoicemail ? 'voicemail_callback' : 'inbound_call',
         channel: 'voicemail',
@@ -228,7 +228,7 @@ export async function recordInboundCall(orgId, callData) {
       });
 
     // Mettre a jour prospect
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(targetProspectId)
       .update({
         status: 'callback_received',
@@ -256,14 +256,14 @@ export async function getCallbackStats(orgId, days = 30) {
     startDate.setDate(startDate.getDate() - days);
 
     // Voicemails envoyes
-    const sentSnap = await db.collection('organizations').doc(orgId)
+    const sentSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('type', '==', 'voicemail_dropped')
       .where('createdAt', '>=', startDate)
       .get();
 
     // Callbacks recus
-    const callbacksSnap = await db.collection('organizations').doc(orgId)
+    const callbacksSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('type', '==', 'voicemail_callback')
       .where('createdAt', '>=', startDate)
@@ -304,10 +304,10 @@ export async function getCallbackStats(orgId, days = 30) {
 // ============================================
 async function findInteractionByDropId(dropId) {
   try {
-    const orgsSnap = await db.collection('organizations').get();
+    const orgsSnap = await getDb().collection('organizations').get();
 
     for (const orgDoc of orgsSnap.docs) {
-      const interactionSnap = await db.collection('organizations').doc(orgDoc.id)
+      const interactionSnap = await getDb().collection('organizations').doc(orgDoc.id)
         .collection('interactions')
         .where('dropId', '==', dropId)
         .limit(1)
@@ -337,11 +337,11 @@ async function findProspectByPhone(phone) {
   ];
 
   try {
-    const orgsSnap = await db.collection('organizations').get();
+    const orgsSnap = await getDb().collection('organizations').get();
 
     for (const orgDoc of orgsSnap.docs) {
       for (const phoneVar of variations) {
-        const prospectSnap = await db.collection('organizations').doc(orgDoc.id)
+        const prospectSnap = await getDb().collection('organizations').doc(orgDoc.id)
           .collection('prospects')
           .where('phone', '==', phoneVar)
           .limit(1)
@@ -366,7 +366,7 @@ async function findProspectByPhone(phone) {
 async function findProspectByPhoneInOrg(orgId, phone) {
   const cleaned = phone.replace(/\D/g, '');
 
-  const prospectSnap = await db.collection('organizations').doc(orgId)
+  const prospectSnap = await getDb().collection('organizations').doc(orgId)
     .collection('prospects')
     .where('phone', '==', cleaned)
     .limit(1)
@@ -386,7 +386,7 @@ async function findRecentVoicemail(orgId, prospectId, hoursAgo) {
   const threshold = new Date();
   threshold.setHours(threshold.getHours() - hoursAgo);
 
-  const snap = await db.collection('organizations').doc(orgId)
+  const snap = await getDb().collection('organizations').doc(orgId)
     .collection('interactions')
     .where('type', '==', 'voicemail_dropped')
     .where('prospectId', '==', prospectId)
@@ -404,7 +404,7 @@ async function findRecentVoicemail(orgId, prospectId, hoursAgo) {
 
 async function notifyTeam(orgId, notification) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('notifications').add({
         ...notification,
         read: false,
@@ -419,7 +419,7 @@ async function updateChannelAnalytics(orgId, channel, metric) {
   const today = new Date().toISOString().split('T')[0];
 
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('channelAnalytics').doc(today)
       .set({
         date: today,

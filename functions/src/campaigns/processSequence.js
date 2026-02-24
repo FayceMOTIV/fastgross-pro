@@ -198,7 +198,7 @@ function replaceVariables(text, prospect, campaign) {
 
   let result = text
   for (const [key, value] of Object.entries(replacements)) {
-    result = result.replace(new RegExp(key, 'gi'), value)
+    result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value)
   }
 
   return result

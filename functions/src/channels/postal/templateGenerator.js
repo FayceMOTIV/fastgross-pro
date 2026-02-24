@@ -459,7 +459,7 @@ export async function generatePostalHTML(orgId, templateId, data = {}) {
     let template;
 
     // Chercher dans les templates custom
-    const customRef = db.collection('organizations').doc(orgId)
+    const customRef = getDb().collection('organizations').doc(orgId)
       .collection('postalTemplates').doc(templateId);
     const customSnap = await customRef.get();
 
@@ -472,7 +472,7 @@ export async function generatePostalHTML(orgId, templateId, data = {}) {
     }
 
     // 2. Recuperer infos organisation
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
     const org = orgSnap.exists ? orgSnap.data() : {};
 
@@ -524,7 +524,8 @@ export async function generatePostalHTML(orgId, templateId, data = {}) {
     }
 
     for (const [key, value] of Object.entries(variables)) {
-      const regex = new RegExp(`\\{${key}\\}`, 'gi');
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\{${escapedKey}\\}`, 'gi');
       html = html.replace(regex, value || '');
     }
 
@@ -565,7 +566,7 @@ export async function createPostalTemplate(orgId, templateData) {
       .map(v => v.replace(/[{}]/g, ''))
       .filter((v, i, arr) => arr.indexOf(v) === i);
 
-    const ref = await db.collection('organizations').doc(orgId)
+    const ref = await getDb().collection('organizations').doc(orgId)
       .collection('postalTemplates').add({
         name,
         type,
@@ -595,7 +596,7 @@ export async function createPostalTemplate(orgId, templateData) {
 // ============================================
 export async function listPostalTemplates(orgId, type = null) {
   try {
-    let query = db.collection('organizations').doc(orgId)
+    let query = getDb().collection('organizations').doc(orgId)
       .collection('postalTemplates');
 
     if (type) {
@@ -676,7 +677,7 @@ export async function deletePostalTemplate(orgId, templateId) {
       return { success: false, error: 'Cannot delete default template' };
     }
 
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('postalTemplates').doc(templateId)
       .delete();
 

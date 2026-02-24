@@ -103,7 +103,7 @@ export async function createSMSTemplate(orgId, templateData) {
     }
 
     // Creer le template
-    const templateRef = await db.collection('organizations').doc(orgId)
+    const templateRef = await getDb().collection('organizations').doc(orgId)
       .collection('channelTemplates').add({
         channel: 'sms',
         name,
@@ -133,7 +133,7 @@ export async function createSMSTemplate(orgId, templateData) {
 // ============================================
 export async function getSMSTemplates(orgId, category = null) {
   try {
-    let query = db.collection('organizations').doc(orgId)
+    let query = getDb().collection('organizations').doc(orgId)
       .collection('channelTemplates')
       .where('channel', '==', 'sms');
 
@@ -238,7 +238,7 @@ export function previewSMSTemplate(content, prospect = {}) {
 
   let preview = content;
   for (const [key, value] of Object.entries(variables)) {
-    preview = preview.replace(new RegExp(key, 'gi'), value);
+    preview = preview.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value);
   }
 
   return {
@@ -283,7 +283,7 @@ export function optimizeForGSM7(content) {
 
   let optimized = content;
   for (const [from, to] of Object.entries(replacements)) {
-    optimized = optimized.replace(new RegExp(from, 'g'), to);
+    optimized = optimized.replace(new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), to);
   }
 
   return {

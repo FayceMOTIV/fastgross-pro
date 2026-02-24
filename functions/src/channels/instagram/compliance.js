@@ -33,7 +33,7 @@ export async function checkRateLimit(orgId) {
 
   try {
     const today = new Date().toISOString().split('T')[0];
-    const counterRef = db.collection('organizations').doc(orgId)
+    const counterRef = getDb().collection('organizations').doc(orgId)
       .collection('rateLimits').doc(`instagram_${today}`);
 
     const counterSnap = await counterRef.get();
@@ -68,7 +68,7 @@ export async function checkRateLimit(orgId) {
 export async function incrementDailyCount(orgId) {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const counterRef = db.collection('organizations').doc(orgId)
+    const counterRef = getDb().collection('organizations').doc(orgId)
       .collection('rateLimits').doc(`instagram_${today}`);
 
     await counterRef.set({
@@ -89,7 +89,7 @@ export async function incrementDailyCount(orgId) {
 // ============================================
 export async function hasPriorInteraction(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -110,7 +110,7 @@ export async function hasPriorInteraction(orgId, prospectId) {
     }
 
     // Verifier dans les interactions
-    const interactionsSnap = await db.collection('organizations').doc(orgId)
+    const interactionsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('instagramInteractions')
       .where('prospectId', '==', prospectId)
       .where('direction', '==', 'in')
@@ -156,7 +156,7 @@ export async function checkInstagramCompliance(orgId, prospectId) {
     }
 
     // 2. Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -223,7 +223,7 @@ export async function checkInstagramCompliance(orgId, prospectId) {
 // ============================================
 export async function recordInstagramInteraction(orgId, prospectId, type) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         'channels.instagram.lastInteraction': FieldValue.serverTimestamp(),
@@ -243,7 +243,7 @@ export async function recordInstagramInteraction(orgId, prospectId, type) {
 // ============================================
 export async function checkMessageDelay(orgId, prospectId) {
   try {
-    const interactionSnap = await db.collection('organizations').doc(orgId)
+    const interactionSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('channel', '==', 'instagram')
       .where('direction', '==', 'out')
@@ -286,13 +286,13 @@ export async function getRateLimitStats(orgId) {
     thisHour.setMinutes(0, 0, 0);
 
     // Compteur journalier
-    const dailyRef = db.collection('organizations').doc(orgId)
+    const dailyRef = getDb().collection('organizations').doc(orgId)
       .collection('rateLimits').doc(`instagram_${today}`);
     const dailySnap = await dailyRef.get();
     const dailyCount = dailySnap.exists ? (dailySnap.data().count || 0) : 0;
 
     // Compteur horaire
-    const hourlySnap = await db.collection('organizations').doc(orgId)
+    const hourlySnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('channel', '==', 'instagram')
       .where('direction', '==', 'out')
@@ -329,7 +329,7 @@ export async function getRateLimitStats(orgId) {
 export async function checkMessageVariety(orgId, message, limit = 10) {
   try {
     // Recuperer les derniers messages envoyes
-    const recentSnap = await db.collection('organizations').doc(orgId)
+    const recentSnap = await getDb().collection('organizations').doc(orgId)
       .collection('interactions')
       .where('channel', '==', 'instagram')
       .where('direction', '==', 'out')

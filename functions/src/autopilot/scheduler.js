@@ -33,6 +33,44 @@ function isWeekend() {
   return day === 0 || day === 6
 }
 
+// Domaines de plateformes et patterns d'emails invalides
+const INVALID_EMAIL_DOMAINS = [
+  'example.com', 'domain.com', 'domain.fr', 'test.com', 'doe.com',
+  'treatwell.fr', 'planity.com', 'doctolib.fr', 'pagesjaunes.fr',
+  'sortlist.fr', 'sortlist.com', 'threebestrated.fr', 'threebestrated.com',
+  'tripadvisor.fr', 'tripadvisor.com', 'yelp.fr', 'yelp.com',
+  'facebook.com', 'google.com', 'twitter.com', 'instagram.com',
+  'wavy.co', 'resend.dev', 'acme.com'
+]
+const INVALID_EMAIL_PREFIXES = [
+  'noreply', 'no-reply', 'unsubscribe', 'postmaster', 'mailer-daemon',
+  'test', 'user', 'nom', 'email', 'your', 'name', 'john', 'jane.doe',
+  'support', 'abuse', 'spam', 'root', 'webmaster'
+]
+
+function isValidProspectEmail(email) {
+  if (!email || typeof email !== 'string') return false
+  const lower = email.toLowerCase().trim()
+  const domain = lower.split('@')[1] || ''
+  const prefix = lower.split('@')[0] || ''
+  if (INVALID_EMAIL_DOMAINS.some(d => domain === d || domain.endsWith('.' + d))) return false
+  if (INVALID_EMAIL_PREFIXES.some(p => prefix === p || prefix.startsWith(p + '.'))) return false
+  if (/^u003e/.test(prefix)) return false
+  return true
+}
+
+function getBestEmail(emails) {
+  if (!emails || emails.length === 0) return null
+  const valid = emails.filter(isValidProspectEmail)
+  if (valid.length === 0) return null
+  // Prefer personal emails over generic
+  const personal = valid.find(e => {
+    const prefix = e.split('@')[0]
+    return !['contact', 'info', 'hello', 'admin', 'commercial'].includes(prefix)
+  })
+  return personal || valid[0]
+}
+
 /**
  * Reinitialiser les compteurs quotidiens de tous les comptes
  */
@@ -111,12 +149,14 @@ async function getActiveAutopilotOrgs() {
 }
 
 /**
- * Rechercher des prospects via Google CSE
+ * Rechercher des prospects via Serper.dev
  */
 async function searchProspects(config, orgId) {
   const db = getDb()
-  if (!config.googleCseApiKey || !config.googleCseCxId) {
-    console.log(`Org ${orgId}: Pas de cle Google CSE, skip recherche`)
+  const apiKey = process.env.SERPER_API_KEY
+
+  if (!apiKey) {
+    console.log(`Org ${orgId}: SERPER_API_KEY manquante, skip recherche`)
     return []
   }
 
@@ -126,22 +166,31 @@ async function searchProspects(config, orgId) {
 
   for (const keyword of keywords.slice(0, 3)) {
     const query = `${keyword} ${location} contact`
+    console.log(`[${orgId}] Serper search: "${query}"`)
 
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/customsearch/v1` +
-        `?key=${config.googleCseApiKey}` +
-        `&cx=${config.googleCseCxId}` +
-        `&q=${encodeURIComponent(query)}&num=10`
-      )
+      const response = await fetch('https://google.serper.dev/search', {
+        method: 'POST',
+        headers: {
+          'X-API-KEY': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          q: query,
+          gl: 'fr',
+          hl: 'fr',
+          num: 10
+        })
+      })
 
       const data = await response.json()
-      if (data.error) {
-        console.warn('Google CSE error:', data.error.message)
+
+      if (!response.ok) {
+        console.warn('Serper API error:', data.message || response.statusText)
         continue
       }
 
-      for (const item of (data.items || [])) {
+      for (const item of (data.organic || [])) {
         try {
           const url = new URL(item.link)
           const domain = url.hostname.replace(/^www\./, '')
@@ -162,7 +211,7 @@ async function searchProspects(config, orgId) {
             url: item.link,
             domain,
             snippet: item.snippet || '',
-            source: 'google_cse',
+            source: 'serper',
             status: 'found',
             foundAt: FieldValue.serverTimestamp()
           })
@@ -242,7 +291,14 @@ async function extractEmails(url) {
       const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
       const found = html.match(emailRegex) || []
 
-      const junkPatterns = ['noreply', 'no-reply', 'unsubscribe', 'example.com', 'wix', 'wordpress', '.png', '.jpg']
+      const junkPatterns = [
+        'noreply', 'no-reply', 'unsubscribe', 'example.com', 'wix', 'wordpress', '.png', '.jpg',
+        'sentry', 'webpack', 'cloudflare', 'placeholder', 'test@', 'user@', 'nom@domain',
+        'email@domain', 'your@email', 'name@domain', 'john@doe', 'jane.doe@',
+        'treatwell.fr', 'planity.com', 'doctolib.fr', 'pagesjaunes.fr',
+        'sortlist.', 'threebestrated.', 'tripadvisor.', 'yelp.',
+        'facebook.com', 'google.com', 'twitter.com', 'instagram.com'
+      ]
       found.forEach(e => {
         const lower = e.toLowerCase()
         if (!junkPatterns.some(p => lower.includes(p))) {
@@ -392,7 +448,7 @@ Bonne journee,
 
   const variables = {
     '{entreprise}': entreprise,
-    '{prenom}': prenom || 'Bonjour',
+    '{prenom}': prenom,
     '{secteur}': config.sector || 'votre secteur',
     '{ville}': config.location || 'votre region',
     '{score_video}': prospect.scoreDetails?.scoreVideoText || 'peu de contenu video',
@@ -408,6 +464,9 @@ Bonne journee,
     subject = subject.replace(regex, value)
     body = body.replace(regex, value)
   }
+
+  // Nettoyer "Bonjour ," quand pas de prenom
+  body = body.replace(/Bonjour\s*,/g, 'Bonjour,')
 
   return { to: prospect.emails[0], subject, body }
 }
@@ -523,10 +582,18 @@ async function runPipeline(orgId, config) {
       // Verifier si pas deja contacte
       if (prospect.emails?.length === 0) continue
 
+      // Filtrer les emails invalides (placeholders, plateformes)
+      const bestEmail = getBestEmail(prospect.emails)
+      if (!bestEmail) {
+        console.log(`[${orgId}] Skip ${prospect.domain}: aucun email valide`)
+        await doc.ref.update({ status: 'no_email', updatedAt: FieldValue.serverTimestamp() })
+        continue
+      }
+
       const account = accounts.find(a => a.sentToday < getEffectiveLimit(a))
       if (!account) break
 
-      const email = generateEmail(prospect, config, account)
+      const email = generateEmail({ ...prospect, emails: [bestEmail] }, config, account)
       await doc.ref.update({
         generatedEmail: email,
         status: 'ready',

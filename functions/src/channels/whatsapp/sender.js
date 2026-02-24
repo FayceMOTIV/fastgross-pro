@@ -23,7 +23,7 @@ const META_API_BASE = `https://graph.facebook.com/${META_API_VERSION}`;
 
 const getMetaConfig = async (orgId) => {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('whatsapp');
     const configSnap = await configRef.get();
 
@@ -71,7 +71,7 @@ export async function sendWhatsApp(orgId, prospectId, messageData, options = {})
     }
 
     // 2. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -411,7 +411,7 @@ function getProspectVariable(prospect, varName) {
 // ============================================
 async function logWhatsAppInteraction(orgId, prospectId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         ...data,
         prospectId,

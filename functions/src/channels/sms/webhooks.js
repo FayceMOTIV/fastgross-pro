@@ -163,7 +163,7 @@ export const smsInboundWebhook = onRequest(
 async function findInteractionByMessageSid(messageSid) {
   try {
     // Chercher dans toutes les orgs
-    const orgsSnapshot = await db.collection('organizations').get();
+    const orgsSnapshot = await getDb().collection('organizations').get();
 
     for (const orgDoc of orgsSnapshot.docs) {
       const interactionSnapshot = await db
@@ -195,7 +195,7 @@ async function findInteractionByMessageSid(messageSid) {
 // ============================================
 async function updateInteractionStatus(orgId, interactionId, updates) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').doc(interactionId)
       .update(updates);
   } catch (error) {
@@ -212,7 +212,7 @@ async function handleStatusChange(interaction, status, errorInfo) {
   switch (status) {
     case 'delivered':
       // SMS delivre avec succes
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           lastSMSDelivered: FieldValue.serverTimestamp(),
@@ -226,7 +226,7 @@ async function handleStatusChange(interaction, status, errorInfo) {
       console.warn(`SMS failed for prospect ${prospectId}: ${errorInfo.ErrorCode} - ${errorInfo.ErrorMessage}`);
 
       // Mettre a jour le prospect
-      await db.collection('organizations').doc(orgId)
+      await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           'channels.sms.lastError': {
@@ -239,7 +239,7 @@ async function handleStatusChange(interaction, status, errorInfo) {
       // Codes d'erreur specifiques
       if (errorInfo.ErrorCode === '30003' || errorInfo.ErrorCode === '30004') {
         // Numero invalide ou injoignable - marquer comme non disponible
-        await db.collection('organizations').doc(orgId)
+        await getDb().collection('organizations').doc(orgId)
           .collection('prospects').doc(prospectId)
           .update({
             'channels.sms.available': false,
@@ -265,7 +265,7 @@ async function updateChannelAnalytics(orgId, channel, status) {
   const today = new Date().toISOString().split('T')[0];
 
   try {
-    const analyticsRef = db.collection('organizations').doc(orgId)
+    const analyticsRef = getDb().collection('organizations').doc(orgId)
       .collection('channelAnalytics').doc(today);
 
     const statusField = mapStatusToField(status);
@@ -299,7 +299,7 @@ function mapStatusToField(status) {
 // ============================================
 async function logOrphanedWebhook(type, data) {
   try {
-    await db.collection('orphanedWebhooks').add({
+    await getDb().collection('orphanedWebhooks').add({
       type,
       data,
       createdAt: FieldValue.serverTimestamp()

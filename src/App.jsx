@@ -8,6 +8,7 @@ import { DemoProvider, useDemo } from '@/contexts/DemoContext'
 import { OnboardingFlowProvider } from '@/contexts/OnboardingContext'
 
 // Components (not lazy - needed immediately)
+import ErrorBoundary from '@/components/ErrorBoundary'
 import Layout from '@/components/Layout'
 import { OnboardingProvider } from '@/components/OnboardingTour'
 import { TooltipProvider } from '@/components/Tooltip'
@@ -183,6 +184,7 @@ export default function App() {
             <AuthProvider>
               <OrgProvider>
                 <NotificationProvider>
+                  <ErrorBoundary>
                   <Suspense fallback={<PageLoader />}>
                     <CookieBanner />
                     <Routes>
@@ -361,6 +363,7 @@ export default function App() {
                       <Route path="*" element={<Navigate to="/app" replace />} />
                     </Routes>
                   </Suspense>
+                  </ErrorBoundary>
                 </NotificationProvider>
               </OrgProvider>
             </AuthProvider>

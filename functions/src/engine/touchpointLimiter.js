@@ -59,7 +59,7 @@ export async function canAddTouchpoint(orgId, prospectId, channel) {
     periodStart.setDate(periodStart.getDate() - COUNTING_PERIOD_DAYS);
 
     // 3. Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -127,7 +127,7 @@ export async function canAddTouchpoint(orgId, prospectId, channel) {
 // ============================================
 export async function recordTouchpoint(orgId, prospectId, channel) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -138,7 +138,7 @@ export async function recordTouchpoint(orgId, prospectId, channel) {
     });
 
     // Logger dans l'historique
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('touchpointHistory').add({
         prospectId,
         channel,
@@ -160,7 +160,7 @@ export async function getTouchpointStatus(orgId, prospectId) {
   try {
     const limits = await getLimits(orgId);
 
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -224,7 +224,7 @@ export async function getTouchpointStatus(orgId, prospectId) {
 // ============================================
 export async function resetTouchpoints(orgId, prospectId) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -256,7 +256,7 @@ export async function resetExpiredTouchpoints(orgId) {
     const periodThreshold = new Date();
     periodThreshold.setDate(periodThreshold.getDate() - COUNTING_PERIOD_DAYS);
 
-    const prospectsSnap = await db.collection('organizations').doc(orgId)
+    const prospectsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('prospects')
       .where('touchpoints.periodStart', '<=', Timestamp.fromDate(periodThreshold))
       .limit(100)
@@ -292,7 +292,7 @@ export async function setCustomLimits(orgId, limits) {
       }
     }
 
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('settings').doc('touchpointLimits')
       .set({
         ...cleanLimits,
@@ -316,7 +316,7 @@ export async function setMinSpacing(orgId, hours) {
       return { success: false, error: 'Invalid spacing value' };
     }
 
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('settings').doc('touchpointLimits')
       .set({
         minSpacingHours: hours,
@@ -336,7 +336,7 @@ export async function setMinSpacing(orgId, hours) {
 // ============================================
 async function getLimits(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('settings').doc('touchpointLimits');
     const configSnap = await configRef.get();
 
@@ -357,7 +357,7 @@ async function getLimits(orgId) {
 // ============================================
 async function getMinSpacing(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('settings').doc('touchpointLimits');
     const configSnap = await configRef.get();
 
@@ -381,7 +381,7 @@ async function getNextResetDate(orgId, prospectId, channel) {
     const periodStart = new Date();
     periodStart.setDate(periodStart.getDate() - COUNTING_PERIOD_DAYS);
 
-    const historySnap = await db.collection('organizations').doc(orgId)
+    const historySnap = await getDb().collection('organizations').doc(orgId)
       .collection('touchpointHistory')
       .where('prospectId', '==', prospectId)
       .where('channel', '==', channel)
@@ -412,7 +412,7 @@ export async function getTouchpointHistory(orgId, prospectId, days = 30) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const historySnap = await db.collection('organizations').doc(orgId)
+    const historySnap = await getDb().collection('organizations').doc(orgId)
       .collection('touchpointHistory')
       .where('prospectId', '==', prospectId)
       .where('timestamp', '>=', Timestamp.fromDate(startDate))
@@ -476,7 +476,7 @@ export async function checkBatchTouchpoints(orgId, prospectIds, channel) {
 // ============================================
 export async function getOrgTouchpointStats(orgId) {
   try {
-    const prospectsSnap = await db.collection('organizations').doc(orgId)
+    const prospectsSnap = await getDb().collection('organizations').doc(orgId)
       .collection('prospects')
       .get();
 

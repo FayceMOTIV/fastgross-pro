@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Globe,
   Search,
@@ -10,18 +10,44 @@ import {
   ToggleLeft,
   ToggleRight,
 } from 'lucide-react'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import toast from 'react-hot-toast'
 
 export default function SourcesSettings({ saving, setSaving }) {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [hunterEnabled, setHunterEnabled] = useState(false)
   const [hunterApiKey, setHunterApiKey] = useState('')
   const [dropcontactEnabled, setDropcontactEnabled] = useState(false)
   const [dropcontactApiKey, setDropcontactApiKey] = useState('')
   const [scrapingEnabled, setScrapingEnabled] = useState(true)
 
+  useEffect(() => {
+    if (!currentOrg?.id || isDemo) return
+    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'sources')).then((snap) => {
+      if (snap.exists()) {
+        const d = snap.data()
+        if (d.hunterEnabled !== undefined) setHunterEnabled(d.hunterEnabled)
+        if (d.hunterApiKey !== undefined) setHunterApiKey(d.hunterApiKey)
+        if (d.dropcontactEnabled !== undefined) setDropcontactEnabled(d.dropcontactEnabled)
+        if (d.dropcontactApiKey !== undefined) setDropcontactApiKey(d.dropcontactApiKey)
+        if (d.scrapingEnabled !== undefined) setScrapingEnabled(d.scrapingEnabled)
+      }
+    }).catch(() => {})
+  }, [currentOrg?.id])
+
   const handleSave = async () => {
     setSaving(true)
     try {
+      if (currentOrg?.id && !isDemo) {
+        await setDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'sources'), {
+          hunterEnabled, hunterApiKey, dropcontactEnabled, dropcontactApiKey,
+          scrapingEnabled, updatedAt: new Date()
+        }, { merge: true })
+      }
       toast.success("Sources d'emails sauvegardees")
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')

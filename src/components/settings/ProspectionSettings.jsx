@@ -1,17 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Users, Zap, Save, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import toast from 'react-hot-toast'
 
 export default function ProspectionSettings({ saving, setSaving }) {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const [multiContact, setMultiContact] = useState(true)
   const [maxContactsPerCompany, setMaxContactsPerCompany] = useState(3)
   const [autoScore, setAutoScore] = useState(true)
   const [minScore, setMinScore] = useState(60)
 
+  useEffect(() => {
+    if (!currentOrg?.id || isDemo) return
+    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'prospection')).then((snap) => {
+      if (snap.exists()) {
+        const d = snap.data()
+        if (d.multiContact !== undefined) setMultiContact(d.multiContact)
+        if (d.maxContactsPerCompany !== undefined) setMaxContactsPerCompany(d.maxContactsPerCompany)
+        if (d.autoScore !== undefined) setAutoScore(d.autoScore)
+        if (d.minScore !== undefined) setMinScore(d.minScore)
+      }
+    }).catch(() => {})
+  }, [currentOrg?.id])
+
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Save to Firestore in real app
+      if (currentOrg?.id && !isDemo) {
+        await setDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'prospection'), {
+          multiContact, maxContactsPerCompany, autoScore, minScore, updatedAt: new Date()
+        }, { merge: true })
+      }
       toast.success('Parametres de prospection sauvegardes')
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde')

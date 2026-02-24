@@ -127,7 +127,7 @@ const CACHE_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours
 
 async function getCachedAvailability(orgId, phone) {
   try {
-    const cacheRef = db.collection('organizations').doc(orgId)
+    const cacheRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappAvailability').doc(phone);
     const cacheSnap = await cacheRef.get();
 
@@ -152,7 +152,7 @@ async function getCachedAvailability(orgId, phone) {
 
 async function cacheAvailability(orgId, phone, available) {
   try {
-    const cacheRef = db.collection('organizations').doc(orgId)
+    const cacheRef = getDb().collection('organizations').doc(orgId)
       .collection('whatsappAvailability').doc(phone);
 
     await cacheRef.set({
@@ -209,7 +209,7 @@ export async function checkBatchAvailability(orgId, phones) {
 // ============================================
 export async function updateProspectWhatsAppStatus(orgId, prospectId, available) {
   try {
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
 
     await prospectRef.update({
@@ -232,7 +232,7 @@ export async function updateProspectWhatsAppStatus(orgId, prospectId, available)
 export async function checkAndUpdateProspect(orgId, prospectId) {
   try {
     // Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -270,7 +270,7 @@ export async function checkAndUpdateProspect(orgId, prospectId) {
 // ============================================
 async function getMetaConfig(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('whatsapp');
     const configSnap = await configRef.get();
 

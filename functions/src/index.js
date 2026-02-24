@@ -91,8 +91,9 @@ export { createABTest, selectVariant, recordEvent, getActiveTests, getTestHistor
 // Multichannel Infrastructure v5.0
 // ============================================
 
-// --- SMS (Twilio) ---
+// --- SMS (Twilio + BudgetSMS) ---
 export { sendSMS, sendSMSBatch } from './channels/sms/sender.js'
+export { sendSMS as sendSMSBudget, sendSMSBatch as sendSMSBatchBudget, checkCredits as checkSMSCredits } from './channels/sms/budgetSmsProvider.js'
 export { smsStatusWebhook, smsInboundWebhook } from './channels/sms/webhooks.js'
 export { createSMSTemplate, getSMSTemplates, validateSMSContent } from './channels/sms/templates.js'
 
@@ -119,6 +120,9 @@ export { validateAddress, validateAddressBatch, validateAndUpdateProspect, autoc
 export { generatePostalHTML, createPostalTemplate, listPostalTemplates, previewTemplate } from './channels/postal/templateGenerator.js'
 export { postalTrackingWebhook, postalDeliveryWebhook, createTrackingCode, createPURL, recordConversion, getTrackingStats } from './channels/postal/trackingManager.js'
 
+// --- Postal (Merci Facteur) ---
+export { sendLetterMF, sendRegisteredLetterMF, getMailStatusMF, cancelMailMF, handleMFWebhook, estimateCostMF } from './channels/postal/merciFacteurProvider.js'
+
 // --- Unified Compliance Engine ---
 export { canContactOnChannel, recordOptIn, recordOptOut, recordGlobalSuppression, recordTouchpoint, resetTouchpoints, getProspectComplianceStatus } from './compliance/unifiedOptManager.js'
 
@@ -126,6 +130,12 @@ export { canContactOnChannel, recordOptIn, recordOptOut, recordGlobalSuppression
 export { selectOptimalChannel, selectChannelsForSequence, recommendChannelStrategy, getChannelPerformanceStats } from './engine/channelRouter.js'
 export { checkFallbackNeeded, executeFallback, scanPendingFallbacks, setFallbackRules, getFallbackStats, previewFallbackChain } from './engine/fallbackManager.js'
 export { canAddTouchpoint, recordTouchpoint as recordTouchpointLimit, getTouchpointStatus, resetExpiredTouchpoints, setCustomLimits, getOrgTouchpointStats, simulateSequenceTouchpoints } from './engine/touchpointLimiter.js'
+
+// --- Unified Channel Dispatcher ---
+export { dispatchMessage, dispatchBatch, getDispatchStats, getSupportedChannels } from './engine/channelDispatcher.js'
+
+// --- Channel Monitoring Dashboard ---
+export { getChannelDashboard, checkAndCreateAlerts, getChannelHistory, resolveAlert } from './engine/channelMonitoring.js'
 
 // ============================================
 // Admin Functions (Super Admin / Beta Users)

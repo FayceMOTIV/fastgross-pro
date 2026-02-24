@@ -21,7 +21,7 @@ const DROP_COWBOY_API_BASE = 'https://api.dropcowboy.com/v1';
 // ============================================
 async function getConfig(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('voicemail');
     const configSnap = await configRef.get();
 
@@ -118,7 +118,7 @@ export async function createVoiceClone(orgId, audioData, metadata = {}) {
 export async function listVoices(orgId) {
   try {
     // 1. Voix de l'organisation
-    const localSnapshot = await db.collection('organizations').doc(orgId)
+    const localSnapshot = await getDb().collection('organizations').doc(orgId)
       .collection('voiceClones')
       .where('status', '==', 'ready')
       .get();
@@ -169,7 +169,7 @@ export async function listVoices(orgId) {
 export async function getVoice(orgId, voiceId) {
   try {
     // Chercher localement d'abord
-    const localRef = db.collection('organizations').doc(orgId)
+    const localRef = getDb().collection('organizations').doc(orgId)
       .collection('voiceClones').doc(voiceId);
     const localSnap = await localRef.get();
 
@@ -220,7 +220,7 @@ export async function deleteVoice(orgId, voiceId) {
     }
 
     // Supprimer localement
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('voiceClones').doc(voiceId)
       .delete();
 
@@ -237,7 +237,7 @@ export async function deleteVoice(orgId, voiceId) {
 // ============================================
 async function saveVoiceClone(orgId, voiceData) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('voiceClones').doc(voiceData.voiceId)
       .set({
         ...voiceData,
@@ -270,7 +270,7 @@ export async function updateVoiceStatus(orgId, voiceId) {
     const data = await response.json();
 
     // Mettre a jour localement
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('voiceClones').doc(voiceId)
       .update({
         status: data.status,

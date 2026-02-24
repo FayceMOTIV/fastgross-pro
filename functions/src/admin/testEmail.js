@@ -149,32 +149,37 @@ export const getTestEmailLogs = onCall({
     throw new HttpsError('unauthenticated', 'User must be authenticated')
   }
 
-  // Only super admins can view all logs
-  const superAdminDoc = await getDb().collection('superAdmins').doc(auth.uid).get()
-  const isSuperAdmin = superAdminDoc.exists
+  try {
+    // Only super admins can view all logs
+    const superAdminDoc = await getDb().collection('superAdmins').doc(auth.uid).get()
+    const isSuperAdmin = superAdminDoc.exists
 
-  // Build query
-  let query = getDb().collection('emailTestLogs')
-    .orderBy('timestamp', 'desc')
-    .limit(data?.limit || 50)
+    // Build query
+    let query = getDb().collection('emailTestLogs')
+      .orderBy('timestamp', 'desc')
+      .limit(data?.limit || 50)
 
-  // Non-admins can only see their own logs
-  if (!isSuperAdmin) {
-    query = query.where('userId', '==', auth.uid)
-  }
+    // Non-admins can only see their own logs
+    if (!isSuperAdmin) {
+      query = query.where('userId', '==', auth.uid)
+    }
 
-  const snapshot = await query.get()
+    const snapshot = await query.get()
 
-  const logs = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    timestamp: doc.data().timestamp?.toDate?.()?.toISOString() || null
-  }))
+    const logs = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      timestamp: doc.data().timestamp?.toDate?.()?.toISOString() || null
+    }))
 
-  return {
-    success: true,
-    count: logs.length,
-    logs
+    return {
+      success: true,
+      count: logs.length,
+      logs
+    }
+  } catch (error) {
+    if (error instanceof HttpsError) throw error
+    throw new HttpsError('internal', error.message)
   }
 })
 

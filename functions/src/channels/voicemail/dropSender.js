@@ -25,7 +25,7 @@ const DROP_COWBOY_API_BASE = 'https://api.dropcowboy.com/v1';
 // ============================================
 async function getDropCowboyConfig(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('voicemail');
     const configSnap = await configRef.get();
 
@@ -83,7 +83,7 @@ export async function sendVoicemailDrop(orgId, prospectId, options = {}) {
     }
 
     // 3. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -233,7 +233,7 @@ async function sendDropCowboyRequest(config, data) {
 // ============================================
 async function getScript(orgId, scriptId) {
   try {
-    const scriptRef = db.collection('organizations').doc(orgId)
+    const scriptRef = getDb().collection('organizations').doc(orgId)
       .collection('voicemailScripts').doc(scriptId);
     const scriptSnap = await scriptRef.get();
 
@@ -289,7 +289,7 @@ function replaceVariables(text, prospect) {
 
   let result = text;
   for (const [key, value] of Object.entries(variables)) {
-    result = result.replace(new RegExp(key, 'gi'), value);
+    result = result.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), value);
   }
 
   return result;
@@ -304,7 +304,7 @@ function replaceVariable(template, prospect) {
 // ============================================
 async function logVoicemailInteraction(orgId, prospectId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         ...data,
         prospectId,

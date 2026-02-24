@@ -43,6 +43,13 @@ const TikTokIcon = ({ className }) => (
   </svg>
 )
 
+// Facebook icon component
+const FacebookIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+)
+
 // Mock data for initial state
 const mockStats = {
   instagram: {
@@ -55,6 +62,12 @@ const mockStats = {
     totalScanned: 156,
     totalQualified: 48,
     totalSaved: 35,
+    lastRun: new Date().toISOString()
+  },
+  facebook: {
+    totalScanned: 89,
+    totalQualified: 34,
+    totalSaved: 28,
     lastRun: new Date().toISOString()
   },
   dm: {
@@ -156,6 +169,22 @@ const mockProspects = [
     websiteUrl: 'https://pierre-ecom.fr',
     hashtag: 'ecommerce',
     createdAt: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: '5',
+    platform: 'facebook',
+    username: 'agence-digitale-paris',
+    fullName: 'Agence Digitale Paris',
+    bio: 'Agence de marketing digital specialisee en strategie et contenu',
+    followers: 3200,
+    score: 78,
+    status: 'new',
+    email: 'contact@agence-digitale-paris.fr',
+    phone: '0142360000',
+    websiteUrl: 'https://agence-digitale-paris.fr',
+    facebookUrl: 'https://facebook.com/agence-digitale-paris',
+    keyword: 'agence marketing',
+    createdAt: new Date(Date.now() - 7200000).toISOString()
   }
 ]
 
@@ -171,11 +200,15 @@ export default function Hunter() {
   const [config, setConfig] = useState({
     instagramEnabled: true,
     tiktokEnabled: true,
+    facebookEnabled: true,
     instagramHashtags: ['entrepreneur', 'business', 'startup'],
     tiktokHashtags: ['entrepreneur', 'business', 'coaching'],
+    facebookKeywords: ['agence marketing', 'agence communication'],
+    facebookLocation: 'Paris',
     autoSendDM: false,
     minScore: 70
   })
+  const [runningMultiScan, setRunningMultiScan] = useState(false)
 
   // Instagram multi-account state
   const [instagramAccounts, setInstagramAccounts] = useState(mockInstagramAccounts)
@@ -210,25 +243,56 @@ export default function Hunter() {
     const toastId = toast.loading(`Scan ${platform} en cours...`)
 
     try {
-      const functionName = platform === 'instagram'
-        ? 'runInstagramHunterManual'
-        : 'runTikTokHunterManual'
+      const functionMap = {
+        instagram: 'runInstagramHunterManual',
+        tiktok: 'runTikTokHunterManual',
+        facebook: 'runFacebookHunterManual'
+      }
 
+      const functionName = functionMap[platform]
       const huntFunction = httpsCallable(functions, functionName)
-      const result = await huntFunction({
-        orgId: 'default', // TODO: Get from OrgContext
-        hashtag: hashtag || config[`${platform}Hashtags`][0]
-      })
+
+      const params = platform === 'facebook'
+        ? { orgId: 'default', keyword: hashtag || config.facebookKeywords[0], location: config.facebookLocation }
+        : { orgId: 'default', hashtag: hashtag || config[`${platform}Hashtags`][0] }
+
+      const result = await huntFunction(params)
 
       toast.success(result.data.message, { id: toastId })
-
-      // Reload stats
       await loadStats()
     } catch (error) {
       console.error('Hunt failed:', error)
       toast.error(`Echec du scan: ${error.message}`, { id: toastId })
     } finally {
       setRunningHunt(null)
+    }
+  }
+
+  const runMultiPlatformScan = async () => {
+    setRunningMultiScan(true)
+    const toastId = toast.loading('Scan multi-reseaux en cours...')
+
+    try {
+      const campaignFunction = httpsCallable(functions, 'runSocialHuntingCampaign')
+      const result = await campaignFunction({
+        orgId: 'default',
+        config: {
+          enableInstagram: config.instagramEnabled,
+          enableTiktok: config.tiktokEnabled,
+          enableFacebook: config.facebookEnabled,
+          instagramHashtag: config.instagramHashtags[0],
+          facebookKeyword: config.facebookKeywords[0],
+          facebookLocation: config.facebookLocation
+        }
+      })
+
+      toast.success('Campagne multi-reseaux terminee', { id: toastId })
+      await loadStats()
+    } catch (error) {
+      console.error('Multi-platform scan failed:', error)
+      toast.error(`Echec: ${error.message}`, { id: toastId })
+    } finally {
+      setRunningMultiScan(false)
     }
   }
 
@@ -380,6 +444,7 @@ export default function Hunter() {
 
   const getPlatformIcon = (platform) => {
     if (platform === 'instagram') return <Instagram className="w-4 h-4 text-pink-500" />
+    if (platform === 'facebook') return <FacebookIcon className="w-4 h-4 text-blue-600" />
     return <TikTokIcon className="w-4 h-4 text-black" />
   }
 
@@ -405,11 +470,23 @@ export default function Hunter() {
               Hunter Agent
             </h1>
             <p className="text-gray-500 mt-1">
-              Prospection automatisee Instagram & TikTok
+              Prospection automatisee Instagram, TikTok & Facebook
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={runMultiPlatformScan}
+              disabled={runningMultiScan || runningHunt !== null}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-50"
+            >
+              {runningMultiScan ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4" />
+              )}
+              Scan Multi-Reseaux
+            </button>
             <button
               onClick={() => setShowConfig(!showConfig)}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
@@ -501,6 +578,48 @@ export default function Hunter() {
                 </div>
               </div>
 
+              {/* Facebook Config */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 font-medium">
+                    <FacebookIcon className="w-5 h-5 text-blue-600" />
+                    Facebook Hunter
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={config.facebookEnabled}
+                      onChange={(e) => setConfig(prev => ({ ...prev, facebookEnabled: e.target.checked }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Mots-cles de recherche</label>
+                  <input
+                    type="text"
+                    value={config.facebookKeywords.join(', ')}
+                    onChange={(e) => setConfig(prev => ({
+                      ...prev,
+                      facebookKeywords: e.target.value.split(',').map(h => h.trim()).filter(Boolean)
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="agence marketing, studio creatif"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Localisation</label>
+                  <input
+                    type="text"
+                    value={config.facebookLocation}
+                    onChange={(e) => setConfig(prev => ({ ...prev, facebookLocation: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Paris"
+                  />
+                </div>
+              </div>
+
               {/* General Config */}
               <div className="space-y-4">
                 <div>
@@ -555,7 +674,7 @@ export default function Hunter() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {/* Instagram Stats */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -608,6 +727,34 @@ export default function Hunter() {
               <p className="text-sm text-gray-500">Prospects TikTok</p>
               <p className="text-xs text-gray-400 mt-1">
                 {stats.tiktok.totalScanned} scannes, {stats.tiktok.totalQualified} qualifies
+              </p>
+            </div>
+          </div>
+
+          {/* Facebook Stats */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                <FacebookIcon className="w-6 h-6 text-white" />
+              </div>
+              <button
+                onClick={() => runManualHunt('facebook')}
+                disabled={runningHunt !== null}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition disabled:opacity-50"
+              >
+                {runningHunt === 'facebook' ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+                Scan
+              </button>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{stats.facebook.totalSaved}</p>
+              <p className="text-sm text-gray-500">Prospects Facebook</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {stats.facebook.totalScanned} scannees, {stats.facebook.totalQualified} qualifiees
               </p>
             </div>
           </div>
@@ -704,7 +851,7 @@ export default function Hunter() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-100">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -776,6 +923,43 @@ export default function Hunter() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Facebook Scan */}
+                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                        <FacebookIcon className="w-5 h-5 text-blue-600" />
+                        Scan Facebook
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Recherche: {config.facebookKeywords.join(', ')} ({config.facebookLocation})
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Mot-cle personnalise..."
+                        className="flex-1 px-3 py-2 text-sm border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.target.value) {
+                            runManualHunt('facebook', e.target.value)
+                            e.target.value = ''
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => runManualHunt('facebook')}
+                        disabled={runningHunt !== null}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                      >
+                        {runningHunt === 'facebook' ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Recent Activity */}
@@ -824,7 +1008,7 @@ export default function Hunter() {
                               </button>
                             )}
                             <a
-                              href={`https://${prospect.platform === 'instagram' ? 'instagram.com' : 'tiktok.com'}/@${prospect.username}`}
+                              href={prospect.facebookUrl || `https://${prospect.platform === 'instagram' ? 'instagram.com' : 'tiktok.com'}/@${prospect.username}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
@@ -862,6 +1046,7 @@ export default function Hunter() {
                     <option value="all">Toutes plateformes</option>
                     <option value="instagram">Instagram</option>
                     <option value="tiktok">TikTok</option>
+                    <option value="facebook">Facebook</option>
                   </select>
                   <select
                     value={filter.status}
@@ -959,7 +1144,7 @@ export default function Hunter() {
                                   </button>
                                 )}
                                 <a
-                                  href={`https://${prospect.platform === 'instagram' ? 'instagram.com' : 'tiktok.com'}/@${prospect.username}`}
+                                  href={prospect.facebookUrl || `https://${prospect.platform === 'instagram' ? 'instagram.com' : 'tiktok.com'}/@${prospect.username}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
@@ -1004,26 +1189,41 @@ export default function Hunter() {
                       Performance des scans
                     </h4>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Instagram</span>
-                        <span className="font-medium">{stats.instagram.totalSaved} prospects</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full"
-                          style={{ width: `${(stats.instagram.totalSaved / (stats.instagram.totalSaved + stats.tiktok.totalSaved)) * 100}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">TikTok</span>
-                        <span className="font-medium">{stats.tiktok.totalSaved} prospects</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-black h-2 rounded-full"
-                          style={{ width: `${(stats.tiktok.totalSaved / (stats.instagram.totalSaved + stats.tiktok.totalSaved)) * 100}%` }}
-                        />
-                      </div>
+                      {(() => {
+                        const total = stats.instagram.totalSaved + stats.tiktok.totalSaved + stats.facebook.totalSaved
+                        return (<>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Instagram</span>
+                            <span className="font-medium">{stats.instagram.totalSaved} prospects</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-gradient-to-r from-pink-500 to-purple-500 h-2 rounded-full"
+                              style={{ width: `${total ? (stats.instagram.totalSaved / total) * 100 : 0}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">TikTok</span>
+                            <span className="font-medium">{stats.tiktok.totalSaved} prospects</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-black h-2 rounded-full"
+                              style={{ width: `${total ? (stats.tiktok.totalSaved / total) * 100 : 0}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm text-gray-600">Facebook</span>
+                            <span className="font-medium">{stats.facebook.totalSaved} prospects</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full"
+                              style={{ width: `${total ? (stats.facebook.totalSaved / total) * 100 : 0}%` }}
+                            />
+                          </div>
+                        </>)
+                      })()}
                     </div>
                   </div>
 
@@ -1037,20 +1237,30 @@ export default function Hunter() {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Instagram</span>
                         <span className="font-medium">
-                          {Math.round((stats.instagram.totalQualified / stats.instagram.totalScanned) * 100)}%
+                          {stats.instagram.totalScanned ? Math.round((stats.instagram.totalQualified / stats.instagram.totalScanned) * 100) : 0}%
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">TikTok</span>
                         <span className="font-medium">
-                          {Math.round((stats.tiktok.totalQualified / stats.tiktok.totalScanned) * 100)}%
+                          {stats.tiktok.totalScanned ? Math.round((stats.tiktok.totalQualified / stats.tiktok.totalScanned) * 100) : 0}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Facebook</span>
+                        <span className="font-medium">
+                          {stats.facebook.totalScanned ? Math.round((stats.facebook.totalQualified / stats.facebook.totalScanned) * 100) : 0}%
                         </span>
                       </div>
                       <div className="pt-2 border-t border-gray-200">
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium text-gray-700">Global</span>
                           <span className="font-bold text-indigo-600">
-                            {Math.round(((stats.instagram.totalQualified + stats.tiktok.totalQualified) / (stats.instagram.totalScanned + stats.tiktok.totalScanned)) * 100)}%
+                            {(() => {
+                              const totalQ = stats.instagram.totalQualified + stats.tiktok.totalQualified + stats.facebook.totalQualified
+                              const totalS = stats.instagram.totalScanned + stats.tiktok.totalScanned + stats.facebook.totalScanned
+                              return totalS ? Math.round((totalQ / totalS) * 100) : 0
+                            })()}%
                           </span>
                         </div>
                       </div>

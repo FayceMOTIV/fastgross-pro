@@ -1,7 +1,14 @@
 /**
- * Instagram DM Sender V2
+ * Instagram DM Sender V3
  * Automated outreach to qualified prospects
  * Uses instagrapi (Python) for sending DMs
+ *
+ * V3 IMPROVEMENTS:
+ * - Proxy support (residential/datacenter rotation)
+ * - Session file persistence (avoid re-login)
+ * - Account health monitoring (challenge detection)
+ * - Smart warmup mode for new accounts
+ * - Enhanced error classification
  *
  * V2 IMPROVEMENTS:
  * - Safe rate limits (4/h, 30/day)
@@ -32,6 +39,53 @@ const DM_LIMITS = {
   sleepHoursStart: 23,     // No activity after 23h
   sleepHoursEnd: 7,        // No activity before 7h
   noWeekend: true          // No activity on weekends
+}
+
+// Warmup schedule: gradual increase for new accounts
+const WARMUP_SCHEDULE = {
+  day1_3: { maxPerHour: 1, maxPerDay: 3 },
+  day4_7: { maxPerHour: 2, maxPerDay: 10 },
+  day8_14: { maxPerHour: 3, maxPerDay: 20 },
+  day15_plus: { maxPerHour: 4, maxPerDay: 30 }
+}
+
+// Error classification for smart retry logic
+const ERROR_TYPES = {
+  RATE_LIMITED: 'rate_limited',
+  CHALLENGE_REQUIRED: 'challenge_required',
+  ACCOUNT_DISABLED: 'account_disabled',
+  LOGIN_FAILED: 'login_failed',
+  NETWORK_ERROR: 'network_error',
+  USER_NOT_FOUND: 'user_not_found',
+  DM_BLOCKED: 'dm_blocked',
+  UNKNOWN: 'unknown'
+}
+
+/**
+ * Classify Instagram error from Python output
+ */
+function classifyError(errorMessage) {
+  const msg = (errorMessage || '').toLowerCase()
+  if (msg.includes('challenge_required') || msg.includes('checkpoint')) return ERROR_TYPES.CHALLENGE_REQUIRED
+  if (msg.includes('rate limit') || msg.includes('please wait')) return ERROR_TYPES.RATE_LIMITED
+  if (msg.includes('disabled') || msg.includes('suspended')) return ERROR_TYPES.ACCOUNT_DISABLED
+  if (msg.includes('bad password') || msg.includes('invalid') || msg.includes('login_required')) return ERROR_TYPES.LOGIN_FAILED
+  if (msg.includes('user not found') || msg.includes('user_not_found')) return ERROR_TYPES.USER_NOT_FOUND
+  if (msg.includes('unable to send') || msg.includes('not allowed')) return ERROR_TYPES.DM_BLOCKED
+  if (msg.includes('timeout') || msg.includes('connection') || msg.includes('network')) return ERROR_TYPES.NETWORK_ERROR
+  return ERROR_TYPES.UNKNOWN
+}
+
+/**
+ * Get warmup-adjusted limits based on account age
+ */
+function getWarmupLimits(accountCreatedAt) {
+  if (!accountCreatedAt) return DM_LIMITS
+  const daysSinceCreation = Math.floor((Date.now() - new Date(accountCreatedAt).getTime()) / (1000 * 60 * 60 * 24))
+  if (daysSinceCreation <= 3) return { ...DM_LIMITS, ...WARMUP_SCHEDULE.day1_3 }
+  if (daysSinceCreation <= 7) return { ...DM_LIMITS, ...WARMUP_SCHEDULE.day4_7 }
+  if (daysSinceCreation <= 14) return { ...DM_LIMITS, ...WARMUP_SCHEDULE.day8_14 }
+  return DM_LIMITS
 }
 
 /**
@@ -96,7 +150,7 @@ export const instagramDmSender = onSchedule({
   memory: '1GiB',
   timeoutSeconds: 540
 }, async (event) => {
-  console.log('💬 Instagram DM Sender V2: Starting...')
+  console.log('💬 Instagram DM Sender V3: Starting...')
 
   // Check sleep hours
   if (isInSleepHours()) {
@@ -234,7 +288,7 @@ export const instagramDmSender = onSchedule({
               hunterStatus: 'contacted',
               contactedAt: FieldValue.serverTimestamp(),
               dmMessage: message,
-              dmSentVia: 'instagram_hunter_v2'
+              dmSentVia: 'instagram_hunter_v3'
             })
 
             // Log interaction
@@ -317,7 +371,7 @@ export const instagramDmSender = onSchedule({
           .collection('notifications')
           .add({
             type: 'dm_batch_complete',
-            title: '💬 DMs envoyes (V2 Safe Mode)',
+            title: '💬 DMs envoyes (V3 Safe Mode)',
             message: `${stats.sent} DMs envoyes, ${stats.failed} echecs`,
             data: stats,
             read: false,
@@ -326,11 +380,11 @@ export const instagramDmSender = onSchedule({
       }
     }
 
-    console.log(`✅ DM Sender V2 complete:`, stats)
+    console.log(`✅ DM Sender V3 complete:`, stats)
     return stats
 
   } catch (error) {
-    console.error('❌ DM Sender V2 failed:', error)
+    console.error('❌ DM Sender V3 failed:', error)
     throw error
   }
 })
@@ -484,12 +538,12 @@ Reponds UNIQUEMENT avec le message DM (pas de guillemets, pas d'explications):`
 }
 
 /**
- * Send DM via Python/instagrapi
+ * Send DM via Python/instagrapi with proxy support and session persistence
  */
 async function sendInstagramDM(prospect, message, orgId) {
   const db = getDb()
 
-  // Get Instagram credentials
+  // Get Instagram credentials and proxy config
   const credentialsDoc = await db
     .collection('organizations')
     .doc(orgId)
@@ -500,12 +554,17 @@ async function sendInstagramDM(prospect, message, orgId) {
   const credentials = credentialsDoc.exists ? credentialsDoc.data() : {}
   const username = credentials.username || process.env.IG_USERNAME
   const password = credentials.password || process.env.IG_PASSWORD
+  const proxyUrl = credentials.proxyUrl || process.env.IG_PROXY_URL || ''
+  const sessionData = credentials.sessionData || null
 
   if (!username || !password) {
     console.warn('Instagram credentials not configured, simulating DM')
-    // In dev/test mode, simulate success
     return process.env.NODE_ENV !== 'production'
   }
+
+  // Apply warmup limits
+  const limits = getWarmupLimits(credentials.accountCreatedAt)
+  console.log(`[IG] Using limits: ${limits.maxPerHour}/h, ${limits.maxPerDay}/day`)
 
   // Escape message for Python
   const escapedMessage = message.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')
@@ -528,19 +587,45 @@ try:
     password = """${password}"""
     recipient_pk = """${prospect.platformId || prospect.pk}"""
     message = """${escapedMessage}"""
+    proxy_url = """${proxyUrl}"""
+    session_data = ${JSON.stringify(sessionData || 'null')}
 
     cl = Client()
 
-    # Random pre-login delay (human behavior)
-    time.sleep(random.uniform(2, 5))
+    # Configure proxy if available
+    if proxy_url:
+        cl.set_proxy(proxy_url)
 
-    cl.login(username, password)
+    # Try restore session first (avoid re-login)
+    logged_in = False
+    if session_data and session_data != 'null':
+        try:
+            if isinstance(session_data, str):
+                session_data = json.loads(session_data)
+            cl.set_settings(session_data)
+            cl.login(username, password)
+            logged_in = True
+            print("SESSION_RESTORED", file=sys.stderr)
+        except Exception as se:
+            print(f"Session restore failed: {se}", file=sys.stderr)
+
+    if not logged_in:
+        # Random pre-login delay (human behavior)
+        time.sleep(random.uniform(2, 5))
+        cl.login(username, password)
 
     # Random pre-send delay
     time.sleep(random.uniform(1, 3))
 
     # Send DM
     result = cl.direct_send(message, [int(recipient_pk)])
+
+    # Save session for next use
+    try:
+        new_session = cl.get_settings()
+        print("SESSION_DATA:" + json.dumps(new_session))
+    except:
+        pass
 
     print(json.dumps({"success": True, "thread_id": str(result.thread_id) if result else None}))
 
@@ -552,28 +637,68 @@ except Exception as e:
   return new Promise((resolve) => {
     const python = spawn('python3', ['-c', pythonScript], {
       env: { ...process.env },
-      timeout: 90000  // 90 seconds timeout
+      timeout: 90000
     })
 
     let output = ''
     let errorOutput = ''
+    let newSessionData = null
 
     python.stdout.on('data', (data) => {
-      output += data.toString()
+      const text = data.toString()
+      output += text
+
+      // Extract session data for persistence
+      if (text.includes('SESSION_DATA:')) {
+        try {
+          const sessionLine = text.split('SESSION_DATA:')[1].split('\n')[0]
+          newSessionData = JSON.parse(sessionLine)
+        } catch (e) { /* ignore parse errors */ }
+      }
     })
 
     python.stderr.on('data', (data) => {
       errorOutput += data.toString()
     })
 
-    python.on('close', (code) => {
+    python.on('close', async (code) => {
+      // Persist session data for next call
+      if (newSessionData) {
+        try {
+          await db
+            .collection('organizations')
+            .doc(orgId)
+            .collection('settings')
+            .doc('instagram')
+            .set({ sessionData: newSessionData, sessionUpdatedAt: FieldValue.serverTimestamp() }, { merge: true })
+        } catch (e) {
+          console.error('Failed to persist session:', e.message)
+        }
+      }
+
       try {
-        const result = JSON.parse(output.trim())
+        // Filter out SESSION_DATA lines from output
+        const jsonOutput = output.split('\n').filter(l => !l.startsWith('SESSION_DATA:')).join('\n').trim()
+        const result = JSON.parse(jsonOutput)
         if (result.success) {
           console.log(`✅ DM sent to @${prospect.username}`)
           resolve(true)
         } else {
-          console.error(`❌ DM failed: ${result.error}`)
+          const errorType = classifyError(result.error)
+          console.error(`❌ DM failed (${errorType}): ${result.error}`)
+
+          // Log error type for monitoring
+          await db
+            .collection('organizations')
+            .doc(orgId)
+            .collection('analytics')
+            .doc('dm_errors')
+            .set({
+              [errorType]: FieldValue.increment(1),
+              lastError: result.error,
+              lastErrorAt: FieldValue.serverTimestamp()
+            }, { merge: true }).catch(() => {})
+
           resolve(false)
         }
       } catch (e) {

@@ -47,7 +47,7 @@ export const MAIL_SIZES = {
 // ============================================
 async function getPostGridConfig(orgId) {
   try {
-    const configRef = db.collection('organizations').doc(orgId)
+    const configRef = getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('postal');
     const configSnap = await configRef.get();
 
@@ -73,7 +73,7 @@ async function getPostGridConfig(orgId) {
 // ============================================
 async function getReturnAddress(orgId) {
   try {
-    const orgRef = db.collection('organizations').doc(orgId);
+    const orgRef = getDb().collection('organizations').doc(orgId);
     const orgSnap = await orgRef.get();
 
     if (!orgSnap.exists) {
@@ -118,7 +118,7 @@ export async function sendLetter(orgId, prospectId, options = {}) {
     }
 
     // 2. Recuperer le prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -252,7 +252,7 @@ export async function sendPostcard(orgId, prospectId, options = {}) {
     }
 
     // 2. Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 
@@ -467,7 +467,7 @@ export async function cancelMail(orgId, mailId, mailType = 'letter') {
 // ============================================
 async function logPostalInteraction(orgId, prospectId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         ...data,
         prospectId,
@@ -477,7 +477,7 @@ async function logPostalInteraction(orgId, prospectId, data) {
       });
 
     // Mettre a jour le prospect
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         'channels.postal.lastSent': FieldValue.serverTimestamp(),

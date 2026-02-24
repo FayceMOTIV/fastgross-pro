@@ -309,7 +309,7 @@ async function findProspectByPhone(phone, specificOrgId = null) {
     if (specificOrgId) {
       // Chercher dans une org specifique
       for (const phoneVar of phoneVariations) {
-        const snapshot = await db.collection('organizations').doc(specificOrgId)
+        const snapshot = await getDb().collection('organizations').doc(specificOrgId)
           .collection('prospects')
           .where('phone', '==', phoneVar)
           .limit(1)
@@ -325,11 +325,11 @@ async function findProspectByPhone(phone, specificOrgId = null) {
       }
     } else {
       // Chercher dans toutes les orgs (plus lent)
-      const orgsSnapshot = await db.collection('organizations').get();
+      const orgsSnapshot = await getDb().collection('organizations').get();
 
       for (const orgDoc of orgsSnapshot.docs) {
         for (const phoneVar of phoneVariations) {
-          const snapshot = await db.collection('organizations').doc(orgDoc.id)
+          const snapshot = await getDb().collection('organizations').doc(orgDoc.id)
             .collection('prospects')
             .where('phone', '==', phoneVar)
             .limit(1)
@@ -359,7 +359,7 @@ async function findProspectByPhone(phone, specificOrgId = null) {
 // ============================================
 async function logSMSOptOut(orgId, prospectId, from, body) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         type: 'sms_opt_out',
         channel: 'sms',
@@ -376,7 +376,7 @@ async function logSMSOptOut(orgId, prospectId, from, body) {
 
 async function logSMSReply(orgId, prospectId, from, body) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         type: 'sms_reply',
         channel: 'sms',
@@ -388,7 +388,7 @@ async function logSMSReply(orgId, prospectId, from, body) {
       });
 
     // Mettre a jour le statut du prospect
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         status: 'replied',
@@ -403,7 +403,7 @@ async function logSMSReply(orgId, prospectId, from, body) {
 
 async function logUnknownOptOut(channel, from, body) {
   try {
-    await db.collection('unknownOptOuts').add({
+    await getDb().collection('unknownOptOuts').add({
       channel,
       from,
       body,
@@ -434,7 +434,7 @@ export async function checkSMSCompliance(orgId, prospectId) {
     }
 
     // 2. Recuperer prospect
-    const prospectRef = db.collection('organizations').doc(orgId)
+    const prospectRef = getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId);
     const prospectSnap = await prospectRef.get();
 

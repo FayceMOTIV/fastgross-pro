@@ -55,7 +55,11 @@ export const instagramWebhookVerify = onRequest(
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    const verifyToken = process.env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN || 'fmf_instagram_verify';
+    const verifyToken = process.env.INSTAGRAM_WEBHOOK_VERIFY_TOKEN;
+    if (!verifyToken) {
+      console.error('INSTAGRAM_WEBHOOK_VERIFY_TOKEN not set');
+      return res.status(500).send('Server misconfigured');
+    }
 
     if (mode === 'subscribe' && token === verifyToken) {
       console.log('Instagram webhook verified');
@@ -235,7 +239,7 @@ async function handleReaction(event, pageIgUserId) {
   const prospect = await findProspectByIgUserId(orgId, senderId);
   if (!prospect) return;
 
-  await db.collection('organizations').doc(orgId)
+  await getDb().collection('organizations').doc(orgId)
     .collection('instagramInteractions').add({
       type: 'reaction',
       prospectId: prospect.id,
@@ -264,7 +268,7 @@ async function handleStoryReply(event, pageIgUserId) {
 
   const prospect = await findProspectByIgUserId(orgId, senderId);
 
-  await db.collection('organizations').doc(orgId)
+  await getDb().collection('organizations').doc(orgId)
     .collection('instagramInteractions').add({
       type: 'story_reply',
       prospectId: prospect?.id,
@@ -297,7 +301,7 @@ async function processCommentEvent(value, pageIgUserId) {
   if (!orgId) return;
 
   // Logger le commentaire
-  await db.collection('organizations').doc(orgId)
+  await getDb().collection('organizations').doc(orgId)
     .collection('instagramInteractions').add({
       type: 'comment',
       commentId,
@@ -323,7 +327,7 @@ async function processMentionEvent(value, pageIgUserId) {
   const orgId = await findOrgByIgUserId(pageIgUserId);
   if (!orgId) return;
 
-  await db.collection('organizations').doc(orgId)
+  await getDb().collection('organizations').doc(orgId)
     .collection('instagramInteractions').add({
       type: 'mention',
       mediaId: media_id,
@@ -338,7 +342,7 @@ async function processMentionEvent(value, pageIgUserId) {
 async function handleQuickReply(orgId, prospectId, quickReply) {
   const payload = quickReply.payload;
 
-  await db.collection('organizations').doc(orgId)
+  await getDb().collection('organizations').doc(orgId)
     .collection('interactions').add({
       type: 'instagram_quick_reply',
       channel: 'instagram',
@@ -350,7 +354,7 @@ async function handleQuickReply(orgId, prospectId, quickReply) {
 
   // Actions basees sur le payload
   if (payload === 'INTERESTED' || payload === 'YES') {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         status: 'replied_positive',
@@ -389,7 +393,7 @@ async function handleNewContact(orgId, igUserId, messageText, messageId) {
   for (const trigger of triggers) {
     if (messageText.toUpperCase().includes(trigger.keyword.toUpperCase())) {
       // Creer un nouveau prospect
-      const prospectRef = await db.collection('organizations').doc(orgId)
+      const prospectRef = await getDb().collection('organizations').doc(orgId)
         .collection('prospects').add({
           source: 'instagram_dm',
           status: 'new',
@@ -424,10 +428,10 @@ async function handleNewContact(orgId, igUserId, messageText, messageId) {
 // ============================================
 async function findOrgByIgUserId(igUserId) {
   try {
-    const orgsSnapshot = await db.collection('organizations').get();
+    const orgsSnapshot = await getDb().collection('organizations').get();
 
     for (const orgDoc of orgsSnapshot.docs) {
-      const integrationSnap = await db.collection('organizations').doc(orgDoc.id)
+      const integrationSnap = await getDb().collection('organizations').doc(orgDoc.id)
         .collection('integrations').doc('instagram').get();
 
       if (integrationSnap.exists && integrationSnap.data().igUserId === igUserId) {
@@ -449,7 +453,7 @@ async function findOrgByIgUserId(igUserId) {
 
 async function logInstagramReply(orgId, prospectId, data) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('interactions').add({
         type: 'instagram_reply',
         channel: 'instagram',
@@ -459,7 +463,7 @@ async function logInstagramReply(orgId, prospectId, data) {
         createdAt: FieldValue.serverTimestamp()
       });
 
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         status: 'replied',
@@ -473,7 +477,7 @@ async function logInstagramReply(orgId, prospectId, data) {
 
 async function updateProspectInteraction(orgId, prospectId) {
   try {
-    await db.collection('organizations').doc(orgId)
+    await getDb().collection('organizations').doc(orgId)
       .collection('prospects').doc(prospectId)
       .update({
         'channels.instagram.lastInteraction': FieldValue.serverTimestamp(),
@@ -486,7 +490,7 @@ async function updateProspectInteraction(orgId, prospectId) {
 
 async function getKeywordTriggers(orgId) {
   try {
-    const snapshot = await db.collection('organizations').doc(orgId)
+    const snapshot = await getDb().collection('organizations').doc(orgId)
       .collection('instagramTriggers')
       .where('type', '==', 'keyword')
       .where('enabled', '==', true)
@@ -513,7 +517,7 @@ async function sendTriggerResponse(orgId, igUserId, message) {
 
 async function logUnmatchedWebhook(type, data) {
   try {
-    await db.collection('unmatchedWebhooks').add({
+    await getDb().collection('unmatchedWebhooks').add({
       type,
       data,
       createdAt: FieldValue.serverTimestamp()

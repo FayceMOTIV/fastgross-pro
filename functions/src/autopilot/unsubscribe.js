@@ -9,6 +9,19 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 const getDb = () => getFirestore()
 
 /**
+ * Echapper les caracteres HTML pour prevenir XSS
+ */
+function escapeHtml(str) {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+/**
  * Page HTML de desinscription
  */
 function getUnsubscribePage(email, status, message) {
@@ -64,7 +77,7 @@ function getUnsubscribePage(email, status, message) {
   <div class="card">
     <h1>Desinscription</h1>
     <p>Vous etes sur le point de vous desinscrire des emails de prospection envoyes a :</p>
-    <p class="email">${email}</p>
+    <p class="email">${escapeHtml(email)}</p>
     <p>Apres confirmation, vous ne recevrez plus de messages de notre part.</p>
     <form method="POST">
       <input type="hidden" name="confirm" value="true">
@@ -89,7 +102,7 @@ function getUnsubscribePage(email, status, message) {
   <div class="card">
     <h1 class="success">Desinscription confirmee</h1>
     <p>L'adresse email suivante a ete retiree de nos listes :</p>
-    <p class="email">${email}</p>
+    <p class="email">${escapeHtml(email)}</p>
     <p>Vous ne recevrez plus de messages de notre part.</p>
   </div>
 </body>
@@ -109,7 +122,7 @@ function getUnsubscribePage(email, status, message) {
 <body>
   <div class="card">
     <h1 class="error">Erreur</h1>
-    <p>${message || 'Une erreur est survenue. Veuillez reessayer.'}</p>
+    <p>${escapeHtml(message) || 'Une erreur est survenue. Veuillez reessayer.'}</p>
   </div>
 </body>
 </html>`
