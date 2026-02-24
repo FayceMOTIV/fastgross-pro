@@ -9,13 +9,17 @@
 import DerrickProvider from './derrickProvider.js'
 import ApolloProvider from './apolloProvider.js'
 import HunterProvider from './hunterProvider.js'
+import DropcontactProvider from './dropcontactProvider.js'
+import BetterContactProvider from './betterContactProvider.js'
 
 class EmailWaterfall {
   constructor() {
     this.providers = {
       derrick: new DerrickProvider(),
       apollo: new ApolloProvider(),
-      hunter: new HunterProvider()
+      hunter: new HunterProvider(),
+      dropcontact: new DropcontactProvider(),
+      bettercontact: new BetterContactProvider()
     }
 
     // Stats
@@ -26,12 +30,16 @@ class EmailWaterfall {
       providerUsage: {
         derrick: 0,
         apollo: 0,
-        hunter: 0
+        hunter: 0,
+        dropcontact: 0,
+        bettercontact: 0
       },
       averageLatency: {
         derrick: [],
         apollo: [],
-        hunter: []
+        hunter: [],
+        dropcontact: [],
+        bettercontact: []
       }
     }
   }
@@ -229,12 +237,16 @@ class EmailWaterfall {
       providerUsage: {
         derrick: 0,
         apollo: 0,
-        hunter: 0
+        hunter: 0,
+        dropcontact: 0,
+        bettercontact: 0
       },
       averageLatency: {
         derrick: [],
         apollo: [],
-        hunter: []
+        hunter: [],
+        dropcontact: [],
+        bettercontact: []
       }
     }
     console.log('[EmailWaterfall] Stats reset')

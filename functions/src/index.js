@@ -166,9 +166,21 @@ export {
   trackEmailOpen
 } from './hunters/email/emailSequenceSender.js'
 
+// --- Facebook Hunter ---
+export { facebookHunter, runFacebookHunterManual, getFacebookHunterStats } from './hunters/facebook/facebookHunter.js'
+
+// --- Google Maps Hunter ---
+export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats } from './hunters/googlemaps/googleMapsHunter.js'
+
+// --- PhantomBuster Hunter ---
+export { runPhantomScrape, listPhantoms } from './hunters/phantom/phantomHunter.js'
+
 // --- WhatsApp Hunter (Evolution API - Free) ---
 export { whatsappChecker, checkWhatsAppManual } from './hunters/whatsapp/whatsappChecker.js'
 export { whatsappSender, sendWhatsAppManual, getWhatsAppStats } from './hunters/whatsapp/whatsappSender.js'
+
+// --- Social Hunter Orchestrator (Cross-Platform) ---
+export { runSocialHuntingCampaign, getOrchestrationStatus, deduplicateProspects } from './hunters/socialHunterOrchestrator.js'
 
 // ============================================
 // AI Personalization (Multi-Provider System)
@@ -176,9 +188,14 @@ export { whatsappSender, sendWhatsAppManual, getWhatsAppStats } from './hunters/
 export { personalizeMessage, getAIStatus } from './ai/personalizeMessage.js'
 
 // ============================================
-// Email Enrichment (Derrick > Apollo > Hunter Waterfall)
+// Email Enrichment (Derrick > Apollo > Hunter > Dropcontact > BetterContact Waterfall)
 // ============================================
 export { enrichEmail, enrichEmailsBatch, getEnrichmentStatus } from './enrichment/enrichEmail.js'
+
+// ============================================
+// Email Verification (NeverBounce SMTP-level)
+// ============================================
+export { verifyEmailNB, getNeverBounceCredits } from './enrichment/neverBounceVerifier.js'
 
 // ============================================
 // Multi-Platform Posting (Postiz > Late API)
