@@ -48,7 +48,7 @@ const INVALID_EMAIL_PREFIXES = [
   'support', 'abuse', 'spam', 'root', 'webmaster'
 ]
 
-function isValidProspectEmail(email) {
+function isValidProspectEmail(email, companyDomain = '') {
   if (!email || typeof email !== 'string') return false
   const lower = email.toLowerCase().trim()
   const domain = lower.split('@')[1] || ''
@@ -56,12 +56,16 @@ function isValidProspectEmail(email) {
   if (INVALID_EMAIL_DOMAINS.some(d => domain === d || domain.endsWith('.' + d))) return false
   if (INVALID_EMAIL_PREFIXES.some(p => prefix === p || prefix.startsWith(p + '.'))) return false
   if (/^u003e/.test(prefix)) return false
+  // Rejeter prefixe trop court (< 4 chars) — souvent des placeholders
+  if (prefix.length < 4) return false
+  // Rejeter si le domaine email == domaine entreprise (auto-email du site)
+  if (companyDomain && domain === companyDomain.toLowerCase().replace(/^www\./, '')) return false
   return true
 }
 
-function getBestEmail(emails) {
+function getBestEmail(emails, companyDomain = '') {
   if (!emails || emails.length === 0) return null
-  const valid = emails.filter(isValidProspectEmail)
+  const valid = emails.filter(e => isValidProspectEmail(e, companyDomain))
   if (valid.length === 0) return null
   // Prefer personal emails over generic
   const personal = valid.find(e => {
@@ -69,6 +73,46 @@ function getBestEmail(emails) {
     return !['contact', 'info', 'hello', 'admin', 'commercial'].includes(prefix)
   })
   return personal || valid[0]
+}
+
+/**
+ * Filtrer les prospects deja contactes (par email OU par domain)
+ */
+async function filterAlreadyContacted(orgId, prospects) {
+  const db = getDb()
+  const filtered = []
+
+  for (const prospect of prospects) {
+    // Verifier par domain
+    const byDomain = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('prospects')
+      .where('domain', '==', prospect.domain)
+      .where('contactedAt', '!=', null)
+      .limit(1)
+      .get()
+
+    if (!byDomain.empty) continue
+
+    // Verifier par email si disponible
+    if (prospect.emails?.length > 0) {
+      const byEmail = await db
+        .collection('organizations')
+        .doc(orgId)
+        .collection('prospects')
+        .where('emails', 'array-contains-any', prospect.emails)
+        .where('contactedAt', '!=', null)
+        .limit(1)
+        .get()
+
+      if (!byEmail.empty) continue
+    }
+
+    filtered.push(prospect)
+  }
+
+  return filtered
 }
 
 /**
@@ -161,12 +205,32 @@ async function searchProspects(config, orgId) {
   }
 
   const results = []
-  const keywords = config.keywords || []
-  const location = config.location || 'France'
+  const seenDomains = new Set()
 
-  for (const keyword of keywords.slice(0, 3)) {
-    const query = `${keyword} ${location} contact`
-    console.log(`[${orgId}] Serper search: "${query}"`)
+  // Support multi-niches OU fallback sur keywords plat
+  const niches = config.niches || []
+  const searchQueries = []
+
+  if (niches.length > 0) {
+    // Mode multi-niches: chaque niche a ses propres keywords + location
+    for (const niche of niches) {
+      const nicheKeywords = niche.keywords || []
+      const nicheLocation = niche.location || config.location || 'France'
+      for (const kw of nicheKeywords.slice(0, 2)) {
+        searchQueries.push({ query: `${kw} ${nicheLocation} contact`, niche: niche.name || kw })
+      }
+    }
+  } else {
+    // Fallback: mode plat (backward compat)
+    const keywords = config.keywords || []
+    const location = config.location || 'France'
+    for (const keyword of keywords.slice(0, 3)) {
+      searchQueries.push({ query: `${keyword} ${location} contact`, niche: keyword })
+    }
+  }
+
+  for (const { query, niche } of searchQueries) {
+    console.log(`[${orgId}] Serper search [${niche}]: "${query}"`)
 
     try {
       const response = await fetch('https://google.serper.dev/search', {
@@ -195,7 +259,11 @@ async function searchProspects(config, orgId) {
           const url = new URL(item.link)
           const domain = url.hostname.replace(/^www\./, '')
 
-          // Verifier doublon
+          // Dedup intra-run
+          if (seenDomains.has(domain)) continue
+          seenDomains.add(domain)
+
+          // Verifier doublon en base
           const existing = await db
             .collection('organizations')
             .doc(orgId)
@@ -211,6 +279,7 @@ async function searchProspects(config, orgId) {
             url: item.link,
             domain,
             snippet: item.snippet || '',
+            niche,
             source: 'serper',
             status: 'found',
             foundAt: FieldValue.serverTimestamp()
@@ -433,23 +502,17 @@ Bonne journee,
 {sender_name}`
   }
 
-  // Extraire prenom
-  let prenom = ''
-  if (prospect.contactName) {
-    prenom = prospect.contactName.split(' ')[0]
-  } else if (prospect.emails?.[0]) {
-    const prefix = prospect.emails[0].split('@')[0]
-    if (prefix.includes('.')) prenom = prefix.split('.')[0]
-  }
-  prenom = prenom ? prenom.charAt(0).toUpperCase() + prenom.slice(1) : ''
+  // Extraire prenom — fix: "Bonjour" sans virgule quand prenom vide
+  const greeting = prospect.contactName?.trim()
+    ? `Bonjour ${prospect.contactName.trim().split(' ')[0].charAt(0).toUpperCase() + prospect.contactName.trim().split(' ')[0].slice(1).toLowerCase()}`
+    : 'Bonjour'
 
   // Nom entreprise
   const entreprise = prospect.name || prospect.domain?.replace(/\.[a-z]+$/i, '').replace(/-/g, ' ') || 'votre entreprise'
 
   const variables = {
     '{entreprise}': entreprise,
-    '{prenom}': prenom,
-    '{secteur}': config.sector || 'votre secteur',
+    '{secteur}': prospect.niche || config.sector || 'votre secteur',
     '{ville}': config.location || 'votre region',
     '{score_video}': prospect.scoreDetails?.scoreVideoText || 'peu de contenu video',
     '{sender_name}': account?.displayName || config.senderName || 'Face Media',
@@ -459,14 +522,14 @@ Bonne journee,
   let subject = template.subject
   let body = template.body
 
+  // Remplacer le greeting complet "Bonjour {prenom}," par le greeting propre
+  body = body.replace(/Bonjour\s*\{prenom\}\s*,?/g, greeting)
+
   for (const [key, value] of Object.entries(variables)) {
     const regex = new RegExp(key.replace(/[{}]/g, '\\$&'), 'g')
     subject = subject.replace(regex, value)
     body = body.replace(regex, value)
   }
-
-  // Nettoyer "Bonjour ," quand pas de prenom
-  body = body.replace(/Bonjour\s*,/g, 'Bonjour,')
 
   return { to: prospect.emails[0], subject, body }
 }
@@ -479,12 +542,16 @@ async function runPipeline(orgId, config) {
   const stats = { found: 0, scraped: 0, scored: 0, ready: 0, sent: 0, errors: [] }
 
   try {
-    // PHASE 1: Rechercher des prospects
+    // PHASE 1: Rechercher des prospects + deduplication
     console.log(`[${orgId}] Phase 1: Recherche de prospects...`)
     const found = await searchProspects(config, orgId)
     if (found.length > 0) {
-      await saveProspects(orgId, found)
-      stats.found = found.length
+      const deduped = await filterAlreadyContacted(orgId, found)
+      console.log(`[${orgId}] Dedup: ${found.length} trouves → ${deduped.length} nouveaux`)
+      if (deduped.length > 0) {
+        await saveProspects(orgId, deduped)
+      }
+      stats.found = deduped.length
     }
 
     // PHASE 2: Extraire les emails (max 30)
@@ -529,23 +596,26 @@ async function runPipeline(orgId, config) {
     for (const doc of toScore.docs) {
       const prospect = { id: doc.id, ...doc.data() }
       const { score, details, status } = await scoreProspect(prospect)
+      // Enrichissement conditionnel: marquer low_score si < 50
+      const finalStatus = (status === 'scored' && score <= 50) ? 'low_score' : status
       await doc.ref.update({
         score,
         scoreDetails: details,
-        status,
+        status: finalStatus,
         updatedAt: FieldValue.serverTimestamp()
       })
-      if (status === 'scored') stats.scored++
+      if (finalStatus === 'scored') stats.scored++
     }
 
-    // PHASE 4: Generer les emails (top scores)
-    console.log(`[${orgId}] Phase 4: Generation emails...`)
+    // PHASE 4: Generer les emails (score > 50 uniquement)
+    console.log(`[${orgId}] Phase 4: Generation emails (score > 50)...`)
     const emailsPerDay = config.emailsPerDay || 20
     const topProspects = await db
       .collection('organizations')
       .doc(orgId)
       .collection('prospects')
       .where('status', '==', 'scored')
+      .where('score', '>', 50)
       .orderBy('score', 'desc')
       .limit(emailsPerDay)
       .get()
@@ -582,8 +652,8 @@ async function runPipeline(orgId, config) {
       // Verifier si pas deja contacte
       if (prospect.emails?.length === 0) continue
 
-      // Filtrer les emails invalides (placeholders, plateformes)
-      const bestEmail = getBestEmail(prospect.emails)
+      // Filtrer les emails invalides (placeholders, plateformes, domaine entreprise)
+      const bestEmail = getBestEmail(prospect.emails, prospect.domain)
       if (!bestEmail) {
         console.log(`[${orgId}] Skip ${prospect.domain}: aucun email valide`)
         await doc.ref.update({ status: 'no_email', updatedAt: FieldValue.serverTimestamp() })
@@ -597,6 +667,7 @@ async function runPipeline(orgId, config) {
       await doc.ref.update({
         generatedEmail: email,
         status: 'ready',
+        contactedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       })
       stats.ready++
