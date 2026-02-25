@@ -103,26 +103,27 @@ const INTEGRATIONS = {
       { key: 'teamId', label: 'Team ID', type: 'text', required: true },
     ],
   },
-  budgetsms: {
-    id: 'budgetsms',
-    name: 'BudgetSMS',
-    description: 'Envoi de SMS professionnels a moindre cout',
+  ovhsms: {
+    id: 'ovhsms',
+    name: 'OVH Telecom SMS',
+    description: 'SMS professionnels a prix imbattable (0.0045 EUR/SMS France)',
     category: 'sms',
     channel: 'sms',
     icon: Smartphone,
     color: 'text-cyan-400',
     bg: 'bg-cyan-500/10',
     border: 'border-cyan-500/20',
-    logo: '/logos/budgetsms.svg',
-    features: ['SMS dans 200+ pays', 'API simple', 'Delivery reports', 'Sender ID personnalise'],
-    docs: 'https://www.budgetsms.net/api/',
+    logo: '/logos/ovh.svg',
+    features: ['SMS France 0.0045 EUR', 'API REST signee', 'Delivery reports', 'Sender ID personnalise'],
+    docs: 'https://docs.ovh.com/fr/sms/',
     authType: 'credentials',
     fields: [
-      { key: 'username', label: "Nom d'utilisateur", type: 'text', required: true },
-      { key: 'userId', label: 'User ID', type: 'text', required: true },
-      { key: 'handle', label: 'Handle', type: 'password', required: true },
+      { key: 'appKey', label: 'Application Key', type: 'text', required: true },
+      { key: 'appSecret', label: 'Application Secret', type: 'password', required: true },
+      { key: 'consumerKey', label: 'Consumer Key', type: 'password', required: true },
+      { key: 'serviceName', label: 'Nom du service SMS', type: 'text', required: true, placeholder: 'sms-xx12345-1' },
       {
-        key: 'senderId',
+        key: 'sender',
         label: 'Sender ID',
         type: 'text',
         required: true,
@@ -302,7 +303,7 @@ export default function Integrations() {
   // Simulated connected integrations (would come from Firestore)
   const [connectedIntegrations, setConnectedIntegrations] = useState({
     amazonses: { status: 'connected', lastSync: new Date(Date.now() - 3600000) },
-    budgetsms: { status: 'connected', lastSync: new Date(Date.now() - 7200000) },
+    ovhsms: { status: 'connected', lastSync: new Date(Date.now() - 7200000) },
   })
 
   // Filter integrations

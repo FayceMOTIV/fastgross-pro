@@ -91,9 +91,9 @@ export { createABTest, selectVariant, recordEvent, getActiveTests, getTestHistor
 // Multichannel Infrastructure v5.0
 // ============================================
 
-// --- SMS (Twilio + BudgetSMS) ---
+// --- SMS (Twilio + OVH Telecom) ---
 export { sendSMS, sendSMSBatch } from './channels/sms/sender.js'
-export { sendSMS as sendSMSBudget, sendSMSBatch as sendSMSBatchBudget, checkCredits as checkSMSCredits } from './channels/sms/budgetSmsProvider.js'
+export { sendSMS as sendSMSOvh, sendSMSBatch as sendSMSBatchOvh, checkCredits as checkSMSCredits } from './channels/sms/ovhSmsProvider.js'
 export { smsStatusWebhook, smsInboundWebhook } from './channels/sms/webhooks.js'
 export { createSMSTemplate, getSMSTemplates, validateSMSContent } from './channels/sms/templates.js'
 

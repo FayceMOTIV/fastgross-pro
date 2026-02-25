@@ -10,7 +10,7 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onRequest } from 'firebase-functions/v2/https';
-import { checkCredits as checkSMSCredits } from '../channels/sms/budgetSmsProvider.js';
+import { checkCredits as checkSMSCredits } from '../channels/sms/ovhSmsProvider.js';
 
 const getDb = () => getFirestore();
 
@@ -154,17 +154,17 @@ function buildSummary(channelStats) {
 async function getProviderStatus(orgId) {
   const status = {};
 
-  // SMS (BudgetSMS credits)
+  // SMS (OVH Telecom credits)
   try {
     const smsCredits = await checkSMSCredits(orgId);
     status.sms = {
-      provider: 'BudgetSMS',
+      provider: 'OVH Telecom',
       configured: smsCredits.configured,
       credits: smsCredits.credits,
       healthy: smsCredits.configured && smsCredits.credits > ALERT_THRESHOLDS.sms.minCredits,
     };
   } catch {
-    status.sms = { provider: 'BudgetSMS', configured: false, healthy: false };
+    status.sms = { provider: 'OVH Telecom', configured: false, healthy: false };
   }
 
   // Email (check SMTP config)

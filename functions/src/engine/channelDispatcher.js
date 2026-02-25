@@ -15,7 +15,7 @@ import { canContactOnChannel, recordTouchpoint } from '../compliance/unifiedOptM
 
 // Channel senders
 import { sendSMS as sendSMSTwilio } from '../channels/sms/sender.js';
-import { sendSMS as sendSMSBudget } from '../channels/sms/budgetSmsProvider.js';
+import { sendSMS as sendSMSOvh } from '../channels/sms/ovhSmsProvider.js';
 import { sendWhatsApp } from '../channels/whatsapp/sender.js';
 import { sendInstagramDM } from '../channels/instagram/dmSender.js';
 import { sendVoicemailDrop } from '../channels/voicemail/dropSender.js';
@@ -36,7 +36,7 @@ const CHANNEL_REGISTRY = {
   },
   sms: {
     name: 'SMS',
-    costPerUnit: 0.035,
+    costPerUnit: 0.0045,
     maxRetries: 1,
     retryDelayMs: 3000,
   },
@@ -329,7 +329,7 @@ async function sendEmail(orgId, prospectId, content, options) {
 // ============================================
 async function sendSMSDispatch(orgId, prospectId, content, options) {
   try {
-    const provider = options.smsProvider || 'budgetsms';
+    const provider = options.smsProvider || 'ovh';
     const message = content.text || content.message || '';
 
     if (provider === 'twilio') {
@@ -340,8 +340,8 @@ async function sendSMSDispatch(orgId, prospectId, content, options) {
       });
     }
 
-    // BudgetSMS par defaut
-    return await sendSMSBudget(orgId, prospectId, message, {
+    // OVH Telecom par defaut
+    return await sendSMSOvh(orgId, prospectId, message, {
       sequenceId: options.sequenceId,
       stepId: options.stepId,
       customVariables: content.customVariables,

@@ -715,7 +715,7 @@ export default function Analytics() {
                     {[
                       { label: 'Emails (Amazon SES)', cost: 12, color: 'bg-orange-500' },
                       { label: 'Cold Outreach (Saleshandy)', cost: 25, color: 'bg-blue-500' },
-                      { label: 'SMS (BudgetSMS)', cost: 45, color: 'bg-cyan-500' },
+                      { label: 'SMS (OVH Telecom)', cost: 3, color: 'bg-cyan-500' },
                       { label: 'WhatsApp (Evolution API)', cost: 0, color: 'bg-green-500' },
                       { label: 'Courrier (Merci Facteur)', cost: 18, color: 'bg-amber-500' },
                     ].map((item) => (

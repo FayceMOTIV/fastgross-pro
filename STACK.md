@@ -27,7 +27,7 @@ Cette documentation resume l'architecture technique et les services utilises.
 
 | Service | Cout | Notes |
 |---------|------|-------|
-| BudgetSMS | Variable | Meilleur rapport qualite/prix Europe, opt-in obligatoire France |
+| OVH Telecom | 0.0045 EUR/SMS France | API REST signee, opt-in obligatoire France |
 
 ### WhatsApp
 
@@ -64,9 +64,9 @@ Cette documentation resume l'architecture technique et les services utilises.
 
 | Tier | Prospects | Cout/mois | Details |
 |------|-----------|-----------|---------|
-| Bootstrap | 100 | ~33 EUR | SES + Evolution API (gratuit) + BudgetSMS minimal |
-| Growth | 500 | ~50 EUR | Saleshandy $25 + services complementaires |
-| Scale | 2000 | ~73 EUR | Full stack multicanal |
+| Bootstrap | 100 | ~28 EUR | SES + Evolution API (gratuit) + OVH SMS minimal |
+| Growth | 500 | ~42 EUR | Saleshandy $25 + services complementaires |
+| Scale | 2000 | ~60 EUR | Full stack multicanal |
 
 ## URLs Documentation
 
@@ -75,7 +75,7 @@ Cette documentation resume l'architecture technique et les services utilises.
 | Amazon SES | https://docs.aws.amazon.com/ses/ |
 | Saleshandy | https://www.saleshandy.com/developers/ |
 | Evolution API | https://github.com/EvolutionAPI/evolution-api |
-| BudgetSMS | https://www.budgetsms.net/api/ |
+| OVH Telecom SMS | https://docs.ovh.com/fr/sms/ |
 | Windmill | https://www.windmill.dev/docs/ |
 | ManyChat | https://manychat.com/developers |
 | Merci Facteur | https://www.merci-facteur.com/api/ |
@@ -125,7 +125,7 @@ Cette documentation resume l'architecture technique et les services utilises.
               |              |              |
       +-------v--------------v--------------v-------+
       |              Canaux Externes                |
-      | Evolution API | BudgetSMS | ManyChat | etc. |
+      | Evolution API | OVH SMS | ManyChat | etc. |
       +------------------------------------------------+
 ```
 

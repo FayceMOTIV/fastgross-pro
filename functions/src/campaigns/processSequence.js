@@ -241,33 +241,66 @@ async function sendEmail(to, subject, body, orgId) {
 }
 
 /**
- * Send SMS via BudgetSMS
+ * Send SMS via OVH Telecom
  */
 async function sendSMS(to, message, orgId) {
-  const apiKey = process.env.BUDGETSMS_API_KEY
-  const username = process.env.BUDGETSMS_USERNAME
+  const appKey = process.env.OVH_APP_KEY
+  const appSecret = process.env.OVH_APP_SECRET
+  const consumerKey = process.env.OVH_CONSUMER_KEY
+  const serviceName = process.env.OVH_SMS_SERVICE_NAME
 
-  if (!apiKey || !username) {
-    throw new Error('BudgetSMS non configure')
+  if (!appKey || !appSecret || !consumerKey || !serviceName) {
+    throw new Error('OVH SMS non configure')
   }
 
-  // Clean phone number
-  const phone = to.replace(/\D/g, '')
+  // Clean phone number → format 0033XXXXXXXXX
+  let phone = to.replace(/[\s\-\.\(\)]/g, '')
+  if (phone.startsWith('+')) phone = '00' + phone.substring(1)
+  if (phone.startsWith('0') && !phone.startsWith('00') && phone.length === 10) {
+    phone = '0033' + phone.substring(1)
+  }
+  if (/^\d{10,15}$/.test(phone) && !phone.startsWith('00')) {
+    phone = '00' + phone
+  }
 
-  const response = await fetch('https://api.budgetsms.net/sendsms/', {
+  const body = JSON.stringify({
+    message,
+    receivers: [phone],
+    sender: process.env.OVH_SMS_SENDER || 'FaceMedia',
+    noStopClause: false,
+    priority: 'high',
+  })
+
+  const timestamp = Math.floor(Date.now() / 1000)
+  const url = `https://eu.api.ovh.com/1.0/sms/${serviceName}/jobs`
+  const toSign = `${appSecret}+${consumerKey}+POST+${url}+${body}+${timestamp}`
+
+  const encoder = new TextEncoder()
+  const data = encoder.encode(toSign)
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const signature = '$1$' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+  const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      username,
-      userid: apiKey,
-      handle: process.env.BUDGETSMS_HANDLE || 'FMFACTORY',
-      to: phone,
-      msg: message,
-    }),
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Ovh-Application': appKey,
+      'X-Ovh-Consumer': consumerKey,
+      'X-Ovh-Timestamp': String(timestamp),
+      'X-Ovh-Signature': signature,
+    },
+    body,
   })
 
   if (!response.ok) {
-    throw new Error(`BudgetSMS error: ${response.status}`)
+    const errorText = await response.text()
+    throw new Error(`OVH SMS error ${response.status}: ${errorText}`)
+  }
+
+  const result = await response.json()
+  if (!result.ids || result.ids.length === 0) {
+    throw new Error('OVH SMS: no message ID returned')
   }
 
   return { success: true, channel: 'sms' }
