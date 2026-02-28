@@ -19,16 +19,16 @@ const getDb = () => getFirestore();
 // ============================================
 const CHANNEL_PRIORITY_BY_SCORE = {
   // Score 80+ (Hot leads) - Canaux haute conversion
-  hot: ['email', 'whatsapp', 'voicemail', 'postal', 'sms', 'instagram'],
+  hot: ['email', 'whatsapp', 'linkedin', 'voicemail', 'postal', 'sms', 'instagram', 'twitter'],
 
   // Score 50-79 (Warm leads) - Mix equilibre
-  warm: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal'],
+  warm: ['email', 'sms', 'whatsapp', 'linkedin', 'instagram', 'voicemail', 'postal', 'twitter'],
 
   // Score 25-49 (Cold leads) - Canaux volume
-  cold: ['email', 'sms', 'instagram', 'whatsapp', 'voicemail', 'postal'],
+  cold: ['email', 'sms', 'instagram', 'linkedin', 'whatsapp', 'voicemail', 'postal', 'twitter'],
 
   // Score <25 (Ice leads) - Email principalement
-  ice: ['email', 'sms', 'instagram', 'whatsapp']
+  ice: ['email', 'sms', 'instagram', 'whatsapp', 'linkedin', 'twitter']
 };
 
 // ============================================
@@ -37,7 +37,8 @@ const CHANNEL_PRIORITY_BY_SCORE = {
 const PLAN_CHANNELS = {
   starter: ['email'],
   pro: ['email', 'sms', 'whatsapp'],
-  enterprise: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal']
+  enterprise: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal'],
+  agency: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal', 'linkedin', 'twitter']
 };
 
 // ============================================
@@ -49,7 +50,9 @@ const CHANNEL_COSTS = {
   whatsapp: 0.05,
   instagram: 0,
   voicemail: 0.004,
-  postal: 1.50
+  postal: 1.50,
+  linkedin: 0,
+  twitter: 0
 };
 
 // ============================================
@@ -212,6 +215,24 @@ async function isChannelReady(orgId, prospectId, channel, prospect) {
         reason: !hasAddress ? 'no_address' : (!deliverable ? 'address_not_deliverable' : null)
       };
 
+    case 'linkedin':
+      const liData = channels.linkedin || {};
+      const hasLinkedIn = !!(prospect.linkedinUrl || liData.profileUrl);
+      const liActive = liData.active !== false;
+      return {
+        ready: hasLinkedIn && liActive,
+        reason: !hasLinkedIn ? 'no_linkedin' : (!liActive ? 'linkedin_not_active' : null)
+      };
+
+    case 'twitter':
+      const twData = channels.twitter || {};
+      const hasTwitter = !!(prospect.twitterHandle || twData.handle);
+      const twActive = twData.active !== false;
+      return {
+        ready: hasTwitter && twActive,
+        reason: !hasTwitter ? 'no_twitter' : (!twActive ? 'twitter_not_active' : null)
+      };
+
     default:
       return { ready: false, reason: 'unknown_channel' };
   }
@@ -293,7 +314,9 @@ function getDefaultFallbacks(channel) {
     whatsapp: ['sms', 'email'],
     instagram: ['email', 'whatsapp'],
     voicemail: ['sms', 'email'],
-    postal: ['email']
+    postal: ['email'],
+    linkedin: ['email', 'instagram'],
+    twitter: ['email', 'sms']
   };
 
   return fallbacks[channel] || ['email'];
@@ -348,6 +371,14 @@ export async function recommendChannelStrategy(orgId, prospectId) {
 
     if (prospect.address?.line1 && channels.postal?.deliverable !== false) {
       available.push('postal');
+    }
+
+    if (prospect.linkedinUrl || channels.linkedin?.profileUrl) {
+      available.push('linkedin');
+    }
+
+    if (prospect.twitterHandle || channels.twitter?.handle) {
+      available.push('twitter');
     }
 
     // Recommander strategie selon score et disponibilite
@@ -432,7 +463,9 @@ export async function getChannelPerformanceStats(orgId, days = 30) {
       whatsapp: { sent: 0, delivered: 0, read: 0, replied: 0, cost: 0 },
       instagram: { sent: 0, read: 0, replied: 0, cost: 0 },
       voicemail: { sent: 0, delivered: 0, callbacks: 0, cost: 0 },
-      postal: { sent: 0, delivered: 0, scanned: 0, cost: 0 }
+      postal: { sent: 0, delivered: 0, scanned: 0, cost: 0 },
+      linkedin: { sent: 0, connected: 0, replied: 0, cost: 0 },
+      twitter: { sent: 0, delivered: 0, replied: 0, cost: 0 }
     };
 
     interactionsSnap.forEach(doc => {
@@ -475,6 +508,266 @@ export async function getChannelPerformanceStats(orgId, days = 30) {
 }
 
 // ============================================
+// GENERER SEQUENCE OPTIMALE MULTI-CANAL
+// ============================================
+export async function generateOptimalSequence(orgId, prospectId, options = {}) {
+  const result = {
+    sequence: [],
+    estimatedCost: 0,
+    reasoning: []
+  };
+
+  try {
+    const db = getDb();
+    const prospectSnap = await db.collection('organizations').doc(orgId)
+      .collection('prospects').doc(prospectId).get();
+
+    if (!prospectSnap.exists) {
+      return { ...result, error: 'prospect_not_found' };
+    }
+
+    const prospect = prospectSnap.data();
+    const orgSnap = await db.collection('organizations').doc(orgId).get();
+    const org = orgSnap.exists ? orgSnap.data() : {};
+    const plan = org.plan || 'starter';
+    const availableChannels = PLAN_CHANNELS[plan] || PLAN_CHANNELS.starter;
+
+    const score = prospect.score || 0;
+    const touchpoints = options.touchpoints || 7;
+    const daysSpan = options.daysSpan || 21;
+
+    // Determiner canaux utilisables pour ce prospect
+    const usableChannels = [];
+    for (const ch of availableChannels) {
+      const ready = await isChannelReady(orgId, prospectId, ch, prospect);
+      if (ready.ready) usableChannels.push(ch);
+    }
+
+    if (usableChannels.length === 0) {
+      result.reasoning.push('Aucun canal disponible pour ce prospect');
+      return result;
+    }
+
+    // Performance historique pour ponderer
+    const perfStats = await getChannelPerformanceStats(orgId, 30);
+
+    // Construire la sequence optimale
+    const dayInterval = Math.floor(daysSpan / touchpoints);
+
+    // Templates de sequences par score
+    const templates = {
+      hot: [
+        { channel: 'email', type: 'intro' },
+        { channel: 'linkedin', type: 'connect' },
+        { channel: 'whatsapp', type: 'follow_up' },
+        { channel: 'email', type: 'value' },
+        { channel: 'voicemail', type: 'personal' },
+        { channel: 'email', type: 'social_proof' },
+        { channel: 'postal', type: 'premium' },
+      ],
+      warm: [
+        { channel: 'email', type: 'intro' },
+        { channel: 'sms', type: 'short' },
+        { channel: 'linkedin', type: 'connect' },
+        { channel: 'email', type: 'value' },
+        { channel: 'whatsapp', type: 'casual' },
+        { channel: 'email', type: 'social_proof' },
+        { channel: 'instagram', type: 'soft' },
+      ],
+      cold: [
+        { channel: 'email', type: 'intro' },
+        { channel: 'email', type: 'value' },
+        { channel: 'sms', type: 'short' },
+        { channel: 'instagram', type: 'soft' },
+        { channel: 'email', type: 'social_proof' },
+        { channel: 'linkedin', type: 'connect' },
+        { channel: 'email', type: 'breakup' },
+      ],
+      ice: [
+        { channel: 'email', type: 'intro' },
+        { channel: 'email', type: 'value' },
+        { channel: 'email', type: 'breakup' },
+      ],
+    };
+
+    const tier = score >= 80 ? 'hot' : score >= 50 ? 'warm' : score >= 25 ? 'cold' : 'ice';
+    const template = templates[tier].slice(0, touchpoints);
+
+    let day = 1;
+    for (const step of template) {
+      let selectedChannel = step.channel;
+
+      // Si le canal n'est pas dispo, trouver un fallback
+      if (!usableChannels.includes(selectedChannel)) {
+        const fallbacks = getDefaultFallbacks(selectedChannel);
+        selectedChannel = fallbacks.find(fb => usableChannels.includes(fb)) || null;
+      }
+
+      if (selectedChannel) {
+        const cost = CHANNEL_COSTS[selectedChannel] || 0;
+        result.sequence.push({
+          day,
+          channel: selectedChannel,
+          type: step.type,
+          estimatedCost: cost,
+        });
+        result.estimatedCost += cost;
+
+        // Ajouter reasoning pour les substitutions
+        if (selectedChannel !== step.channel) {
+          result.reasoning.push(`Jour ${day}: ${step.channel} indisponible, substitue par ${selectedChannel}`);
+        }
+      }
+
+      day += dayInterval;
+    }
+
+    result.reasoning.push(`Sequence ${tier} en ${touchpoints} touchpoints sur ${daysSpan} jours`);
+    result.reasoning.push(`Canaux utilises: ${[...new Set(result.sequence.map(s => s.channel))].join(', ')}`);
+
+    return result;
+  } catch (error) {
+    console.error('generateOptimalSequence error:', error);
+    return { ...result, error: error.message };
+  }
+}
+
+// ============================================
+// ALLOCATION BUDGETAIRE PAR CANAL
+// ============================================
+export async function allocateChannelBudgets(orgId, dailyLimit) {
+  const result = {
+    allocations: {},
+    reasoning: []
+  };
+
+  try {
+    const db = getDb();
+    const orgSnap = await db.collection('organizations').doc(orgId).get();
+    const org = orgSnap.exists ? orgSnap.data() : {};
+    const plan = org.plan || 'starter';
+    const availableChannels = PLAN_CHANNELS[plan] || PLAN_CHANNELS.starter;
+
+    // Performance historique
+    const perfStats = await getChannelPerformanceStats(orgId, 30);
+
+    // Calculer scores de performance par canal
+    const channelScores = {};
+    let totalScore = 0;
+
+    for (const channel of availableChannels) {
+      const stats = perfStats[channel] || {};
+      const responseRate = parseFloat(stats.responseRate) || 0;
+      const sent = stats.sent || 0;
+
+      // Score = taux reponse * volume (penaliser canaux jamais utilises)
+      const score = sent > 0 ? responseRate * Math.log(sent + 1) : 1;
+      channelScores[channel] = Math.max(score, 0.5); // Minimum pour essayer chaque canal
+      totalScore += channelScores[channel];
+    }
+
+    // Repartir le budget proportionnellement aux scores
+    let allocated = 0;
+    for (const channel of availableChannels) {
+      const ratio = channelScores[channel] / totalScore;
+      const channelBudget = Math.max(1, Math.round(dailyLimit * ratio));
+      result.allocations[channel] = channelBudget;
+      allocated += channelBudget;
+
+      const responseRate = parseFloat(perfStats[channel]?.responseRate) || 0;
+      result.reasoning.push(`${channel}: ${channelBudget} msg/jour (perf: ${responseRate}%, score: ${channelScores[channel].toFixed(1)})`);
+    }
+
+    // Ajuster si on depasse le budget
+    if (allocated > dailyLimit) {
+      const excess = allocated - dailyLimit;
+      // Retirer l'exces des canaux les plus chers
+      const sorted = availableChannels.sort((a, b) => (CHANNEL_COSTS[b] || 0) - (CHANNEL_COSTS[a] || 0));
+      let remaining = excess;
+      for (const ch of sorted) {
+        if (remaining <= 0) break;
+        const reduction = Math.min(remaining, result.allocations[ch] - 1);
+        if (reduction > 0) {
+          result.allocations[ch] -= reduction;
+          remaining -= reduction;
+        }
+      }
+    }
+
+    result.totalAllocated = Object.values(result.allocations).reduce((a, b) => a + b, 0);
+    result.estimatedDailyCost = Object.entries(result.allocations)
+      .reduce((sum, [ch, count]) => sum + count * (CHANNEL_COSTS[ch] || 0), 0)
+      .toFixed(2);
+
+    return result;
+  } catch (error) {
+    console.error('allocateChannelBudgets error:', error);
+    return { ...result, error: error.message };
+  }
+}
+
+// ============================================
+// SELECTION CANAUX PAR TYPE DE LEAD
+// ============================================
+export function selectChannelsByLeadType(lead) {
+  const result = {
+    primaryChannels: [],
+    secondaryChannels: [],
+    reasoning: []
+  };
+
+  const source = (lead.source || '').toLowerCase();
+  const hasEmail = !!lead.email;
+  const hasPhone = !!(lead.phone || lead.mobile);
+  const hasLinkedIn = !!(lead.linkedinUrl || lead.channels?.linkedin?.profileUrl);
+  const hasInstagram = !!(lead.instagramHandle || lead.channels?.instagram?.handle);
+  const hasTwitter = !!(lead.twitterHandle || lead.channels?.twitter?.handle);
+  const hasAddress = !!(lead.address?.line1 && lead.address?.city);
+  const isB2B = lead.companyName || lead.company || lead.jobTitle || source.includes('linkedin');
+  const isLocal = source.includes('google') || source.includes('maps') || source.includes('yelp');
+  const isSocial = source.includes('instagram') || source.includes('tiktok') || source.includes('facebook') || source.includes('twitter');
+
+  if (isB2B) {
+    // B2B leads : LinkedIn + Email prioritaires
+    result.reasoning.push('Lead B2B detecte — priorite LinkedIn + Email');
+    if (hasLinkedIn) result.primaryChannels.push('linkedin');
+    if (hasEmail) result.primaryChannels.push('email');
+    if (hasPhone) result.secondaryChannels.push('sms');
+    if (hasInstagram) result.secondaryChannels.push('instagram');
+    if (hasTwitter) result.secondaryChannels.push('twitter');
+  } else if (isLocal) {
+    // Local business leads : SMS + Email
+    result.reasoning.push('Lead local detecte — priorite SMS + Email');
+    if (hasPhone) result.primaryChannels.push('sms');
+    if (hasEmail) result.primaryChannels.push('email');
+    if (hasPhone) result.secondaryChannels.push('whatsapp');
+    if (hasAddress) result.secondaryChannels.push('postal');
+    if (hasInstagram) result.secondaryChannels.push('instagram');
+  } else if (isSocial) {
+    // Social leads : Instagram + WhatsApp
+    result.reasoning.push('Lead social detecte — priorite Instagram + WhatsApp');
+    if (hasInstagram) result.primaryChannels.push('instagram');
+    if (hasPhone) result.primaryChannels.push('whatsapp');
+    if (hasEmail) result.secondaryChannels.push('email');
+    if (hasTwitter) result.secondaryChannels.push('twitter');
+    if (hasPhone) result.secondaryChannels.push('sms');
+  } else {
+    // Default : Email-first
+    result.reasoning.push('Lead generique — priorite Email');
+    if (hasEmail) result.primaryChannels.push('email');
+    if (hasPhone) result.primaryChannels.push('sms');
+    if (hasPhone) result.secondaryChannels.push('whatsapp');
+    if (hasInstagram) result.secondaryChannels.push('instagram');
+    if (hasLinkedIn) result.secondaryChannels.push('linkedin');
+  }
+
+  // Deduplicate
+  result.secondaryChannels = result.secondaryChannels.filter(ch => !result.primaryChannels.includes(ch));
+
+  return result;
+}
+
+// ============================================
 // HELPER
 // ============================================
 function isMobileNumber(phone) {
@@ -494,4 +787,4 @@ function isMobileNumber(phone) {
   return true; // Assume mobile for international
 }
 
-export { PLAN_CHANNELS, CHANNEL_COSTS, CHANNEL_PRIORITY_BY_SCORE };
+export { PLAN_CHANNELS, CHANNEL_COSTS, CHANNEL_PRIORITY_BY_SCORE, getDefaultFallbacks };

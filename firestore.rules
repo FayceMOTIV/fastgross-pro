@@ -348,6 +348,21 @@ service cloud.firestore {
       }
 
       // ------------------------------------------
+      // WHATSAPP INSTANCES - Multi-instance rotation
+      // ------------------------------------------
+      match /whatsappInstances/{instanceId} {
+        allow read: if canRead(orgId);
+        allow create: if canAdmin(orgId);
+        allow update: if canAdmin(orgId);
+        allow delete: if canAdmin(orgId);
+
+        match /usage/{dateId} {
+          allow read: if canRead(orgId);
+          allow write: if false; // Only Cloud Functions
+        }
+      }
+
+      // ------------------------------------------
       // EMAIL SEQUENCES - Multi-step email automation
       // ------------------------------------------
       match /emailSequences/{sequenceId} {
@@ -547,6 +562,55 @@ service cloud.firestore {
       // EMAIL EVENTS - Email delivery events (org-level)
       // ------------------------------------------
       match /emailEvents/{eventId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // CHANNEL ACCOUNTS - LinkedIn, etc. managed by admin
+      // ------------------------------------------
+      match /channelAccounts/{accountId} {
+        allow read: if canRead(orgId);
+        allow write: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // OUTREACH CAMPAIGNS - Orchestrator campaigns
+      // ------------------------------------------
+      match /outreachCampaigns/{campaignId} {
+        allow read: if canRead(orgId);
+        allow create, update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // DAILY BUDGETS - Budget + usage per day
+      // ------------------------------------------
+      match /dailyBudgets/{date} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ORCHESTRATOR LOGS - Scheduler execution logs
+      // ------------------------------------------
+      match /orchestratorLogs/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ORCHESTRATOR STATE - Current orchestrator state
+      // ------------------------------------------
+      match /orchestratorState/{docId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // REPLY FEEDS - Classified reply feed
+      // ------------------------------------------
+      match /replyFeeds/{replyId} {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
       }

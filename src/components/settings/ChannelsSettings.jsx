@@ -11,6 +11,10 @@ import {
   Euro,
   ToggleLeft,
   ToggleRight,
+  MessageCircle,
+  Send,
+  Linkedin,
+  Map,
 } from 'lucide-react'
 import { CHANNEL_STYLES } from '@/engine/multiChannelEngine'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
@@ -32,6 +36,15 @@ export default function ChannelsSettings({ saving, setSaving }) {
   const [courrierEnabled, setCourrierEnabled] = useState(false)
   const [courrierMonthlyBudget, setCourrierMonthlyBudget] = useState(50)
   const [courrierAddress, setCourrierAddress] = useState('')
+  const [socialDmEnabled, setSocialDmEnabled] = useState(false)
+  const [whatsappOutreachEnabled, setWhatsappOutreachEnabled] = useState(false)
+  const [socialDmDailyLimit, setSocialDmDailyLimit] = useState(30)
+  const [whatsappOutreachDailyLimit, setWhatsappOutreachDailyLimit] = useState(50)
+  const [linkedinEnabled, setLinkedinEnabled] = useState(false)
+  const [linkedinApiKey, setLinkedinApiKey] = useState('')
+  const [linkedinDailyLimit, setLinkedinDailyLimit] = useState(20)
+  const [googleMapsEnabled, setGoogleMapsEnabled] = useState(false)
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState('')
 
   useEffect(() => {
     if (!currentOrg?.id || isDemo) return
@@ -48,6 +61,15 @@ export default function ChannelsSettings({ saving, setSaving }) {
         if (d.courrierEnabled !== undefined) setCourrierEnabled(d.courrierEnabled)
         if (d.courrierMonthlyBudget !== undefined) setCourrierMonthlyBudget(d.courrierMonthlyBudget)
         if (d.courrierAddress !== undefined) setCourrierAddress(d.courrierAddress)
+        if (d.socialDmEnabled !== undefined) setSocialDmEnabled(d.socialDmEnabled)
+        if (d.whatsappOutreachEnabled !== undefined) setWhatsappOutreachEnabled(d.whatsappOutreachEnabled)
+        if (d.socialDmDailyLimit !== undefined) setSocialDmDailyLimit(d.socialDmDailyLimit)
+        if (d.whatsappOutreachDailyLimit !== undefined) setWhatsappOutreachDailyLimit(d.whatsappOutreachDailyLimit)
+        if (d.linkedinEnabled !== undefined) setLinkedinEnabled(d.linkedinEnabled)
+        if (d.linkedinApiKey !== undefined) setLinkedinApiKey(d.linkedinApiKey)
+        if (d.linkedinDailyLimit !== undefined) setLinkedinDailyLimit(d.linkedinDailyLimit)
+        if (d.googleMapsEnabled !== undefined) setGoogleMapsEnabled(d.googleMapsEnabled)
+        if (d.googleMapsApiKey !== undefined) setGoogleMapsApiKey(d.googleMapsApiKey)
       }
     }).catch(() => {})
   }, [currentOrg?.id])
@@ -60,6 +82,10 @@ export default function ChannelsSettings({ saving, setSaving }) {
           smsEnabled, smsPhone, instagramEnabled, instagramHandle,
           voicemailEnabled, voicemailMethod, voicemailVoice,
           courrierEnabled, courrierMonthlyBudget, courrierAddress,
+          socialDmEnabled, whatsappOutreachEnabled,
+          socialDmDailyLimit, whatsappOutreachDailyLimit,
+          linkedinEnabled, linkedinApiKey, linkedinDailyLimit,
+          googleMapsEnabled, googleMapsApiKey,
           updatedAt: new Date()
         }, { merge: true })
       }
@@ -352,6 +378,274 @@ export default function ChannelsSettings({ saving, setSaving }) {
               <p className="text-xs text-amber-400">
                 Le courrier postal est reserve aux prospects chauds (score &ge; 70%) ou en derniere
                 etape de sequence. Chaque carte inclut un QR code personnalise pour le tracking.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Social DM Outreach */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-white">Social DM Outreach</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 text-xs">
+                    NEW
+                  </span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Cold DM automatise via Instagram et WhatsApp avec anti-ban
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          {/* Instagram DM Outreach toggle */}
+          <div className="p-4 rounded-lg bg-dark-900/50">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Instagram className="w-4 h-4 text-pink-400" />
+                <span className="text-sm font-medium text-white">Instagram Cold DM</span>
+              </div>
+              <button
+                onClick={() => setSocialDmEnabled(!socialDmEnabled)}
+                className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                  socialDmEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                }`}
+              >
+                {socialDmEnabled ? (
+                  <ToggleRight className="w-6 h-6 text-white" />
+                ) : (
+                  <ToggleLeft className="w-6 h-6 text-dark-400" />
+                )}
+              </button>
+            </div>
+            {socialDmEnabled && (
+              <div>
+                <label className="block text-xs font-medium text-dark-300 mb-2">
+                  Limite quotidienne par compte
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={5}
+                    max={50}
+                    step={5}
+                    value={socialDmDailyLimit}
+                    onChange={(e) => setSocialDmDailyLimit(parseInt(e.target.value))}
+                    className="flex-1 accent-brand-500"
+                  />
+                  <span className="text-sm font-medium text-white min-w-[60px]">
+                    {socialDmDailyLimit}/jour
+                  </span>
+                </div>
+                <p className="text-xs text-dark-500 mt-2">
+                  Warmup progressif : jour 1-3 = 3/jour, jour 4-7 = 15/jour, puis augmentation graduelle
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* WhatsApp Outreach toggle */}
+          <div className="p-4 rounded-lg bg-dark-900/50">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Send className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm font-medium text-white">WhatsApp Outreach</span>
+              </div>
+              <button
+                onClick={() => setWhatsappOutreachEnabled(!whatsappOutreachEnabled)}
+                className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+                  whatsappOutreachEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                }`}
+              >
+                {whatsappOutreachEnabled ? (
+                  <ToggleRight className="w-6 h-6 text-white" />
+                ) : (
+                  <ToggleLeft className="w-6 h-6 text-dark-400" />
+                )}
+              </button>
+            </div>
+            {whatsappOutreachEnabled && (
+              <div>
+                <label className="block text-xs font-medium text-dark-300 mb-2">
+                  Limite quotidienne par instance
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={5}
+                    max={100}
+                    step={5}
+                    value={whatsappOutreachDailyLimit}
+                    onChange={(e) => setWhatsappOutreachDailyLimit(parseInt(e.target.value))}
+                    className="flex-1 accent-brand-500"
+                  />
+                  <span className="text-sm font-medium text-white min-w-[60px]">
+                    {whatsappOutreachDailyLimit}/jour
+                  </span>
+                </div>
+                <p className="text-xs text-dark-500 mt-2">
+                  Evolution API avec anti-ban : horaires business, rotation instances, monitoring block rate
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+            <p className="text-xs text-purple-400">
+              Le systeme anti-ban gere automatiquement le warmup progressif, les horaires d'envoi
+              et la rotation des comptes/instances. Gerez vos campagnes depuis la page Social DM.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* LinkedIn */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center">
+                <Linkedin className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-white">LinkedIn</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 text-xs">
+                    NEW
+                  </span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Prospection LinkedIn automatisee via HeyReach
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setLinkedinEnabled(!linkedinEnabled)}
+            className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+              linkedinEnabled ? 'bg-brand-500' : 'bg-dark-700'
+            }`}
+          >
+            {linkedinEnabled ? (
+              <ToggleRight className="w-8 h-8 text-white" />
+            ) : (
+              <ToggleLeft className="w-8 h-8 text-dark-400" />
+            )}
+          </button>
+        </div>
+
+        {linkedinEnabled && (
+          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Cle API HeyReach
+              </label>
+              <input
+                type="password"
+                value={linkedinApiKey}
+                onChange={(e) => setLinkedinApiKey(e.target.value)}
+                className="input-field"
+                placeholder="hr_api_..."
+              />
+              <p className="text-xs text-dark-500 mt-2">
+                Obtenez votre cle API depuis votre compte HeyReach
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Limite quotidienne (connexions + messages)
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min={5}
+                  max={50}
+                  step={5}
+                  value={linkedinDailyLimit}
+                  onChange={(e) => setLinkedinDailyLimit(parseInt(e.target.value))}
+                  className="flex-1 accent-brand-500"
+                />
+                <span className="text-sm font-medium text-white min-w-[60px]">
+                  {linkedinDailyLimit}/jour
+                </span>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <p className="text-xs text-blue-400">
+                HeyReach gere automatiquement la rotation des comptes et le warmup.
+                Gerez vos comptes et campagnes depuis la page LinkedIn.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Google Maps Sourcing */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                <Map className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-white">Google Maps Sourcing</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 text-xs">
+                    NEW
+                  </span>
+                </div>
+                <p className="text-sm text-dark-400">
+                  Scraping et enrichissement de prospects via Google Maps (Apify)
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setGoogleMapsEnabled(!googleMapsEnabled)}
+            className={`flex-shrink-0 p-1 rounded-full transition-colors ${
+              googleMapsEnabled ? 'bg-brand-500' : 'bg-dark-700'
+            }`}
+          >
+            {googleMapsEnabled ? (
+              <ToggleRight className="w-8 h-8 text-white" />
+            ) : (
+              <ToggleLeft className="w-8 h-8 text-dark-400" />
+            )}
+          </button>
+        </div>
+
+        {googleMapsEnabled && (
+          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Cle API Apify
+              </label>
+              <input
+                type="password"
+                value={googleMapsApiKey}
+                onChange={(e) => setGoogleMapsApiKey(e.target.value)}
+                className="input-field"
+                placeholder="apify_api_..."
+              />
+              <p className="text-xs text-dark-500 mt-2">
+                Utilisee pour le scraping avance Google Maps. Sans cle, le systeme utilise Serper.dev en fallback.
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-xs text-red-400">
+                Lancez vos recherches depuis la page Google Maps Sourcing. Les resultats
+                sont automatiquement enrichis et qualifies par l'IA.
               </p>
             </div>
           </div>

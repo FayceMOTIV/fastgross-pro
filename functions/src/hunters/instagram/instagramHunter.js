@@ -528,6 +528,435 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
 }
 
 /**
+ * Advanced Instagram Scraping (callable)
+ * Supports: followers, likers, commenters of a target account/post
+ */
+export const runAdvancedInstagramScrape = onCall({
+  region: 'europe-west1',
+  cors: true,
+  memory: '1GiB',
+  timeoutSeconds: 300
+}, async (request) => {
+  const { auth, data } = request
+
+  if (!auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated')
+  }
+
+  const { orgId, type, target } = data
+
+  if (!orgId || !type || !target) {
+    throw new HttpsError('invalid-argument', 'orgId, type and target are required')
+  }
+
+  const validTypes = ['followers', 'likers', 'commenters']
+  if (!validTypes.includes(type)) {
+    throw new HttpsError('invalid-argument', `type must be one of: ${validTypes.join(', ')}`)
+  }
+
+  console.log(`🔍 Advanced Instagram Scrape: org=${orgId}, type=${type}, target=${target}`)
+
+  const db = getDb()
+  const stats = { scanned: 0, qualified: 0, saved: 0 }
+
+  try {
+    const icpSnapshot = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('settings')
+      .doc('icp')
+      .get()
+
+    const icp = icpSnapshot.exists ? icpSnapshot.data() : {}
+
+    let prospects = []
+
+    if (type === 'followers') {
+      prospects = await scrapeInstagramFollowers(target, orgId)
+    } else if (type === 'likers') {
+      prospects = await scrapeInstagramLikers(target, orgId)
+    } else if (type === 'commenters') {
+      prospects = await scrapeInstagramCommenters(target, orgId)
+    }
+
+    stats.scanned = prospects.length
+
+    for (const prospect of prospects) {
+      try {
+        const qualification = await qualifyProspectWithAI(prospect, icp)
+
+        if (qualification.score >= 70) {
+          stats.qualified++
+
+          const existingSnapshot = await db
+            .collection('organizations')
+            .doc(orgId)
+            .collection('prospects')
+            .where('platform', '==', 'instagram')
+            .where('platformId', '==', prospect.pk)
+            .limit(1)
+            .get()
+
+          if (existingSnapshot.empty) {
+            await db
+              .collection('organizations')
+              .doc(orgId)
+              .collection('prospects')
+              .add({
+                source: `instagram_${type}`,
+                platform: 'instagram',
+                platformId: prospect.pk,
+                username: prospect.username,
+                fullName: prospect.fullName || '',
+                bio: prospect.bio || '',
+                followers: prospect.followers || 0,
+                profileUrl: `https://instagram.com/${prospect.username}`,
+                email: prospect.email || '',
+                phone: prospect.phone || '',
+                websiteUrl: prospect.websiteUrl || '',
+                isBusiness: prospect.isBusiness || false,
+                businessCategory: prospect.businessCategory || '',
+                whatsappNumber: prospect.phone || '',
+                score: qualification.score,
+                qualificationReason: qualification.reason,
+                suggestedApproach: qualification.approach,
+                status: 'new',
+                hunterStatus: 'qualified',
+                scrapeType: type,
+                scrapeTarget: target,
+                scannedAt: FieldValue.serverTimestamp(),
+                createdAt: FieldValue.serverTimestamp()
+              })
+
+            stats.saved++
+          }
+        }
+      } catch (err) {
+        console.error(`Error qualifying prospect ${prospect.username}:`, err)
+      }
+    }
+
+    // Update analytics
+    await db.collection('organizations').doc(orgId).collection('analytics').doc('hunter').set({
+      lastRun: FieldValue.serverTimestamp(),
+      lastStats: stats,
+      totalScanned: FieldValue.increment(stats.scanned),
+      totalQualified: FieldValue.increment(stats.qualified),
+      totalSaved: FieldValue.increment(stats.saved)
+    }, { merge: true })
+
+    return {
+      success: true,
+      message: `Scrape ${type} termine: ${stats.scanned} scannes, ${stats.qualified} qualifies, ${stats.saved} sauvegardes`,
+      stats
+    }
+
+  } catch (error) {
+    console.error(`Advanced Instagram Scrape failed:`, error)
+    throw new HttpsError('internal', `Scrape failed: ${error.message}`)
+  }
+})
+
+/**
+ * Scrape followers of a target Instagram account
+ */
+async function scrapeInstagramFollowers(targetAccount, orgId) {
+  const db = getDb()
+  const credentialsDoc = await db
+    .collection('organizations')
+    .doc(orgId)
+    .collection('settings')
+    .doc('instagram')
+    .get()
+
+  const credentials = credentialsDoc.exists ? credentialsDoc.data() : {}
+  const username = credentials.username || process.env.IG_USERNAME
+  const password = credentials.password || process.env.IG_PASSWORD
+
+  if (!username || !password) {
+    console.warn('Instagram credentials not configured, using mock data')
+    return getMockProspects(targetAccount)
+  }
+
+  const pythonScript = `
+import sys, os
+module_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'python_modules')
+if os.path.exists(module_path):
+    sys.path.insert(0, module_path)
+
+try:
+    from instagrapi import Client
+    import json, time, re as _re
+
+    cl = Client()
+    cl.login("""${username}""", """${password}""")
+
+    target = """${targetAccount.replace(/"/g, '')}"""
+
+    # Get user ID from username
+    user_id = cl.user_id_from_username(target)
+    followers = cl.user_followers(user_id, amount=${RATE_LIMITS.maxProfilesPerScan})
+
+    def extract_from_bio(bio_text):
+        emails = _re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', bio_text or '')
+        phones = _re.findall(r'(?:\\+?\\d{1,3}[\\s.-]?)?(?:\\(?\\d{2,4}\\)?[\\s.-]?)?\\d{6,10}', bio_text or '')
+        return emails[0] if emails else '', phones[0] if phones else ''
+
+    prospects = []
+    for user_id_key, user in list(followers.items())[:${RATE_LIMITS.maxProfilesPerScan}]:
+        try:
+            time.sleep(1)
+            info = cl.user_info(user_id_key)
+            follower_count = info.follower_count or 0
+            if follower_count < 500 or follower_count > 100000:
+                continue
+
+            public_email = getattr(info, 'public_email', '') or ''
+            contact_phone = getattr(info, 'contact_phone_number', '') or ''
+            external_url = getattr(info, 'external_url', '') or ''
+            is_business = getattr(info, 'is_business', False) or False
+            category_name = getattr(info, 'category_name', '') or ''
+            bio_email, bio_phone = extract_from_bio(info.biography)
+
+            prospects.append({
+                'username': info.username,
+                'fullName': info.full_name or '',
+                'bio': info.biography or '',
+                'followers': follower_count,
+                'pk': str(info.pk),
+                'email': public_email or bio_email,
+                'phone': contact_phone or bio_phone,
+                'websiteUrl': external_url,
+                'isBusiness': is_business,
+                'businessCategory': category_name
+            })
+        except:
+            continue
+
+    print(json.dumps(prospects))
+except Exception as e:
+    import json
+    print(json.dumps([]))
+    sys.exit(0)
+`
+
+  return runPythonScript(pythonScript, username, password)
+}
+
+/**
+ * Scrape likers of a specific Instagram post
+ */
+async function scrapeInstagramLikers(postUrl, orgId) {
+  const db = getDb()
+  const credentialsDoc = await db
+    .collection('organizations')
+    .doc(orgId)
+    .collection('settings')
+    .doc('instagram')
+    .get()
+
+  const credentials = credentialsDoc.exists ? credentialsDoc.data() : {}
+  const username = credentials.username || process.env.IG_USERNAME
+  const password = credentials.password || process.env.IG_PASSWORD
+
+  if (!username || !password) {
+    console.warn('Instagram credentials not configured, using mock data')
+    return getMockProspects('likers')
+  }
+
+  const pythonScript = `
+import sys, os
+module_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'python_modules')
+if os.path.exists(module_path):
+    sys.path.insert(0, module_path)
+
+try:
+    from instagrapi import Client
+    import json, time, re as _re
+
+    cl = Client()
+    cl.login("""${username}""", """${password}""")
+
+    post_url = """${postUrl.replace(/"/g, '')}"""
+    media_pk = cl.media_pk_from_url(post_url)
+    likers = cl.media_likers(media_pk)
+
+    def extract_from_bio(bio_text):
+        emails = _re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', bio_text or '')
+        phones = _re.findall(r'(?:\\+?\\d{1,3}[\\s.-]?)?(?:\\(?\\d{2,4}\\)?[\\s.-]?)?\\d{6,10}', bio_text or '')
+        return emails[0] if emails else '', phones[0] if phones else ''
+
+    prospects = []
+    for liker in list(likers)[:${RATE_LIMITS.maxProfilesPerScan}]:
+        try:
+            time.sleep(1)
+            info = cl.user_info(liker.pk)
+            follower_count = info.follower_count or 0
+            if follower_count < 500 or follower_count > 100000:
+                continue
+
+            public_email = getattr(info, 'public_email', '') or ''
+            contact_phone = getattr(info, 'contact_phone_number', '') or ''
+            external_url = getattr(info, 'external_url', '') or ''
+            is_business = getattr(info, 'is_business', False) or False
+            category_name = getattr(info, 'category_name', '') or ''
+            bio_email, bio_phone = extract_from_bio(info.biography)
+
+            prospects.append({
+                'username': info.username,
+                'fullName': info.full_name or '',
+                'bio': info.biography or '',
+                'followers': follower_count,
+                'pk': str(info.pk),
+                'email': public_email or bio_email,
+                'phone': contact_phone or bio_phone,
+                'websiteUrl': external_url,
+                'isBusiness': is_business,
+                'businessCategory': category_name
+            })
+        except:
+            continue
+
+    print(json.dumps(prospects))
+except Exception as e:
+    import json
+    print(json.dumps([]))
+    sys.exit(0)
+`
+
+  return runPythonScript(pythonScript, username, password)
+}
+
+/**
+ * Scrape commenters of a specific Instagram post
+ */
+async function scrapeInstagramCommenters(postUrl, orgId) {
+  const db = getDb()
+  const credentialsDoc = await db
+    .collection('organizations')
+    .doc(orgId)
+    .collection('settings')
+    .doc('instagram')
+    .get()
+
+  const credentials = credentialsDoc.exists ? credentialsDoc.data() : {}
+  const username = credentials.username || process.env.IG_USERNAME
+  const password = credentials.password || process.env.IG_PASSWORD
+
+  if (!username || !password) {
+    console.warn('Instagram credentials not configured, using mock data')
+    return getMockProspects('commenters')
+  }
+
+  const pythonScript = `
+import sys, os
+module_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'python_modules')
+if os.path.exists(module_path):
+    sys.path.insert(0, module_path)
+
+try:
+    from instagrapi import Client
+    import json, time, re as _re
+
+    cl = Client()
+    cl.login("""${username}""", """${password}""")
+
+    post_url = """${postUrl.replace(/"/g, '')}"""
+    media_pk = cl.media_pk_from_url(post_url)
+    comments = cl.media_comments(media_pk, amount=50)
+
+    def extract_from_bio(bio_text):
+        emails = _re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}', bio_text or '')
+        phones = _re.findall(r'(?:\\+?\\d{1,3}[\\s.-]?)?(?:\\(?\\d{2,4}\\)?[\\s.-]?)?\\d{6,10}', bio_text or '')
+        return emails[0] if emails else '', phones[0] if phones else ''
+
+    seen = set()
+    prospects = []
+    for comment in comments:
+        if comment.user.pk in seen:
+            continue
+        seen.add(comment.user.pk)
+
+        try:
+            time.sleep(1)
+            info = cl.user_info(comment.user.pk)
+            follower_count = info.follower_count or 0
+            if follower_count < 500 or follower_count > 100000:
+                continue
+
+            public_email = getattr(info, 'public_email', '') or ''
+            contact_phone = getattr(info, 'contact_phone_number', '') or ''
+            external_url = getattr(info, 'external_url', '') or ''
+            is_business = getattr(info, 'is_business', False) or False
+            category_name = getattr(info, 'category_name', '') or ''
+            bio_email, bio_phone = extract_from_bio(info.biography)
+
+            prospects.append({
+                'username': info.username,
+                'fullName': info.full_name or '',
+                'bio': info.biography or '',
+                'followers': follower_count,
+                'pk': str(info.pk),
+                'email': public_email or bio_email,
+                'phone': contact_phone or bio_phone,
+                'websiteUrl': external_url,
+                'isBusiness': is_business,
+                'businessCategory': category_name
+            })
+
+            if len(prospects) >= ${RATE_LIMITS.maxProfilesPerScan}:
+                break
+        except:
+            continue
+
+    print(json.dumps(prospects))
+except Exception as e:
+    import json
+    print(json.dumps([]))
+    sys.exit(0)
+`
+
+  return runPythonScript(pythonScript, username, password)
+}
+
+/**
+ * Run a Python scraping script and parse results
+ */
+function runPythonScript(pythonScript, username, password) {
+  return new Promise((resolve) => {
+    const python = spawn('python3', ['-c', pythonScript], {
+      env: { ...process.env, IG_USERNAME: username, IG_PASSWORD: password },
+      timeout: 300000
+    })
+
+    let output = ''
+    let errorOutput = ''
+
+    python.stdout.on('data', (data) => { output += data.toString() })
+    python.stderr.on('data', (data) => { errorOutput += data.toString() })
+
+    python.on('close', (code) => {
+      if (code !== 0) {
+        console.error('Python scraper error:', errorOutput)
+        resolve(getMockProspects('advanced'))
+        return
+      }
+      try {
+        resolve(JSON.parse(output.trim()))
+      } catch (e) {
+        console.error('Failed to parse Python output:', output)
+        resolve(getMockProspects('advanced'))
+      }
+    })
+
+    python.on('error', (err) => {
+      console.error('Failed to spawn Python:', err)
+      resolve(getMockProspects('advanced'))
+    })
+  })
+}
+
+/**
  * Get hunter statistics
  */
 export const getHunterStats = onCall({

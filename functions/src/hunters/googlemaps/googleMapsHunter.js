@@ -503,6 +503,278 @@ export const getGoogleMapsHunterStats = onCall({
   }
 })
 
+// ============================================
+// APIFY GOOGLE MAPS SCRAPER
+// ============================================
+
+const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN || ''
+const APIFY_MAPS_ACTOR = 'nwua9Gu5YrADL7ZDj'
+
+/**
+ * Scrape Google Maps via Apify (plus de resultats, plus de data)
+ * Fallback automatique sur Serper si Apify echoue
+ */
+async function scrapeGoogleMapsApify(query, location, limit = 50, options = {}) {
+  if (!APIFY_API_TOKEN) {
+    console.warn('[googleMapsHunter] APIFY_API_TOKEN not set, falling back to Serper')
+    return { success: false, fallback: true }
+  }
+
+  try {
+    const token = options.apiToken || APIFY_API_TOKEN
+
+    const input = {
+      searchStringsArray: [query],
+      locationQuery: location || '',
+      maxCrawledPlacesPerSearch: Math.min(limit, 100),
+      language: 'fr',
+      deeperCityScrape: false,
+      skipClosedPlaces: true,
+    }
+
+    // Lancer le run Apify
+    const runResponse = await axios.post(
+      `https://api.apify.com/v2/acts/${APIFY_MAPS_ACTOR}/runs`,
+      input,
+      {
+        params: { token, waitForFinish: 120, memory: 1024 },
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 130000,
+      }
+    )
+
+    const run = runResponse.data?.data
+    if (!run) {
+      throw new Error('Failed to start Apify run')
+    }
+
+    // Poller si pas fini
+    let status = run.status
+    let attempts = 0
+    while (status === 'RUNNING' && attempts < 30) {
+      await new Promise((r) => setTimeout(r, 5000))
+      const statusRes = await axios.get(`https://api.apify.com/v2/actor-runs/${run.id}`, {
+        params: { token },
+      })
+      status = statusRes.data?.data?.status || 'FAILED'
+      attempts++
+    }
+
+    if (status !== 'SUCCEEDED') {
+      throw new Error(`Apify run status: ${status}`)
+    }
+
+    // Recuperer les resultats
+    const datasetRes = await axios.get(
+      `https://api.apify.com/v2/datasets/${run.defaultDatasetId}/items`,
+      { params: { token, format: 'json' } }
+    )
+
+    const places = datasetRes.data || []
+
+    // Normaliser au format interne
+    const prospects = places.map((place) => ({
+      businessName: place.title || place.name || '',
+      address: place.address || place.street || '',
+      phone: place.phone || place.phoneNumber || '',
+      website: place.website || place.url || '',
+      rating: place.totalScore || place.rating || null,
+      reviewCount: place.reviewsCount || place.reviews || 0,
+      category: place.categoryName || place.category || '',
+      cid: place.cid || '',
+      latitude: place.location?.lat || place.latitude || null,
+      longitude: place.location?.lng || place.longitude || null,
+      googleMapsUrl: place.url || place.googleMapsUrl || '',
+      thumbnailUrl: place.imageUrl || place.thumbnailUrl || '',
+      openingHours: place.openingHours ? JSON.stringify(place.openingHours) : '',
+      email: place.email || extractEmailFromPlace(place),
+      placeId: place.placeId || '',
+      // Apify extra data
+      description: place.description || '',
+      priceLevel: place.price || '',
+      claimedBusiness: place.isAdvertising || false,
+    }))
+
+    console.log(`[googleMapsHunter] Apify returned ${prospects.length} places for "${query}" in ${location}`)
+    return { success: true, prospects }
+  } catch (error) {
+    console.error('[googleMapsHunter] Apify scrape error:', error.message)
+    return { success: false, fallback: true, error: error.message }
+  }
+}
+
+/**
+ * Enrichir un lead Google Maps (scrape website + extraction email)
+ */
+async function enrichGoogleMapsLead(prospect) {
+  const enriched = { ...prospect }
+
+  // Si pas d'email mais a un site web, tenter d'extraire
+  if (!enriched.email && enriched.website) {
+    try {
+      const response = await axios.get(enriched.website, {
+        timeout: 10000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FMFBot/1.0)' },
+        maxRedirects: 3,
+      })
+
+      const html = response.data || ''
+      // Extraire emails du HTML
+      const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi)
+      if (emailMatches && emailMatches.length > 0) {
+        // Filtrer les emails generiques
+        const genericEmails = ['noreply', 'no-reply', 'mailer-daemon', 'postmaster', 'webmaster']
+        const validEmails = emailMatches.filter(
+          (e) => !genericEmails.some((g) => e.toLowerCase().includes(g))
+        )
+        if (validEmails.length > 0) {
+          enriched.email = validEmails[0].toLowerCase()
+        }
+      }
+
+      // Extraire reseaux sociaux
+      const linkedinMatch = html.match(/https?:\/\/(www\.)?linkedin\.com\/company\/[a-zA-Z0-9_-]+/i)
+      if (linkedinMatch) enriched.linkedinUrl = linkedinMatch[0]
+
+      const instaMatch = html.match(/https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]+/i)
+      if (instaMatch) enriched.instagramHandle = instaMatch[0].split('/').pop()
+    } catch {
+      // Website unreachable, skip enrichment
+    }
+  }
+
+  return enriched
+}
+
+/**
+ * Interactive Google Maps Sourcing — onCall from frontend
+ * Supports advanced filters: rating, reviews, categories
+ * Uses Apify with Serper fallback
+ */
+export const runGoogleMapsSourcingManual = onCall({
+  region: 'europe-west1',
+  cors: true,
+  memory: '1GiB',
+  timeoutSeconds: 540
+}, async (request) => {
+  const { auth, data } = request
+
+  if (!auth) {
+    throw new HttpsError('unauthenticated', 'User must be authenticated')
+  }
+
+  const { orgId, query, location, radius, limit, filters, enrichLeads } = data || {}
+
+  if (!orgId || !query) {
+    throw new HttpsError('invalid-argument', 'orgId and query are required')
+  }
+
+  const db = getDb()
+  const stats = { scanned: 0, qualified: 0, saved: 0, merged: 0, skipped: 0, enriched: 0 }
+
+  try {
+    console.log(`[googleMapsSourcing] Manual run by ${auth.uid}: query="${query}" location="${location || 'France'}"`)
+
+    // 1. Essayer Apify d'abord
+    let prospects = []
+    const apifyResult = await scrapeGoogleMapsApify(query, location || 'France', limit || 50)
+
+    if (apifyResult.success) {
+      prospects = apifyResult.prospects
+      console.log(`[googleMapsSourcing] Using Apify results: ${prospects.length} places`)
+    } else {
+      // Fallback sur Serper
+      prospects = await searchGoogleMaps(query, location || 'France')
+      console.log(`[googleMapsSourcing] Using Serper fallback: ${prospects.length} places`)
+    }
+
+    stats.scanned = prospects.length
+
+    // 2. Appliquer filtres
+    if (filters) {
+      if (filters.minRating) {
+        prospects = prospects.filter((p) => (p.rating || 0) >= filters.minRating)
+      }
+      if (filters.minReviews) {
+        prospects = prospects.filter((p) => (p.reviewCount || 0) >= filters.minReviews)
+      }
+      if (filters.categories && filters.categories.length > 0) {
+        prospects = prospects.filter((p) => {
+          const cat = (p.category || '').toLowerCase()
+          return filters.categories.some((c) => cat.includes(c.toLowerCase()))
+        })
+      }
+      if (filters.hasPhone) {
+        prospects = prospects.filter((p) => !!p.phone)
+      }
+      if (filters.hasWebsite) {
+        prospects = prospects.filter((p) => !!p.website)
+      }
+    }
+
+    // 3. Enrichir les leads si demande
+    if (enrichLeads) {
+      const enrichedProspects = []
+      for (const prospect of prospects) {
+        const enriched = await enrichGoogleMapsLead(prospect)
+        enrichedProspects.push(enriched)
+        if (enriched.email && !prospect.email) stats.enriched++
+        // Delay pour ne pas surcharger les sites
+        await new Promise((r) => setTimeout(r, 300))
+      }
+      prospects = enrichedProspects
+    }
+
+    // 4. ICP pour qualification
+    const icpSnapshot = await db
+      .collection('organizations')
+      .doc(orgId)
+      .collection('settings')
+      .doc('icp')
+      .get()
+
+    const icp = icpSnapshot.exists ? icpSnapshot.data() : {}
+
+    // 5. Qualifier et sauvegarder
+    for (const prospect of prospects) {
+      try {
+        const qualification = await qualifyMapsProspectWithAI(prospect, icp)
+
+        if (qualification.score >= (filters?.minScore || 50)) {
+          stats.qualified++
+          const saveResult = await saveWithDedup(db, orgId, prospect, qualification, query)
+          if (saveResult === 'saved') stats.saved++
+          else if (saveResult === 'merged') stats.merged++
+          else stats.skipped++
+        }
+      } catch (err) {
+        console.error(`[googleMapsSourcing] Error processing: ${prospect.businessName}`, err.message)
+      }
+    }
+
+    // 6. Logger le run
+    await db.collection('organizations').doc(orgId).collection('hunterLogs').add({
+      hunter: 'googlemaps_sourcing',
+      query,
+      location: location || 'France',
+      provider: apifyResult.success ? 'apify' : 'serper',
+      ...stats,
+      runBy: auth.uid,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+
+    return {
+      success: true,
+      provider: apifyResult.success ? 'apify' : 'serper',
+      message: `Sourcing termine: ${stats.scanned} scannees, ${stats.qualified} qualifiees, ${stats.saved} sauvegardees`,
+      stats,
+    }
+  } catch (error) {
+    console.error('[googleMapsSourcing] error:', error)
+    throw new HttpsError('internal', error.message)
+  }
+})
+
 /**
  * Mock Google Maps prospects for testing
  */
