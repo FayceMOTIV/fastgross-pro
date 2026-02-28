@@ -245,6 +245,21 @@ export { transferLeadToClient } from './alex/transferLeadToClient.js'
 export { dailyReset } from './alex/dailyReset.js'
 
 // ============================================
+// Cloud Tasks Agents (serverless BullMQ replacement)
+// ============================================
+export { emailAgentHandler as emailAgent } from './agents/emailAgent.js'
+export { whatsappAgentHandler as whatsappAgent } from './agents/whatsappAgent.js'
+export { instagramAgentHandler as instagramAgent } from './agents/instagramAgent.js'
+export { linkedinAgentHandler as linkedinAgent } from './agents/linkedinAgent.js'
+export { orchestratorAgentHandler as orchestratorAgent } from './agents/orchestratorAgent.js'
+export { orchestratorCron, runOrchestratorCronManual } from './agents/orchestratorCron.js'
+
+// ============================================
+// Cloud Tasks Queue Management
+// ============================================
+export { enqueueTask, enqueueBatch, deleteTask, purgeQueue, pauseQueue, resumeQueue } from './queues/taskQueue.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData, seedSubscriptionPlans } from './dev/seedData.js'
