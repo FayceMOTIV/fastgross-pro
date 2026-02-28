@@ -1,0 +1,23 @@
+{
+  "name": "fmf-vps-worker",
+  "version": "1.0.0",
+  "description": "FMF VPS Worker — 5 BullMQ Agents (Email, WhatsApp, Instagram, LinkedIn, Orchestrator)",
+  "main": "startAll.js",
+  "scripts": {
+    "start": "node startAll.js",
+    "pm2": "pm2 start startAll.js --name fmf-agents"
+  },
+  "dependencies": {
+    "bullmq": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.0.0",
+    "groq-sdk": "^0.37.0",
+    "ioredis": "^5.3.2",
+    "playwright": "^1.41.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

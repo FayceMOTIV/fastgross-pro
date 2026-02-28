@@ -16,6 +16,13 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import axios from 'axios'
+import {
+  getWhatsAppWarmupLimits,
+  checkBlockRate,
+  isBusinessHours,
+  selectBestInstance,
+  recordSendEvent,
+} from './whatsappAntiBan.js'
 
 const getDb = () => getFirestore()
 
@@ -94,14 +101,19 @@ export const whatsappSender = onSchedule(
     const db = getDb()
     logger.info('Starting WhatsApp sender...')
 
-    // Check sleep hours
+    // Anti-ban: Check business hours (timezone-aware)
+    if (!isBusinessHours('Europe/Paris')) {
+      logger.info('Outside business hours, skipping')
+      return { skipped: true, reason: 'outside_business_hours' }
+    }
+
+    // Legacy checks (keep as fallback)
     const currentHour = new Date().getHours()
     if (currentHour >= LIMITS.SLEEP_HOURS_START || currentHour < LIMITS.SLEEP_HOURS_END) {
       logger.info(`Sleep hours (${LIMITS.SLEEP_HOURS_START}h-${LIMITS.SLEEP_HOURS_END}h), skipping`)
       return { skipped: true, reason: 'sleep_hours' }
     }
 
-    // Check weekend
     if (LIMITS.NO_WEEKEND) {
       const dayOfWeek = new Date().getDay()
       if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -141,20 +153,28 @@ export const whatsappSender = onSchedule(
         dailyStats.lastResetHour = currentHourNum
       }
 
-      // Check limits
-      if (dailyStats.messagesSentToday >= LIMITS.MAX_MESSAGES_PER_DAY) {
-        logger.info('Daily limit reached')
-        return { skipped: true, reason: 'daily_limit' }
+      // Anti-ban: Get warmup limits (adapt limits based on instance age)
+      const instanceCreatedAt = dailyStats.instanceCreatedAt || null
+      const warmupLimits = getWhatsAppWarmupLimits(instanceCreatedAt)
+      const effectiveHourlyLimit = Math.min(LIMITS.MAX_MESSAGES_PER_HOUR, warmupLimits.maxPerHour)
+      const effectiveDailyLimit = Math.min(LIMITS.MAX_MESSAGES_PER_DAY, warmupLimits.maxPerDay)
+
+      logger.info(`Warmup day ${warmupLimits.warmupDay} (${warmupLimits.phase}): ${effectiveHourlyLimit}/h, ${effectiveDailyLimit}/day`)
+
+      // Check limits with warmup-adjusted values
+      if (dailyStats.messagesSentToday >= effectiveDailyLimit) {
+        logger.info(`Daily limit reached (warmup: ${effectiveDailyLimit})`)
+        return { skipped: true, reason: 'daily_limit', warmupPhase: warmupLimits.phase }
       }
 
-      if (dailyStats.messagesSentThisHour >= LIMITS.MAX_MESSAGES_PER_HOUR) {
-        logger.info('Hourly limit reached')
-        return { skipped: true, reason: 'hourly_limit' }
+      if (dailyStats.messagesSentThisHour >= effectiveHourlyLimit) {
+        logger.info(`Hourly limit reached (warmup: ${effectiveHourlyLimit})`)
+        return { skipped: true, reason: 'hourly_limit', warmupPhase: warmupLimits.phase }
       }
 
       // Calculate how many messages we can send
-      const remainingHourly = LIMITS.MAX_MESSAGES_PER_HOUR - dailyStats.messagesSentThisHour
-      const remainingDaily = LIMITS.MAX_MESSAGES_PER_DAY - dailyStats.messagesSentToday
+      const remainingHourly = effectiveHourlyLimit - dailyStats.messagesSentThisHour
+      const remainingDaily = effectiveDailyLimit - dailyStats.messagesSentToday
       const messagesToSend = Math.min(remainingHourly, remainingDaily, 10)
 
       // Get verified prospects ready to contact
@@ -174,6 +194,13 @@ export const whatsappSender = onSchedule(
         try {
           // Get org's message template or use default
           const orgId = prospectDoc.ref.parent.parent.id
+
+          // Anti-ban: Check block rate before each org batch
+          const blockCheck = await checkBlockRate(orgId)
+          if (blockCheck.shouldPause) {
+            logger.warn(`Block rate too high for org ${orgId} (${(blockCheck.blockRate * 100).toFixed(1)}%), skipping`)
+            continue
+          }
           const orgDoc = await db.collection('organizations').doc(orgId).get()
           const orgData = orgDoc.data()
           const template = orgData?.whatsappTemplate || DEFAULT_TEMPLATE
