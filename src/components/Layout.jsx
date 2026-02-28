@@ -76,6 +76,7 @@ const navItems = [
   { to: '/app/linkedin', icon: Linkedin, label: 'LinkedIn', badge: 'NEW' },
   { to: '/app/google-maps', icon: MapPin, label: 'Google Maps', badge: 'NEW' },
   { to: '/app/pipeline', icon: Database, label: 'Pipeline', badge: 'NEW' },
+  { to: '/app/inbox', icon: MessageSquare, label: 'Inbox', badge: 'NEW' },
   { to: '/app/campaigns', icon: Send, label: 'Campagnes' },
   { to: '/app/proof', icon: Award, label: 'Proof' },
   { to: '/app/analytics', icon: BarChart3, label: 'Analytics' },

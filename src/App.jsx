@@ -77,6 +77,7 @@ const WarRoom = lazy(() => import('@/pages/WarRoom'))
 
 // Lazy loaded pages - Automation Gaps
 const LeadPipeline = lazy(() => import('@/pages/LeadPipeline'))
+const Inbox = lazy(() => import('@/pages/Inbox'))
 
 // Auth guard - simplified, no forced onboarding
 function ProtectedRoute({ children }) {
@@ -369,6 +370,7 @@ export default function App() {
 
                         {/* Automation Gaps */}
                         <Route path="pipeline" element={<LeadPipeline />} />
+                        <Route path="inbox" element={<Inbox />} />
 
                         {/* Admin Pages (super admin / beta users) */}
                         <Route path="admin" element={<Admin />} />

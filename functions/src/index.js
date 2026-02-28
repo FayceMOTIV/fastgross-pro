@@ -227,6 +227,11 @@ export { getWarRoomStats, getWarRoomOrgList, toggleOrgProspection, emergencyPaus
 export { pipelineWatcher, runPipelineRefill, getPipelineStats, updatePipelineSettings } from './triggers/pipelineWatcher.js'
 
 // ============================================
+// Reply Handler (Structured Reply Processing)
+// ============================================
+export { handleIncomingReply, markReplyHandled, getReplyHandlerStats } from './services/replyHandler.js'
+
+// ============================================
 // Agent Alex (Autonomous AI Prospecting Agent)
 // ============================================
 export { webhookIncoming } from './alex/webhookIncoming.js'
