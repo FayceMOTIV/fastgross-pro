@@ -149,7 +149,7 @@ export { sendTestEmail, getTestEmailLogs, verifyResendConfig } from './admin/tes
 // ============================================
 
 // --- Instagram Hunter ---
-export { instagramHunter, runInstagramHunterManual, getHunterStats, runAdvancedInstagramScrape } from './hunters/instagram/instagramHunter.js'
+export { instagramHunter, runInstagramHunterManual, getHunterStats } from './hunters/instagram/instagramHunter.js'
 export { instagramDmSender, sendManualDM, getDMStats } from './hunters/instagram/instagramDmSender.js'
 
 // --- Instagram Multi-Account DM Sender ---
@@ -180,7 +180,7 @@ export {
 export { facebookHunter, runFacebookHunterManual, getFacebookHunterStats } from './hunters/facebook/facebookHunter.js'
 
 // --- Google Maps Hunter ---
-export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats, runGoogleMapsSourcingManual } from './hunters/googlemaps/googleMapsHunter.js'
+export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats } from './hunters/googlemaps/googleMapsHunter.js'
 
 // --- LinkedIn Hunter (HeyReach + Apify) ---
 export { linkedinHunter, runLinkedInHunterManual, getLinkedInHunterStats, syncLinkedInInbox, addLinkedInAccount, removeLinkedInAccount } from './hunters/linkedin/linkedinHunter.js'
