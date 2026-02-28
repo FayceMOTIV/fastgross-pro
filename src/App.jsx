@@ -54,6 +54,7 @@ const Hunter = lazy(() => import('@/pages/Hunter'))
 const HunterPricing = lazy(() => import('@/pages/HunterPricing'))
 const EmailSequences = lazy(() => import('@/pages/EmailSequences'))
 const WhatsAppDashboard = lazy(() => import('@/pages/WhatsAppDashboard'))
+const SocialOutreach = lazy(() => import('@/pages/SocialOutreach'))
 
 // Lazy loaded pages - AI Personalization & Tools
 const AIPersonalization = lazy(() => import('@/pages/AIPersonalization'))
@@ -68,6 +69,14 @@ const TestAutopilot = lazy(() => import('@/pages/TestAutopilot'))
 // Lazy loaded pages - Revolutionary AutoPilot System
 const AutoPilotSetup = lazy(() => import('@/pages/AutoPilotSetup'))
 const AutoPilotDashboard = lazy(() => import('@/pages/AutoPilotDashboard'))
+
+// Lazy loaded pages - Prospection Machine (War Room + LinkedIn + Google Maps)
+const LinkedIn = lazy(() => import('@/pages/LinkedIn'))
+const GoogleMapsSourcing = lazy(() => import('@/pages/GoogleMapsSourcing'))
+const WarRoom = lazy(() => import('@/pages/WarRoom'))
+
+// Lazy loaded pages - Automation Gaps
+const LeadPipeline = lazy(() => import('@/pages/LeadPipeline'))
 
 // Auth guard - simplified, no forced onboarding
 function ProtectedRoute({ children }) {
@@ -337,6 +346,7 @@ export default function App() {
                         <Route path="hunter-pricing" element={<HunterPricing />} />
                         <Route path="email-sequences" element={<EmailSequences />} />
                         <Route path="whatsapp" element={<WhatsAppDashboard />} />
+                        <Route path="social-outreach" element={<SocialOutreach />} />
 
                         {/* AI Personalization (Multi-Provider System) */}
                         <Route path="ai" element={<AIPersonalization />} />
@@ -351,6 +361,14 @@ export default function App() {
                         {/* Revolutionary AutoPilot System */}
                         <Route path="autopilot" element={<AutoPilotDashboard />} />
                         <Route path="autopilot/setup" element={<AutoPilotSetup />} />
+
+                        {/* Prospection Machine (War Room + LinkedIn + Google Maps) */}
+                        <Route path="linkedin" element={<LinkedIn />} />
+                        <Route path="google-maps" element={<GoogleMapsSourcing />} />
+                        <Route path="war-room" element={<WarRoom />} />
+
+                        {/* Automation Gaps */}
+                        <Route path="pipeline" element={<LeadPipeline />} />
 
                         {/* Admin Pages (super admin / beta users) */}
                         <Route path="admin" element={<Admin />} />

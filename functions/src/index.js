@@ -149,7 +149,7 @@ export { sendTestEmail, getTestEmailLogs, verifyResendConfig } from './admin/tes
 // ============================================
 
 // --- Instagram Hunter ---
-export { instagramHunter, runInstagramHunterManual, getHunterStats } from './hunters/instagram/instagramHunter.js'
+export { instagramHunter, runInstagramHunterManual, getHunterStats, runAdvancedInstagramScrape } from './hunters/instagram/instagramHunter.js'
 export { instagramDmSender, sendManualDM, getDMStats } from './hunters/instagram/instagramDmSender.js'
 
 // --- Instagram Multi-Account DM Sender ---
@@ -180,7 +180,10 @@ export {
 export { facebookHunter, runFacebookHunterManual, getFacebookHunterStats } from './hunters/facebook/facebookHunter.js'
 
 // --- Google Maps Hunter ---
-export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats } from './hunters/googlemaps/googleMapsHunter.js'
+export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats, runGoogleMapsSourcingManual } from './hunters/googlemaps/googleMapsHunter.js'
+
+// --- LinkedIn Hunter (HeyReach + Apify) ---
+export { linkedinHunter, runLinkedInHunterManual, getLinkedInHunterStats, syncLinkedInInbox, addLinkedInAccount, removeLinkedInAccount } from './hunters/linkedin/linkedinHunter.js'
 
 // --- PhantomBuster Hunter ---
 export { runPhantomScrape, listPhantoms } from './hunters/phantom/phantomHunter.js'
@@ -211,6 +214,25 @@ export { verifyEmailNB, getNeverBounceCredits } from './enrichment/neverBounceVe
 // Multi-Platform Posting (Postiz > Late API)
 // ============================================
 export { createMultiPlatformPost, getPostStatus, cancelPost, getPostingStatus } from './posting/createPost.js'
+
+// ============================================
+// Orchestrator (Master Scheduler + War Room)
+// ============================================
+export { masterScheduler, runMasterSchedulerManual, dailyBudgetManager, replyAggregator } from './orchestrator/masterScheduler.js'
+export { getWarRoomStats, getWarRoomOrgList, toggleOrgProspection, emergencyPauseAll } from './orchestrator/warRoomStats.js'
+
+// ============================================
+// Pipeline Watcher & Lead Factory
+// ============================================
+export { pipelineWatcher, runPipelineRefill, getPipelineStats, updatePipelineSettings } from './triggers/pipelineWatcher.js'
+
+// ============================================
+// Agent Alex (Autonomous AI Prospecting Agent)
+// ============================================
+export { webhookIncoming } from './alex/webhookIncoming.js'
+export { rescueScheduler } from './alex/rescueScheduler.js'
+export { transferLeadToClient } from './alex/transferLeadToClient.js'
+export { dailyReset } from './alex/dailyReset.js'
 
 // ============================================
 // Dev functions (only available in development/emulator)

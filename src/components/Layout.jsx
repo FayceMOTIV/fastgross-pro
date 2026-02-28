@@ -45,6 +45,10 @@ import {
   TestTube,
   Rocket,
   Sparkles,
+  MessageCircle,
+  Linkedin,
+  MapPin,
+  Database,
 } from 'lucide-react'
 
 // Navigation items with permissions - v4.0
@@ -68,6 +72,10 @@ const navItems = [
   { to: '/app/radar', icon: Target, label: 'Radar' },
   { to: '/app/email-sequences', icon: Mail, label: 'Sequences' },
   { to: '/app/whatsapp', icon: Phone, label: 'WhatsApp' },
+  { to: '/app/social-outreach', icon: MessageCircle, label: 'Social DM', badge: 'NEW' },
+  { to: '/app/linkedin', icon: Linkedin, label: 'LinkedIn', badge: 'NEW' },
+  { to: '/app/google-maps', icon: MapPin, label: 'Google Maps', badge: 'NEW' },
+  { to: '/app/pipeline', icon: Database, label: 'Pipeline', badge: 'NEW' },
   { to: '/app/campaigns', icon: Send, label: 'Campagnes' },
   { to: '/app/proof', icon: Award, label: 'Proof' },
   { to: '/app/analytics', icon: BarChart3, label: 'Analytics' },
@@ -425,6 +433,20 @@ export default function Layout() {
               >
                 <Mail className="w-5 h-5" />
                 <span>Test Email</span>
+              </NavLink>
+              <NavLink
+                to="/app/war-room"
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? 'bg-warning/10 text-warning'
+                      : 'text-warning/70 hover:text-warning hover:bg-warning/5'
+                  }`
+                }
+              >
+                <Shield className="w-5 h-5" />
+                <span>War Room</span>
               </NavLink>
             </>
           )}
