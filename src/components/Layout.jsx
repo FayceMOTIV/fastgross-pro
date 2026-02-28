@@ -86,6 +86,7 @@ const bottomNavItems = [
   { to: '/app/hunter-pricing', icon: CreditCard, label: 'Tarifs Hunter' },
   { to: '/app/team', icon: UserPlus, label: 'Equipe', permission: 'team:read' },
   { to: '/app/integrations', icon: Plug, label: 'Integrations', permission: 'integrations:read' },
+  { to: '/app/setup', icon: Wrench, label: 'Setup', badge: 'NEW' },
   { to: '/app/settings', icon: Settings, label: 'Parametres' },
 ]
 

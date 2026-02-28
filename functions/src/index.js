@@ -232,6 +232,11 @@ export { pipelineWatcher, runPipelineRefill, getPipelineStats, updatePipelineSet
 export { handleIncomingReply, markReplyHandled, getReplyHandlerStats } from './services/replyHandler.js'
 
 // ============================================
+// Onboarding / Client Setup Wizard
+// ============================================
+export { validateSetupStep, completeClientSetup, getSetupProgress } from './services/onboardingService.js'
+
+// ============================================
 // Agent Alex (Autonomous AI Prospecting Agent)
 // ============================================
 export { webhookIncoming } from './alex/webhookIncoming.js'
