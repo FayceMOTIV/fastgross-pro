@@ -1,7 +1,7 @@
 /**
  * Email Sequence Sender
  * Multi-step email sequences with automatic follow-ups
- * Uses Resend API for high deliverability
+ * Uses Amazon SES (via emailRouter) for high deliverability
  *
  * Features:
  * - Multi-step sequences (up to 7 steps)
@@ -15,11 +15,9 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { callAI } from '../../ai/callAI.js'
+import { sendEmail as sendEmailRouter } from '../../email/emailRouter.js'
 
 const getDb = () => getFirestore()
-
-// Get Resend API key from environment
-const getResendApiKey = () => process.env.RESEND_API_KEY || null
 
 /**
  * EMAIL SEQUENCE SENDER
@@ -133,14 +131,23 @@ export const emailSequenceSender = onSchedule({
         const senderEmail = orgData.senderEmail || 'hello@facemediafactory.com'
         const senderName = orgData.senderName || orgData.name || 'Face Media Factory'
 
-        // Send email
-        const emailSent = await sendEmailViaResend({
-          from: `${senderName} <${senderEmail}>`,
-          to: prospect.email,
-          subject: personalizedSubject,
-          html: wrapEmailHtml(personalizedBody, orgId, campaign.prospectId, campaignDoc.id),
-          replyTo: orgData.replyToEmail || senderEmail
-        })
+        // Send email via unified router (SES primary, SMTP fallback)
+        let emailSent = false
+        try {
+          await sendEmailRouter({
+            from: `${senderName} <${senderEmail}>`,
+            to: prospect.email,
+            subject: personalizedSubject,
+            html: wrapEmailHtml(personalizedBody, orgId, campaign.prospectId, campaignDoc.id),
+            replyTo: orgData.replyToEmail || senderEmail,
+            orgId,
+            prospectId: campaign.prospectId
+          })
+          emailSent = true
+        } catch (sendError) {
+          console.error(`Email send failed for ${prospect.email}:`, sendError.message)
+          emailSent = false
+        }
 
         if (emailSent) {
           stats.sent++
@@ -243,49 +250,6 @@ export const emailSequenceSender = onSchedule({
     throw error
   }
 })
-
-/**
- * Send email via Resend API
- */
-async function sendEmailViaResend({ from, to, subject, html, replyTo }) {
-  const apiKey = getResendApiKey()
-
-  if (!apiKey) {
-    console.warn('Resend API key not configured')
-    // Simulate success in dev mode
-    return process.env.NODE_ENV !== 'production'
-  }
-
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject,
-        html,
-        reply_to: replyTo
-      })
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      console.error('Resend API error:', result)
-      return false
-    }
-
-    return true
-
-  } catch (error) {
-    console.error('Email send error:', error)
-    return false
-  }
-}
 
 /**
  * Personalize template with prospect data and optional AI

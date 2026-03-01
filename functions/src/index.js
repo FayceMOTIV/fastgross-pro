@@ -142,7 +142,7 @@ export { getChannelDashboard, checkAndCreateAlerts, getChannelHistory, resolveAl
 // ============================================
 export { checkFirstUser, getAdminStatus } from './admin/autoSuperAdmin.js'
 export { addBetaUser, removeBetaUser, listBetaUsers, checkBetaStatus, listSuperAdmins } from './admin/betaUsers.js'
-export { sendTestEmail, getTestEmailLogs, verifyResendConfig } from './admin/testEmail.js'
+export { sendTestEmail, getTestEmailLogs, verifyEmailConfig } from './admin/testEmail.js'
 
 // ============================================
 // Hunter Agent V2 (Instagram + TikTok + Email)

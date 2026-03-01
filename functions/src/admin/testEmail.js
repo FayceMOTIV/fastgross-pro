@@ -1,17 +1,13 @@
 /**
  * Test Email Functions
- * Send test emails via Resend to verify configuration
+ * Send test emails via Amazon SES (emailRouter) to verify configuration
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { sendEmail, getEmailStatus } from '../email/emailRouter.js'
 
 const getDb = () => getFirestore()
-
-// Get Resend API key from environment or config
-const getResendApiKey = () => {
-  return process.env.RESEND_API_KEY || null
-}
 
 /**
  * Check if user is a super admin or beta user
@@ -25,7 +21,7 @@ async function canTestEmail(userId) {
 }
 
 /**
- * Cloud Function: Send a test email via Resend
+ * Cloud Function: Send a test email via Amazon SES
  */
 export const sendTestEmail = onCall({
   region: 'europe-west1',
@@ -62,43 +58,18 @@ export const sendTestEmail = onCall({
     </p>
   `
 
-  const apiKey = getResendApiKey()
-
-  if (!apiKey) {
-    throw new HttpsError('failed-precondition', 'Resend API key not configured')
+  const status = getEmailStatus()
+  if (!status.anyAvailable) {
+    throw new HttpsError('failed-precondition', 'No email provider configured (SES or SMTP)')
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: `${fromName || 'Face Media Factory'} <noreply@facemediafactory.com>`,
-        to: [to],
-        subject: emailSubject,
-        html: emailContent
-      })
+    const result = await sendEmail({
+      from: `${fromName || 'Face Media Factory'} <${process.env.SES_FROM_EMAIL || 'noreply@facemediafactory.com'}>`,
+      to,
+      subject: emailSubject,
+      html: emailContent
     })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      // Log the error
-      await getDb().collection('emailTestLogs').add({
-        userId: auth.uid,
-        userEmail: auth.token.email,
-        to,
-        subject: emailSubject,
-        success: false,
-        error: result,
-        timestamp: FieldValue.serverTimestamp()
-      })
-
-      throw new HttpsError('internal', result.message || 'Failed to send email')
-    }
 
     // Log successful test
     await getDb().collection('emailTestLogs').add({
@@ -107,14 +78,16 @@ export const sendTestEmail = onCall({
       to,
       subject: emailSubject,
       success: true,
-      resendId: result.id,
+      provider: result.provider,
+      messageId: result.messageId,
       timestamp: FieldValue.serverTimestamp()
     })
 
     return {
       success: true,
-      id: result.id,
-      message: `Test email sent to ${to}`
+      messageId: result.messageId,
+      provider: result.provider,
+      message: `Test email sent to ${to} via ${result.provider}`
     }
   } catch (error) {
     if (error instanceof HttpsError) {
@@ -184,9 +157,9 @@ export const getTestEmailLogs = onCall({
 })
 
 /**
- * Cloud Function: Verify Resend configuration
+ * Cloud Function: Verify email provider configuration
  */
-export const verifyResendConfig = onCall({
+export const verifyEmailConfig = onCall({
   region: 'europe-west1',
   cors: true
 }, async (request) => {
@@ -202,47 +175,13 @@ export const verifyResendConfig = onCall({
     throw new HttpsError('permission-denied', 'Only super admins and beta users can verify config')
   }
 
-  const apiKey = getResendApiKey()
+  const status = getEmailStatus()
 
-  if (!apiKey) {
-    return {
-      configured: false,
-      message: 'Resend API key not set'
-    }
-  }
-
-  try {
-    // Verify API key by fetching domains
-    const response = await fetch('https://api.resend.com/domains', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`
-      }
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      return {
-        configured: false,
-        message: 'Invalid API key',
-        error: result.message
-      }
-    }
-
-    return {
-      configured: true,
-      domains: result.data?.map(d => ({
-        name: d.name,
-        status: d.status,
-        created: d.created_at
-      })) || [],
-      message: 'Resend is configured correctly'
-    }
-  } catch (error) {
-    return {
-      configured: false,
-      message: `Connection error: ${error.message}`
-    }
+  return {
+    configured: status.anyAvailable,
+    providers: status,
+    message: status.anyAvailable
+      ? `Email configured: ${status.ses.configured ? 'SES (primary)' : ''}${status.ses.configured && status.smtp.configured ? ' + ' : ''}${status.smtp.configured ? 'SMTP (fallback)' : ''}`
+      : 'No email provider configured. Set AWS credentials or SMTP config.'
   }
 })

@@ -172,10 +172,12 @@ async function getProviderStatus(orgId) {
     const emailConfigSnap = await getDb().collection('organizations').doc(orgId)
       .collection('integrations').doc('email').get();
     const emailConfig = emailConfigSnap.exists ? emailConfigSnap.data() : {};
+    const hasSES = !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
+    const hasSMTP = !!(emailConfig.smtpHost || process.env.SMTP_HOST)
     status.email = {
-      provider: emailConfig.resendApiKey ? 'Resend' : emailConfig.smtpHost ? 'SMTP' : 'Non configure',
-      configured: !!(emailConfig.resendApiKey || emailConfig.smtpHost || process.env.SMTP_HOST),
-      healthy: !!(emailConfig.resendApiKey || emailConfig.smtpHost || process.env.SMTP_HOST),
+      provider: hasSES ? 'Amazon SES' : hasSMTP ? 'SMTP' : 'Non configure',
+      configured: hasSES || hasSMTP,
+      healthy: hasSES || hasSMTP,
     };
   } catch {
     status.email = { provider: 'Unknown', configured: false, healthy: false };

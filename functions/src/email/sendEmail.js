@@ -2,13 +2,13 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { onRequest } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { Resend } from 'resend'
+import { sendEmail } from './emailRouter.js'
 
 const getDb = () => getFirestore()
 
 /**
  * Cloud Function: sendCampaignEmail
- * Envoie un email individuel via Resend
+ * Envoie un email individuel via Amazon SES (emailRouter)
  */
 export const sendCampaignEmail = onCall(
   { region: 'europe-west1' },
@@ -42,11 +42,10 @@ export const sendCampaignEmail = onCall(
       const subject = personalizeTemplate(emailTemplate.subject, lead)
       const body = personalizeTemplate(emailTemplate.body, lead)
 
-      // Send via Resend
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const { data, error } = await resend.emails.send({
+      // Send via emailRouter (SES primary, SMTP fallback)
+      const result = await sendEmail({
         from: `${org.senderName || org.name} <${org.senderEmail || 'noreply@facemedia.app'}>`,
-        to: [lead.email],
+        to: lead.email,
         subject,
         html: formatEmailHtml(body),
         headers: {
@@ -54,9 +53,8 @@ export const sendCampaignEmail = onCall(
           'X-FMF-Campaign-Id': campaignId,
           'X-FMF-Org-Id': campaign.orgId,
         },
+        orgId: campaign.orgId,
       })
-
-      if (error) throw new Error(error.message)
 
       // Log the event
       await db.collection('emailEvents').add({
@@ -65,7 +63,8 @@ export const sendCampaignEmail = onCall(
         campaignId,
         emailIndex,
         orgId: campaign.orgId,
-        resendId: data.id,
+        messageId: result.messageId,
+        provider: result.provider,
         timestamp: FieldValue.serverTimestamp(),
       })
 
@@ -76,7 +75,7 @@ export const sendCampaignEmail = onCall(
         emailsSent: FieldValue.increment(1),
       })
 
-      return { success: true, resendId: data.id }
+      return { success: true, messageId: result.messageId }
     } catch (error) {
       console.error('Send email error:', error)
       throw new HttpsError('internal', error.message)
