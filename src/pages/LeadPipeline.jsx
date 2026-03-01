@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { httpsCallable } from 'firebase/functions'
 import { functions } from '@/lib/firebase'
 import { useOrg } from '@/contexts/OrgContext'
+import { useDemo } from '@/contexts/DemoContext'
 import toast from 'react-hot-toast'
 import {
   Database,
@@ -36,6 +37,7 @@ const STATUS_CONFIG = {
 
 export default function LeadPipeline() {
   const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
   const orgId = currentOrg?.id
 
   const [stats, setStats] = useState(null)
@@ -55,7 +57,19 @@ export default function LeadPipeline() {
   const [newLocation, setNewLocation] = useState('')
 
   const fetchStats = useCallback(async () => {
-    if (!orgId) return
+    if (!orgId || isDemo) {
+      setStats({
+        activeCount: 34,
+        threshold: 50,
+        autoRefill: true,
+        fillPercentage: 68,
+        statusCounts: { new: 12, in_sequence: 15, contacted: 7, replied: 3, converted: 1, lost: 2 },
+        lastRun: null,
+        totalDiscovered: 156,
+      })
+      setLoading(false)
+      return
+    }
     try {
       setLoading(true)
       const getPipelineStatsFn = httpsCallable(functions, 'getPipelineStats')
@@ -64,7 +78,7 @@ export default function LeadPipeline() {
 
       // Synchroniser les settings depuis l'org
       if (result.data) {
-        setSettings(prev => ({
+        setSettings((prev) => ({
           ...prev,
           threshold: result.data.threshold || 50,
           autoRefill: result.data.autoRefill !== false,
@@ -85,7 +99,7 @@ export default function LeadPipeline() {
     } finally {
       setLoading(false)
     }
-  }, [orgId])
+  }, [orgId, isDemo])
 
   useEffect(() => {
     fetchStats()
@@ -126,30 +140,32 @@ export default function LeadPipeline() {
 
   const addQuery = () => {
     if (newQuery.trim() && !settings.queries.includes(newQuery.trim())) {
-      setSettings(prev => ({ ...prev, queries: [...prev.queries, newQuery.trim()] }))
+      setSettings((prev) => ({ ...prev, queries: [...prev.queries, newQuery.trim()] }))
       setNewQuery('')
     }
   }
 
   const removeQuery = (q) => {
-    setSettings(prev => ({ ...prev, queries: prev.queries.filter(x => x !== q) }))
+    setSettings((prev) => ({ ...prev, queries: prev.queries.filter((x) => x !== q) }))
   }
 
   const addLocation = () => {
     if (newLocation.trim() && !settings.locations.includes(newLocation.trim())) {
-      setSettings(prev => ({ ...prev, locations: [...prev.locations, newLocation.trim()] }))
+      setSettings((prev) => ({ ...prev, locations: [...prev.locations, newLocation.trim()] }))
       setNewLocation('')
     }
   }
 
   const removeLocation = (loc) => {
-    setSettings(prev => ({ ...prev, locations: prev.locations.filter(x => x !== loc) }))
+    setSettings((prev) => ({ ...prev, locations: prev.locations.filter((x) => x !== loc) }))
   }
 
   // Calculs jauge
   const fillPercent = stats?.fillPercentage || 0
-  const gaugeColor = fillPercent >= 80 ? 'text-emerald-500' : fillPercent >= 40 ? 'text-amber-500' : 'text-red-500'
-  const gaugeBg = fillPercent >= 80 ? 'bg-emerald-500' : fillPercent >= 40 ? 'bg-amber-500' : 'bg-red-500'
+  const gaugeColor =
+    fillPercent >= 80 ? 'text-emerald-500' : fillPercent >= 40 ? 'text-amber-500' : 'text-red-500'
+  const gaugeBg =
+    fillPercent >= 80 ? 'bg-emerald-500' : fillPercent >= 40 ? 'bg-amber-500' : 'bg-red-500'
 
   if (loading) {
     return (
@@ -165,7 +181,9 @@ export default function LeadPipeline() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pipeline de Leads</h1>
-          <p className="text-gray-500 mt-1">Surveillance et recharge automatique du stock de prospects</p>
+          <p className="text-gray-500 mt-1">
+            Surveillance et recharge automatique du stock de prospects
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -206,7 +224,10 @@ export default function LeadPipeline() {
               <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
                 <circle cx="60" cy="60" r="52" fill="none" stroke="#f3f4f6" strokeWidth="12" />
                 <circle
-                  cx="60" cy="60" r="52" fill="none"
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
                   stroke="currentColor"
                   strokeWidth="12"
                   strokeDasharray={`${fillPercent * 3.27} 327`}
@@ -220,17 +241,27 @@ export default function LeadPipeline() {
               </div>
             </div>
 
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-              fillPercent >= 80 ? 'bg-emerald-100 text-emerald-700' :
-              fillPercent >= 40 ? 'bg-amber-100 text-amber-700' :
-              'bg-red-100 text-red-700'
-            }`}>
-              {fillPercent >= 80 ? <CheckCircle className="w-3.5 h-3.5" /> :
-               fillPercent >= 40 ? <AlertTriangle className="w-3.5 h-3.5" /> :
-               <AlertTriangle className="w-3.5 h-3.5" />}
-              {fillPercent >= 80 ? 'Pipeline sain' :
-               fillPercent >= 40 ? 'Recharge recommandee' :
-               'Pipeline critique'}
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+                fillPercent >= 80
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : fillPercent >= 40
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-red-100 text-red-700'
+              }`}
+            >
+              {fillPercent >= 80 ? (
+                <CheckCircle className="w-3.5 h-3.5" />
+              ) : fillPercent >= 40 ? (
+                <AlertTriangle className="w-3.5 h-3.5" />
+              ) : (
+                <AlertTriangle className="w-3.5 h-3.5" />
+              )}
+              {fillPercent >= 80
+                ? 'Pipeline sain'
+                : fillPercent >= 40
+                  ? 'Recharge recommandee'
+                  : 'Pipeline critique'}
             </div>
 
             <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
@@ -265,7 +296,10 @@ export default function LeadPipeline() {
               const percent = Math.round((count / total) * 100)
 
               return (
-                <div key={status} className="p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
+                <div
+                  key={status}
+                  className="p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                >
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-2 h-2 rounded-full ${config.dot}`} />
                     <span className="text-sm font-medium text-gray-700">{config.label}</span>
@@ -289,7 +323,12 @@ export default function LeadPipeline() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="card p-4"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
               <Database className="w-5 h-5 text-indigo-600" />
@@ -301,7 +340,12 @@ export default function LeadPipeline() {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="card p-4"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
@@ -310,14 +354,26 @@ export default function LeadPipeline() {
               <p className="text-xs text-gray-500">Taux conversion</p>
               <p className="text-xl font-bold text-gray-900">
                 {stats?.statusCounts?.converted
-                  ? `${Math.round((stats.statusCounts.converted / Math.max(Object.values(stats.statusCounts).reduce((a, b) => a + b, 0), 1)) * 100)}%`
+                  ? `${Math.round(
+                      (stats.statusCounts.converted /
+                        Math.max(
+                          Object.values(stats.statusCounts).reduce((a, b) => a + b, 0),
+                          1
+                        )) *
+                        100
+                    )}%`
                   : '0%'}
               </p>
             </div>
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="card p-4"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
               <Zap className="w-5 h-5 text-amber-600" />
@@ -329,7 +385,12 @@ export default function LeadPipeline() {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="card p-4"
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-purple-600" />
@@ -369,7 +430,9 @@ export default function LeadPipeline() {
               <p className="text-xs text-gray-500">Sauvegardes</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-amber-600">{stats.lastResults.duplicates || 0}</p>
+              <p className="text-2xl font-bold text-amber-600">
+                {stats.lastResults.duplicates || 0}
+              </p>
               <p className="text-xs text-gray-500">Doublons</p>
             </div>
             <div>
@@ -383,7 +446,10 @@ export default function LeadPipeline() {
               <p className="text-xs text-gray-400 mb-2">Requetes executees</p>
               <div className="flex flex-wrap gap-2">
                 {stats.lastResults.queries.map((q, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 rounded text-xs text-gray-600">
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 rounded text-xs text-gray-600"
+                  >
                     <Search className="w-3 h-3" />
                     {q.query} ({q.location}) — {q.saved} saves
                   </span>
@@ -404,7 +470,10 @@ export default function LeadPipeline() {
         >
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Parametres du Pipeline</h3>
-            <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600">
+            <button
+              onClick={() => setShowSettings(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -412,12 +481,18 @@ export default function LeadPipeline() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Seuil */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Seuil de recharge</label>
-              <p className="text-xs text-gray-400 mb-2">Nombre minimum de prospects actifs avant recharge automatique</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Seuil de recharge
+              </label>
+              <p className="text-xs text-gray-400 mb-2">
+                Nombre minimum de prospects actifs avant recharge automatique
+              </p>
               <input
                 type="number"
                 value={settings.threshold}
-                onChange={e => setSettings(prev => ({ ...prev, threshold: parseInt(e.target.value) || 50 }))}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, threshold: parseInt(e.target.value) || 50 }))
+                }
                 className="input-field w-full"
                 min={10}
                 max={500}
@@ -426,10 +501,14 @@ export default function LeadPipeline() {
 
             {/* Auto-refill toggle */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Recharge automatique</label>
-              <p className="text-xs text-gray-400 mb-2">Recharger le pipeline automatiquement chaque nuit a 01:00</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Recharge automatique
+              </label>
+              <p className="text-xs text-gray-400 mb-2">
+                Recharger le pipeline automatiquement chaque nuit a 01:00
+              </p>
               <button
-                onClick={() => setSettings(prev => ({ ...prev, autoRefill: !prev.autoRefill }))}
+                onClick={() => setSettings((prev) => ({ ...prev, autoRefill: !prev.autoRefill }))}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   settings.autoRefill ? 'bg-indigo-600' : 'bg-gray-300'
                 }`}
@@ -444,11 +523,15 @@ export default function LeadPipeline() {
 
             {/* Note Google minimum */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Note Google minimum</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Note Google minimum
+              </label>
               <input
                 type="number"
                 value={settings.minRating}
-                onChange={e => setSettings(prev => ({ ...prev, minRating: parseFloat(e.target.value) || 3.5 }))}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, minRating: parseFloat(e.target.value) || 3.5 }))
+                }
                 className="input-field w-full"
                 min={0}
                 max={5}
@@ -458,11 +541,15 @@ export default function LeadPipeline() {
 
             {/* Avis minimum */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre d'avis minimum</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nombre d'avis minimum
+              </label>
               <input
                 type="number"
                 value={settings.minReviews}
-                onChange={e => setSettings(prev => ({ ...prev, minReviews: parseInt(e.target.value) || 5 }))}
+                onChange={(e) =>
+                  setSettings((prev) => ({ ...prev, minReviews: parseInt(e.target.value) || 5 }))
+                }
                 className="input-field w-full"
                 min={0}
                 max={100}
@@ -475,21 +562,28 @@ export default function LeadPipeline() {
                 <Search className="w-3.5 h-3.5 inline mr-1" />
                 Requetes de recherche
               </label>
-              <p className="text-xs text-gray-400 mb-2">Types de commerces a rechercher sur Google Maps</p>
+              <p className="text-xs text-gray-400 mb-2">
+                Types de commerces a rechercher sur Google Maps
+              </p>
               <div className="flex gap-2 mb-2">
                 <input
                   type="text"
                   value={newQuery}
-                  onChange={e => setNewQuery(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addQuery()}
+                  onChange={(e) => setNewQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addQuery()}
                   placeholder="Ex: restaurant, coiffeur, garage auto..."
                   className="input-field flex-1"
                 />
-                <button onClick={addQuery} className="btn-secondary px-4">Ajouter</button>
+                <button onClick={addQuery} className="btn-secondary px-4">
+                  Ajouter
+                </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {settings.queries.map(q => (
-                  <span key={q} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm">
+                {settings.queries.map((q) => (
+                  <span
+                    key={q}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm"
+                  >
                     {q}
                     <button onClick={() => removeQuery(q)} className="hover:text-red-500">
                       <X className="w-3 h-3" />
@@ -497,7 +591,9 @@ export default function LeadPipeline() {
                   </span>
                 ))}
                 {settings.queries.length === 0 && (
-                  <span className="text-xs text-gray-400">Aucune requete configuree (valeurs par defaut utilisees)</span>
+                  <span className="text-xs text-gray-400">
+                    Aucune requete configuree (valeurs par defaut utilisees)
+                  </span>
                 )}
               </div>
             </div>
@@ -513,16 +609,21 @@ export default function LeadPipeline() {
                 <input
                   type="text"
                   value={newLocation}
-                  onChange={e => setNewLocation(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addLocation()}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addLocation()}
                   placeholder="Ex: Paris, Lyon, Bordeaux..."
                   className="input-field flex-1"
                 />
-                <button onClick={addLocation} className="btn-secondary px-4">Ajouter</button>
+                <button onClick={addLocation} className="btn-secondary px-4">
+                  Ajouter
+                </button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {settings.locations.map(loc => (
-                  <span key={loc} className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-sm">
+                {settings.locations.map((loc) => (
+                  <span
+                    key={loc}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-sm"
+                  >
                     <MapPin className="w-3 h-3" />
                     {loc}
                     <button onClick={() => removeLocation(loc)} className="hover:text-red-500">
@@ -531,14 +632,18 @@ export default function LeadPipeline() {
                   </span>
                 ))}
                 {settings.locations.length === 0 && (
-                  <span className="text-xs text-gray-400">Aucune ville configuree (valeurs par defaut utilisees)</span>
+                  <span className="text-xs text-gray-400">
+                    Aucune ville configuree (valeurs par defaut utilisees)
+                  </span>
                 )}
               </div>
             </div>
           </div>
 
           <div className="mt-6 flex justify-end gap-3">
-            <button onClick={() => setShowSettings(false)} className="btn-ghost">Annuler</button>
+            <button onClick={() => setShowSettings(false)} className="btn-ghost">
+              Annuler
+            </button>
             <button
               onClick={handleSaveSettings}
               disabled={savingSettings}

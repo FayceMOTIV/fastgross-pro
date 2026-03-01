@@ -27,22 +27,24 @@ export default function GoogleMapsSourcing() {
   const { currentOrg } = useOrg()
   const orgId = currentOrg?.id
 
-  const {
-    searchResults,
-    leads,
-    stats,
-    loading,
-    searching,
-    searchHistory,
-    qualifiedLeads,
-    hotLeads,
-    enrichedLeads,
-    search,
-    enrichLead,
-    clearResults,
-    saveLead,
-    refreshStats,
-  } = useGoogleMapsSourcing(orgId)
+  const gmaps = useGoogleMapsSourcing(orgId)
+
+  const searchResults = gmaps.search?.results || []
+  const searching = gmaps.search?.searching || false
+  const searchHistory = gmaps.search?.searchHistory || []
+  const search = gmaps.search?.search
+  const enrichLead = gmaps.search?.enrichLead
+  const clearResults = gmaps.search?.clearResults
+  const leads = gmaps.leads?.leads || []
+  const qualifiedLeads = gmaps.leads?.qualifiedLeads || []
+  const hotLeads = gmaps.leads?.hotLeads || []
+  const enrichedLeads = gmaps.leads?.enrichedLeads || []
+  const stats = gmaps.stats || {}
+  const loading = gmaps.loading
+  const refreshStats = gmaps.refreshAll
+  const saveLead = async (lead) => {
+    /* save via Firestore — not yet wired */
+  }
 
   const [activeTab, setActiveTab] = useState('search')
   const [query, setQuery] = useState('')
@@ -151,7 +153,9 @@ export default function GoogleMapsSourcing() {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalQualified || qualifiedLeads.length}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats.totalQualified || qualifiedLeads.length}
+            </p>
             <p className="text-sm text-gray-500">Qualifies</p>
           </div>
 
@@ -171,7 +175,9 @@ export default function GoogleMapsSourcing() {
                 <Zap className="w-6 h-6 text-purple-600" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalEnriched || enrichedLeads.length}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats.totalEnriched || enrichedLeads.length}
+            </p>
             <p className="text-sm text-gray-500">Enrichis</p>
           </div>
 
@@ -384,9 +390,7 @@ export default function GoogleMapsSourcing() {
                       <div>
                         <div className="flex items-center gap-2">
                           <Search className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium text-sm text-gray-900">
-                            {entry.query}
-                          </span>
+                          <span className="font-medium text-sm text-gray-900">{entry.query}</span>
                           <span className="text-xs text-gray-500">— {entry.location}</span>
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">

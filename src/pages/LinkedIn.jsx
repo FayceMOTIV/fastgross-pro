@@ -29,24 +29,22 @@ export default function LinkedIn() {
   const { currentOrg } = useOrg()
   const orgId = currentOrg?.id
 
-  const {
-    accounts,
-    campaigns,
-    inbox,
-    stats,
-    loading,
-    addAccount,
-    removeAccount,
-    createCampaign,
-    pauseCampaign,
-    resumeCampaign,
-    syncInbox,
-    markAsRead,
-    sendConnectionRequest,
-    sendMessage,
-    runHunt,
-    refreshStats,
-  } = useLinkedIn(orgId)
+  const linkedIn = useLinkedIn(orgId)
+
+  const accounts = linkedIn.accounts?.accounts || []
+  const campaigns = linkedIn.campaigns?.campaigns || []
+  const inbox = linkedIn.inbox?.messages || []
+  const stats = linkedIn.stats || {}
+  const loading = linkedIn.loading
+  const addAccount = linkedIn.accounts?.addAccount
+  const removeAccount = linkedIn.accounts?.removeAccount
+  const createCampaign = linkedIn.campaigns?.createCampaign
+  const pauseCampaign = linkedIn.campaigns?.pauseCampaign
+  const resumeCampaign = linkedIn.campaigns?.resumeCampaign
+  const syncInbox = linkedIn.inbox?.syncInbox
+  const markAsRead = linkedIn.inbox?.markAsRead
+  const { sendConnectionRequest, sendMessage, runHunt } = linkedIn
+  const refreshStats = linkedIn.refreshAll
 
   const [activeTab, setActiveTab] = useState('accounts')
   const [showAddAccount, setShowAddAccount] = useState(false)
@@ -76,7 +74,7 @@ export default function LinkedIn() {
       setNewAccountApiKey('')
       setShowAddAccount(false)
     } catch (err) {
-      toast.error(err.message || 'Erreur lors de l\'ajout')
+      toast.error(err.message || "Erreur lors de l'ajout")
     } finally {
       setAddingAccount(false)
     }
@@ -159,9 +157,7 @@ export default function LinkedIn() {
               <Linkedin className="w-8 h-8 text-blue-600" />
               LinkedIn Automation
             </h1>
-            <p className="text-gray-500 mt-1">
-              Comptes HeyReach, campagnes et inbox LinkedIn
-            </p>
+            <p className="text-gray-500 mt-1">Comptes HeyReach, campagnes et inbox LinkedIn</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -170,11 +166,7 @@ export default function LinkedIn() {
               disabled={hunting}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition disabled:opacity-50"
             >
-              {hunting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Zap className="w-4 h-4" />
-              )}
+              {hunting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
               Lancer Hunt
             </button>
             <button
@@ -196,7 +188,9 @@ export default function LinkedIn() {
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalAccounts || accounts.length}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats.totalAccounts || accounts.length}
+            </p>
             <p className="text-sm text-gray-500">Comptes</p>
           </div>
 
@@ -291,7 +285,9 @@ export default function LinkedIn() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">URL Profil LinkedIn</label>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          URL Profil LinkedIn
+                        </label>
                         <input
                           type="text"
                           value={newAccountUrl}
@@ -375,7 +371,9 @@ export default function LinkedIn() {
                     </h3>
                     <div className="space-y-3 mb-3">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Nom de la campagne</label>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          Nom de la campagne
+                        </label>
                         <input
                           type="text"
                           value={newCampaignName}
@@ -385,7 +383,9 @@ export default function LinkedIn() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Message de connexion</label>
+                        <label className="block text-xs text-gray-600 mb-1">
+                          Message de connexion
+                        </label>
                         <textarea
                           value={newCampaignMessage}
                           onChange={(e) => setNewCampaignMessage(e.target.value)}
@@ -472,9 +472,7 @@ export default function LinkedIn() {
                   <div className="text-center py-12 text-gray-500">
                     <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                     <p className="text-sm">Aucun message</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Synchronisez votre inbox HeyReach
-                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Synchronisez votre inbox HeyReach</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
