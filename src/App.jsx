@@ -75,6 +75,9 @@ const LinkedIn = lazy(() => import('@/pages/LinkedIn'))
 const GoogleMapsSourcing = lazy(() => import('@/pages/GoogleMapsSourcing'))
 const WarRoom = lazy(() => import('@/pages/WarRoom'))
 
+// Lazy loaded pages - Prospecting Sources (Multi-Source Aggregation)
+const ProspectingSources = lazy(() => import('@/pages/ProspectingSources'))
+
 // Lazy loaded pages - Automation Gaps
 const LeadPipeline = lazy(() => import('@/pages/LeadPipeline'))
 const Inbox = lazy(() => import('@/pages/Inbox'))
@@ -196,195 +199,198 @@ export default function App() {
               <OrgProvider>
                 <NotificationProvider>
                   <ErrorBoundary>
-                  <Suspense fallback={<PageLoader />}>
-                    <CookieBanner />
-                    <Routes>
-                      {/* ============================================ */}
-                      {/* PUBLIC ROUTES */}
-                      {/* ============================================ */}
+                    <Suspense fallback={<PageLoader />}>
+                      <CookieBanner />
+                      <Routes>
+                        {/* ============================================ */}
+                        {/* PUBLIC ROUTES */}
+                        {/* ============================================ */}
 
-                      {/* Landing page */}
-                      <Route
-                        path="/"
-                        element={
-                          <PublicRoute>
-                            <Landing />
-                          </PublicRoute>
-                        }
-                      />
-
-                      {/* Auth pages */}
-                      <Route
-                        path="/login"
-                        element={
-                          <PublicRoute>
-                            <Login />
-                          </PublicRoute>
-                        }
-                      />
-                      <Route
-                        path="/signup"
-                        element={
-                          <PublicRoute>
-                            <Signup />
-                          </PublicRoute>
-                        }
-                      />
-
-                      {/* Pricing page */}
-                      <Route path="/pricing" element={<Pricing />} />
-
-                      {/* Legal pages */}
-                      <Route path="/legal" element={<Legal />} />
-                      <Route path="/legal/:page" element={<Legal />} />
-
-                      {/* Unsubscribe (public, no auth) */}
-                      <Route path="/unsubscribe" element={<Unsubscribe />} />
-                      <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
-
-                      {/* ============================================ */}
-                      {/* ONBOARDING ROUTES */}
-                      {/* ============================================ */}
-                      <Route
-                        path="/onboarding"
-                        element={
-                          <OnboardingRoute>
-                            <OnboardingChat />
-                          </OnboardingRoute>
-                        }
-                      />
-                      <Route
-                        path="/onboarding/chat"
-                        element={
-                          <OnboardingRoute>
-                            <OnboardingChat />
-                          </OnboardingRoute>
-                        }
-                      />
-                      <Route
-                        path="/onboarding/plan"
-                        element={
-                          <OnboardingRoute>
-                            <OnboardingPlan />
-                          </OnboardingRoute>
-                        }
-                      />
-                      <Route
-                        path="/onboarding/sequence"
-                        element={
-                          <OnboardingRoute>
-                            <OnboardingSequence />
-                          </OnboardingRoute>
-                        }
-                      />
-                      <Route
-                        path="/onboarding/complete"
-                        element={
-                          <OnboardingRoute>
-                            <OnboardingComplete />
-                          </OnboardingRoute>
-                        }
-                      />
-
-                      {/* ============================================ */}
-                      {/* APP ROUTES (Protected + Org Required) */}
-                      {/* ============================================ */}
-                      <Route
-                        path="/app"
-                        element={
-                          <ProtectedRoute>
-                            <OrgGuard>
-                              <OnboardingProvider>
-                                <Layout />
-                              </OnboardingProvider>
-                            </OrgGuard>
-                          </ProtectedRoute>
-                        }
-                      >
-                        {/* Dashboard */}
-                        <Route index element={<Dashboard />} />
-
-                        {/* Core v4.0 Pages */}
-                        <Route path="prospects" element={<Prospects />} />
-                        <Route path="prospects/:prospectId" element={<Prospects />} />
-                        <Route path="scanner" element={<Scanner />} />
-                        <Route path="forgeur" element={<Forgeur />} />
-                        <Route path="radar" element={<Radar />} />
-                        <Route path="campaigns" element={<Campaigns />} />
-                        <Route path="proof" element={<Proof />} />
-                        <Route path="templates" element={<Templates />} />
-                        <Route path="templates/:templateId" element={<Templates />} />
-                        <Route path="sequences" element={<Sequences />} />
-                        <Route path="sequences/:sequenceId" element={<Sequences />} />
-                        <Route path="interactions" element={<Interactions />} />
-                        <Route path="analytics" element={<Analytics />} />
-
-                        {/* Team Management (requires permission) */}
+                        {/* Landing page */}
                         <Route
-                          path="team"
+                          path="/"
                           element={
-                            <PermissionGuard permission="team:read">
-                              <Team />
-                            </PermissionGuard>
+                            <PublicRoute>
+                              <Landing />
+                            </PublicRoute>
                           }
                         />
 
-                        {/* Integrations (requires admin) */}
+                        {/* Auth pages */}
                         <Route
-                          path="integrations"
+                          path="/login"
                           element={
-                            <PermissionGuard permission="integrations:read">
-                              <Integrations />
-                            </PermissionGuard>
+                            <PublicRoute>
+                              <Login />
+                            </PublicRoute>
+                          }
+                        />
+                        <Route
+                          path="/signup"
+                          element={
+                            <PublicRoute>
+                              <Signup />
+                            </PublicRoute>
                           }
                         />
 
-                        {/* Settings */}
-                        <Route path="settings" element={<Settings />} />
-                        <Route path="settings/:section" element={<Settings />} />
+                        {/* Pricing page */}
+                        <Route path="/pricing" element={<Pricing />} />
 
-                        {/* Hunter Agent (Instagram + TikTok prospecting) */}
-                        <Route path="hunter" element={<Hunter />} />
-                        <Route path="hunter-pricing" element={<HunterPricing />} />
-                        <Route path="email-sequences" element={<EmailSequences />} />
-                        <Route path="whatsapp" element={<WhatsAppDashboard />} />
-                        <Route path="social-outreach" element={<SocialOutreach />} />
+                        {/* Legal pages */}
+                        <Route path="/legal" element={<Legal />} />
+                        <Route path="/legal/:page" element={<Legal />} />
 
-                        {/* AI Personalization (Multi-Provider System) */}
-                        <Route path="ai" element={<AIPersonalization />} />
-                        <Route path="monitoring" element={<MonitoringDashboard />} />
-                        <Route path="enrichment" element={<EmailEnrichment />} />
-                        <Route path="posting" element={<MultiPlatformPosting />} />
+                        {/* Unsubscribe (public, no auth) */}
+                        <Route path="/unsubscribe" element={<Unsubscribe />} />
+                        <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
 
-                        {/* Autopilot System */}
-                        <Route path="daily-prospects" element={<DailyProspects />} />
-                        <Route path="test-autopilot" element={<TestAutopilot />} />
+                        {/* ============================================ */}
+                        {/* ONBOARDING ROUTES */}
+                        {/* ============================================ */}
+                        <Route
+                          path="/onboarding"
+                          element={
+                            <OnboardingRoute>
+                              <OnboardingChat />
+                            </OnboardingRoute>
+                          }
+                        />
+                        <Route
+                          path="/onboarding/chat"
+                          element={
+                            <OnboardingRoute>
+                              <OnboardingChat />
+                            </OnboardingRoute>
+                          }
+                        />
+                        <Route
+                          path="/onboarding/plan"
+                          element={
+                            <OnboardingRoute>
+                              <OnboardingPlan />
+                            </OnboardingRoute>
+                          }
+                        />
+                        <Route
+                          path="/onboarding/sequence"
+                          element={
+                            <OnboardingRoute>
+                              <OnboardingSequence />
+                            </OnboardingRoute>
+                          }
+                        />
+                        <Route
+                          path="/onboarding/complete"
+                          element={
+                            <OnboardingRoute>
+                              <OnboardingComplete />
+                            </OnboardingRoute>
+                          }
+                        />
 
-                        {/* Revolutionary AutoPilot System */}
-                        <Route path="autopilot" element={<AutoPilotDashboard />} />
-                        <Route path="autopilot/setup" element={<AutoPilotSetup />} />
+                        {/* ============================================ */}
+                        {/* APP ROUTES (Protected + Org Required) */}
+                        {/* ============================================ */}
+                        <Route
+                          path="/app"
+                          element={
+                            <ProtectedRoute>
+                              <OrgGuard>
+                                <OnboardingProvider>
+                                  <Layout />
+                                </OnboardingProvider>
+                              </OrgGuard>
+                            </ProtectedRoute>
+                          }
+                        >
+                          {/* Dashboard */}
+                          <Route index element={<Dashboard />} />
 
-                        {/* Prospection Machine (War Room + LinkedIn + Google Maps) */}
-                        <Route path="linkedin" element={<LinkedIn />} />
-                        <Route path="google-maps" element={<GoogleMapsSourcing />} />
-                        <Route path="war-room" element={<WarRoom />} />
+                          {/* Core v4.0 Pages */}
+                          <Route path="prospects" element={<Prospects />} />
+                          <Route path="prospects/:prospectId" element={<Prospects />} />
+                          <Route path="scanner" element={<Scanner />} />
+                          <Route path="forgeur" element={<Forgeur />} />
+                          <Route path="radar" element={<Radar />} />
+                          <Route path="campaigns" element={<Campaigns />} />
+                          <Route path="proof" element={<Proof />} />
+                          <Route path="templates" element={<Templates />} />
+                          <Route path="templates/:templateId" element={<Templates />} />
+                          <Route path="sequences" element={<Sequences />} />
+                          <Route path="sequences/:sequenceId" element={<Sequences />} />
+                          <Route path="interactions" element={<Interactions />} />
+                          <Route path="analytics" element={<Analytics />} />
 
-                        {/* Automation Gaps */}
-                        <Route path="pipeline" element={<LeadPipeline />} />
-                        <Route path="inbox" element={<Inbox />} />
-                        <Route path="setup" element={<ClientSetup />} />
+                          {/* Team Management (requires permission) */}
+                          <Route
+                            path="team"
+                            element={
+                              <PermissionGuard permission="team:read">
+                                <Team />
+                              </PermissionGuard>
+                            }
+                          />
 
-                        {/* Admin Pages (super admin / beta users) */}
-                        <Route path="admin" element={<Admin />} />
-                        <Route path="test-email" element={<TestEmail />} />
-                      </Route>
+                          {/* Integrations (requires admin) */}
+                          <Route
+                            path="integrations"
+                            element={
+                              <PermissionGuard permission="integrations:read">
+                                <Integrations />
+                              </PermissionGuard>
+                            }
+                          />
 
-                      {/* ============================================ */}
-                      {/* CATCH-ALL REDIRECT */}
-                      {/* ============================================ */}
-                      <Route path="*" element={<Navigate to="/app" replace />} />
-                    </Routes>
-                  </Suspense>
+                          {/* Settings */}
+                          <Route path="settings" element={<Settings />} />
+                          <Route path="settings/:section" element={<Settings />} />
+
+                          {/* Hunter Agent (Instagram + TikTok prospecting) */}
+                          <Route path="hunter" element={<Hunter />} />
+                          <Route path="hunter-pricing" element={<HunterPricing />} />
+                          <Route path="email-sequences" element={<EmailSequences />} />
+                          <Route path="whatsapp" element={<WhatsAppDashboard />} />
+                          <Route path="social-outreach" element={<SocialOutreach />} />
+
+                          {/* AI Personalization (Multi-Provider System) */}
+                          <Route path="ai" element={<AIPersonalization />} />
+                          <Route path="monitoring" element={<MonitoringDashboard />} />
+                          <Route path="enrichment" element={<EmailEnrichment />} />
+                          <Route path="posting" element={<MultiPlatformPosting />} />
+
+                          {/* Autopilot System */}
+                          <Route path="daily-prospects" element={<DailyProspects />} />
+                          <Route path="test-autopilot" element={<TestAutopilot />} />
+
+                          {/* Revolutionary AutoPilot System */}
+                          <Route path="autopilot" element={<AutoPilotDashboard />} />
+                          <Route path="autopilot/setup" element={<AutoPilotSetup />} />
+
+                          {/* Prospection Machine (War Room + LinkedIn + Google Maps) */}
+                          <Route path="linkedin" element={<LinkedIn />} />
+                          <Route path="google-maps" element={<GoogleMapsSourcing />} />
+                          <Route path="war-room" element={<WarRoom />} />
+
+                          {/* Prospecting Sources (Multi-Source Aggregation) */}
+                          <Route path="prospecting-sources" element={<ProspectingSources />} />
+
+                          {/* Automation Gaps */}
+                          <Route path="pipeline" element={<LeadPipeline />} />
+                          <Route path="inbox" element={<Inbox />} />
+                          <Route path="setup" element={<ClientSetup />} />
+
+                          {/* Admin Pages (super admin / beta users) */}
+                          <Route path="admin" element={<Admin />} />
+                          <Route path="test-email" element={<TestEmail />} />
+                        </Route>
+
+                        {/* ============================================ */}
+                        {/* CATCH-ALL REDIRECT */}
+                        {/* ============================================ */}
+                        <Route path="*" element={<Navigate to="/app" replace />} />
+                      </Routes>
+                    </Suspense>
                   </ErrorBoundary>
                 </NotificationProvider>
               </OrgProvider>

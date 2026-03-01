@@ -75,6 +75,7 @@ const navItems = [
   { to: '/app/social-outreach', icon: MessageCircle, label: 'Social DM', badge: 'NEW' },
   { to: '/app/linkedin', icon: Linkedin, label: 'LinkedIn', badge: 'NEW' },
   { to: '/app/google-maps', icon: MapPin, label: 'Google Maps', badge: 'NEW' },
+  { to: '/app/prospecting-sources', icon: Database, label: 'Sources IA', badge: 'NEW' },
   { to: '/app/pipeline', icon: Database, label: 'Pipeline', badge: 'NEW' },
   { to: '/app/inbox', icon: MessageSquare, label: 'Inbox', badge: 'NEW' },
   { to: '/app/campaigns', icon: Send, label: 'Campagnes' },

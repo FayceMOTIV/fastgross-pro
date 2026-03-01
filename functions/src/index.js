@@ -260,6 +260,15 @@ export { orchestratorCron, runOrchestratorCronManual } from './agents/orchestrat
 export { enqueueTask, enqueueBatch, deleteTask, purgeQueue, pauseQueue, resumeQueue } from './queues/taskQueue.js'
 
 // ============================================
+// Lead Aggregation System (Multi-Source Pipeline)
+// ============================================
+export { sourceOrchestrator, runSourceManual, getSourceStats } from './prospecting/scheduler/sourceOrchestrator.js'
+export { prospectingAgentHandler as prospectingAgent } from './prospecting/agents/prospectingAgent.js'
+export { runPipelineManual, getPipelineFunnelStats } from './prospecting/pipeline/pipelineProcessor.js'
+export { getProspectingDashboard, getSourceHealthStatus } from './prospecting/monitoring/sourceMonitor.js'
+export { updateSourceConfig, getSourceConfig } from './prospecting/scheduler/sourceConfig.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData, seedSubscriptionPlans } from './dev/seedData.js'

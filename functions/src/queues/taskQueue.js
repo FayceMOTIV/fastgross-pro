@@ -63,6 +63,15 @@ const QUEUE_CONFIG = {
     maxBackoffSeconds: 300,
     handlerPath: '/agents/orchestrator',
   },
+  prospecting: {
+    queueName: 'fmf-prospecting',
+    maxDispatchesPerSecond: 2,
+    maxConcurrentDispatches: 5,
+    retryAttempts: 3,
+    minBackoffSeconds: 60,
+    maxBackoffSeconds: 600,
+    handlerPath: '/agents/prospecting',
+  },
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
