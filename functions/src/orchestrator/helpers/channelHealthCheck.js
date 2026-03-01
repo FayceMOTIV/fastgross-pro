@@ -133,10 +133,10 @@ async function checkSMSHealth(orgConfig) {
     return { healthy: true, reason: null, latency: Date.now() - start }
   }
 
-  // Twilio
-  const twilioSid = process.env.TWILIO_ACCOUNT_SID
-  if (!twilioSid) {
-    return { healthy: false, reason: 'twilio_not_configured', latency: 0 }
+  // BudgetSMS
+  const budgetUser = process.env.BUDGETSMS_USERNAME
+  if (!budgetUser) {
+    return { healthy: false, reason: 'budgetsms_not_configured', latency: 0 }
   }
   return { healthy: true, reason: null, latency: Date.now() - start }
 }

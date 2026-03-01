@@ -14,7 +14,7 @@ import { selectOptimalChannel } from './channelRouter.js';
 import { canContactOnChannel, recordTouchpoint } from '../compliance/unifiedOptManager.js';
 
 // Channel senders
-import { sendSMS as sendSMSTwilio } from '../channels/sms/sender.js';
+import { sendSMS as sendSMSBudget } from '../channels/sms/sender.js';
 import { sendSMS as sendSMSOvh } from '../channels/sms/ovhSmsProvider.js';
 import { sendWhatsApp } from '../channels/whatsapp/sender.js';
 import { sendInstagramDM } from '../channels/instagram/dmSender.js';
@@ -332,8 +332,8 @@ async function sendSMSDispatch(orgId, prospectId, content, options) {
     const provider = options.smsProvider || 'ovh';
     const message = content.text || content.message || '';
 
-    if (provider === 'twilio') {
-      return await sendSMSTwilio(orgId, prospectId, message, {
+    if (provider === 'budgetsms') {
+      return await sendSMSBudget(orgId, prospectId, message, {
         sequenceId: options.sequenceId,
         stepId: options.stepId,
         customVariables: content.customVariables,

@@ -1,43 +1,33 @@
 /**
- * SMS Webhooks - Twilio Status Callbacks
+ * SMS Webhooks - BudgetSMS DLR + Inbound
  *
- * Traitement des callbacks Twilio:
- * - Status updates (sent, delivered, failed, undelivered)
+ * Traitement des callbacks BudgetSMS:
+ * - Delivery reports (DLR) via GET callback
  * - Inbound messages (replies, STOP)
- * - Error handling
  */
 
-import { onRequest } from 'firebase-functions/v2/https';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import twilio from 'twilio';
-import { processInboundSMS } from './compliance.js';
+import { onRequest } from 'firebase-functions/v2/https'
+import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { processInboundSMS } from './compliance.js'
 
-const getDb = () => getFirestore();
+const getDb = () => getFirestore()
 
 // ============================================
-// VALIDER SIGNATURE TWILIO
+// VALIDER REQUETE BUDGETSMS
 // ============================================
-function validateTwilioSignature(req) {
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  if (!authToken) {
-    console.warn('TWILIO_AUTH_TOKEN not set, skipping signature validation');
-    return true;
-  }
-
-  const signature = req.headers['x-twilio-signature'];
-  const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-
-  return twilio.validateRequest(
-    authToken,
-    signature,
-    url,
-    req.body
-  );
+function validateBudgetSMSRequest(req) {
+  // BudgetSMS identifie via le handle dans les parametres
+  // En production, on verifie que le handle correspond
+  const handle = req.query.handle || req.body?.handle
+  if (!handle) return false
+  return handle === process.env.BUDGETSMS_HANDLE
 }
 
 // ============================================
-// WEBHOOK STATUS CALLBACK
+// WEBHOOK STATUS CALLBACK (DLR)
 // ============================================
+// BudgetSMS envoie les DLR en GET avec:
+// ?id=<messageId>&status=<1=delivered|2=failed>&to=<number>
 export const smsStatusWebhook = onRequest(
   {
     region: 'europe-west1',
@@ -45,63 +35,56 @@ export const smsStatusWebhook = onRequest(
   },
   async (req, res) => {
     try {
-      // Valider methode
-      if (req.method !== 'POST') {
-        return res.status(405).send('Method not allowed');
+      if (req.method !== 'GET' && req.method !== 'POST') {
+        return res.status(405).send('Method not allowed')
       }
 
-      // Valider signature Twilio (en production)
-      if (process.env.NODE_ENV === 'production') {
-        if (!validateTwilioSignature(req)) {
-          console.error('Invalid Twilio signature');
-          return res.status(403).send('Invalid signature');
-        }
-      }
+      const params = req.method === 'GET' ? req.query : req.body
 
       const {
-        MessageSid,
-        MessageStatus,
-        To,
-        From,
-        ErrorCode,
-        ErrorMessage,
-        AccountSid
-      } = req.body;
+        id: messageId,
+        status: dlrStatus,
+        to
+      } = params
 
-      console.log(`SMS Status: ${MessageSid} -> ${MessageStatus}`);
-
-      // Chercher l'interaction correspondante
-      const interaction = await findInteractionByMessageSid(MessageSid);
-
-      if (interaction) {
-        // Mettre a jour le statut
-        await updateInteractionStatus(interaction.orgId, interaction.id, {
-          status: MessageStatus,
-          errorCode: ErrorCode,
-          errorMessage: ErrorMessage,
-          updatedAt: FieldValue.serverTimestamp()
-        });
-
-        // Actions selon le statut
-        await handleStatusChange(interaction, MessageStatus, { ErrorCode, ErrorMessage });
-
-        // Mettre a jour les analytics
-        await updateChannelAnalytics(interaction.orgId, 'sms', MessageStatus);
-      } else {
-        // Logger le message non trouve
-        console.warn(`Interaction not found for MessageSid: ${MessageSid}`);
-        await logOrphanedWebhook('sms_status', req.body);
+      if (!messageId) {
+        return res.status(400).send('Missing message id')
       }
 
-      // Repondre OK a Twilio
-      res.status(200).send('OK');
+      // Mapper le statut BudgetSMS
+      const statusMap = {
+        '1': 'delivered',
+        '2': 'failed',
+        '3': 'sent',
+      }
+      const normalizedStatus = statusMap[dlrStatus] || 'unknown'
+
+      console.log(`SMS DLR: ${messageId} -> ${normalizedStatus}`)
+
+      // Chercher l'interaction correspondante
+      const interaction = await findInteractionByMessageSid(messageId)
+
+      if (interaction) {
+        await updateInteractionStatus(interaction.orgId, interaction.id, {
+          status: normalizedStatus,
+          updatedAt: FieldValue.serverTimestamp()
+        })
+
+        await handleStatusChange(interaction, normalizedStatus, {})
+        await updateChannelAnalytics(interaction.orgId, 'sms', normalizedStatus)
+      } else {
+        console.warn(`Interaction not found for messageId: ${messageId}`)
+        await logOrphanedWebhook('sms_status', params)
+      }
+
+      res.status(200).send('OK')
 
     } catch (error) {
-      console.error('smsStatusWebhook error:', error);
-      res.status(500).send('Internal error');
+      console.error('smsStatusWebhook error:', error)
+      res.status(500).send('Internal error')
     }
   }
-);
+)
 
 // ============================================
 // WEBHOOK INBOUND SMS
@@ -113,80 +96,65 @@ export const smsInboundWebhook = onRequest(
   },
   async (req, res) => {
     try {
-      if (req.method !== 'POST') {
-        return res.status(405).send('Method not allowed');
+      if (req.method !== 'GET' && req.method !== 'POST') {
+        return res.status(405).send('Method not allowed')
       }
 
-      // Valider signature
-      if (process.env.NODE_ENV === 'production') {
-        if (!validateTwilioSignature(req)) {
-          return res.status(403).send('Invalid signature');
-        }
-      }
+      const params = req.method === 'GET' ? req.query : req.body
 
       const {
-        MessageSid,
-        From,
-        To,
-        Body,
-        NumMedia,
-        AccountSid
-      } = req.body;
+        from: senderPhone,
+        to,
+        msg: body,
+        id: messageId
+      } = params
 
-      console.log(`Inbound SMS from ${From}: ${Body?.substring(0, 50)}...`);
+      console.log(`Inbound SMS from ${senderPhone}: ${body?.substring(0, 50)}...`)
 
       // Traiter le message (STOP, reponse, etc.)
-      const result = await processInboundSMS(From, Body);
-
-      // Repondre avec TwiML si necessaire
-      const twiml = new twilio.twiml.MessagingResponse();
+      const result = await processInboundSMS(senderPhone, body)
 
       if (result.isOptOut) {
-        // Confirmer le desabonnement
-        twiml.message('Vous etes desormais desabonne. Vous ne recevrez plus de SMS de notre part.');
+        console.log(`Opt-out processed for ${senderPhone}`)
       }
-      // Pas de reponse auto pour les autres messages
 
-      res.type('text/xml');
-      res.send(twiml.toString());
+      // BudgetSMS attend un 200 OK simple
+      res.status(200).send('OK')
 
     } catch (error) {
-      console.error('smsInboundWebhook error:', error);
-      res.status(500).send('Internal error');
+      console.error('smsInboundWebhook error:', error)
+      res.status(500).send('Internal error')
     }
   }
-);
+)
 
 // ============================================
 // TROUVER INTERACTION PAR MESSAGE SID
 // ============================================
 async function findInteractionByMessageSid(messageSid) {
   try {
-    // Chercher dans toutes les orgs
-    const orgsSnapshot = await getDb().collection('organizations').get();
+    const snapshot = await getDb().collectionGroup('interactions')
+      .where('messageSid', '==', messageSid)
+      .where('channel', '==', 'sms')
+      .limit(1)
+      .get()
 
-    for (const orgDoc of orgsSnapshot.docs) {
-      const interactionSnapshot = await db
-        .collection('organizations').doc(orgDoc.id)
-        .collection('interactions')
-        .where('messageSid', '==', messageSid)
-        .limit(1)
-        .get();
+    if (snapshot.empty) return null
 
-      if (!interactionSnapshot.empty) {
-        return {
-          id: interactionSnapshot.docs[0].id,
-          orgId: orgDoc.id,
-          ...interactionSnapshot.docs[0].data()
-        };
-      }
+    const doc = snapshot.docs[0]
+    const pathSegments = doc.ref.path.split('/')
+    // path: organizations/{orgId}/interactions/{id}
+    const orgId = pathSegments[1]
+
+    return {
+      id: doc.id,
+      orgId,
+      ...doc.data()
     }
 
-    return null;
-
   } catch (error) {
-    console.error('findInteractionByMessageSid error:', error);
-    return null;
+    console.error('findInteractionByMessageSid error:', error)
+    return null
   }
 }
 
@@ -197,9 +165,9 @@ async function updateInteractionStatus(orgId, interactionId, updates) {
   try {
     await getDb().collection('organizations').doc(orgId)
       .collection('interactions').doc(interactionId)
-      .update(updates);
+      .update(updates)
   } catch (error) {
-    console.error('updateInteractionStatus error:', error);
+    console.error('updateInteractionStatus error:', error)
   }
 }
 
@@ -207,54 +175,29 @@ async function updateInteractionStatus(orgId, interactionId, updates) {
 // GERER CHANGEMENT DE STATUT
 // ============================================
 async function handleStatusChange(interaction, status, errorInfo) {
-  const { orgId, prospectId, sequenceId, stepId } = interaction;
+  const { orgId, prospectId } = interaction
 
   switch (status) {
     case 'delivered':
-      // SMS delivre avec succes
       await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           lastSMSDelivered: FieldValue.serverTimestamp(),
           'channels.sms.lastDelivered': FieldValue.serverTimestamp()
-        });
-      break;
+        })
+      break
 
-    case 'undelivered':
     case 'failed':
-      // SMS echoue
-      console.warn(`SMS failed for prospect ${prospectId}: ${errorInfo.ErrorCode} - ${errorInfo.ErrorMessage}`);
-
-      // Mettre a jour le prospect
+      console.warn(`SMS failed for prospect ${prospectId}`)
       await getDb().collection('organizations').doc(orgId)
         .collection('prospects').doc(prospectId)
         .update({
           'channels.sms.lastError': {
-            code: errorInfo.ErrorCode,
-            message: errorInfo.ErrorMessage,
+            message: 'Delivery failed',
             at: FieldValue.serverTimestamp()
           }
-        });
-
-      // Codes d'erreur specifiques
-      if (errorInfo.ErrorCode === '30003' || errorInfo.ErrorCode === '30004') {
-        // Numero invalide ou injoignable - marquer comme non disponible
-        await getDb().collection('organizations').doc(orgId)
-          .collection('prospects').doc(prospectId)
-          .update({
-            'channels.sms.available': false,
-            'channels.sms.unavailableReason': 'invalid_number'
-          });
-      }
-      break;
-
-    case 'sent':
-      // SMS envoye (en cours de livraison)
-      break;
-
-    case 'queued':
-      // SMS en file d'attente
-      break;
+        })
+      break
   }
 }
 
@@ -262,36 +205,34 @@ async function handleStatusChange(interaction, status, errorInfo) {
 // METTRE A JOUR ANALYTICS CANAL
 // ============================================
 async function updateChannelAnalytics(orgId, channel, status) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]
 
   try {
     const analyticsRef = getDb().collection('organizations').doc(orgId)
-      .collection('channelAnalytics').doc(today);
+      .collection('channelAnalytics').doc(today)
 
-    const statusField = mapStatusToField(status);
+    const statusField = mapStatusToField(status)
     if (statusField) {
       await analyticsRef.set({
         date: today,
         [`channels.${channel}.${statusField}`]: FieldValue.increment(1),
         updatedAt: FieldValue.serverTimestamp()
-      }, { merge: true });
+      }, { merge: true })
     }
 
   } catch (error) {
-    console.error('updateChannelAnalytics error:', error);
+    console.error('updateChannelAnalytics error:', error)
   }
 }
 
 function mapStatusToField(status) {
   const mapping = {
-    'queued': 'queued',
     'sent': 'sent',
     'delivered': 'delivered',
-    'undelivered': 'failed',
     'failed': 'failed',
     'read': 'read'
-  };
-  return mapping[status] || null;
+  }
+  return mapping[status] || null
 }
 
 // ============================================
@@ -303,13 +244,8 @@ async function logOrphanedWebhook(type, data) {
       type,
       data,
       createdAt: FieldValue.serverTimestamp()
-    });
+    })
   } catch (error) {
-    console.error('logOrphanedWebhook error:', error);
+    console.error('logOrphanedWebhook error:', error)
   }
 }
-
-// ============================================
-// EXPORTS
-// ============================================
-export { validateTwilioSignature };
