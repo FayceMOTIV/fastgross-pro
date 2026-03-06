@@ -1,14 +1,16 @@
 /**
- * Email Router - Amazon SES primary + SMTP fallback
+ * Email Router - Resend → Amazon SES → SMTP fallback
  * Face Media Factory
  *
  * Unified email sending with automatic failover:
- * 1. Tries Amazon SES first (high deliverability, cost-effective)
- * 2. Falls back to SMTP if SES fails
- * 3. Logs every attempt in Firestore email_logs collection
+ * 1. Tries Resend first (easy setup, 3000 free/month)
+ * 2. Falls back to Amazon SES (high deliverability, cost-effective)
+ * 3. Falls back to SMTP if both fail
+ * 4. Logs every attempt in Firestore email_logs collection
  */
 
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
@@ -62,7 +64,20 @@ export async function sendEmail(options) {
   const startTime = Date.now()
   let lastError = null
 
-  // Try Amazon SES first
+  // 1. Try Resend first (easiest setup, 3000 free/month)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const result = await sendViaResend({ to, subject, html, text, from, replyTo, headers })
+      await logEmailEvent({ provider: 'resend', status: 'sent', to, subject, orgId, prospectId, messageId: result.messageId, latency: Date.now() - startTime })
+      return { success: true, provider: 'resend', messageId: result.messageId }
+    } catch (error) {
+      console.warn('[EmailRouter] Resend failed, trying SES fallback:', error.message)
+      lastError = error
+      await logEmailEvent({ provider: 'resend', status: 'failed', to, subject, orgId, prospectId, error: error.message, latency: Date.now() - startTime })
+    }
+  }
+
+  // 2. Try Amazon SES
   if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     try {
       const result = await sendViaSES({ to, subject, html, text, from, replyTo, headers })
@@ -75,7 +90,7 @@ export async function sendEmail(options) {
     }
   }
 
-  // Fallback to SMTP
+  // 3. Fallback to SMTP
   if (process.env.SMTP_HOST && process.env.SMTP_USER) {
     try {
       const result = await sendViaSMTP({ to, subject, html, text, from, replyTo, headers })
@@ -88,9 +103,9 @@ export async function sendEmail(options) {
     }
   }
 
-  // Both failed
-  if (!process.env.AWS_ACCESS_KEY_ID && !process.env.SMTP_HOST) {
-    throw new Error('No email provider configured. Set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or SMTP_HOST/SMTP_USER/SMTP_PASS in .env')
+  // All failed
+  if (!process.env.RESEND_API_KEY && !process.env.AWS_ACCESS_KEY_ID && !process.env.SMTP_HOST) {
+    throw new Error('No email provider configured. Set RESEND_API_KEY, AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY, or SMTP_HOST/SMTP_USER/SMTP_PASS in .env')
   }
 
   throw new Error(`All email providers failed. Last error: ${lastError?.message || 'unknown'}`)
@@ -136,6 +151,32 @@ async function sendViaSES({ to, subject, html, text, from, replyTo, headers }) {
   const response = await client.send(command)
 
   return { messageId: response.MessageId }
+}
+
+/**
+ * Send via Resend
+ */
+async function sendViaResend({ to, subject, html, text, from, replyTo }) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const defaultFrom = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'Face Media Factory <onboarding@resend.dev>'
+
+  const payload = {
+    from: from || defaultFrom,
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    html,
+  }
+
+  if (text) payload.text = text
+  if (replyTo) payload.reply_to = replyTo
+
+  const { data, error } = await resend.emails.send(payload)
+
+  if (error) {
+    throw new Error(`Resend error: ${error.message || JSON.stringify(error)}`)
+  }
+
+  return { messageId: data?.id || `resend_${Date.now()}` }
 }
 
 /**
@@ -221,15 +262,19 @@ export async function testEmailConfig(testEmail) {
  */
 export function getEmailStatus() {
   return {
+    resend: {
+      configured: !!process.env.RESEND_API_KEY,
+      priority: 1
+    },
     ses: {
       configured: !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY),
       region: process.env.AWS_REGION || 'eu-west-1',
-      priority: 1
+      priority: 2
     },
     smtp: {
       configured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
-      priority: 2
+      priority: 3
     },
-    anyAvailable: !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) || !!(process.env.SMTP_HOST && process.env.SMTP_USER)
+    anyAvailable: !!process.env.RESEND_API_KEY || !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) || !!(process.env.SMTP_HOST && process.env.SMTP_USER)
   }
 }

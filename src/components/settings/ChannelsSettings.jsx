@@ -48,46 +48,67 @@ export default function ChannelsSettings({ saving, setSaving }) {
 
   useEffect(() => {
     if (!currentOrg?.id || isDemo) return
-    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'channels')).then((snap) => {
-      if (snap.exists()) {
-        const d = snap.data()
-        if (d.smsEnabled !== undefined) setSmsEnabled(d.smsEnabled)
-        if (d.smsPhone !== undefined) setSmsPhone(d.smsPhone)
-        if (d.instagramEnabled !== undefined) setInstagramEnabled(d.instagramEnabled)
-        if (d.instagramHandle !== undefined) setInstagramHandle(d.instagramHandle)
-        if (d.voicemailEnabled !== undefined) setVoicemailEnabled(d.voicemailEnabled)
-        if (d.voicemailMethod !== undefined) setVoicemailMethod(d.voicemailMethod)
-        if (d.voicemailVoice !== undefined) setVoicemailVoice(d.voicemailVoice)
-        if (d.courrierEnabled !== undefined) setCourrierEnabled(d.courrierEnabled)
-        if (d.courrierMonthlyBudget !== undefined) setCourrierMonthlyBudget(d.courrierMonthlyBudget)
-        if (d.courrierAddress !== undefined) setCourrierAddress(d.courrierAddress)
-        if (d.socialDmEnabled !== undefined) setSocialDmEnabled(d.socialDmEnabled)
-        if (d.whatsappOutreachEnabled !== undefined) setWhatsappOutreachEnabled(d.whatsappOutreachEnabled)
-        if (d.socialDmDailyLimit !== undefined) setSocialDmDailyLimit(d.socialDmDailyLimit)
-        if (d.whatsappOutreachDailyLimit !== undefined) setWhatsappOutreachDailyLimit(d.whatsappOutreachDailyLimit)
-        if (d.linkedinEnabled !== undefined) setLinkedinEnabled(d.linkedinEnabled)
-        if (d.linkedinApiKey !== undefined) setLinkedinApiKey(d.linkedinApiKey)
-        if (d.linkedinDailyLimit !== undefined) setLinkedinDailyLimit(d.linkedinDailyLimit)
-        if (d.googleMapsEnabled !== undefined) setGoogleMapsEnabled(d.googleMapsEnabled)
-        if (d.googleMapsApiKey !== undefined) setGoogleMapsApiKey(d.googleMapsApiKey)
-      }
-    }).catch(() => {})
+    getDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'channels'))
+      .then((snap) => {
+        if (snap.exists()) {
+          const d = snap.data()
+          if (d.smsEnabled !== undefined) setSmsEnabled(d.smsEnabled)
+          if (d.smsPhone !== undefined) setSmsPhone(d.smsPhone)
+          if (d.instagramEnabled !== undefined) setInstagramEnabled(d.instagramEnabled)
+          if (d.instagramHandle !== undefined) setInstagramHandle(d.instagramHandle)
+          if (d.voicemailEnabled !== undefined) setVoicemailEnabled(d.voicemailEnabled)
+          if (d.voicemailMethod !== undefined) setVoicemailMethod(d.voicemailMethod)
+          if (d.voicemailVoice !== undefined) setVoicemailVoice(d.voicemailVoice)
+          if (d.courrierEnabled !== undefined) setCourrierEnabled(d.courrierEnabled)
+          if (d.courrierMonthlyBudget !== undefined)
+            setCourrierMonthlyBudget(d.courrierMonthlyBudget)
+          if (d.courrierAddress !== undefined) setCourrierAddress(d.courrierAddress)
+          if (d.socialDmEnabled !== undefined) setSocialDmEnabled(d.socialDmEnabled)
+          if (d.whatsappOutreachEnabled !== undefined)
+            setWhatsappOutreachEnabled(d.whatsappOutreachEnabled)
+          if (d.socialDmDailyLimit !== undefined) setSocialDmDailyLimit(d.socialDmDailyLimit)
+          if (d.whatsappOutreachDailyLimit !== undefined)
+            setWhatsappOutreachDailyLimit(d.whatsappOutreachDailyLimit)
+          if (d.linkedinEnabled !== undefined) setLinkedinEnabled(d.linkedinEnabled)
+          if (d.linkedinApiKey !== undefined) setLinkedinApiKey(d.linkedinApiKey)
+          if (d.linkedinDailyLimit !== undefined) setLinkedinDailyLimit(d.linkedinDailyLimit)
+          if (d.googleMapsEnabled !== undefined) setGoogleMapsEnabled(d.googleMapsEnabled)
+          if (d.googleMapsApiKey !== undefined) setGoogleMapsApiKey(d.googleMapsApiKey)
+        }
+      })
+      .catch(() => {})
   }, [currentOrg?.id])
 
   const handleSave = async () => {
     setSaving(true)
     try {
       if (currentOrg?.id && !isDemo) {
-        await setDoc(doc(db, 'organizations', currentOrg.id, 'settings', 'channels'), {
-          smsEnabled, smsPhone, instagramEnabled, instagramHandle,
-          voicemailEnabled, voicemailMethod, voicemailVoice,
-          courrierEnabled, courrierMonthlyBudget, courrierAddress,
-          socialDmEnabled, whatsappOutreachEnabled,
-          socialDmDailyLimit, whatsappOutreachDailyLimit,
-          linkedinEnabled, linkedinApiKey, linkedinDailyLimit,
-          googleMapsEnabled, googleMapsApiKey,
-          updatedAt: new Date()
-        }, { merge: true })
+        await setDoc(
+          doc(db, 'organizations', currentOrg.id, 'settings', 'channels'),
+          {
+            smsEnabled,
+            smsPhone,
+            instagramEnabled,
+            instagramHandle,
+            voicemailEnabled,
+            voicemailMethod,
+            voicemailVoice,
+            courrierEnabled,
+            courrierMonthlyBudget,
+            courrierAddress,
+            socialDmEnabled,
+            whatsappOutreachEnabled,
+            socialDmDailyLimit,
+            whatsappOutreachDailyLimit,
+            linkedinEnabled,
+            linkedinApiKey,
+            linkedinDailyLimit,
+            googleMapsEnabled,
+            googleMapsApiKey,
+            updatedAt: new Date(),
+          },
+          { merge: true }
+        )
       }
       toast.success('Configuration des canaux sauvegardee')
     } catch (error) {
@@ -178,8 +199,8 @@ export default function ChannelsSettings({ saving, setSaving }) {
         )}
       </div>
 
-      {/* Instagram DM */}
-      <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+      {/* Instagram DM — Sur demande */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10 opacity-75">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3">
@@ -189,46 +210,29 @@ export default function ChannelsSettings({ saving, setSaving }) {
                 <Instagram className={`w-5 h-5 ${CHANNEL_STYLES.instagram_dm.color}`} />
               </div>
               <div>
-                <h3 className="font-medium text-white">Instagram DM</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-white">Instagram DM</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-semibold uppercase">
+                    Sur demande
+                  </span>
+                </div>
                 <p className="text-sm text-dark-400">
                   Approche sociale pour commerces locaux - max 1 DM
                 </p>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setInstagramEnabled(!instagramEnabled)}
-            className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              instagramEnabled ? 'bg-brand-500' : 'bg-dark-700'
-            }`}
-          >
-            {instagramEnabled ? (
-              <ToggleRight className="w-8 h-8 text-white" />
-            ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
-            )}
-          </button>
         </div>
-
-        {instagramEnabled && (
-          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50">
-            <label className="block text-sm font-medium text-dark-300 mb-2">Compte Instagram</label>
-            <input
-              type="text"
-              value={instagramHandle}
-              onChange={(e) => setInstagramHandle(e.target.value)}
-              className="input-field"
-              placeholder="@votrecompte"
-            />
-            <p className="text-xs text-dark-500 mt-2">
-              Votre compte Instagram professionnel (connectez-le dans les integrations)
-            </p>
-          </div>
-        )}
+        <div className="mt-3 ml-13 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+          <p className="text-xs text-amber-400/80">
+            Disponible pour les plans Pro et Enterprise sur demande. Contactez-nous a
+            contact@face-media-factory.com pour activer ce canal.
+          </p>
+        </div>
       </div>
 
-      {/* Voicemail */}
-      <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+      {/* Voicemail — Bientot disponible */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10 opacity-60">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3">
@@ -238,69 +242,23 @@ export default function ChannelsSettings({ saving, setSaving }) {
                 <Mic className={`w-5 h-5 ${CHANNEL_STYLES.voicemail.color}`} />
               </div>
               <div>
-                <h3 className="font-medium text-white">Message vocal</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-white">Message vocal</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-dark-700 text-dark-400 text-[10px] font-semibold uppercase">
+                    Bientot disponible
+                  </span>
+                </div>
                 <p className="text-sm text-dark-400">
-                  Voicemail drop - le telephone ne sonne pas - max 1
+                  Voicemail drop — le telephone ne sonne pas. Disponible Q2 2026.
                 </p>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setVoicemailEnabled(!voicemailEnabled)}
-            className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              voicemailEnabled ? 'bg-brand-500' : 'bg-dark-700'
-            }`}
-          >
-            {voicemailEnabled ? (
-              <ToggleRight className="w-8 h-8 text-white" />
-            ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
-            )}
-          </button>
         </div>
-
-        {voicemailEnabled && (
-          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
-                Methode de generation
-              </label>
-              <select
-                value={voicemailMethod}
-                onChange={(e) => setVoicemailMethod(e.target.value)}
-                className="input-field"
-              >
-                <option value="tts">Text-to-Speech (IA)</option>
-                <option value="recorded">Message pre-enregistre</option>
-              </select>
-            </div>
-
-            {voicemailMethod === 'tts' && (
-              <div>
-                <label className="block text-sm font-medium text-dark-300 mb-2">Voix TTS</label>
-                <select
-                  value={voicemailVoice}
-                  onChange={(e) => setVoicemailVoice(e.target.value)}
-                  className="input-field"
-                >
-                  <option value="female-fr">Femme - Francais</option>
-                  <option value="male-fr">Homme - Francais</option>
-                  <option value="female-en">Femme - Anglais</option>
-                  <option value="male-en">Homme - Anglais</option>
-                </select>
-              </div>
-            )}
-
-            <p className="text-xs text-dark-500">
-              Le message vocal est depose directement dans la messagerie sans faire sonner le
-              telephone. Duree max : 30 secondes.
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* Courrier postal */}
-      <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+      {/* Courrier postal — Bientot disponible */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10 opacity-60">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-3">
@@ -312,76 +270,17 @@ export default function ChannelsSettings({ saving, setSaving }) {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium text-white">Courrier postal</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-xs">
-                    Premium
+                  <span className="px-2 py-0.5 rounded-full bg-dark-700 text-dark-400 text-[10px] font-semibold uppercase">
+                    Bientot disponible
                   </span>
                 </div>
                 <p className="text-sm text-dark-400">
-                  Carte personnalisee avec QR code - 2.50 EUR/envoi
+                  Envoi de courrier physique automatise — carte + QR code. Disponible Q2 2026.
                 </p>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setCourrierEnabled(!courrierEnabled)}
-            className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              courrierEnabled ? 'bg-brand-500' : 'bg-dark-700'
-            }`}
-          >
-            {courrierEnabled ? (
-              <ToggleRight className="w-8 h-8 text-white" />
-            ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
-            )}
-          </button>
         </div>
-
-        {courrierEnabled && (
-          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
-                Budget mensuel maximum
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min={0}
-                  max={200}
-                  step={10}
-                  value={courrierMonthlyBudget}
-                  onChange={(e) => setCourrierMonthlyBudget(parseInt(e.target.value))}
-                  className="flex-1 accent-brand-500"
-                />
-                <div className="flex items-center gap-1 min-w-[80px]">
-                  <Euro className="w-4 h-4 text-amber-400" />
-                  <span className="font-medium text-white">{courrierMonthlyBudget} EUR</span>
-                </div>
-              </div>
-              <p className="text-xs text-dark-500 mt-2">
-                = max {Math.floor(courrierMonthlyBudget / 2.5)} courriers/mois
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
-                Adresse expediteur
-              </label>
-              <textarea
-                value={courrierAddress}
-                onChange={(e) => setCourrierAddress(e.target.value)}
-                className="input-field min-h-[80px]"
-                placeholder="Votre Entreprise&#10;123 Rue Example&#10;75001 Paris"
-              />
-            </div>
-
-            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-              <p className="text-xs text-amber-400">
-                Le courrier postal est reserve aux prospects chauds (score &ge; 70%) ou en derniere
-                etape de sequence. Chaque carte inclut un QR code personnalise pour le tracking.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Social DM Outreach */}
@@ -448,7 +347,8 @@ export default function ChannelsSettings({ saving, setSaving }) {
                   </span>
                 </div>
                 <p className="text-xs text-dark-500 mt-2">
-                  Warmup progressif : jour 1-3 = 3/jour, jour 4-7 = 15/jour, puis augmentation graduelle
+                  Warmup progressif : jour 1-3 = 3/jour, jour 4-7 = 15/jour, puis augmentation
+                  graduelle
                 </p>
               </div>
             )}
@@ -494,7 +394,8 @@ export default function ChannelsSettings({ saving, setSaving }) {
                   </span>
                 </div>
                 <p className="text-xs text-dark-500 mt-2">
-                  Evolution API avec anti-ban : horaires business, rotation instances, monitoring block rate
+                  Evolution API avec anti-ban : horaires business, rotation instances, monitoring
+                  block rate
                 </p>
               </div>
             )}
@@ -502,8 +403,8 @@ export default function ChannelsSettings({ saving, setSaving }) {
 
           <div className="p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
             <p className="text-xs text-purple-400">
-              Le systeme anti-ban gere automatiquement le warmup progressif, les horaires d'envoi
-              et la rotation des comptes/instances. Gerez vos campagnes depuis la page Social DM.
+              Le systeme anti-ban gere automatiquement le warmup progressif, les horaires d'envoi et
+              la rotation des comptes/instances. Gerez vos campagnes depuis la page Social DM.
             </p>
           </div>
         </div>
@@ -582,8 +483,8 @@ export default function ChannelsSettings({ saving, setSaving }) {
             </div>
             <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
               <p className="text-xs text-blue-400">
-                HeyReach gere automatiquement la rotation des comptes et le warmup.
-                Gerez vos comptes et campagnes depuis la page LinkedIn.
+                HeyReach gere automatiquement la rotation des comptes et le warmup. Gerez vos
+                comptes et campagnes depuis la page LinkedIn.
               </p>
             </div>
           </div>
@@ -628,9 +529,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
         {googleMapsEnabled && (
           <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
-                Cle API Apify
-              </label>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Cle API Apify</label>
               <input
                 type="password"
                 value={googleMapsApiKey}
@@ -639,13 +538,14 @@ export default function ChannelsSettings({ saving, setSaving }) {
                 placeholder="apify_api_..."
               />
               <p className="text-xs text-dark-500 mt-2">
-                Utilisee pour le scraping avance Google Maps. Sans cle, le systeme utilise Serper.dev en fallback.
+                Utilisee pour le scraping avance Google Maps. Sans cle, le systeme utilise
+                Serper.dev en fallback.
               </p>
             </div>
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
               <p className="text-xs text-red-400">
-                Lancez vos recherches depuis la page Google Maps Sourcing. Les resultats
-                sont automatiquement enrichis et qualifies par l'IA.
+                Lancez vos recherches depuis la page Google Maps Sourcing. Les resultats sont
+                automatiquement enrichis et qualifies par l'IA.
               </p>
             </div>
           </div>

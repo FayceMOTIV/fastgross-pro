@@ -60,43 +60,61 @@ const getEvolutionConfig = async (orgId) => {
 };
 
 // ============================================
-// EVOLUTION API — ENVOI MESSAGE
+// EVOLUTION API — ENVOI MESSAGE (avec retry + backoff)
 // ============================================
-async function sendEvolutionMessage(orgId, phone, text) {
+async function sendEvolutionMessage(orgId, phone, text, maxRetries = 3) {
   const config = await getEvolutionConfig(orgId);
   const url = `${config.url}/message/sendText/${config.instanceName}`;
+  let lastError = null;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'apikey': config.apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ number: phone, text }),
-      signal: controller.signal
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'apikey': config.apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ number: phone, text }),
+        signal: controller.signal
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok || data.error) {
-      return { error: { message: data.response?.message || data.error || 'Evolution API error' } };
+      if (!response.ok || data.error) {
+        lastError = { message: data.response?.message || data.error || 'Evolution API error' };
+        if (attempt < maxRetries - 1) {
+          console.warn(`[WhatsApp] Attempt ${attempt + 1}/${maxRetries} failed:`, lastError.message);
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return { error: lastError };
+      }
+
+      return {
+        messages: [{ id: data.key?.id || data.messageId || `evo_${Date.now()}` }]
+      };
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        lastError = { message: 'Evolution API timeout (30s)' };
+      } else {
+        lastError = { message: err.message || 'Evolution API unreachable' };
+      }
+
+      if (attempt < maxRetries - 1) {
+        console.warn(`[WhatsApp] Attempt ${attempt + 1}/${maxRetries} error:`, lastError.message);
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+    } finally {
+      clearTimeout(timeout);
     }
-
-    return {
-      messages: [{ id: data.key?.id || data.messageId || `evo_${Date.now()}` }]
-    };
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      return { error: { message: 'Evolution API timeout (30s)' } };
-    }
-    return { error: { message: err.message || 'Evolution API unreachable' } };
-  } finally {
-    clearTimeout(timeout);
   }
+
+  return { error: lastError || { message: 'Max retries exceeded' } };
 }
 
 // ============================================
