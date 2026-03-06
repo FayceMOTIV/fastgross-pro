@@ -338,6 +338,11 @@ export { vapiWebhook } from './voice/vapiWebhook.js'
 export { migrateCrmColumns } from './migrations/addCrmColumn.js'
 
 // ============================================
+// Pipeline Prospection France (Sources officielles)
+// ============================================
+export { runProspectionFrance, getSecteursFrance } from './sourcing/sourcingCallable.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData, seedSubscriptionPlans } from './dev/seedData.js'
