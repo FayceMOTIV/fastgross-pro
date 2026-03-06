@@ -107,7 +107,11 @@ service cloud.firestore {
         // All members can see team
         allow read: if canRead(orgId);
         // Admin+ can invite/manage members
-        allow create: if canAdmin(orgId);
+        // Special case: org creator can create their own member doc (bootstrap)
+        allow create: if canAdmin(orgId) ||
+          (isAuthenticated() &&
+           memberId == request.auth.uid &&
+           get(/databases/$(database)/documents/organizations/$(orgId)).data.ownerId == request.auth.uid);
         allow update: if canAdmin(orgId);
         // Owner only can remove members (or self-remove)
         allow delete: if isOwnerRole(orgId) || request.auth.uid == memberId;
@@ -665,6 +669,60 @@ service cloud.firestore {
       match /suppression/{docId} {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // HUNTER RESULTS - Sourcing results (Google Maps, LinkedIn, etc.)
+      // ------------------------------------------
+      match /hunterResults/{resultId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // HUNTER STATS - Sourcing statistics per platform
+      // ------------------------------------------
+      match /hunterStats/{statId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // DM STATS - Instagram DM daily statistics
+      // ------------------------------------------
+      match /dmStats/{dateId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // WHATSAPP STATS - Org-level WhatsApp daily stats
+      // ------------------------------------------
+      match /whatsappStats/{dateId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // INBOXES - Email sending inboxes
+      // ------------------------------------------
+      match /inboxes/{inboxId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canAdmin(orgId);
+      }
+
+      // ------------------------------------------
+      // AB TESTS - A/B testing experiments
+      // ------------------------------------------
+      match /abTests/{testId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
       }
     }
 
