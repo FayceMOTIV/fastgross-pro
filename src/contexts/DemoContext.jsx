@@ -1,41 +1,35 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 
 const DemoContext = createContext(null)
 
 export function DemoProvider({ children }) {
-  // Initialize from URL or sessionStorage
-  const [isDemo, setIsDemo] = useState(() => {
-    if (typeof window === 'undefined') return false
+  const location = useLocation()
 
-    // Check URL first
+  const [demoPersisted, setDemoPersisted] = useState(() => {
+    if (typeof window === 'undefined') return false
     if (window.location.search.includes('demo=true')) {
       sessionStorage.setItem('fmf_demo_mode', 'true')
       return true
     }
-
-    // Fall back to sessionStorage
     return sessionStorage.getItem('fmf_demo_mode') === 'true'
   })
 
-  // Watch for URL changes
+  // Synchronous: detect demo from URL during render (not useEffect)
+  const urlHasDemo = location.search.includes('demo=true')
+  const isDemo = demoPersisted || urlHasDemo
+
+  // Persist to sessionStorage when detected from URL
   useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const checkDemo = () => {
-      if (window.location.search.includes('demo=true')) {
-        sessionStorage.setItem('fmf_demo_mode', 'true')
-        setIsDemo(true)
-      }
+    if (urlHasDemo && !demoPersisted) {
+      sessionStorage.setItem('fmf_demo_mode', 'true')
+      setDemoPersisted(true)
     }
-
-    checkDemo()
-    window.addEventListener('popstate', checkDemo)
-    return () => window.removeEventListener('popstate', checkDemo)
-  }, [])
+  }, [urlHasDemo, demoPersisted])
 
   const exitDemo = () => {
     sessionStorage.removeItem('fmf_demo_mode')
-    setIsDemo(false)
+    setDemoPersisted(false)
   }
 
   return <DemoContext.Provider value={{ isDemo, exitDemo }}>{children}</DemoContext.Provider>

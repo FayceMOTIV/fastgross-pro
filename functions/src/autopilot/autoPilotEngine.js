@@ -510,10 +510,17 @@ export const sendAutoPilotMessage = onCall(
           if (!prospect.phone) {
             throw new Error('No phone number for WhatsApp')
           }
-          // Call WhatsApp sender
+          // Call WhatsApp sender (multi-tenant)
           const evolutionUrl = process.env.EVOLUTION_API_URL
           const evolutionKey = process.env.EVOLUTION_API_KEY
-          const instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'facemedia'
+          let instanceName = process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3'
+          try {
+            const waConfigSnap = await db.collection('organizations').doc(orgId)
+              .collection('integrations').doc('whatsapp').get()
+            if (waConfigSnap.exists && waConfigSnap.data()?.instanceName && waConfigSnap.data()?.status === 'connected') {
+              instanceName = waConfigSnap.data().instanceName
+            }
+          } catch { /* fallback */ }
 
           if (evolutionUrl && evolutionKey) {
             const response = await fetch(

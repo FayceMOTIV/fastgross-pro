@@ -12,7 +12,24 @@ const getDb = () => getFirestore()
 // Evolution API config
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || ''
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || ''
-const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'facemedia'
+
+async function getInstanceName(orgId) {
+  if (orgId) {
+    try {
+      const configSnap = await getDb()
+        .collection('organizations').doc(orgId)
+        .collection('integrations').doc('whatsapp')
+        .get()
+      if (configSnap.exists) {
+        const data = configSnap.data()
+        if (data?.instanceName && data?.status === 'connected') {
+          return data.instanceName
+        }
+      }
+    } catch { /* fallback */ }
+  }
+  return process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3'
+}
 
 /**
  * Send WhatsApp message to a prospect from the autopilot system
@@ -85,9 +102,10 @@ export const sendWhatsAppToProspect = onCall(
       // Clean phone number
       const cleanPhone = prospect.phone.replace(/[^\d]/g, '')
 
-      // Send via Evolution API
+      // Send via Evolution API (multi-tenant)
+      const instanceName = await getInstanceName(orgId)
       const response = await axios.post(
-        `${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE_NAME}`,
+        `${EVOLUTION_API_URL}/message/sendText/${instanceName}`,
         {
           number: cleanPhone,
           text: message,

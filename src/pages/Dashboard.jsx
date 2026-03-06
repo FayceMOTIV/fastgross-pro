@@ -77,11 +77,36 @@ const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
 
 const CHANNEL_STYLES = {
   email: { bg: 'bg-blue-100', color: 'text-blue-600', border: 'border-blue-200', label: 'Email' },
-  sms: { bg: 'bg-emerald-100', color: 'text-emerald-600', border: 'border-emerald-200', label: 'SMS' },
-  whatsapp: { bg: 'bg-green-100', color: 'text-green-600', border: 'border-green-200', label: 'WhatsApp' },
-  instagram_dm: { bg: 'bg-pink-100', color: 'text-pink-600', border: 'border-pink-200', label: 'Instagram' },
-  voicemail: { bg: 'bg-purple-100', color: 'text-purple-600', border: 'border-purple-200', label: 'Vocal' },
-  courrier: { bg: 'bg-amber-100', color: 'text-amber-600', border: 'border-amber-200', label: 'Courrier' },
+  sms: {
+    bg: 'bg-emerald-100',
+    color: 'text-emerald-600',
+    border: 'border-emerald-200',
+    label: 'SMS',
+  },
+  whatsapp: {
+    bg: 'bg-green-100',
+    color: 'text-green-600',
+    border: 'border-green-200',
+    label: 'WhatsApp',
+  },
+  instagram_dm: {
+    bg: 'bg-pink-100',
+    color: 'text-pink-600',
+    border: 'border-pink-200',
+    label: 'Instagram',
+  },
+  voicemail: {
+    bg: 'bg-purple-100',
+    color: 'text-purple-600',
+    border: 'border-purple-200',
+    label: 'Vocal',
+  },
+  courrier: {
+    bg: 'bg-amber-100',
+    color: 'text-amber-600',
+    border: 'border-amber-200',
+    label: 'Courrier',
+  },
 }
 
 // Chart.js options
@@ -189,7 +214,7 @@ function StatusWidget({ engineStatus, stats, pendingCampaigns, onLaunch, onSearc
       buttonAction: () => {},
       buttonIcon: ArrowRight,
       buttonGradient: 'from-purple-500 to-fuchsia-500',
-      link: '/app/campaigns',
+      link: '/app/outreach',
     },
   }
 
@@ -243,7 +268,9 @@ function StatusWidget({ engineStatus, stats, pendingCampaigns, onLaunch, onSearc
               </div>
             </div>
           ) : (
-            <div className={`w-[180px] h-[180px] rounded-full ${config.iconBg} flex items-center justify-center`}>
+            <div
+              className={`w-[180px] h-[180px] rounded-full ${config.iconBg} flex items-center justify-center`}
+            >
               <IconComponent className={`w-20 h-20 ${config.iconColor}`} />
             </div>
           )}
@@ -254,7 +281,11 @@ function StatusWidget({ engineStatus, stats, pendingCampaigns, onLaunch, onSearc
           <div className="flex items-center justify-center lg:justify-start gap-2 text-text-muted text-sm mb-2">
             <Calendar className="w-4 h-4" />
             <span className="capitalize">
-              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {new Date().toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
             </span>
           </div>
 
@@ -302,7 +333,7 @@ function StatusWidget({ engineStatus, stats, pendingCampaigns, onLaunch, onSearc
               <div className="flex items-center gap-2 text-sm text-blue-600">
                 <Clock className="w-4 h-4" />
                 <span>
-                  {step === 'finding_companies' && 'Recherche d\'entreprises IA...'}
+                  {step === 'finding_companies' && "Recherche d'entreprises IA..."}
                   {step === 'scraping' && `Analyse de ${currentCompany || 'sites web'}...`}
                   {step === 'saving' && 'Sauvegarde des prospects...'}
                   {step === 'generating_sequences' && 'Generation des sequences...'}
@@ -365,7 +396,14 @@ function StatusWidget({ engineStatus, stats, pendingCampaigns, onLaunch, onSearc
 // LAUNCH DAY MODAL
 // ============================================================================
 
-function LaunchDayModal({ isOpen, onClose, pendingCampaigns, onLaunch, isLaunching, launchProgress }) {
+function LaunchDayModal({
+  isOpen,
+  onClose,
+  pendingCampaigns,
+  onLaunch,
+  isLaunching,
+  launchProgress,
+}) {
   if (!isOpen) return null
 
   const totalMessages = pendingCampaigns.reduce((acc, c) => acc + (c.steps?.length || 1), 0)
@@ -398,7 +436,10 @@ function LaunchDayModal({ isOpen, onClose, pendingCampaigns, onLaunch, isLaunchi
                   <p className="text-sm text-text-muted">Confirmation avant envoi</p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
                 <X className="w-5 h-5 text-text-muted" />
               </button>
             </div>
@@ -424,9 +465,7 @@ function LaunchDayModal({ isOpen, onClose, pendingCampaigns, onLaunch, isLaunchi
               <div className="text-center py-8">
                 <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-text mb-2">Aucune campagne en attente</h3>
-                <p className="text-text-muted">
-                  Recherchez de nouveaux prospects pour continuer.
-                </p>
+                <p className="text-text-muted">Recherchez de nouveaux prospects pour continuer.</p>
               </div>
             ) : (
               <>
@@ -445,7 +484,10 @@ function LaunchDayModal({ isOpen, onClose, pendingCampaigns, onLaunch, isLaunchi
 
                 <div className="space-y-3 max-h-48 overflow-y-auto mb-6">
                   {pendingCampaigns.slice(0, 5).map((campaign) => (
-                    <div key={campaign.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={campaign.id}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                    >
                       <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
                         <Mail className="w-4 h-4 text-accent" />
                       </div>
@@ -473,7 +515,8 @@ function LaunchDayModal({ isOpen, onClose, pendingCampaigns, onLaunch, isLaunchi
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-800">
-                      Les messages seront envoyes selon le planning. Suivez l'avancement dans Campagnes.
+                      Les messages seront envoyes selon le planning. Suivez l'avancement dans
+                      Campagnes.
                     </p>
                   </div>
                 </div>
@@ -598,7 +641,9 @@ export default function Dashboard() {
       const result = await prospectEngine({ orgId: currentOrg.id })
 
       if (result.data?.success) {
-        toast.success(`${result.data.prospectsCreated || 0} prospects trouves!`, { id: 'search-prospects' })
+        toast.success(`${result.data.prospectsCreated || 0} prospects trouves!`, {
+          id: 'search-prospects',
+        })
       } else {
         toast.success('Recherche terminee', { id: 'search-prospects' })
       }
@@ -648,9 +693,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-emerald-700">
-                    Mode Beta Illimite
-                  </h3>
+                  <h3 className="text-lg font-semibold text-emerald-700">Mode Beta Illimite</h3>
                   {betaStatus.isSuperAdmin && (
                     <span className="px-2 py-0.5 text-xs bg-amber-500/20 text-amber-700 rounded-full font-medium">
                       Super Admin
@@ -858,7 +901,10 @@ export default function Dashboard() {
                       }`}
                     >
                       {channelStyle ? (
-                        <ChannelIcon channel={activity.channel} className={`w-4 h-4 ${channelStyle.color}`} />
+                        <ChannelIcon
+                          channel={activity.channel}
+                          className={`w-4 h-4 ${channelStyle.color}`}
+                        />
                       ) : activity.type === 'reply' ? (
                         <MessageSquare className="w-4 h-4 text-success" />
                       ) : activity.type === 'converted' ? (
@@ -873,7 +919,9 @@ export default function Dashboard() {
                       <p className="text-sm text-text truncate">{activity.message}</p>
                       <p className="text-xs text-text-muted truncate">{activity.details}</p>
                     </div>
-                    <span className="text-xs text-text-muted flex-shrink-0">{activity.timeAgo}</span>
+                    <span className="text-xs text-text-muted flex-shrink-0">
+                      {activity.timeAgo}
+                    </span>
                   </div>
                 )
               })
@@ -937,7 +985,7 @@ export default function Dashboard() {
               {hotProspects.length}
             </span>
           </div>
-          <Link to="/app/prospects" className="btn-ghost text-sm flex items-center gap-1">
+          <Link to="/app/crm?tab=prospects" className="btn-ghost text-sm flex items-center gap-1">
             Voir tous
             <ArrowRight className="w-4 h-4" />
           </Link>
@@ -957,17 +1005,21 @@ export default function Dashboard() {
                       {prospect.industry || prospect.sector} - {prospect.city}
                     </p>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    prospect.score >= 80
-                      ? 'bg-success/10 text-success'
-                      : prospect.score >= 60
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      prospect.score >= 80
+                        ? 'bg-success/10 text-success'
+                        : prospect.score >= 60
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
                     {prospect.score}
                   </span>
                 </div>
-                <p className="text-sm text-text truncate">{prospect.firstName} {prospect.lastName}</p>
+                <p className="text-sm text-text truncate">
+                  {prospect.firstName} {prospect.lastName}
+                </p>
                 <p className="text-xs text-text-muted truncate">{prospect.email}</p>
               </div>
             ))}

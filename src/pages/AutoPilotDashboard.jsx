@@ -1,17 +1,50 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, query, where, getDocs, getDoc, orderBy, doc, updateDoc, onSnapshot, limit, Timestamp } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getDoc,
+  orderBy,
+  doc,
+  updateDoc,
+  onSnapshot,
+  limit,
+  Timestamp,
+} from 'firebase/firestore'
 import { httpsCallable } from 'firebase/functions'
 import { db, functions } from '@/lib/firebase'
 import { useOrg } from '@/contexts/OrgContext'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import {
-  Rocket, Users, MessageSquare, Calendar, TrendingUp,
-  CheckCircle, Clock, Send, Phone, Mail, Instagram,
-  ExternalLink, Play, Pause, Settings, RefreshCw,
-  Zap, Target, Award, ArrowRight, Sparkles, Eye,
-  ThumbsUp, ThumbsDown, HelpCircle, CalendarPlus
+  Rocket,
+  Users,
+  MessageSquare,
+  Calendar,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  Send,
+  Phone,
+  Mail,
+  Instagram,
+  ExternalLink,
+  Play,
+  Pause,
+  Settings,
+  RefreshCw,
+  Zap,
+  Target,
+  Award,
+  ArrowRight,
+  Sparkles,
+  Eye,
+  ThumbsUp,
+  ThumbsDown,
+  HelpCircle,
+  CalendarPlus,
 } from 'lucide-react'
 
 export default function AutoPilotDashboard() {
@@ -41,11 +74,7 @@ export default function AutoPilotDashboard() {
   const loadDashboard = async () => {
     setLoading(true)
     try {
-      await Promise.all([
-        loadStats(),
-        loadHotProspects(),
-        loadConfig(),
-      ])
+      await Promise.all([loadStats(), loadHotProspects(), loadConfig()])
     } catch (error) {
       console.error('Dashboard load error:', error)
     } finally {
@@ -91,7 +120,7 @@ export default function AutoPilotDashboard() {
       )
     )
 
-    setHotProspects(hotSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+    setHotProspects(hotSnap.docs.map((d) => ({ id: d.id, ...d.data() })))
   }
 
   const loadConfig = async () => {
@@ -112,13 +141,13 @@ export default function AutoPilotDashboard() {
     return onSnapshot(
       query(conversationsRef, orderBy('lastMessageAt', 'desc'), limit(20)),
       (snapshot) => {
-        setConversations(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
+        setConversations(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })))
       }
     )
   }
 
   const handleScheduleMeeting = async (prospectId) => {
-    setActionLoading(prev => ({ ...prev, [prospectId]: 'meeting' }))
+    setActionLoading((prev) => ({ ...prev, [prospectId]: 'meeting' }))
     try {
       const scheduleMeetingFn = httpsCallable(functions, 'scheduleMeetingWithProspect')
       await scheduleMeetingFn({ prospectId, orgId: currentOrg.id })
@@ -127,12 +156,12 @@ export default function AutoPilotDashboard() {
       console.error('Schedule meeting error:', error)
       alert('Erreur: ' + error.message)
     } finally {
-      setActionLoading(prev => ({ ...prev, [prospectId]: null }))
+      setActionLoading((prev) => ({ ...prev, [prospectId]: null }))
     }
   }
 
   const handleSendMessage = async (prospectId, channel) => {
-    setActionLoading(prev => ({ ...prev, [prospectId]: 'send' }))
+    setActionLoading((prev) => ({ ...prev, [prospectId]: 'send' }))
     try {
       const sendFn = httpsCallable(functions, 'sendAutoPilotMessage')
       await sendFn({ prospectId, orgId: currentOrg.id, channel })
@@ -141,7 +170,7 @@ export default function AutoPilotDashboard() {
       console.error('Send error:', error)
       alert('Erreur: ' + error.message)
     } finally {
-      setActionLoading(prev => ({ ...prev, [prospectId]: null }))
+      setActionLoading((prev) => ({ ...prev, [prospectId]: null }))
     }
   }
 
@@ -150,14 +179,14 @@ export default function AutoPilotDashboard() {
     try {
       const toggleFn = httpsCallable(functions, 'toggleAutoPilot')
       await toggleFn({ orgId: currentOrg.id, enabled: !config.enabled })
-      setConfig(prev => ({ ...prev, enabled: !prev.enabled }))
+      setConfig((prev) => ({ ...prev, enabled: !prev.enabled }))
     } catch (error) {
       console.error('Toggle error:', error)
       // Fallback to direct update
       await updateDoc(doc(db, 'organizations', currentOrg.id, 'autoPilotConfig', 'main'), {
         enabled: !config.enabled,
       })
-      setConfig(prev => ({ ...prev, enabled: !prev.enabled }))
+      setConfig((prev) => ({ ...prev, enabled: !prev.enabled }))
     }
   }
 
@@ -256,30 +285,15 @@ export default function AutoPilotDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <StatsCard
-            icon={Users}
-            label="Aujourd'hui"
-            value={stats.todayProspects}
-            color="blue"
-          />
-          <StatsCard
-            icon={Send}
-            label="Contactes"
-            value={stats.totalContacted}
-            color="purple"
-          />
+          <StatsCard icon={Users} label="Aujourd'hui" value={stats.todayProspects} color="blue" />
+          <StatsCard icon={Send} label="Contactes" value={stats.totalContacted} color="purple" />
           <StatsCard
             icon={ThumbsUp}
             label="Interesses"
             value={stats.positiveResponses}
             color="green"
           />
-          <StatsCard
-            icon={Calendar}
-            label="RDV"
-            value={stats.meetingsScheduled}
-            color="orange"
-          />
+          <StatsCard icon={Calendar} label="RDV" value={stats.meetingsScheduled} color="orange" />
           <StatsCard
             icon={TrendingUp}
             label="Conversion"
@@ -317,7 +331,7 @@ export default function AutoPilotDashboard() {
                     <p className="text-sm text-white/40">Les reponses positives apparaitront ici</p>
                   </div>
                 ) : (
-                  hotProspects.map(prospect => (
+                  hotProspects.map((prospect) => (
                     <ProspectCard
                       key={prospect.id}
                       prospect={prospect}
@@ -354,7 +368,7 @@ export default function AutoPilotDashboard() {
                   </div>
                 ) : (
                   <div className="divide-y divide-white/10">
-                    {conversations.map(conv => (
+                    {conversations.map((conv) => (
                       <ConversationItem key={conv.id} conversation={conv} />
                     ))}
                   </div>
@@ -389,7 +403,7 @@ export default function AutoPilotDashboard() {
                 </button>
 
                 <button
-                  onClick={() => navigate('/app/analytics')}
+                  onClick={() => navigate('/app/performance')}
                   className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors"
                 >
                   <span className="flex items-center gap-3">
@@ -412,9 +426,9 @@ export default function AutoPilotDashboard() {
             <div>
               <h3 className="text-lg font-semibold text-white mb-2">Insight IA</h3>
               <p className="text-white/80">
-                Vos prospects dans le secteur <strong>{config.avatarIndustry || 'tech'}</strong> repondent
-                mieux le <strong>mardi et mercredi matin</strong>. Le taux de reponse est 40% plus eleve
-                quand le message mentionne leurs <strong>reseaux sociaux</strong>.
+                Vos prospects dans le secteur <strong>{config.avatarIndustry || 'tech'}</strong>{' '}
+                repondent mieux le <strong>mardi et mercredi matin</strong>. Le taux de reponse est
+                40% plus eleve quand le message mentionne leurs <strong>reseaux sociaux</strong>.
               </p>
             </div>
           </div>
@@ -434,7 +448,9 @@ function StatsCard({ icon: Icon, label, value, color }) {
   }
 
   return (
-    <div className={`p-4 rounded-xl bg-gradient-to-br ${colors[color]} backdrop-blur-xl border border-white/10`}>
+    <div
+      className={`p-4 rounded-xl bg-gradient-to-br ${colors[color]} backdrop-blur-xl border border-white/10`}
+    >
       <Icon className="w-5 h-5 mb-2" />
       <p className="text-2xl font-bold text-white">{value}</p>
       <p className="text-xs text-white/60">{label}</p>
@@ -445,10 +461,14 @@ function StatsCard({ icon: Icon, label, value, color }) {
 function ProspectCard({ prospect, onScheduleMeeting, onSendMessage, loading }) {
   const getChannelIcon = (channel) => {
     switch (channel) {
-      case 'whatsapp': return Phone
-      case 'instagram': return Instagram
-      case 'email': return Mail
-      default: return MessageSquare
+      case 'whatsapp':
+        return Phone
+      case 'instagram':
+        return Instagram
+      case 'email':
+        return Mail
+      default:
+        return MessageSquare
     }
   }
 
@@ -463,10 +483,16 @@ function ProspectCard({ prospect, onScheduleMeeting, onSendMessage, loading }) {
           </div>
           <div>
             <h3 className="font-semibold text-white">{prospect.name || prospect.company}</h3>
-            <p className="text-sm text-white/60">{prospect.industry} • {prospect.location}</p>
+            <p className="text-sm text-white/60">
+              {prospect.industry} • {prospect.location}
+            </p>
             {prospect.respondedAt && (
               <p className="text-xs text-green-400 mt-1">
-                A repondu {formatDistanceToNow(prospect.respondedAt.toDate(), { addSuffix: true, locale: fr })}
+                A repondu{' '}
+                {formatDistanceToNow(prospect.respondedAt.toDate(), {
+                  addSuffix: true,
+                  locale: fr,
+                })}
               </p>
             )}
           </div>
@@ -537,10 +563,14 @@ function ProspectCard({ prospect, onScheduleMeeting, onSendMessage, loading }) {
 function ConversationItem({ conversation }) {
   const getResponseIcon = (type) => {
     switch (type) {
-      case 'positive': return <ThumbsUp className="w-4 h-4 text-green-400" />
-      case 'negative': return <ThumbsDown className="w-4 h-4 text-red-400" />
-      case 'question': return <HelpCircle className="w-4 h-4 text-yellow-400" />
-      default: return <MessageSquare className="w-4 h-4 text-white/40" />
+      case 'positive':
+        return <ThumbsUp className="w-4 h-4 text-green-400" />
+      case 'negative':
+        return <ThumbsDown className="w-4 h-4 text-red-400" />
+      case 'question':
+        return <HelpCircle className="w-4 h-4 text-yellow-400" />
+      default:
+        return <MessageSquare className="w-4 h-4 text-white/40" />
     }
   }
 
@@ -551,15 +581,14 @@ function ConversationItem({ conversation }) {
           {getResponseIcon(conversation.responseType)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">
-            {conversation.prospectName}
-          </p>
-          <p className="text-xs text-white/60 truncate">
-            {conversation.lastMessage}
-          </p>
+          <p className="text-sm font-medium text-white truncate">{conversation.prospectName}</p>
+          <p className="text-xs text-white/60 truncate">{conversation.lastMessage}</p>
           {conversation.lastMessageAt && (
             <p className="text-xs text-white/40 mt-1">
-              {formatDistanceToNow(conversation.lastMessageAt.toDate(), { addSuffix: true, locale: fr })}
+              {formatDistanceToNow(conversation.lastMessageAt.toDate(), {
+                addSuffix: true,
+                locale: fr,
+              })}
             </p>
           )}
         </div>

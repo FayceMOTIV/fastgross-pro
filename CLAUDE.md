@@ -21,7 +21,7 @@ Face Media Factory est un SaaS multi-tenant de prospection intelligente multican
 |-------|---------|-------|
 | Email | Amazon SES / Nodemailer | $0.10/1000 emails |
 | SMS | OVH Telecom | 0.0045 EUR/SMS France |
-| WhatsApp | Evolution API | Open-source, self-hosted |
+| WhatsApp | Evolution API v2.3.7 | Multi-tenant, 1 instance/org, VPS 94.130.184.44:8080 |
 | Instagram DM | Multi-compte rotatif | Anti-ban integre |
 | LinkedIn | HeyReach API + Apify | Scraping + outreach |
 | Voicemail | Drop Cowboy | Voicemail drop |
@@ -178,13 +178,13 @@ face-media-factory/
 │   │   ├── googlemaps/ (1)         # Google Maps hunter (Serper + Apify)
 │   │   ├── linkedin/ (3)           # Hunter + scraper + service HeyReach
 │   │   ├── phantom/ (1)            # PhantomBuster hunter
-│   │   ├── whatsapp/ (3)           # Checker + sender + anti-ban
+│   │   ├── whatsapp/ (3)           # Checker + sender + anti-ban (hunter)
 │   │   ├── email/ (1)             # Email sequence sender
 │   │   └── socialHunterOrchestrator.js  # Orchestrateur cross-platform
 │   │
 │   ├── channels/ (5 canaux)        # Infrastructure multicanale
 │   │   ├── sms/ (5)               # Sender OVH + Twilio, webhooks, templates
-│   │   ├── whatsapp/ (5)          # Meta Cloud API, sessions, templates
+│   │   ├── whatsapp/ (7)          # Evolution API multi-tenant, sender, sessions, templates, webhook
 │   │   ├── instagram/ (4)         # Meta Graph API, DM, webhooks, triggers
 │   │   ├── voicemail/ (5)         # Drop Cowboy, voice clone, scripts
 │   │   └── postal/ (5)            # PostGrid + Merci Facteur, tracking
@@ -288,7 +288,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 
 ---
 
-## Cloud Functions (125 deployes)
+## Cloud Functions (130 deployes)
 
 ### Fonctions Scheduled (21)
 | Function | Schedule | Description |
@@ -325,7 +325,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | AutoPilot | `generateAutoPilotPreview`, `launchAutoPilot`, `sendAutoPilotMessage`, `scheduleMeetingWithProspect`, `getAutoPilotDashboardStats`, `toggleAutoPilot` |
 | Email | `sendCampaignEmail`, `verifyEmailBeforeSend`, `verifyEmailsBatch`, `getNextSendingInbox`, `getInboxesStats`, `getWarmupStatus`, `enableWarmup`, `disableWarmup`, `verifyDNSConfiguration`, `getDomainReputationScore` |
 | SMS | `sendSMS`, `sendSMSBatch`, `sendSMSOvh`, `sendSMSBatchOvh`, `checkSMSCredits` |
-| WhatsApp | `sendWhatsApp`, `checkWhatsAppAvailability` |
+| WhatsApp | `sendWhatsApp`, `checkWhatsAppAvailability`, `createWhatsAppInstance`, `getWhatsAppQRCode`, `getWhatsAppConnectionStatus`, `disconnectWhatsApp` |
 | Instagram | `sendInstagramDM`, `processCommentTrigger`, `createCommentTrigger` |
 | Voicemail | `sendVoicemailDrop`, `createVoiceClone`, `listVoices`, `generateScript`, `generateScriptWithAI` |
 | Postal | `sendLetter`, `sendPostcard`, `sendLetterMF`, `sendRegisteredLetterMF`, `validateAddress` |
@@ -341,7 +341,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | AI | `personalizeMessage`, `getAIStatus` |
 | Posting | `createMultiPlatformPost`, `getPostStatus`, `cancelPost` |
 
-### Fonctions HTTP (17)
+### Fonctions HTTP (18)
 | Function | Description |
 |----------|-------------|
 | `emailAgent` | Cloud Tasks agent — emails |
@@ -361,6 +361,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | `postalDeliveryWebhook` | Webhook livraison postal |
 | `webhookIncoming` | Agent Alex — webhook entrant |
 | `handleMFWebhook` | Webhook Merci Facteur |
+| `evolutionWebhook` | Webhook Evolution API (WhatsApp multi-tenant) |
 
 ---
 
@@ -385,7 +386,8 @@ organizations/{orgId}/
 ├── abTests/{testId}                # Tests A/B
 ├── suppressionList/{email}         # Liste suppression
 ├── analytics/{date}                # Analytics par jour
-└── hunterResults/{resultId}        # Resultats sourcing
+├── hunterResults/{resultId}        # Resultats sourcing
+└── integrations/whatsapp           # Config WhatsApp multi-tenant (Evolution API)
 
 users/{userId}                       # Profils utilisateurs
 betaUsers/{email}                    # Utilisateurs beta
@@ -413,6 +415,16 @@ subscriptionPlans/{planId}           # Plans d'abonnement
     postal: { enabled: false, provider: 'mercifacteur' },
     twitter: { enabled: false }
   }
+}
+
+// organizations/{orgId}/integrations/whatsapp (multi-tenant)
+{
+  provider: 'evolution',                    // 'evolution' | 'meta'
+  instanceName: 'whatsapp-{orgId}',         // Nom instance Evolution API
+  status: 'disconnected',                   // 'disconnected' | 'connecting' | 'connected'
+  phoneNumber: '+33...',                    // Rempli apres connexion
+  connectedAt: Timestamp,                   // Date connexion
+  enabled: true
 }
 ```
 

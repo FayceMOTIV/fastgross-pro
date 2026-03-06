@@ -1,7 +1,15 @@
 /**
- * WhatsApp Sender - Meta Cloud API
+ * WhatsApp Sender - Evolution API + Meta Cloud API
  *
- * Envoi WhatsApp via Meta Cloud API direct:
+ * Provider routing:
+ * - Si EVOLUTION_API_URL est configure → Evolution API (self-hosted, gratuit)
+ * - Sinon → Meta Cloud API (officiel, payant)
+ *
+ * Evolution API (self-hosted):
+ * - Messages texte libres (pas de fenetre 24h)
+ * - Pas besoin de templates approuves
+ *
+ * Meta Cloud API:
  * - Templates pre-approuves (hors fenetre 24h)
  * - Messages libres (dans fenetre 24h)
  * - Quick reply buttons
@@ -16,6 +24,82 @@ import { getApprovedTemplate, validateTemplateParams } from './templates.js';
 const getDb = () => getFirestore();
 
 // ============================================
+// PROVIDER DETECTION
+// ============================================
+const useEvolutionAPI = () => !!process.env.EVOLUTION_API_URL;
+
+const getEvolutionConfig = async (orgId) => {
+  // Multi-tenant : chercher l'instance du tenant dans Firestore
+  if (orgId) {
+    try {
+      const configRef = getDb().collection('organizations').doc(orgId)
+        .collection('integrations').doc('whatsapp');
+      const configSnap = await configRef.get();
+
+      if (configSnap.exists) {
+        const data = configSnap.data();
+        if (data?.instanceName && data?.status === 'connected') {
+          return {
+            url: process.env.EVOLUTION_API_URL,
+            apiKey: process.env.EVOLUTION_API_KEY,
+            instanceName: data.instanceName,
+          };
+        }
+      }
+    } catch (err) {
+      console.error('getEvolutionConfig tenant lookup error:', err.message);
+    }
+  }
+
+  // Fallback : instance globale
+  return {
+    url: process.env.EVOLUTION_API_URL,
+    apiKey: process.env.EVOLUTION_API_KEY,
+    instanceName: process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3',
+  };
+};
+
+// ============================================
+// EVOLUTION API — ENVOI MESSAGE
+// ============================================
+async function sendEvolutionMessage(orgId, phone, text) {
+  const config = await getEvolutionConfig(orgId);
+  const url = `${config.url}/message/sendText/${config.instanceName}`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'apikey': config.apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ number: phone, text }),
+      signal: controller.signal
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.error) {
+      return { error: { message: data.response?.message || data.error || 'Evolution API error' } };
+    }
+
+    return {
+      messages: [{ id: data.key?.id || data.messageId || `evo_${Date.now()}` }]
+    };
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      return { error: { message: 'Evolution API timeout (30s)' } };
+    }
+    return { error: { message: err.message || 'Evolution API unreachable' } };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// ============================================
 // CONFIGURATION META CLOUD API
 // ============================================
 const META_API_VERSION = 'v18.0';
@@ -28,7 +112,6 @@ const getMetaConfig = async (orgId) => {
     const configSnap = await configRef.get();
 
     if (!configSnap.exists) {
-      // Fallback aux variables d'environnement
       return {
         phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
         accessToken: process.env.WHATSAPP_ACCESS_TOKEN,
@@ -95,46 +178,54 @@ export async function sendWhatsApp(orgId, prospectId, messageData, options = {})
       return result;
     }
 
-    // 4. Verifier session 24h
-    const sessionCheck = await isInSessionWindow(orgId, prospectId);
+    // 4. Determiner le provider et envoyer
+    let response;
+    let sessionCheck = { inSession: false };
 
-    // 5. Determiner le type de message
-    let messagePayload;
-
-    if (sessionCheck.inSession) {
-      // Dans la fenetre 24h - peut envoyer message libre
-      messagePayload = await buildSessionMessage(messageData, prospect, options);
-      result.messageType = 'session';
+    if (useEvolutionAPI()) {
+      // Evolution API — envoi direct, pas de fenetre 24h
+      const text = messageData.text || messageData.body || '';
+      const personalizedText = replaceVariables(text, prospect, options);
+      response = await sendEvolutionMessage(orgId, formattedPhone, personalizedText);
+      result.messageType = 'evolution';
     } else {
-      // Hors fenetre 24h - doit utiliser template
-      if (!messageData.templateName) {
-        result.error = 'Template required outside 24h session window';
+      // Meta Cloud API — gestion session 24h + templates
+      sessionCheck = await isInSessionWindow(orgId, prospectId);
+
+      let messagePayload;
+
+      if (sessionCheck.inSession) {
+        messagePayload = await buildSessionMessage(messageData, prospect, options);
+        result.messageType = 'session';
+      } else {
+        if (!messageData.templateName) {
+          result.error = 'Template required outside 24h session window';
+          return result;
+        }
+        messagePayload = await buildTemplateMessage(orgId, messageData, prospect, options);
+        result.messageType = 'template';
+      }
+
+      if (!messagePayload) {
+        result.error = 'Failed to build message payload';
         return result;
       }
-      messagePayload = await buildTemplateMessage(orgId, messageData, prospect, options);
-      result.messageType = 'template';
-    }
 
-    if (!messagePayload) {
-      result.error = 'Failed to build message payload';
-      return result;
+      const config = await getMetaConfig(orgId);
+      response = await sendMetaMessage(config, formattedPhone, messagePayload);
     }
-
-    // 6. Envoyer via Meta API
-    const config = await getMetaConfig(orgId);
-    const response = await sendMetaMessage(config, formattedPhone, messagePayload);
 
     if (response.error) {
-      result.error = response.error.message || 'Meta API error';
-      result.metaError = response.error;
+      result.error = response.error.message || 'WhatsApp API error';
+      result.apiError = response.error;
       return result;
     }
 
     result.success = true;
     result.messageId = response.messages?.[0]?.id;
 
-    // 7. Creer/mettre a jour la session
-    if (!sessionCheck.inSession) {
+    // 7. Creer/mettre a jour la session (Meta API seulement)
+    if (!useEvolutionAPI() && !sessionCheck.inSession) {
       await createSession(orgId, prospectId, formattedPhone);
     }
 

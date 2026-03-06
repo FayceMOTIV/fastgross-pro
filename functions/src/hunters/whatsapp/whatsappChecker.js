@@ -14,7 +14,7 @@ const getDb = () => getFirestore()
 // Evolution API config (self-hosted, free)
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'http://localhost:8080'
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || ''
-const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'facemedia'
+const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3'
 
 // Limits
 const BATCH_SIZE = 100

@@ -1,12 +1,36 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Building2, MessageSquare, Mail, Share2, Rocket,
-  ArrowRight, ArrowLeft, Check, Loader2, AlertCircle,
-  Globe, Users, Wifi, WifiOff, Eye, EyeOff, Copy,
-  Zap, Clock, MapPin, RefreshCw, ChevronDown,
-  Instagram, Linkedin, Twitter, CheckCircle2, XCircle,
-  Send, Settings2, Sparkles
+  Building2,
+  MessageSquare,
+  Mail,
+  Share2,
+  Rocket,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Loader2,
+  AlertCircle,
+  Globe,
+  Users,
+  Wifi,
+  WifiOff,
+  Eye,
+  EyeOff,
+  Copy,
+  Zap,
+  Clock,
+  MapPin,
+  RefreshCw,
+  ChevronDown,
+  Instagram,
+  Linkedin,
+  Twitter,
+  CheckCircle2,
+  XCircle,
+  Send,
+  Settings2,
+  Sparkles,
 } from 'lucide-react'
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { useOrg } from '@/contexts/OrgContext'
@@ -59,15 +83,31 @@ const STEPS = [
 ]
 
 const INDUSTRIES = [
-  'Agence marketing', 'Agence web', 'Consultant', 'Coach',
-  'SaaS / Tech', 'E-commerce', 'Immobilier', 'Formation',
-  'Artisan / BTP', 'Restauration', 'Sante / Bien-etre', 'Autre',
+  'Agence marketing',
+  'Agence web',
+  'Consultant',
+  'Coach',
+  'SaaS / Tech',
+  'E-commerce',
+  'Immobilier',
+  'Formation',
+  'Artisan / BTP',
+  'Restauration',
+  'Sante / Bien-etre',
+  'Autre',
 ]
 
 const TIMEZONES = [
-  'Europe/Paris', 'Europe/London', 'Europe/Berlin', 'Europe/Madrid',
-  'America/New_York', 'America/Chicago', 'America/Los_Angeles',
-  'Asia/Tokyo', 'Africa/Casablanca', 'Africa/Tunis',
+  'Europe/Paris',
+  'Europe/London',
+  'Europe/Berlin',
+  'Europe/Madrid',
+  'America/New_York',
+  'America/Chicago',
+  'America/Los_Angeles',
+  'Asia/Tokyo',
+  'Africa/Casablanca',
+  'Africa/Tunis',
 ]
 
 const DEFAULT_FORM = {
@@ -374,7 +414,9 @@ export default function ClientSetup() {
           <div className="card p-6 mb-6">
             {/* Step header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stepConfig.gradient} flex items-center justify-center`}>
+              <div
+                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stepConfig.gradient} flex items-center justify-center`}
+              >
                 <StepIcon className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -386,9 +428,7 @@ export default function ClientSetup() {
             </div>
 
             {/* Step form */}
-            {currentStep === 1 && (
-              <Step1Company form={form} updateField={updateField} />
-            )}
+            {currentStep === 1 && <Step1Company form={form} updateField={updateField} />}
             {currentStep === 2 && (
               <Step2WhatsApp
                 form={form}
@@ -414,9 +454,7 @@ export default function ClientSetup() {
                 togglePassword={togglePassword}
               />
             )}
-            {currentStep === 5 && (
-              <Step5Prospection form={form} updateField={updateField} />
-            )}
+            {currentStep === 5 && <Step5Prospection form={form} updateField={updateField} />}
 
             {/* Errors */}
             <AnimatePresence>
@@ -456,7 +494,13 @@ export default function ClientSetup() {
                     ) : (
                       <WifiOff className="w-4 h-4 text-amber-600" />
                     )}
-                    <span className={connectionTest.connected || connectionTest.valid ? 'text-green-700' : 'text-amber-700'}>
+                    <span
+                      className={
+                        connectionTest.connected || connectionTest.valid
+                          ? 'text-green-700'
+                          : 'text-amber-700'
+                      }
+                    >
                       {connectionTest.message}
                     </span>
                   </div>
@@ -477,11 +521,7 @@ export default function ClientSetup() {
             </button>
 
             <div className="flex items-center gap-3">
-              {currentStep < 5 && (
-                <span className="text-xs text-gray-400">
-                  {currentStep}/5
-                </span>
-              )}
+              {currentStep < 5 && <span className="text-xs text-gray-400">{currentStep}/5</span>}
 
               {currentStep < 5 ? (
                 <button
@@ -629,7 +669,11 @@ function Step2WhatsApp({ form, updateField, connectionTest, showPassword, toggle
                   onClick={() => togglePassword('evolutionApiKey')}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  {showPassword.evolutionApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword.evolutionApiKey ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               }
             />
@@ -765,7 +809,11 @@ function Step3Email({ form, updateField, showPassword, togglePassword }) {
                       onClick={() => togglePassword('smtpPass')}
                       className="text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword.smtpPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword.smtpPass ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   }
                 />
@@ -796,7 +844,11 @@ function Step3Email({ form, updateField, showPassword, togglePassword }) {
                     onClick={() => togglePassword('instantlyApiKey')}
                     className="text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword.instantlyApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword.instantlyApiKey ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 }
               />
@@ -841,7 +893,11 @@ function Step4Social({ form, updateField, showPassword, togglePassword }) {
               onClick={() => togglePassword('typefullyApiKey')}
               className="text-gray-400 hover:text-gray-600"
             >
-              {showPassword.typefullyApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword.typefullyApiKey ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </button>
           }
         />
@@ -903,7 +959,11 @@ function Step4Social({ form, updateField, showPassword, togglePassword }) {
                 onClick={() => togglePassword('linkedinApiKey')}
                 className="text-gray-400 hover:text-gray-600"
               >
-                {showPassword.linkedinApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword.linkedinApiKey ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
               </button>
             }
           />
@@ -934,7 +994,9 @@ function Step5Prospection({ form, updateField }) {
           className="input-field"
         >
           {TIMEZONES.map((tz) => (
-            <option key={tz} value={tz}>{tz}</option>
+            <option key={tz} value={tz}>
+              {tz}
+            </option>
           ))}
         </select>
       </div>
@@ -956,7 +1018,9 @@ function Step5Prospection({ form, updateField }) {
               className="input-field"
             >
               {Array.from({ length: 24 }, (_, i) => (
-                <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                <option key={i} value={i}>
+                  {String(i).padStart(2, '0')}:00
+                </option>
               ))}
             </select>
           </div>
@@ -968,7 +1032,9 @@ function Step5Prospection({ form, updateField }) {
               className="input-field"
             >
               {Array.from({ length: 24 }, (_, i) => (
-                <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                <option key={i} value={i}>
+                  {String(i).padStart(2, '0')}:00
+                </option>
               ))}
             </select>
           </div>
@@ -1017,10 +1083,7 @@ function Step5Prospection({ form, updateField }) {
 
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-700">Recharge automatique</span>
-          <ToggleSwitch
-            enabled={form.autoRefill}
-            onChange={(v) => updateField('autoRefill', v)}
-          />
+          <ToggleSwitch enabled={form.autoRefill} onChange={(v) => updateField('autoRefill', v)} />
         </div>
 
         <FormField
@@ -1056,10 +1119,7 @@ function Step5Prospection({ form, updateField }) {
             <p className="text-xs text-gray-500">Lancer la prospection des la fin du setup</p>
           </div>
         </div>
-        <ToggleSwitch
-          enabled={form.autoStart}
-          onChange={(v) => updateField('autoStart', v)}
-        />
+        <ToggleSwitch enabled={form.autoStart} onChange={(v) => updateField('autoStart', v)} />
       </div>
     </div>
   )
@@ -1086,26 +1146,18 @@ function SetupCompleteScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Configuration terminee !
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Configuration terminee !</h1>
         <p className="text-gray-500 mb-8">
-          Votre espace de prospection est pret. Les canaux actifs vont commencer
-          a fonctionner selon vos parametres.
+          Votre espace de prospection est pret. Les canaux actifs vont commencer a fonctionner selon
+          vos parametres.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a
-            href="/app"
-            className="btn-primary flex items-center gap-2"
-          >
+          <a href="/app" className="btn-primary flex items-center gap-2">
             <Rocket className="w-4 h-4" />
             Aller au Dashboard
           </a>
-          <a
-            href="/app/settings"
-            className="btn-ghost flex items-center gap-2"
-          >
+          <a href="/app/config" className="btn-ghost flex items-center gap-2">
             <Settings2 className="w-4 h-4" />
             Modifier les parametres
           </a>
@@ -1119,7 +1171,17 @@ function SetupCompleteScreen() {
 // Shared UI Components
 // ============================================
 
-function FormField({ label, required, value, onChange, placeholder, type = 'text', icon: Icon, multiline, suffix }) {
+function FormField({
+  label,
+  required,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  icon: Icon,
+  multiline,
+  suffix,
+}) {
   const inputClasses = 'input-field w-full' + (Icon ? ' pl-9' : '') + (suffix ? ' pr-10' : '')
 
   return (
@@ -1151,11 +1213,7 @@ function FormField({ label, required, value, onChange, placeholder, type = 'text
             className={inputClasses}
           />
         )}
-        {suffix && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {suffix}
-          </div>
-        )}
+        {suffix && <div className="absolute right-3 top-1/2 -translate-y-1/2">{suffix}</div>}
       </div>
     </div>
   )

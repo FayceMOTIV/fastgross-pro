@@ -84,7 +84,7 @@ JSON UNIQUEMENT:
 }`
 
   try {
-    const response = await callAI(prompt, { maxTokens: 500 })
+    const response = await callAI(prompt, 500)
     return parseJsonResponse(response)
   } catch {
     return null
@@ -289,7 +289,7 @@ FORMAT DE REPONSE JSON UNIQUEMENT:
 IMPORTANT: Chaque entreprise doit avoir un site web REEL et ACCESSIBLE. Verifie mentalement que l'URL est plausible.`
 
   try {
-    const response = await callAI(prompt, { maxTokens: 4500, temperature: 0.9 })
+    const response = await callAI(prompt, 4500)
     const parsed = parseJsonResponse(response)
     return parsed.companies || []
   } catch (error) {
@@ -479,7 +479,7 @@ JSON UNIQUEMENT:
 }`
 
   try {
-    const response = await callAI(prompt, { maxTokens: 1500 })
+    const response = await callAI(prompt, 1500)
     const data = parseJsonResponse(response)
 
     // Fusionner avec les donnees scrapees
@@ -586,7 +586,7 @@ JSON UNIQUEMENT:
 }`
 
   try {
-    const response = await callAI(prompt, { maxTokens: 3000, temperature: 0.8 })
+    const response = await callAI(prompt, 3000)
     const parsed = parseJsonResponse(response)
     return parsed.steps || []
   } catch (error) {

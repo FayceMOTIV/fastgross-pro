@@ -12,7 +12,24 @@ const getDb = () => getFirestore()
 // Evolution API config
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || ''
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || ''
-const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE_NAME || 'facemedia'
+
+async function getInstanceName(orgId) {
+  if (orgId) {
+    try {
+      const configSnap = await getDb()
+        .collection('organizations').doc(orgId)
+        .collection('integrations').doc('whatsapp')
+        .get()
+      if (configSnap.exists) {
+        const data = configSnap.data()
+        if (data?.instanceName && data?.status === 'connected') {
+          return data.instanceName
+        }
+      }
+    } catch { /* fallback */ }
+  }
+  return process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3'
+}
 
 /**
  * Envoie un message via le canal optimal
@@ -48,7 +65,7 @@ export async function sendMessage(params) {
 
   switch (channel) {
     case 'whatsapp':
-      result = await sendViaWhatsApp(to, message)
+      result = await sendViaWhatsApp(to, message, orgId)
       break
     case 'email':
       result = await sendViaEmail(to, message, metadata)
@@ -98,17 +115,18 @@ export async function sendMessage(params) {
 // ============================================
 // WHATSAPP via Evolution API
 // ============================================
-async function sendViaWhatsApp(phone, text) {
+async function sendViaWhatsApp(phone, text, orgId) {
   if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
     logger.error('Evolution API not configured')
     return { success: false, error: 'evolution_api_not_configured' }
   }
 
   const cleanPhone = phone.replace(/[^\d]/g, '')
+  const instanceName = await getInstanceName(orgId)
 
   try {
     const response = await axios.post(
-      `${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE}`,
+      `${EVOLUTION_API_URL}/message/sendText/${instanceName}`,
       {
         number: cleanPhone,
         text,

@@ -614,6 +614,58 @@ service cloud.firestore {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
       }
+
+      // ------------------------------------------
+      // KNOWLEDGE BASE - RAG vector chunks
+      // ------------------------------------------
+      match /kb/{chunkId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if canManage(orgId);
+      }
+
+      // ------------------------------------------
+      // ESCALATIONS - Human In The Loop queue
+      // ------------------------------------------
+      match /escalations/{escId} {
+        allow read: if canRead(orgId);
+        allow create: if canWrite(orgId);
+        allow update: if canWrite(orgId);
+        allow delete: if false; // Audit trail
+      }
+
+      // ------------------------------------------
+      // AGENT PLAYBOOK - AI learned strategies
+      // ------------------------------------------
+      match /agentPlaybook/{docId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions (agentLearning)
+      }
+
+      // ------------------------------------------
+      // SCHEDULED FOLLOWUPS - Delayed tasks
+      // ------------------------------------------
+      match /scheduledFollowups/{followupId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // REPLY LOGS - Detailed reply processing logs
+      // ------------------------------------------
+      match /replyLogs/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // SUPPRESSION - Email/channel suppression list
+      // ------------------------------------------
+      match /suppression/{docId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
     }
 
     // ============================================

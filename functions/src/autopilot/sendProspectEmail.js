@@ -35,9 +35,9 @@ function getEffectiveLimit(account) {
 /**
  * Cle de chiffrement pour les credentials email (32 chars pour AES-256)
  */
-const EMAIL_ENCRYPTION_KEY = process.env.EMAIL_ENCRYPTION_KEY
+const EMAIL_ENCRYPTION_KEY = process.env.EMAIL_ENCRYPTION_KEY || ''
 if (!EMAIL_ENCRYPTION_KEY) {
-  console.error('CRITICAL: EMAIL_ENCRYPTION_KEY env var is not set')
+  console.warn('EMAIL_ENCRYPTION_KEY env var is not set — encrypted credentials will use base64 fallback')
 }
 
 /**

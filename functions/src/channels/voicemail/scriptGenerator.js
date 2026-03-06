@@ -181,7 +181,7 @@ STRUCTURE:
 
 Reponds UNIQUEMENT avec le script, sans explication.`;
 
-    const response = await callAI(prompt, { maxTokens: 200 });
+    const response = await callAI(prompt, 200);
 
     if (!response) {
       return null;

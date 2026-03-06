@@ -134,7 +134,7 @@ Reponds UNIQUEMENT en JSON:
   ]
 }`
 
-  const response = await callAI(prompt, { maxTokens: 3000 })
+  const response = await callAI(prompt, 3000)
   const parsed = parseJsonResponse(response)
 
   return parsed.leads || []
@@ -180,7 +180,7 @@ Reponds UNIQUEMENT en JSON:
   }
 }`
 
-      const response = await callAI(prompt, { maxTokens: 1500 })
+      const response = await callAI(prompt, 1500)
       return parseJsonResponse(response)
     } catch (error) {
       console.error('Get lead insights error:', error)

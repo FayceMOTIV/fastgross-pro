@@ -21,10 +21,10 @@ import * as crypto from 'crypto'
 
 const getDb = () => getFirestore()
 
-// Encryption key from environment (32 chars) - REQUIRED, no fallback
-const ENCRYPTION_KEY = process.env.INSTAGRAM_ENCRYPTION_KEY
+// Encryption key from environment (32 chars)
+const ENCRYPTION_KEY = process.env.INSTAGRAM_ENCRYPTION_KEY || ''
 if (!ENCRYPTION_KEY) {
-  console.error('CRITICAL: INSTAGRAM_ENCRYPTION_KEY env var is not set')
+  console.warn('INSTAGRAM_ENCRYPTION_KEY env var is not set — Instagram DM encryption disabled')
 }
 
 // Encryption helpers using AES-256-CBC

@@ -72,6 +72,15 @@ export const REPLY_CATEGORIES = {
     stopSequence: true,
     priority: 'critical'
   },
+  NOT_NOW: {
+    code: 'NOT_NOW',
+    label: 'Pas maintenant',
+    description: 'Interesse mais pas le bon moment, relancer plus tard',
+    color: 'yellow',
+    action: 'reschedule_later',
+    stopSequence: true,
+    priority: 'medium'
+  },
   NEUTRAL: {
     code: 'NEUTRAL',
     label: 'Neutre',
@@ -117,7 +126,14 @@ const CATEGORY_KEYWORDS = {
   ],
   REFERRAL: [
     'contactez plutot', 'contactez plutôt', 'mon collegue', 'mon collègue',
-    'responsable', 'transfere', 'transféré', 'dirigez-vous', 'voici le contact'
+    'responsable', 'transfere', 'transféré', 'dirigez-vous', 'voici le contact',
+    'voici son email', 'voici son mail', 'je vous mets en contact'
+  ],
+  NOT_NOW: [
+    'pas le moment', 'pas maintenant', 'revenez', 'recontactez',
+    'dans quelques mois', 'apres l\'ete', 'après l\'été', 'debut d\'annee',
+    'début d\'année', 'plus tard', 'fin d\'annee', 'fin d\'année',
+    'en janvier', 'en septembre', 'prochainement', 'rappeler dans'
   ]
 }
 
@@ -213,6 +229,7 @@ CATEGORIES POSSIBLES:
 5. OOO — Absent du bureau, message automatique de vacances
 6. WRONG_PERSON — Dit que ce n'est pas la bonne personne pour ce sujet
 7. UNSUBSCRIBE — Demande explicite de desinscription ou arret des emails
+8. NOT_NOW — Interesse mais pas le bon moment, demande de revenir plus tard
 
 ANALYSE REQUISE:
 1. Identifie la categorie principale
@@ -222,7 +239,7 @@ ANALYSE REQUISE:
 
 Retourne UNIQUEMENT ce JSON:
 {
-  "category": "POSITIVE|NEGATIVE|OBJECTION|REFERRAL|OOO|WRONG_PERSON|UNSUBSCRIBE",
+  "category": "POSITIVE|NEGATIVE|OBJECTION|REFERRAL|OOO|WRONG_PERSON|UNSUBSCRIBE|NOT_NOW",
   "sentiment": "positive|neutral|negative",
   "confidence": "high|medium|low",
   "objectionType": "price|timing|competitor|other|null",
@@ -277,6 +294,7 @@ function getSentimentFromCategory(category) {
     OOO: 'neutral',
     WRONG_PERSON: 'neutral',
     UNSUBSCRIBE: 'negative',
+    NOT_NOW: 'neutral',
     NEUTRAL: 'neutral'
   }
   return sentimentMap[category] || 'neutral'
@@ -291,6 +309,7 @@ function getSuggestedReply(category, prospect) {
     OOO: null, // Replanifier
     WRONG_PERSON: `Merci de me l'indiquer. Pourriez-vous me diriger vers la bonne personne ?`,
     UNSUBSCRIBE: null, // Pas de reponse, juste desinscription
+    NOT_NOW: `Pas de souci, je note. Je me permettrai de revenir vers vous dans quelques semaines. Bonne continuation !`,
     NEUTRAL: `Merci pour votre retour. Y a-t-il des informations supplementaires que je puisse vous apporter ?`
   }
   return replies[category]
@@ -333,44 +352,154 @@ export async function executeReplyActions(classification, prospect, orgId, campa
       break
 
     case 'NEGATIVE':
-    case 'UNSUBSCRIBE':
       // Ajouter a la liste de suppression
       await db.collection(`organizations/${orgId}/suppression`).add({
         email: prospect.email,
         prospectId: prospect.id,
-        reason: category === 'UNSUBSCRIBE' ? 'unsubscribe_request' : 'negative_reply',
+        reason: 'negative_reply',
         addedAt: new Date()
       })
       actions.push({ action: 'add_suppression', success: true })
       break
 
-    case 'REFERRAL':
-      // Creer un nouveau prospect avec le contact refere
-      if (classification.extractedInfo?.referredContact) {
-        await db.collection(`organizations/${orgId}/prospects`).add({
-          email: classification.extractedInfo.referredContact,
-          source: 'referral',
-          referredBy: prospect.id,
-          status: 'new',
-          createdAt: new Date()
+    case 'UNSUBSCRIBE':
+      // Ajouter a la blacklist + suppression
+      await db.collection(`organizations/${orgId}/suppression`).add({
+        email: prospect.email,
+        prospectId: prospect.id,
+        reason: 'unsubscribe_request',
+        addedAt: new Date()
+      })
+      // Mark prospect as blacklisted
+      if (prospect.id) {
+        await db.collection(`organizations/${orgId}/prospects`).doc(prospect.id).update({
+          crmColumn: 'LOST',
+          blacklisted: true,
+          blacklistedAt: new Date(),
+          blacklistedReason: 'unsubscribe_request',
+          updatedAt: new Date(),
         })
-        actions.push({ action: 'create_referral', success: true })
       }
+      actions.push({ action: 'blacklist_unsubscribe', success: true })
       break
 
-    case 'OOO':
-      // Reprogrammer apres la date de retour
-      if (classification.extractedInfo?.returnDate) {
-        const returnDate = new Date(classification.extractedInfo.returnDate)
-        returnDate.setDate(returnDate.getDate() + 2) // +2 jours apres retour
-
-        await db.collection(`organizations/${orgId}/campaigns`).doc(campaignId).update({
-          pausedUntil: returnDate,
-          status: 'paused',
-          pauseReason: 'Prospect absent - reprise automatique'
-        })
-        actions.push({ action: 'reschedule_ooo', success: true, resumeDate: returnDate })
+    case 'REFERRAL': {
+      // Extraire email/nom du contact refere via IA et creer nouveau prospect
+      const referred = classification.extractedInfo?.referredContact
+      if (referred) {
+        const emailMatch = referred.match(/[\w.-]+@[\w.-]+\.\w+/)
+        const newProspect = {
+          source: 'referral',
+          referredBy: prospect.id,
+          referredByName: `${prospect.firstName || ''} ${prospect.lastName || ''}`.trim(),
+          status: 'new',
+          crmColumn: 'NEW',
+          createdAt: new Date(),
+        }
+        if (emailMatch) {
+          newProspect.email = emailMatch[0]
+        }
+        // Extract name if not just an email
+        const nameOnly = referred.replace(/[\w.-]+@[\w.-]+\.\w+/g, '').trim()
+        if (nameOnly) {
+          const parts = nameOnly.split(/\s+/)
+          newProspect.firstName = parts[0] || ''
+          newProspect.lastName = parts.slice(1).join(' ') || ''
+        }
+        await db.collection(`organizations/${orgId}/prospects`).add(newProspect)
+        actions.push({ action: 'create_referral', success: true, referredContact: referred })
       }
+      // Notify tenant
+      await db.collection(`organizations/${orgId}/notifications`).add({
+        type: 'referral',
+        prospectId: prospect.id,
+        prospectName: prospect.company,
+        message: `Renvoi vers: ${referred || 'contact non extrait'}`,
+        priority: 'medium',
+        createdAt: new Date(),
+        read: false,
+      })
+      actions.push({ action: 'notify_referral', success: true })
+      break
+    }
+
+    case 'OOO': {
+      // Extraire date de retour et reprogrammer
+      const returnDateStr = classification.extractedInfo?.returnDate
+      let resumeDate
+      if (returnDateStr) {
+        resumeDate = new Date(returnDateStr)
+        if (isNaN(resumeDate.getTime())) resumeDate = null
+      }
+      if (!resumeDate) {
+        // Default: +7 jours si pas de date extraite
+        resumeDate = new Date()
+        resumeDate.setDate(resumeDate.getDate() + 7)
+      }
+      resumeDate.setDate(resumeDate.getDate() + 2) // +2 jours apres retour
+
+      if (campaignId) {
+        await db.collection(`organizations/${orgId}/campaigns`).doc(campaignId).update({
+          pausedUntil: resumeDate,
+          status: 'paused',
+          pauseReason: 'Prospect absent - reprise automatique',
+        })
+      }
+      // Schedule followup
+      await db.collection(`organizations/${orgId}/scheduledFollowups`).add({
+        leadId: prospect.id,
+        scheduledDate: resumeDate,
+        note: 'Relance post-absence (OOO detecte)',
+        status: 'pending',
+        createdAt: new Date(),
+      })
+      actions.push({ action: 'reschedule_ooo', success: true, resumeDate })
+      break
+    }
+
+    case 'NOT_NOW': {
+      // Programmer une relance +30 jours par defaut
+      const followupDate = new Date()
+      followupDate.setDate(followupDate.getDate() + 30)
+
+      await db.collection(`organizations/${orgId}/scheduledFollowups`).add({
+        leadId: prospect.id,
+        scheduledDate: followupDate,
+        note: 'Relance - prospect interesse mais pas le bon moment',
+        status: 'pending',
+        createdAt: new Date(),
+      })
+      // Update prospect CRM
+      if (prospect.id) {
+        await db.collection(`organizations/${orgId}/prospects`).doc(prospect.id).update({
+          crmColumn: 'CONTACTED',
+          agentNotes: 'Pas le bon moment - relance programmee +30j',
+          updatedAt: new Date(),
+        })
+      }
+      actions.push({ action: 'reschedule_not_now', success: true, followupDate })
+      break
+    }
+
+    case 'WRONG_PERSON':
+      // Stopper sequence + marquer LOST + notifier
+      if (prospect.id) {
+        await db.collection(`organizations/${orgId}/prospects`).doc(prospect.id).update({
+          crmColumn: 'LOST',
+          lostReason: 'wrong_person',
+          updatedAt: new Date(),
+        })
+      }
+      await db.collection(`organizations/${orgId}/notifications`).add({
+        type: 'wrong_person',
+        prospectId: prospect.id,
+        prospectName: prospect.company,
+        message: 'Mauvais contact detecte - sequence arretee',
+        priority: 'low',
+        createdAt: new Date(),
+        read: false,
+      })
+      actions.push({ action: 'mark_wrong_person', success: true })
       break
 
     case 'OBJECTION':

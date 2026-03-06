@@ -21,6 +21,7 @@
     "setup-whatsapp": "bash configure-firebase.sh"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-pdf/renderer": "^4.3.2",
     "@reactour/tour": "^3.8.0",

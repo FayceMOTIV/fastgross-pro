@@ -91,37 +91,25 @@ export { createABTest, selectVariant, recordEvent, getActiveTests, getTestHistor
 // Multichannel Infrastructure v5.0
 // ============================================
 
-// --- SMS (Twilio + OVH Telecom) ---
-export { sendSMS, sendSMSBatch } from './channels/sms/sender.js'
-export { sendSMS as sendSMSOvh, sendSMSBatch as sendSMSBatchOvh, checkCredits as checkSMSCredits } from './channels/sms/ovhSmsProvider.js'
+// --- SMS (BudgetSMS + OVH Telecom) ---
+export { sendSMS, sendSMSBatch, sendSMSOvh, sendSMSBatchOvh, checkSMSCredits, createSMSTemplate, getSMSTemplates, validateSMSContent } from './channels/sms/smsCallable.js'
 export { smsStatusWebhook, smsInboundWebhook } from './channels/sms/webhooks.js'
-export { createSMSTemplate, getSMSTemplates, validateSMSContent } from './channels/sms/templates.js'
 
-// --- WhatsApp (Meta Cloud API) ---
-export { sendWhatsApp, markAsRead } from './channels/whatsapp/sender.js'
-export { isInSessionWindow, createSession } from './channels/whatsapp/sessionManager.js'
-export { getApprovedTemplate, syncTemplatesFromMeta, submitTemplateForApproval } from './channels/whatsapp/templates.js'
-export { checkWhatsAppAvailability, checkBatchAvailability } from './channels/whatsapp/reachability.js'
+// --- WhatsApp (Evolution API Multi-Tenant + Meta Cloud API) ---
+export { sendWhatsApp, markAsRead, isInSessionWindow, createSession, getApprovedTemplate, syncTemplatesFromMeta, submitTemplateForApproval, checkWhatsAppAvailability, checkBatchAvailability, createWhatsAppInstance, getWhatsAppQRCode, getWhatsAppConnectionStatus, disconnectWhatsApp } from './channels/whatsapp/whatsappCallable.js'
+export { evolutionWebhookHandler as evolutionWebhook } from './channels/whatsapp/evolutionWebhook.js'
 
 // --- Instagram (Meta Graph API) ---
-export { sendInstagramDM, sendPrivateReply } from './channels/instagram/dmSender.js'
+export { sendInstagramDM, sendPrivateReply, processCommentTrigger, createCommentTrigger } from './channels/instagram/instagramCallable.js'
 export { instagramWebhookVerify, instagramWebhookHandler } from './channels/instagram/webhookHandler.js'
-export { processCommentTrigger, createCommentTrigger } from './channels/instagram/commentTrigger.js'
 
 // --- Voicemail (Drop Cowboy) ---
-export { sendVoicemailDrop, getDropStatus, cancelDrop } from './channels/voicemail/dropSender.js'
-export { createVoiceClone, listVoices, getVoice, deleteVoice, previewTTS } from './channels/voicemail/voiceClone.js'
-export { generateScript, generateScriptWithAI, createScriptTemplate, listScriptTemplates } from './channels/voicemail/scriptGenerator.js'
-export { voicemailWebhook, recordInboundCall, getCallbackStats } from './channels/voicemail/callbackTracker.js'
+export { sendVoicemailDrop, getDropStatus, cancelDrop, createVoiceClone, listVoices, getVoice, deleteVoice, previewTTS, generateScript, generateScriptWithAI, createScriptTemplate, listScriptTemplates } from './channels/voicemail/voicemailCallable.js'
+export { voicemailWebhook } from './channels/voicemail/callbackTracker.js'
 
-// --- Postal (PostGrid) ---
-export { sendLetter, sendPostcard, getMailStatus, cancelMail } from './channels/postal/mailSender.js'
-export { validateAddress, validateAddressBatch, validateAndUpdateProspect, autocompleteAddress } from './channels/postal/addressValidator.js'
-export { generatePostalHTML, createPostalTemplate, listPostalTemplates, previewTemplate } from './channels/postal/templateGenerator.js'
-export { postalTrackingWebhook, postalDeliveryWebhook, createTrackingCode, createPURL, recordConversion, getTrackingStats } from './channels/postal/trackingManager.js'
-
-// --- Postal (Merci Facteur) ---
-export { sendLetterMF, sendRegisteredLetterMF, getMailStatusMF, cancelMailMF, handleMFWebhook, estimateCostMF } from './channels/postal/merciFacteurProvider.js'
+// --- Postal (PostGrid + Merci Facteur) ---
+export { sendLetter, sendPostcard, getMailStatus, cancelMail, validateAddress, validateAddressBatch, validateAndUpdateProspect, autocompleteAddress, generatePostalHTML, createPostalTemplate, listPostalTemplates, previewTemplate, createTrackingCode, createPURL, recordConversion, getTrackingStats, sendLetterMF, sendRegisteredLetterMF, getMailStatusMF, cancelMailMF, estimateCostMF, handleMFWebhook } from './channels/postal/postalCallable.js'
+export { postalTrackingWebhook, postalDeliveryWebhook } from './channels/postal/trackingManager.js'
 
 // --- Unified Compliance Engine ---
 export { canContactOnChannel, recordOptIn, recordOptOut, recordGlobalSuppression, recordTouchpoint, resetTouchpoints, getProspectComplianceStatus } from './compliance/unifiedOptManager.js'
@@ -267,6 +255,50 @@ export { prospectingAgentHandler as prospectingAgent } from './prospecting/agent
 export { runPipelineManual, getPipelineFunnelStats } from './prospecting/pipeline/pipelineProcessor.js'
 export { getProspectingDashboard, getSourceHealthStatus } from './prospecting/monitoring/sourceMonitor.js'
 export { updateSourceConfig, getSourceConfig } from './prospecting/scheduler/sourceConfig.js'
+
+// ============================================
+// Knowledge Base (Vector Search + RAG)
+// ============================================
+export { indexKBDocument, deleteKBDocument } from './knowledge/kbIndexer.js'
+export { searchKB } from './knowledge/kbSearch.js'
+
+// ============================================
+// Agent IA (Core + Learning + HITL)
+// ============================================
+export { agentRespond, getAgentStatus } from './agent/agentCore.js'
+export { agentLearning } from './agent/agentLearning.js'
+export { getEscalations, handleEscalation, generateEscalationSummary } from './agent/hitlEscalation.js'
+
+// ============================================
+// Daily Analytics
+// ============================================
+export { updateDailyAnalytics, dailyAnalyticsSnapshot } from './analytics/dailyAnalytics.js'
+
+// ============================================
+// Warmup Sync
+// ============================================
+export { warmupSync } from './email/warmupSync.js'
+
+// ============================================
+// Booking (Calendly Webhook)
+// ============================================
+export { calendlyWebhook } from './booking/calendlyWebhook.js'
+
+// ============================================
+// Alerts Engine
+// ============================================
+export { alertsEngine } from './notifications/alertsEngine.js'
+
+// ============================================
+// Voice Agent (Vapi)
+// ============================================
+export { vapiOutbound } from './voice/vapiOutbound.js'
+export { vapiWebhook } from './voice/vapiWebhook.js'
+
+// ============================================
+// Migrations
+// ============================================
+export { migrateCrmColumns } from './migrations/addCrmColumn.js'
 
 // ============================================
 // Dev functions (only available in development/emulator)

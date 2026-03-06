@@ -312,10 +312,24 @@ async function sendSMS(to, message, orgId) {
 async function sendWhatsApp(to, message, orgId) {
   const apiUrl = process.env.EVOLUTION_API_URL
   const apiKey = process.env.EVOLUTION_API_KEY
-  const instance = process.env.EVOLUTION_INSTANCE
 
   if (!apiUrl || !apiKey) {
     throw new Error('Evolution API non configure')
+  }
+
+  // Multi-tenant : chercher l'instance du tenant
+  let instance = process.env.EVOLUTION_INSTANCE || 'fmf-whatsapp3'
+  if (orgId) {
+    try {
+      const configRef = db.collection('organizations').doc(orgId)
+        .collection('integrations').doc('whatsapp')
+      const configSnap = await configRef.get()
+      if (configSnap.exists && configSnap.data()?.instanceName && configSnap.data()?.status === 'connected') {
+        instance = configSnap.data().instanceName
+      }
+    } catch {
+      // Fallback instance globale
+    }
   }
 
   // Clean phone number

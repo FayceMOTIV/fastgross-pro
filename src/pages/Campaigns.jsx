@@ -117,17 +117,37 @@ const channelIcons = {
 }
 
 const statusConfig = {
-  active: { label: 'Active', color: 'emerald', icon: Play, bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  paused: { label: 'En pause', color: 'amber', icon: Pause, bg: 'bg-amber-50', text: 'text-amber-700' },
-  completed: { label: 'Terminee', color: 'gray', icon: CheckCircle, bg: 'bg-gray-50', text: 'text-gray-700' },
+  active: {
+    label: 'Active',
+    color: 'emerald',
+    icon: Play,
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+  },
+  paused: {
+    label: 'En pause',
+    color: 'amber',
+    icon: Pause,
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+  },
+  completed: {
+    label: 'Terminee',
+    color: 'gray',
+    icon: CheckCircle,
+    bg: 'bg-gray-50',
+    text: 'text-gray-700',
+  },
 }
 
 function CampaignCard({ campaign, onPause, onResume, onViewDetails }) {
   const status = statusConfig[campaign.status]
   const StatusIcon = status.icon
 
-  const openRate = campaign.stats.sent > 0 ? Math.round((campaign.stats.opened / campaign.stats.sent) * 100) : 0
-  const replyRate = campaign.stats.sent > 0 ? Math.round((campaign.stats.replied / campaign.stats.sent) * 100) : 0
+  const openRate =
+    campaign.stats.sent > 0 ? Math.round((campaign.stats.opened / campaign.stats.sent) * 100) : 0
+  const replyRate =
+    campaign.stats.sent > 0 ? Math.round((campaign.stats.replied / campaign.stats.sent) * 100) : 0
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
@@ -140,7 +160,9 @@ function CampaignCard({ campaign, onPause, onResume, onViewDetails }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}
+            >
               <StatusIcon className="w-3 h-3" />
               {status.label}
             </span>
@@ -158,7 +180,10 @@ function CampaignCard({ campaign, onPause, onResume, onViewDetails }) {
           {campaign.channels.map((channel) => {
             const Icon = channelIcons[channel] || Mail
             return (
-              <div key={channel} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+              <div
+                key={channel}
+                className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center"
+              >
                 <Icon className="w-4 h-4 text-gray-500" />
               </div>
             )
@@ -274,54 +299,78 @@ export default function Campaigns() {
       setLoading(false)
       return
     }
-    if (!currentOrg?.id) { setLoading(false); return }
+    if (!currentOrg?.id) {
+      setLoading(false)
+      return
+    }
 
-    const q = query(collection(db, 'organizations', currentOrg.id, 'campaigns'), orderBy('createdAt', 'desc'))
-    const unsub = onSnapshot(q, (snap) => {
-      const loaded = snap.docs.map((d) => {
-        const data = d.data()
-        return {
-          id: d.id,
-          name: data.name || 'Campagne sans nom',
-          status: data.status || 'active',
-          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-          channels: data.channels || ['email'],
-          stats: data.stats || { prospects: 0, sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
-          nextSend: data.nextSend || null,
-          progress: data.progress || 0,
-        }
-      })
-      setCampaigns(loaded.length > 0 ? loaded : mockCampaigns)
-      setLoading(false)
-    }, (err) => {
-      console.error('Campaigns listener error:', err)
-      setCampaigns(mockCampaigns)
-      setLoading(false)
-    })
+    const q = query(
+      collection(db, 'organizations', currentOrg.id, 'campaigns'),
+      orderBy('createdAt', 'desc')
+    )
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const loaded = snap.docs.map((d) => {
+          const data = d.data()
+          return {
+            id: d.id,
+            name: data.name || 'Campagne sans nom',
+            status: data.status || 'active',
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+            channels: data.channels || ['email'],
+            stats: data.stats || {
+              prospects: 0,
+              sent: 0,
+              opened: 0,
+              clicked: 0,
+              replied: 0,
+              bounced: 0,
+            },
+            nextSend: data.nextSend || null,
+            progress: data.progress || 0,
+          }
+        })
+        setCampaigns(loaded.length > 0 ? loaded : mockCampaigns)
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Campaigns listener error:', err)
+        setCampaigns(mockCampaigns)
+        setLoading(false)
+      }
+    )
     return () => unsub()
   }, [currentOrg?.id, isDemo])
 
   const handlePauseCampaign = async (id) => {
     if (!isDemo && currentOrg?.id) {
       try {
-        await updateDoc(doc(db, 'organizations', currentOrg.id, 'campaigns', id), { status: 'paused', nextSend: null })
-      } catch (err) { console.error(err) }
+        await updateDoc(doc(db, 'organizations', currentOrg.id, 'campaigns', id), {
+          status: 'paused',
+          nextSend: null,
+        })
+      } catch (err) {
+        console.error(err)
+      }
     }
-    setCampaigns(prev => prev.map(c =>
-      c.id === id ? { ...c, status: 'paused', nextSend: null } : c
-    ))
+    setCampaigns((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status: 'paused', nextSend: null } : c))
+    )
     toast.success('Campagne mise en pause')
   }
 
   const handleResumeCampaign = async (id) => {
     if (!isDemo && currentOrg?.id) {
       try {
-        await updateDoc(doc(db, 'organizations', currentOrg.id, 'campaigns', id), { status: 'active' })
-      } catch (err) { console.error(err) }
+        await updateDoc(doc(db, 'organizations', currentOrg.id, 'campaigns', id), {
+          status: 'active',
+        })
+      } catch (err) {
+        console.error(err)
+      }
     }
-    setCampaigns(prev => prev.map(c =>
-      c.id === id ? { ...c, status: 'active' } : c
-    ))
+    setCampaigns((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'active' } : c)))
     toast.success('Campagne reprise')
   }
 
@@ -330,7 +379,7 @@ export default function Campaigns() {
   }
 
   const handleNewCampaign = () => {
-    navigate('/app/forgeur')
+    navigate('/app/tools?tab=forgeur')
   }
 
   const filteredCampaigns = campaigns.filter((c) => {
@@ -383,7 +432,9 @@ export default function Campaigns() {
             </div>
             <span className="text-sm text-gray-500">Prospects</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{totalStats.prospects.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {totalStats.prospects.toLocaleString()}
+          </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center gap-3 mb-2">
@@ -451,9 +502,11 @@ export default function Campaigns() {
               <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
                 <Wand2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune campagne</h3>
-                <p className="text-gray-500 mb-4">Creez votre premiere sequence dans le Forgeur pour lancer une campagne</p>
+                <p className="text-gray-500 mb-4">
+                  Creez votre premiere sequence dans le Forgeur pour lancer une campagne
+                </p>
                 <button
-                  onClick={() => navigate('/app/forgeur')}
+                  onClick={() => navigate('/app/tools?tab=forgeur')}
                   className="px-6 py-3 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition-colors inline-flex items-center gap-2"
                 >
                   <Wand2 className="w-4 h-4" />

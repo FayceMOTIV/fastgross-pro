@@ -29,7 +29,24 @@ const getDb = () => getFirestore()
 // Evolution API config
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'http://localhost:8080'
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || ''
-const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'facemedia'
+
+async function getInstanceName(orgId) {
+  if (orgId) {
+    try {
+      const configSnap = await getDb()
+        .collection('organizations').doc(orgId)
+        .collection('integrations').doc('whatsapp')
+        .get()
+      if (configSnap.exists) {
+        const data = configSnap.data()
+        if (data?.instanceName && data?.status === 'connected') {
+          return data.instanceName
+        }
+      }
+    } catch { /* fallback */ }
+  }
+  return process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3'
+}
 
 // Safe limits
 const LIMITS = {
@@ -208,8 +225,8 @@ export const whatsappSender = onSchedule(
           // Personalize message
           const message = personalizeMessage(template, prospect)
 
-          // Send via Evolution API
-          await sendWhatsAppMessage(prospect.phone, message)
+          // Send via Evolution API (multi-tenant)
+          await sendWhatsAppMessage(prospect.phone, message, orgId)
 
           // Update prospect
           await prospectDoc.ref.update({
@@ -303,7 +320,7 @@ export const sendWhatsAppManual = onCall(
 
     try {
       // Check instance health first
-      const health = await checkInstanceHealth()
+      const health = await checkInstanceHealth(orgId)
       if (!health.connected) {
         throw new HttpsError('unavailable', `WhatsApp instance not connected: ${health.state}`)
       }
@@ -312,12 +329,12 @@ export const sendWhatsAppManual = onCall(
 
       // Send media if provided
       if (mediaUrl && mediaType) {
-        result = await sendWhatsAppMedia(phone, mediaType, mediaUrl, caption || message || '')
+        result = await sendWhatsAppMedia(phone, mediaType, mediaUrl, caption || message || '', orgId)
       }
 
       // Send text message
       if (message && !mediaUrl) {
-        result = await sendWhatsAppMessage(phone, message)
+        result = await sendWhatsAppMessage(phone, message, orgId)
       }
 
       // Update prospect if provided
@@ -401,16 +418,17 @@ export const getWhatsAppStats = onCall(
 /**
  * Send text message via Evolution API
  */
-async function sendWhatsAppMessage(phone, text) {
+async function sendWhatsAppMessage(phone, text, orgId) {
   if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
     throw new Error('Evolution API not configured')
   }
 
   const cleanPhone = phone.replace(/[^\d]/g, '')
+  const instanceName = await getInstanceName(orgId)
 
   try {
     const response = await axios.post(
-      `${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_INSTANCE_NAME}`,
+      `${EVOLUTION_API_URL}/message/sendText/${instanceName}`,
       {
         number: cleanPhone,
         text: text,
@@ -434,12 +452,13 @@ async function sendWhatsAppMessage(phone, text) {
 /**
  * Send media message via Evolution API (image, document, audio)
  */
-async function sendWhatsAppMedia(phone, mediaType, mediaUrl, caption = '') {
+async function sendWhatsAppMedia(phone, mediaType, mediaUrl, caption = '', orgId) {
   if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
     throw new Error('Evolution API not configured')
   }
 
   const cleanPhone = phone.replace(/[^\d]/g, '')
+  const instanceName = await getInstanceName(orgId)
 
   const endpointMap = {
     image: 'sendMedia',
@@ -462,7 +481,7 @@ async function sendWhatsAppMedia(phone, mediaType, mediaUrl, caption = '') {
 
   try {
     const response = await axios.post(
-      `${EVOLUTION_API_URL}/message/${endpoint}/${EVOLUTION_INSTANCE_NAME}`,
+      `${EVOLUTION_API_URL}/message/${endpoint}/${instanceName}`,
       body,
       {
         headers: {
@@ -483,10 +502,11 @@ async function sendWhatsAppMedia(phone, mediaType, mediaUrl, caption = '') {
 /**
  * Check Evolution API instance health
  */
-async function checkInstanceHealth() {
+async function checkInstanceHealth(orgId) {
+  const instanceName = await getInstanceName(orgId)
   try {
     const response = await axios.get(
-      `${EVOLUTION_API_URL}/instance/connectionState/${EVOLUTION_INSTANCE_NAME}`,
+      `${EVOLUTION_API_URL}/instance/connectionState/${instanceName}`,
       {
         headers: { apikey: EVOLUTION_API_KEY },
         timeout: 10000,
@@ -496,14 +516,14 @@ async function checkInstanceHealth() {
     return {
       connected: state === 'open',
       state,
-      instance: EVOLUTION_INSTANCE_NAME,
+      instance: instanceName,
     }
   } catch (error) {
     return {
       connected: false,
       state: 'error',
       error: error.message,
-      instance: EVOLUTION_INSTANCE_NAME,
+      instance: instanceName,
     }
   }
 }

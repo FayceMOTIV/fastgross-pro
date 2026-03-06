@@ -1,3 +1,4 @@
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import FocusTrap from 'focus-trap-react'
 import { formatDistanceToNow, format } from 'date-fns'
@@ -22,27 +23,42 @@ import {
   MapPin,
   Check,
   XCircle,
+  Ban,
+  StickyNote,
+  Activity,
+  TrendingUp,
+  Linkedin,
 } from 'lucide-react'
 import { CHANNEL_STYLES } from '@/engine/multiChannelEngine'
 
 const statusLabels = {
-  new: { label: 'Nouveau', class: 'badge-info' },
-  contacted: { label: 'Contacte', class: 'badge-warning' },
-  opened: { label: 'A ouvert', class: 'badge-warning' },
-  replied: { label: 'A repondu', class: 'badge-success' },
-  converted: { label: 'Converti', class: 'badge-success' },
-  lost: { label: 'Perdu', class: 'badge-danger' },
-  archived: { label: 'Archive', class: 'badge-danger' },
+  new: { label: 'Nouveau', class: 'bg-blue-100 text-blue-700 border border-blue-200' },
+  contacted: { label: 'Contacte', class: 'bg-amber-100 text-amber-700 border border-amber-200' },
+  opened: { label: 'A ouvert', class: 'bg-amber-100 text-amber-700 border border-amber-200' },
+  replied: { label: 'A repondu', class: 'bg-emerald-100 text-emerald-700 border border-emerald-200' },
+  converted: { label: 'Converti', class: 'bg-emerald-100 text-emerald-700 border border-emerald-200' },
+  lost: { label: 'Perdu', class: 'bg-red-100 text-red-700 border border-red-200' },
+  archived: { label: 'Archive', class: 'bg-gray-100 text-gray-600 border border-gray-200' },
 }
 
-// Channel icon component
+const CRM_COLUMN_LABELS = {
+  NEW: { label: 'Nouveau', class: 'bg-blue-100 text-blue-700' },
+  CONTACTED: { label: 'Contacte', class: 'bg-amber-100 text-amber-700' },
+  INTERESTED: { label: 'Interesse', class: 'bg-purple-100 text-purple-700' },
+  MEETING: { label: 'RDV', class: 'bg-indigo-100 text-indigo-700' },
+  SIGNED: { label: 'Signe', class: 'bg-emerald-100 text-emerald-700' },
+  LOST: { label: 'Perdu', class: 'bg-gray-100 text-gray-600' },
+}
+
 const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
   const icons = {
     email: Mail,
     sms: Smartphone,
     whatsapp: Smartphone,
     instagram_dm: Instagram,
+    instagram: Instagram,
     facebook_dm: MessageSquare,
+    linkedin: Linkedin,
     voicemail: Mic,
     courrier: MapPin,
   }
@@ -50,31 +66,76 @@ const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
   return <Icon className={className} />
 }
 
-const scoreColor = (score) => {
-  if (score >= 8) return 'text-brand-400 bg-brand-500/15'
-  if (score >= 5) return 'text-amber-400 bg-amber-500/15'
-  return 'text-dark-400 bg-dark-800'
+function scoreColor(score) {
+  if (score >= 80) return 'text-emerald-700 bg-emerald-100'
+  if (score >= 60) return 'text-amber-700 bg-amber-100'
+  if (score >= 40) return 'text-orange-700 bg-orange-100'
+  return 'text-gray-600 bg-gray-100'
 }
 
-export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
+function ScoreDetail({ score }) {
+  const normalizedScore = score <= 10 ? score * 10 : score
+  const pct = Math.min(100, Math.max(0, normalizedScore))
+  const barColor =
+    pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-500' : pct >= 40 ? 'bg-orange-500' : 'bg-gray-400'
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-500">Score global</span>
+        <span className={`text-sm font-bold px-2 py-0.5 rounded ${scoreColor(normalizedScore)}`}>
+          {normalizedScore}/100
+        </span>
+      </div>
+      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+export default function LeadDrawer({ lead, isOpen, onClose, activities = [], onBlacklist, onNoteSave }) {
+  const [notes, setNotes] = useState('')
+  const [showBlacklistConfirm, setShowBlacklistConfirm] = useState(false)
+  const notesTimerRef = useRef(null)
+
+  useEffect(() => {
+    if (lead) {
+      setNotes(lead.notes || lead.agentNotes || '')
+    }
+  }, [lead])
+
+  // Auto-save notes with debounce
+  const handleNotesChange = useCallback(
+    (value) => {
+      setNotes(value)
+      if (notesTimerRef.current) clearTimeout(notesTimerRef.current)
+      notesTimerRef.current = setTimeout(() => {
+        onNoteSave?.(lead?.id, value)
+      }, 1500)
+    },
+    [lead, onNoteSave]
+  )
+
   if (!lead) return null
 
   const status = statusLabels[lead.status] || statusLabels.new
+  const crmCol = CRM_COLUMN_LABELS[lead.crmColumn] || null
+  const normalizedScore = (lead.score ?? 0) <= 10 ? (lead.score ?? 0) * 10 : (lead.score ?? 0)
 
-  // Mock timeline data
   const timeline =
     activities.length > 0
       ? activities
       : [
-          { type: 'created', label: 'Lead créé', date: lead.createdAt },
+          { type: 'created', label: 'Lead cree', date: lead.createdAt },
           ...(lead.status !== 'new'
-            ? [{ type: 'email_sent', label: 'Email envoyé', date: lead.lastContactedAt }]
+            ? [{ type: 'email_sent', label: 'Email envoye', date: lead.lastContactedAt }]
             : []),
           ...(lead.status === 'opened' || lead.status === 'replied'
             ? [{ type: 'email_opened', label: 'Email ouvert', date: new Date() }]
             : []),
           ...(lead.status === 'replied'
-            ? [{ type: 'email_replied', label: 'Réponse reçue', date: new Date() }]
+            ? [{ type: 'email_replied', label: 'Reponse recue', date: new Date() }]
             : []),
         ].filter(Boolean)
 
@@ -95,7 +156,7 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 z-40 bg-black/40"
+              className="fixed inset-0 z-40 bg-black/20"
             />
 
             {/* Drawer */}
@@ -104,17 +165,17 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-dark-900 border-l border-dark-800 overflow-y-auto"
+              className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-white border-l border-gray-200 overflow-y-auto shadow-xl"
               role="dialog"
               aria-modal="true"
-              aria-label={`Détails du lead ${lead.firstName} ${lead.lastName}`}
+              aria-label={`Details du lead ${lead.firstName} ${lead.lastName}`}
             >
               {/* Header */}
-              <div className="sticky top-0 bg-dark-900/90 backdrop-blur-lg border-b border-dark-800/50 p-6">
+              <div className="sticky top-0 bg-white/95 backdrop-blur-lg border-b border-gray-100 p-6 z-10">
                 <div className="flex items-center justify-between mb-4">
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -123,82 +184,68 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                       <Edit3 className="w-4 h-4" />
                       Modifier
                     </button>
-                    <button className="p-2 rounded-lg hover:bg-red-500/10 text-dark-400 hover:text-red-400 transition-colors">
+                    <button className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400/20 to-blue-400/20 flex items-center justify-center text-2xl font-display font-bold text-brand-400">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-blue-100 flex items-center justify-center text-2xl font-display font-bold text-indigo-600">
                     {lead.firstName?.charAt(0)}
                     {lead.lastName?.charAt(0)}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-display font-bold text-white">
+                    <h2 className="text-xl font-display font-bold text-gray-900">
                       {lead.firstName} {lead.lastName}
                     </h2>
-                    {lead.jobTitle && <p className="text-sm text-dark-400">{lead.jobTitle}</p>}
+                    {lead.jobTitle && <p className="text-sm text-gray-500">{lead.jobTitle}</p>}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 mt-4">
-                  <span className={status.class}>{status.label}</span>
-                  <span
-                    className={`px-3 py-1 rounded-lg text-sm font-bold ${scoreColor(lead.score)}`}
-                  >
-                    Score: {lead.score}/10
+                <div className="flex items-center gap-2 mt-4 flex-wrap">
+                  {crmCol && (
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${crmCol.class}`}>
+                      {crmCol.label}
+                    </span>
+                  )}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.class}`}>
+                    {status.label}
                   </span>
                 </div>
               </div>
 
               {/* Content */}
               <div className="p-6 space-y-6">
+                {/* Score detail */}
+                <ScoreDetail score={lead.score ?? 0} />
+
                 {/* Contact info */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     Contact
                   </h3>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-800/30">
-                      <Mail className="w-4 h-4 text-dark-500" />
-                      <a
-                        href={`mailto:${lead.email}`}
-                        className="text-sm text-white hover:text-brand-400 transition-colors"
-                      >
-                        {lead.email}
-                      </a>
-                    </div>
+                    <ContactRow icon={Mail} label={lead.email} href={`mailto:${lead.email}`} />
                     {lead.phone && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-800/30">
-                        <Phone className="w-4 h-4 text-dark-500" />
-                        <a
-                          href={`tel:${lead.phone}`}
-                          className="text-sm text-white hover:text-brand-400 transition-colors"
-                        >
-                          {lead.phone}
-                        </a>
-                      </div>
+                      <ContactRow icon={Phone} label={lead.phone} href={`tel:${lead.phone}`} />
                     )}
-                    {lead.company && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-800/30">
-                        <Building2 className="w-4 h-4 text-dark-500" />
-                        <span className="text-sm text-white">{lead.company}</span>
-                      </div>
-                    )}
+                    {lead.company && <ContactRow icon={Building2} label={lead.company} />}
                     {lead.website && (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-800/30">
-                        <Globe className="w-4 h-4 text-dark-500" />
-                        <a
-                          href={lead.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-white hover:text-brand-400 transition-colors flex items-center gap-1"
-                        >
-                          {lead.website.replace(/^https?:\/\//, '')}
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
+                      <ContactRow
+                        icon={Globe}
+                        label={lead.website?.replace(/^https?:\/\//, '')}
+                        href={lead.website}
+                        external
+                      />
+                    )}
+                    {lead.linkedin && (
+                      <ContactRow
+                        icon={Linkedin}
+                        label="Profil LinkedIn"
+                        href={lead.linkedin}
+                        external
+                      />
                     )}
                   </div>
                 </div>
@@ -206,7 +253,7 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                 {/* Channels available */}
                 {lead.channels && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Canaux disponibles
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -219,23 +266,23 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                             key={channel}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
                               isAvailable
-                                ? `${style.bg} ${style.border}`
-                                : 'bg-dark-800/30 border-dark-700'
+                                ? 'bg-white border-gray-200 shadow-sm'
+                                : 'bg-gray-50 border-gray-100'
                             }`}
                           >
                             <ChannelIcon
                               channel={channel}
-                              className={`w-4 h-4 ${isAvailable ? style.color : 'text-dark-500'}`}
+                              className={`w-4 h-4 ${isAvailable ? 'text-indigo-500' : 'text-gray-300'}`}
                             />
                             <span
-                              className={`text-xs font-medium ${isAvailable ? 'text-white' : 'text-dark-500'}`}
+                              className={`text-xs font-medium ${isAvailable ? 'text-gray-700' : 'text-gray-400'}`}
                             >
                               {style.label}
                             </span>
                             {isAvailable ? (
-                              <Check className="w-3 h-3 text-brand-400" />
+                              <Check className="w-3 h-3 text-emerald-500" />
                             ) : (
-                              <XCircle className="w-3 h-3 text-dark-500" />
+                              <XCircle className="w-3 h-3 text-gray-300" />
                             )}
                           </div>
                         )
@@ -252,29 +299,61 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                   </button>
                 </div>
 
+                {/* Blacklist button */}
+                <div className="space-y-2">
+                  {!showBlacklistConfirm ? (
+                    <button
+                      onClick={() => setShowBlacklistConfirm(true)}
+                      className="w-full flex items-center justify-center gap-2 text-sm py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Ban className="w-4 h-4" />
+                      Blacklister ce contact
+                    </button>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 space-y-2">
+                      <p className="text-xs text-red-700">
+                        Conformement au RGPD, ce contact sera ajoute a la liste de suppression et ne sera plus jamais contacte.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            onBlacklist?.(lead.id)
+                            setShowBlacklistConfirm(false)
+                          }}
+                          className="flex-1 text-xs py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                        >
+                          Confirmer
+                        </button>
+                        <button
+                          onClick={() => setShowBlacklistConfirm(false)}
+                          className="flex-1 text-xs py-1.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                        >
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Reply received */}
                 {lead.reply && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-brand-400" />
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-indigo-500" />
                       Reponse recue
                     </h3>
-                    <div
-                      className={`p-4 rounded-xl border ${CHANNEL_STYLES[lead.reply.channel]?.bg || 'bg-brand-500/10'} ${CHANNEL_STYLES[lead.reply.channel]?.border || 'border-brand-500/20'}`}
-                    >
+                    <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50">
                       <div className="flex items-center gap-2 mb-2">
                         <ChannelIcon
                           channel={lead.reply.channel}
-                          className={`w-4 h-4 ${CHANNEL_STYLES[lead.reply.channel]?.color || 'text-brand-400'}`}
+                          className="w-4 h-4 text-indigo-500"
                         />
-                        <span
-                          className={`text-sm font-medium ${CHANNEL_STYLES[lead.reply.channel]?.color || 'text-brand-400'}`}
-                        >
+                        <span className="text-sm font-medium text-indigo-700">
                           Via {CHANNEL_STYLES[lead.reply.channel]?.label || 'Email'}
                         </span>
-                        <span className="text-xs text-dark-500 ml-auto">{lead.reply.timeAgo}</span>
+                        <span className="text-xs text-gray-400 ml-auto">{lead.reply.timeAgo}</span>
                       </div>
-                      <p className="text-sm text-white italic">"{lead.reply.content}"</p>
+                      <p className="text-sm text-gray-700 italic">&quot;{lead.reply.content}&quot;</p>
                     </div>
                   </div>
                 )}
@@ -282,7 +361,7 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                 {/* Multichannel Sequence Timeline */}
                 {lead.sequence?.steps && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                       Sequence multicanale
                     </h3>
                     <div className="relative">
@@ -290,79 +369,58 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                         const channelStyle = CHANNEL_STYLES[step.channel] || CHANNEL_STYLES.email
                         const isSent = step.status === 'sent'
                         const isCancelled = step.status === 'cancelled_reply'
-                        const isPending = step.status === 'pending'
 
                         return (
                           <div key={i} className="flex gap-3 relative">
-                            {/* Vertical line */}
                             {i < lead.sequence.steps.length - 1 && (
                               <div
                                 className={`absolute top-10 left-4 w-0.5 h-8 ${
-                                  isSent ? channelStyle.bg.replace('/10', '/40') : 'bg-dark-700'
+                                  isSent ? 'bg-indigo-200' : 'bg-gray-200'
                                 }`}
                               />
                             )}
-
-                            {/* Icon */}
                             <div className="relative z-10">
                               <div
                                 className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                                   isSent
-                                    ? channelStyle.bg
+                                    ? 'bg-indigo-100 border border-indigo-200'
                                     : isCancelled
-                                      ? 'bg-dark-800 opacity-50'
-                                      : 'bg-dark-800 border border-dashed border-dark-600'
-                                } ${isSent ? `border ${channelStyle.border}` : ''}`}
+                                      ? 'bg-gray-100 opacity-50'
+                                      : 'bg-white border border-dashed border-gray-300'
+                                }`}
                               >
                                 <ChannelIcon
                                   channel={step.channel}
                                   className={`w-4 h-4 ${
-                                    isSent
-                                      ? channelStyle.color
-                                      : isCancelled
-                                        ? 'text-dark-500'
-                                        : 'text-dark-500'
+                                    isSent ? 'text-indigo-600' : 'text-gray-400'
                                   }`}
                                 />
                               </div>
                             </div>
-
-                            {/* Content */}
                             <div className={`flex-1 pb-6 ${isCancelled ? 'opacity-50' : ''}`}>
                               <div className="flex items-center gap-2">
-                                <span
-                                  className={`text-sm font-medium ${isSent ? 'text-white' : 'text-dark-400'}`}
-                                >
+                                <span className={`text-sm font-medium ${isSent ? 'text-gray-900' : 'text-gray-400'}`}>
                                   {channelStyle.label}
                                 </span>
-                                <span className="text-xs text-dark-500">J+{step.day}</span>
+                                <span className="text-xs text-gray-400">J+{step.day}</span>
                                 {isSent && step.tracking?.opened && (
-                                  <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs">
-                                    Lu
-                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-xs">Lu</span>
                                 )}
                                 {isSent && step.tracking?.delivered && (
-                                  <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 text-xs">
-                                    Livre
-                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-xs">Livre</span>
                                 )}
                                 {isCancelled && (
-                                  <span className="px-1.5 py-0.5 rounded bg-dark-700 text-dark-400 text-xs line-through">
-                                    Annule
-                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 text-xs line-through">Annule</span>
                                 )}
                               </div>
                               {step.label && (
-                                <p
-                                  className={`text-xs mt-0.5 ${isSent ? 'text-dark-400' : 'text-dark-500'}`}
-                                >
+                                <p className={`text-xs mt-0.5 ${isSent ? 'text-gray-500' : 'text-gray-400'}`}>
                                   {step.label}
                                 </p>
                               )}
                               {step.sentAt && (
-                                <p className="text-xs text-dark-500 mt-1">
-                                  Envoye le{' '}
-                                  {format(new Date(step.sentAt), 'd MMM yyyy', { locale: fr })}
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Envoye le {format(new Date(step.sentAt), 'd MMM yyyy', { locale: fr })}
                                 </p>
                               )}
                             </div>
@@ -373,10 +431,11 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                   </div>
                 )}
 
-                {/* Legacy Timeline (fallback) */}
+                {/* Legacy Timeline */}
                 {!lead.sequence?.steps && timeline.length > 0 && (
                   <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                      <Activity className="w-4 h-4" />
                       Historique
                     </h3>
                     <div className="space-y-4">
@@ -393,27 +452,21 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                         return (
                           <div key={i} className="flex gap-3">
                             <div className="relative">
-                              <div className="w-8 h-8 rounded-lg bg-dark-800 flex items-center justify-center">
-                                <Icon className="w-4 h-4 text-dark-500" />
+                              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                                <Icon className="w-4 h-4 text-gray-500" />
                               </div>
                               {i < timeline.length - 1 && (
-                                <div className="absolute top-8 left-1/2 -translate-x-1/2 w-px h-6 bg-dark-700" />
+                                <div className="absolute top-8 left-1/2 -translate-x-1/2 w-px h-6 bg-gray-200" />
                               )}
                             </div>
                             <div className="flex-1 pb-4">
-                              <p className="text-sm text-white">{event.label}</p>
+                              <p className="text-sm text-gray-900">{event.label}</p>
                               {event.date && (
-                                <p className="text-xs text-dark-500 mt-0.5">
+                                <p className="text-xs text-gray-400 mt-0.5">
                                   {event.date?.toDate
-                                    ? formatDistanceToNow(event.date.toDate(), {
-                                        addSuffix: true,
-                                        locale: fr,
-                                      })
+                                    ? formatDistanceToNow(event.date.toDate(), { addSuffix: true, locale: fr })
                                     : event.date instanceof Date
-                                      ? formatDistanceToNow(event.date, {
-                                          addSuffix: true,
-                                          locale: fr,
-                                        })
+                                      ? formatDistanceToNow(event.date, { addSuffix: true, locale: fr })
                                       : 'Date inconnue'}
                                 </p>
                               )}
@@ -425,17 +478,21 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
                   </div>
                 )}
 
-                {/* Notes */}
-                {lead.notes && (
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-medium text-dark-400 uppercase tracking-wider">
-                      Notes
-                    </h3>
-                    <p className="text-sm text-dark-300 bg-dark-800/30 p-4 rounded-lg">
-                      {lead.notes}
-                    </p>
-                  </div>
-                )}
+                {/* Notes (auto-save) */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    <StickyNote className="w-4 h-4" />
+                    Notes
+                  </h3>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => handleNotesChange(e.target.value)}
+                    placeholder="Ajoutez des notes sur ce prospect..."
+                    rows={3}
+                    className="input-field w-full text-sm resize-none"
+                  />
+                  <p className="text-[10px] text-gray-400">Sauvegarde automatique</p>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -443,4 +500,31 @@ export default function LeadDrawer({ lead, isOpen, onClose, activities = [] }) {
       )}
     </AnimatePresence>
   )
+}
+
+function ContactRow({ icon: Icon, label, href, external }) {
+  if (!label) return null
+
+  const content = (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+      <Icon className="w-4 h-4 text-gray-400" />
+      <span className="text-sm text-gray-700 flex-1 truncate">{label}</span>
+      {external && <ExternalLink className="w-3 h-3 text-gray-400" />}
+    </div>
+  )
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={external ? '_blank' : undefined}
+        rel={external ? 'noopener noreferrer' : undefined}
+        className="block"
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return content
 }

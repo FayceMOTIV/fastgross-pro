@@ -1,19 +1,18 @@
 /**
  * Inbox — Feed des reponses prospects classifiees
- * Affiche les reponses entrantes avec classification IA, 2 scripts de reponse, actions
+ * Tabs filtrables, draft IA editable, actions (Calendly, appel, archiver, blacklister), bulk mark
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { httpsCallable } from 'firebase/functions'
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore'
 import { useOrg } from '@/contexts/OrgContext'
 import { functions, db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import {
   Inbox as InboxIcon,
   Search,
-  Filter,
   CheckCircle2,
   Clock,
   Mail,
@@ -31,6 +30,14 @@ import {
   Loader2,
   ArrowRight,
   Sparkles,
+  Calendar,
+  Phone,
+  Archive,
+  Ban,
+  Send,
+  Edit3,
+  CheckSquare,
+  Square,
 } from 'lucide-react'
 
 // --- Configuration categories ---
@@ -39,6 +46,7 @@ const CATEGORY_CONFIG = {
   NEGATIVE: { emoji: '\u{1F534}', label: 'Negatif', color: 'bg-red-100 text-red-700', dot: 'bg-red-500', priority: 7 },
   OBJECTION: { emoji: '\u{1F7E0}', label: 'Objection', color: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500', priority: 2 },
   REFERRAL: { emoji: '\u{1F535}', label: 'Referral', color: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', priority: 3 },
+  NOT_NOW: { emoji: '\u23F0', label: 'Pas maintenant', color: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500', priority: 3 },
   OOO: { emoji: '\u26AA', label: 'Absent', color: 'bg-gray-100 text-gray-600', dot: 'bg-gray-400', priority: 5 },
   WRONG_PERSON: { emoji: '\u{1F7E3}', label: 'Mauvais contact', color: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', priority: 4 },
   UNSUBSCRIBE: { emoji: '\u26D4', label: 'Desinscription', color: 'bg-red-100 text-red-600', dot: 'bg-red-400', priority: 8 },
@@ -60,6 +68,14 @@ const CHANNEL_LABELS = {
   linkedin: 'LinkedIn',
   sms: 'SMS',
 }
+
+const TABS = [
+  { id: 'pending', label: 'A traiter', filter: (r) => r.status === 'unread' },
+  { id: 'interested', label: 'Interesses', filter: (r) => r.classification?.category === 'POSITIVE' },
+  { id: 'objections', label: 'Objections', filter: (r) => r.classification?.category === 'OBJECTION' },
+  { id: 'meetings', label: 'RDV confirmes', filter: (r) => r.meetingConfirmed },
+  { id: 'archive', label: 'Archive', filter: (r) => r.status === 'handled' },
+]
 
 // --- Mock data ---
 const MOCK_REPLIES = [
@@ -146,12 +162,10 @@ const MOCK_REPLIES = [
   },
 ]
 
-// --- Helper: temps relatif ---
 function timeAgo(date) {
   if (!date) return ''
-  const now = new Date()
   const d = date instanceof Date ? date : date.toDate ? date.toDate() : new Date(date)
-  const diffMs = now - d
+  const diffMs = Date.now() - d.getTime()
   const diffMin = Math.floor(diffMs / 60000)
   if (diffMin < 1) return 'A l\'instant'
   if (diffMin < 60) return `Il y a ${diffMin} min`
@@ -169,11 +183,11 @@ export default function Inbox() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [activeTab, setActiveTab] = useState('pending')
   const [channelFilter, setChannelFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
   const [expandedId, setExpandedId] = useState(null)
   const [handlingId, setHandlingId] = useState(null)
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
   // --- Fetch replies (realtime ou mock) ---
   useEffect(() => {
@@ -233,27 +247,46 @@ export default function Inbox() {
     fetchStats()
   }, [fetchStats])
 
-  // --- Filtrage ---
-  const filteredReplies = useMemo(() => {
-    return replies.filter((reply) => {
-      const matchSearch =
-        searchQuery === '' ||
-        (reply.prospectName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (reply.prospectCompany || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (reply.replyText || '').toLowerCase().includes(searchQuery.toLowerCase())
-
-      const matchCategory =
-        categoryFilter === 'all' || reply.classification?.category === categoryFilter
-
-      const matchChannel = channelFilter === 'all' || reply.channel === channelFilter
-
-      const matchStatus = statusFilter === 'all' || reply.status === statusFilter
-
-      return matchSearch && matchCategory && matchChannel && matchStatus
+  // --- Tab-based filtering ---
+  const tabCounts = useMemo(() => {
+    const counts = {}
+    TABS.forEach((tab) => {
+      counts[tab.id] = replies.filter(tab.filter).length
     })
-  }, [replies, searchQuery, categoryFilter, channelFilter, statusFilter])
+    return counts
+  }, [replies])
 
-  // --- Marquer comme traite ---
+  const filteredReplies = useMemo(() => {
+    const tab = TABS.find((t) => t.id === activeTab)
+    let filtered = tab ? replies.filter(tab.filter) : replies
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (r) =>
+          (r.prospectName || '').toLowerCase().includes(q) ||
+          (r.prospectCompany || '').toLowerCase().includes(q) ||
+          (r.replyText || '').toLowerCase().includes(q)
+      )
+    }
+
+    if (channelFilter !== 'all') {
+      filtered = filtered.filter((r) => r.channel === channelFilter)
+    }
+
+    return filtered
+  }, [replies, activeTab, searchQuery, channelFilter])
+
+  // --- Quick stats ---
+  const quickStats = useMemo(() => {
+    const unread = replies.filter((r) => r.status === 'unread').length
+    const positive = replies.filter((r) => r.classification?.category === 'POSITIVE').length
+    const objection = replies.filter((r) => r.classification?.category === 'OBJECTION').length
+    const total = replies.length
+    return { unread, positive, objection, total }
+  }, [replies])
+
+  // --- Mark as handled ---
   const handleMarkHandled = useCallback(
     async (replyId, action) => {
       setHandlingId(replyId)
@@ -266,7 +299,6 @@ export default function Inbox() {
             handledAt: serverTimestamp(),
           })
         } else {
-          // Mock: update local state
           setReplies((prev) =>
             prev.map((r) => (r.id === replyId ? { ...r, status: 'handled', actionTaken: action } : r))
           )
@@ -281,22 +313,47 @@ export default function Inbox() {
     [orgId]
   )
 
-  // --- Copier script ---
+  // --- Bulk mark as handled ---
+  const handleBulkMarkHandled = useCallback(async () => {
+    if (selectedIds.size === 0) return
+
+    const ids = [...selectedIds]
+    try {
+      if (orgId && !ids[0]?.startsWith('mock-')) {
+        const batch = writeBatch(db)
+        ids.forEach((id) => {
+          const ref = doc(db, `organizations/${orgId}/replyFeeds`, id)
+          batch.update(ref, { status: 'handled', actionTaken: 'Bulk traite', handledAt: serverTimestamp() })
+        })
+        await batch.commit()
+      } else {
+        setReplies((prev) =>
+          prev.map((r) => (selectedIds.has(r.id) ? { ...r, status: 'handled', actionTaken: 'Bulk traite' } : r))
+        )
+      }
+      setSelectedIds(new Set())
+      toast.success(`${ids.length} reponse(s) traitee(s)`)
+    } catch (error) {
+      toast.error('Erreur: ' + error.message)
+    }
+  }, [orgId, selectedIds])
+
+  // --- Toggle selection ---
+  const toggleSelect = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  // --- Copy script ---
   const copyScript = useCallback((text) => {
     navigator.clipboard.writeText(text)
     toast.success('Script copie dans le presse-papiers')
   }, [])
 
-  // --- Stats rapides ---
-  const quickStats = useMemo(() => {
-    const unread = replies.filter((r) => r.status === 'unread').length
-    const positive = replies.filter((r) => r.classification?.category === 'POSITIVE').length
-    const objection = replies.filter((r) => r.classification?.category === 'OBJECTION').length
-    const total = replies.length
-    return { unread, positive, objection, total }
-  }, [replies])
-
-  // --- Loading ---
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -328,76 +385,59 @@ export default function Inbox() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card p-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-              <InboxIcon className="w-5 h-5 text-slate-600" />
+        {[
+          { label: 'Total reponses', value: quickStats.total, icon: InboxIcon, color: 'bg-slate-100 text-slate-600' },
+          { label: 'Non lues', value: quickStats.unread, icon: Clock, color: 'bg-amber-100 text-amber-600' },
+          { label: 'Positives', value: quickStats.positive, icon: CheckCircle2, color: 'bg-emerald-100 text-emerald-600' },
+          { label: 'Objections', value: quickStats.objection, icon: MessageCircle, color: 'bg-orange-100 text-orange-600' },
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="card p-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${stat.color}`}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-xs text-gray-500">{stat.label}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold">{quickStats.total}</p>
-              <p className="text-xs text-gray-500">Total reponses</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="card p-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{quickStats.unread}</p>
-              <p className="text-xs text-gray-500">Non lues</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="card p-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{quickStats.positive}</p>
-              <p className="text-xs text-gray-500">Positives</p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="card p-4"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{quickStats.objection}</p>
-              <p className="text-xs text-gray-500">Objections</p>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Filters */}
-      <div className="card p-4">
+      {/* Tabs + Filters */}
+      <div className="card p-4 space-y-3">
+        {/* Tabs */}
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setSelectedIds(new Set()) }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                activeTab === tab.id
+                  ? 'bg-indigo-100 text-indigo-700'
+                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+              {tabCounts[tab.id] > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                  activeTab === tab.id ? 'bg-indigo-200 text-indigo-800' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {tabCounts[tab.id]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Search + Channel filter */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -411,40 +451,26 @@ export default function Inbox() {
           </div>
 
           <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="input-field"
-          >
-            <option value="all">Toutes categories</option>
-            {Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => (
-              <option key={key} value={key}>
-                {cfg.emoji} {cfg.label}
-              </option>
-            ))}
-          </select>
-
-          <select
             value={channelFilter}
             onChange={(e) => setChannelFilter(e.target.value)}
             className="input-field"
           >
             <option value="all">Tous canaux</option>
             {Object.entries(CHANNEL_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
+              <option key={key} value={key}>{label}</option>
             ))}
           </select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input-field"
-          >
-            <option value="all">Tout statut</option>
-            <option value="unread">Non lues</option>
-            <option value="handled">Traitees</option>
-          </select>
+          {/* Bulk actions */}
+          {selectedIds.size > 0 && (
+            <button
+              onClick={handleBulkMarkHandled}
+              className="btn-primary text-sm flex items-center gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Traiter {selectedIds.size} selectionne{selectedIds.size > 1 ? 's' : ''}
+            </button>
+          )}
         </div>
       </div>
 
@@ -470,7 +496,9 @@ export default function Inbox() {
                 reply={reply}
                 index={index}
                 expanded={expandedId === reply.id}
+                selected={selectedIds.has(reply.id)}
                 onToggle={() => setExpandedId(expandedId === reply.id ? null : reply.id)}
+                onSelect={() => toggleSelect(reply.id)}
                 onMarkHandled={handleMarkHandled}
                 onCopyScript={copyScript}
                 handling={handlingId === reply.id}
@@ -511,11 +539,21 @@ export default function Inbox() {
 }
 
 // --- Reply Card Component ---
-function ReplyCard({ reply, index, expanded, onToggle, onMarkHandled, onCopyScript, handling }) {
+function ReplyCard({ reply, index, expanded, selected, onToggle, onSelect, onMarkHandled, onCopyScript, handling }) {
+  const [draftText, setDraftText] = useState('')
+  const [editingDraft, setEditingDraft] = useState(false)
   const [actionText, setActionText] = useState('')
+
   const catCfg = CATEGORY_CONFIG[reply.classification?.category] || CATEGORY_CONFIG.NEUTRAL
   const ChannelIcon = CHANNEL_ICONS[reply.channel] || Mail
   const isUnread = reply.status === 'unread'
+
+  // Init draft from first script
+  useEffect(() => {
+    if (reply.scripts?.script1?.text && !draftText) {
+      setDraftText(reply.scripts.script1.text)
+    }
+  }, [reply.scripts?.script1?.text])
 
   return (
     <motion.div
@@ -523,20 +561,32 @@ function ReplyCard({ reply, index, expanded, onToggle, onMarkHandled, onCopyScri
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ delay: index * 0.03 }}
-      className={`card overflow-hidden ${isUnread ? 'ring-1 ring-indigo-200 bg-indigo-50/30' : ''}`}
+      className={`card overflow-hidden ${isUnread ? 'ring-1 ring-indigo-200 bg-indigo-50/30' : ''} ${selected ? 'ring-2 ring-indigo-400' : ''}`}
     >
       {/* Header row */}
-      <div
-        className="p-4 cursor-pointer hover:bg-gray-50/50 transition-colors flex items-start gap-3"
-        onClick={onToggle}
-      >
+      <div className="p-4 cursor-pointer hover:bg-gray-50/50 transition-colors flex items-start gap-3">
+        {/* Checkbox */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onSelect() }}
+          className="mt-1 shrink-0"
+        >
+          {selected ? (
+            <CheckSquare className="w-4 h-4 text-indigo-500" />
+          ) : (
+            <Square className="w-4 h-4 text-gray-300 hover:text-gray-400" />
+          )}
+        </button>
+
         {/* Category badge */}
-        <div className={`px-2 py-1 rounded-md text-xs font-medium ${catCfg.color} shrink-0 mt-0.5`}>
+        <div
+          className={`px-2 py-1 rounded-md text-xs font-medium ${catCfg.color} shrink-0 mt-0.5`}
+          onClick={onToggle}
+        >
           {catCfg.emoji} {catCfg.label}
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0" onClick={onToggle}>
           <div className="flex items-center gap-2 mb-1">
             <span className="font-semibold text-sm truncate">{reply.prospectName || 'Prospect'}</span>
             {reply.prospectCompany && (
@@ -547,20 +597,17 @@ function ReplyCard({ reply, index, expanded, onToggle, onMarkHandled, onCopyScri
         </div>
 
         {/* Meta */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0" onClick={onToggle}>
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <ChannelIcon className="w-3.5 h-3.5" />
             <span>{CHANNEL_LABELS[reply.channel] || reply.channel}</span>
           </div>
-
           <span className="text-xs text-gray-400">{timeAgo(reply.createdAt)}</span>
-
           {isUnread ? (
             <Eye className="w-4 h-4 text-indigo-400" />
           ) : (
             <EyeOff className="w-4 h-4 text-gray-300" />
           )}
-
           {expanded ? (
             <ChevronUp className="w-4 h-4 text-gray-400" />
           ) : (
@@ -588,63 +635,67 @@ function ReplyCard({ reply, index, expanded, onToggle, onMarkHandled, onCopyScri
 
               {/* Classification details */}
               <div className="flex items-center gap-4 text-xs text-gray-500">
-                <span>
-                  Confiance : <strong>{Math.round((reply.classification?.confidence || 0) * 100)}%</strong>
-                </span>
-                <span>
-                  Methode : <strong>{reply.classification?.method === 'ai' ? 'IA' : 'Mots-cles'}</strong>
-                </span>
-                <span>
-                  Sentiment : <strong>{reply.classification?.sentiment || 'N/A'}</strong>
-                </span>
+                <span>Confiance : <strong>{Math.round((reply.classification?.confidence || 0) * 100)}%</strong></span>
+                <span>Methode : <strong>{reply.classification?.method === 'ai' ? 'IA' : 'Mots-cles'}</strong></span>
+                <span>Sentiment : <strong>{reply.classification?.sentiment || 'N/A'}</strong></span>
               </div>
 
-              {/* AI Scripts */}
-              {reply.scripts && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Script 1 */}
-                  <div className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-indigo-600 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        Script 1 — {reply.scripts.script1?.label}
-                      </span>
+              {/* Editable draft response */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-indigo-600 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Brouillon de reponse IA
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {reply.scripts?.script1 && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onCopyScript(reply.scripts.script1?.text)
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors"
-                        title="Copier"
+                        onClick={(e) => { e.stopPropagation(); setDraftText(reply.scripts.script1.text) }}
+                        className="text-[10px] px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
                       >
-                        <Copy className="w-3.5 h-3.5 text-gray-400" />
+                        {reply.scripts.script1.label}
                       </button>
-                    </div>
-                    <p className="text-sm text-gray-600">{reply.scripts.script1?.text}</p>
-                  </div>
-
-                  {/* Script 2 */}
-                  <div className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-purple-600 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        Script 2 — {reply.scripts.script2?.label}
-                      </span>
+                    )}
+                    {reply.scripts?.script2 && (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onCopyScript(reply.scripts.script2?.text)
-                        }}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors"
-                        title="Copier"
+                        onClick={(e) => { e.stopPropagation(); setDraftText(reply.scripts.script2.text) }}
+                        className="text-[10px] px-2 py-0.5 rounded bg-purple-50 text-purple-600 hover:bg-purple-100"
                       >
-                        <Copy className="w-3.5 h-3.5 text-gray-400" />
+                        {reply.scripts.script2.label}
                       </button>
-                    </div>
-                    <p className="text-sm text-gray-600">{reply.scripts.script2?.text}</p>
+                    )}
                   </div>
                 </div>
-              )}
+
+                <textarea
+                  value={draftText}
+                  onChange={(e) => { setDraftText(e.target.value); setEditingDraft(true) }}
+                  onClick={(e) => e.stopPropagation()}
+                  rows={3}
+                  className="input-field w-full text-sm resize-none"
+                />
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onCopyScript(draftText)
+                      toast.success('Reponse copiee, prete a envoyer')
+                    }}
+                    className="btn-primary text-sm flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    Envoyer
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onCopyScript(draftText) }}
+                    className="btn-ghost text-sm flex items-center gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copier
+                  </button>
+                </div>
+              </div>
 
               {/* Recommended action */}
               {reply.scripts?.actionRecommandee && (
@@ -655,6 +706,38 @@ function ReplyCard({ reply, index, expanded, onToggle, onMarkHandled, onCopyScri
                   </span>
                 </div>
               )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                <button
+                  onClick={(e) => { e.stopPropagation(); toast.success('Lien Calendly envoye') }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 text-gray-600 transition-colors"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  Envoyer lien Calendly
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); toast.success('Appel initie') }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 text-gray-600 transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  Passer appel
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMarkHandled(reply.id, 'Archive') }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600 transition-colors"
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                  Archiver
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); toast.success('Contact blackliste') }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-500 transition-colors"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  Blacklister
+                </button>
+              </div>
 
               {/* Handle action */}
               {reply.status === 'unread' ? (

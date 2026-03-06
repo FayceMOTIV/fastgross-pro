@@ -11,9 +11,6 @@ import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import {
   LayoutDashboard,
-  Users,
-  FileText,
-  Workflow,
   MessageSquare,
   Settings,
   LogOut,
@@ -23,7 +20,6 @@ import {
   Zap,
   BarChart3,
   Search,
-  UserPlus,
   Building2,
   Check,
   Plus,
@@ -31,64 +27,23 @@ import {
   Shield,
   User,
   Eye,
-  Plug,
-  Scan,
-  Wand2,
-  Target,
+  Users,
   Send,
-  Award,
-  Mail,
-  Wrench,
-  CreditCard,
-  Phone,
-  CalendarCheck,
-  TestTube,
   Rocket,
-  Sparkles,
-  MessageCircle,
-  Linkedin,
-  MapPin,
-  Database,
+  Wand2,
+  Kanban,
+  Compass,
 } from 'lucide-react'
 
-// Navigation items with permissions - v4.0
-const autoPilotItems = [
-  { to: '/app/autopilot', icon: Rocket, label: 'AutoPilot', badge: 'AI', premium: true },
-  { to: '/app/autopilot/setup', icon: Sparkles, label: 'Configuration' },
-]
-
+// v5.0 Navigation — 9 items max
 const navItems = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/app/daily-prospects', icon: CalendarCheck, label: 'Daily Prospects', badge: 'NEW' },
-  { to: '/app/test-autopilot', icon: TestTube, label: 'Test Autopilot' },
-  { to: '/app/ai', icon: Wand2, label: 'AI Generation', badge: 'V2' },
-  { to: '/app/enrichment', icon: Mail, label: 'Enrichment', badge: 'V2' },
-  { to: '/app/posting', icon: Send, label: 'Posting', badge: 'V2' },
-  { to: '/app/monitoring', icon: BarChart3, label: 'Monitoring', badge: 'V2' },
-  { to: '/app/hunter', icon: Zap, label: 'Hunter' },
-  { to: '/app/prospects', icon: Users, label: 'Prospects' },
-  { to: '/app/scanner', icon: Scan, label: 'Scanner' },
-  { to: '/app/forgeur', icon: Target, label: 'Forgeur' },
-  { to: '/app/radar', icon: Target, label: 'Radar' },
-  { to: '/app/email-sequences', icon: Mail, label: 'Sequences' },
-  { to: '/app/whatsapp', icon: Phone, label: 'WhatsApp' },
-  { to: '/app/social-outreach', icon: MessageCircle, label: 'Social DM', badge: 'NEW' },
-  { to: '/app/linkedin', icon: Linkedin, label: 'LinkedIn', badge: 'NEW' },
-  { to: '/app/google-maps', icon: MapPin, label: 'Google Maps', badge: 'NEW' },
-  { to: '/app/prospecting-sources', icon: Database, label: 'Sources IA', badge: 'NEW' },
-  { to: '/app/pipeline', icon: Database, label: 'Pipeline', badge: 'NEW' },
-  { to: '/app/inbox', icon: MessageSquare, label: 'Inbox', badge: 'NEW' },
-  { to: '/app/campaigns', icon: Send, label: 'Campagnes' },
-  { to: '/app/proof', icon: Award, label: 'Proof' },
-  { to: '/app/analytics', icon: BarChart3, label: 'Analytics' },
-]
-
-const bottomNavItems = [
-  { to: '/app/hunter-pricing', icon: CreditCard, label: 'Tarifs Hunter' },
-  { to: '/app/team', icon: UserPlus, label: 'Equipe', permission: 'team:read' },
-  { to: '/app/integrations', icon: Plug, label: 'Integrations', permission: 'integrations:read' },
-  { to: '/app/setup', icon: Wrench, label: 'Setup', badge: 'NEW' },
-  { to: '/app/settings', icon: Settings, label: 'Parametres' },
+  { to: '/app/sourcing', icon: Compass, label: 'Sourcing' },
+  { to: '/app/tools', icon: Wand2, label: 'Outils IA' },
+  { to: '/app/crm', icon: Kanban, label: 'CRM' },
+  { to: '/app/outreach', icon: Send, label: 'Outreach' },
+  { to: '/app/inbox', icon: MessageSquare, label: 'Inbox' },
+  { to: '/app/performance', icon: BarChart3, label: 'Performance' },
 ]
 
 // Role icons
@@ -98,6 +53,23 @@ const roleIcons = {
   manager: Users,
   member: User,
   viewer: Eye,
+}
+
+// Page titles for top bar
+const pageTitles = {
+  '/app': 'Dashboard',
+  '/app/autopilot': 'AutoPilot',
+  '/app/sourcing': 'Sourcing',
+  '/app/tools': 'Outils IA',
+  '/app/crm': 'CRM',
+  '/app/outreach': 'Outreach',
+  '/app/inbox': 'Inbox',
+  '/app/performance': 'Performance',
+  '/app/config': 'Configuration',
+  '/app/admin': 'Admin',
+  '/app/templates': 'Templates',
+  '/app/sequences': 'Sequences',
+  '/app/interactions': 'Interactions',
 }
 
 export default function Layout() {
@@ -181,9 +153,13 @@ export default function Layout() {
   // Get current page title
   const getPageTitle = () => {
     const path = location.pathname
-    const allItems = [...navItems, ...bottomNavItems]
-    const item = allItems.find((item) => (item.end ? path === item.to : path.startsWith(item.to)))
-    return item?.label || 'Dashboard'
+    // Exact match first
+    if (pageTitles[path]) return pageTitles[path]
+    // Prefix match
+    const match = Object.entries(pageTitles).find(
+      ([route]) => route !== '/app' && path.startsWith(route)
+    )
+    return match ? match[1] : 'Dashboard'
   }
 
   const RoleIcon = roleIcons[currentRole] || User
@@ -270,7 +246,7 @@ export default function Layout() {
                     <button
                       onClick={() => {
                         setOrgDropdownOpen(false)
-                        navigate('/app/settings/organization')
+                        navigate('/app/config?section=organization')
                       }}
                       className="w-full flex items-center gap-2 px-2 py-2 text-sm text-text-muted hover:text-accent hover:bg-accent/5 rounded-lg transition-colors"
                     >
@@ -304,7 +280,7 @@ export default function Layout() {
               {trialDaysRemaining > 1 ? 's' : ''}
             </p>
             <button
-              onClick={() => navigate('/app/settings/billing')}
+              onClick={() => navigate('/app/config?section=billing')}
               className="mt-1 text-xs text-warning-dark hover:underline"
             >
               Passer au plan {limits.label}
@@ -320,34 +296,29 @@ export default function Layout() {
               <Rocket className="w-3 h-3" />
               AutoPilot AI
             </p>
-            {autoPilotItems.map(({ to, icon: Icon, label, badge, premium }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/10'
-                      : 'text-purple-300/70 hover:text-purple-300 hover:bg-purple-500/10'
-                  }`
-                }
-              >
-                <Icon className={`w-5 h-5 ${premium ? 'animate-pulse' : ''}`} />
-                <span className="flex-1">{label}</span>
-                {badge && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded shadow-lg shadow-purple-500/30">
-                    {badge}
-                  </span>
-                )}
-              </NavLink>
-            ))}
+            <NavLink
+              to="/app/autopilot"
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? 'bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/10'
+                    : 'text-purple-300/70 hover:text-purple-300 hover:bg-purple-500/10'
+                }`
+              }
+            >
+              <Rocket className="w-5 h-5 animate-pulse" />
+              <span className="flex-1">AutoPilot</span>
+              <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded shadow-lg shadow-purple-500/30">
+                AI
+              </span>
+            </NavLink>
           </div>
 
           <p className="px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
             Menu principal
           </p>
-          {navItems.map(({ to, icon: Icon, label, end, badge }) => (
+          {navItems.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -363,49 +334,33 @@ export default function Layout() {
             >
               <Icon className="w-5 h-5" />
               <span className="flex-1">{label}</span>
-              {badge && (
-                <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded">
-                  {badge}
-                </span>
-              )}
             </NavLink>
           ))}
         </nav>
 
         {/* Bottom section */}
         <div className="p-4 border-t border-accent/5 space-y-1">
-          <p className="px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-            Configuration
-          </p>
-          {bottomNavItems.map(({ to, icon: Icon, label, permission }) => {
-            // Check permission if required
-            if (permission && !can(permission)) return null
-
-            return (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-surface-hover text-text'
-                      : 'text-text-secondary hover:text-text hover:bg-surface-hover'
-                  }`
-                }
-              >
-                <Icon className="w-5 h-5" />
-                <span>{label}</span>
-              </NavLink>
-            )
-          })}
+          <NavLink
+            to="/app/config"
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'bg-surface-hover text-text'
+                  : 'text-text-secondary hover:text-text hover:bg-surface-hover'
+              }`
+            }
+          >
+            <Settings className="w-5 h-5" />
+            <span>Configuration</span>
+          </NavLink>
 
           {/* Admin links - only for super admins */}
           {adminStatus.isSuperAdmin && (
             <>
               <div className="pt-2 mt-2 border-t border-accent/10">
                 <p className="px-3 py-2 text-[10px] font-semibold text-warning uppercase tracking-wider flex items-center gap-1">
-                  <Wrench className="w-3 h-3" />
+                  <Shield className="w-3 h-3" />
                   Admin
                 </p>
               </div>
@@ -423,53 +378,7 @@ export default function Layout() {
                 <Shield className="w-5 h-5" />
                 <span>Panel Admin</span>
               </NavLink>
-              <NavLink
-                to="/app/test-email"
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-warning/10 text-warning'
-                      : 'text-warning/70 hover:text-warning hover:bg-warning/5'
-                  }`
-                }
-              >
-                <Mail className="w-5 h-5" />
-                <span>Test Email</span>
-              </NavLink>
-              <NavLink
-                to="/app/war-room"
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'bg-warning/10 text-warning'
-                      : 'text-warning/70 hover:text-warning hover:bg-warning/5'
-                  }`
-                }
-              >
-                <Shield className="w-5 h-5" />
-                <span>War Room</span>
-              </NavLink>
             </>
-          )}
-
-          {/* Beta user indicator (non-admin betas) */}
-          {adminStatus.isBetaUser && !adminStatus.isSuperAdmin && (
-            <NavLink
-              to="/app/test-email"
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-success/10 text-success'
-                    : 'text-success/70 hover:text-success hover:bg-success/5'
-                }`
-              }
-            >
-              <Mail className="w-5 h-5" />
-              <span>Test Email</span>
-            </NavLink>
           )}
         </div>
 
@@ -506,7 +415,7 @@ export default function Layout() {
                 <button
                   onClick={() => {
                     setUserMenuOpen(false)
-                    navigate('/app/settings/profile')
+                    navigate('/app/config?section=profile')
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text transition-colors"
                 >
@@ -516,7 +425,7 @@ export default function Layout() {
                 <button
                   onClick={() => {
                     setUserMenuOpen(false)
-                    navigate('/app/settings')
+                    navigate('/app/config')
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text transition-colors"
                 >

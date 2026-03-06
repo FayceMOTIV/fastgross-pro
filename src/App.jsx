@@ -29,59 +29,23 @@ const OnboardingPlan = lazy(() => import('@/pages/OnboardingPlan'))
 const OnboardingSequence = lazy(() => import('@/pages/OnboardingSequence'))
 const OnboardingComplete = lazy(() => import('@/pages/OnboardingComplete'))
 
-// Lazy loaded pages - App (v4.0)
+// Lazy loaded pages - App (v5.0 Hubs)
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
-const Prospects = lazy(() => import('@/pages/Prospects'))
+const AutoPilotHub = lazy(() => import('@/pages/AutoPilotHub'))
+const SourcingHub = lazy(() => import('@/pages/SourcingHub'))
+const ToolsHub = lazy(() => import('@/pages/ToolsHub'))
+const CRMHub = lazy(() => import('@/pages/CRMHub'))
+const OutreachHub = lazy(() => import('@/pages/OutreachHub'))
+const InboxHub = lazy(() => import('@/pages/InboxHub'))
+const PerformanceHub = lazy(() => import('@/pages/PerformanceHub'))
+const ConfigHub = lazy(() => import('@/pages/ConfigHub'))
+const AdminHub = lazy(() => import('@/pages/AdminHub'))
+
+// Legacy pages still needed for direct routes
 const Templates = lazy(() => import('@/pages/Templates'))
 const Sequences = lazy(() => import('@/pages/Sequences'))
 const Interactions = lazy(() => import('@/pages/Interactions'))
-const Analytics = lazy(() => import('@/pages/Analytics'))
-const Team = lazy(() => import('@/pages/Team'))
-const Integrations = lazy(() => import('@/pages/Integrations'))
-const Settings = lazy(() => import('@/pages/Settings'))
-const Scanner = lazy(() => import('@/pages/Scanner'))
-const Forgeur = lazy(() => import('@/pages/Forgeur'))
-const Radar = lazy(() => import('@/pages/Radar'))
-const Campaigns = lazy(() => import('@/pages/Campaigns'))
-const Proof = lazy(() => import('@/pages/Proof'))
-
-// Lazy loaded pages - Admin (super admin / beta users)
-const Admin = lazy(() => import('@/pages/Admin'))
-const TestEmail = lazy(() => import('@/pages/TestEmail'))
-
-// Lazy loaded pages - Hunter Agent
-const Hunter = lazy(() => import('@/pages/Hunter'))
-const HunterPricing = lazy(() => import('@/pages/HunterPricing'))
-const EmailSequences = lazy(() => import('@/pages/EmailSequences'))
-const WhatsAppDashboard = lazy(() => import('@/pages/WhatsAppDashboard'))
-const SocialOutreach = lazy(() => import('@/pages/SocialOutreach'))
-
-// Lazy loaded pages - AI Personalization & Tools
-const AIPersonalization = lazy(() => import('@/pages/AIPersonalization'))
-const MonitoringDashboard = lazy(() => import('@/pages/MonitoringDashboard'))
-const EmailEnrichment = lazy(() => import('@/pages/EmailEnrichment'))
-const MultiPlatformPosting = lazy(() => import('@/pages/MultiPlatformPosting'))
-
-// Lazy loaded pages - Autopilot System
-const DailyProspects = lazy(() => import('@/pages/DailyProspects'))
-const TestAutopilot = lazy(() => import('@/pages/TestAutopilot'))
-
-// Lazy loaded pages - Revolutionary AutoPilot System
-const AutoPilotSetup = lazy(() => import('@/pages/AutoPilotSetup'))
-const AutoPilotDashboard = lazy(() => import('@/pages/AutoPilotDashboard'))
-
-// Lazy loaded pages - Prospection Machine (War Room + LinkedIn + Google Maps)
-const LinkedIn = lazy(() => import('@/pages/LinkedIn'))
-const GoogleMapsSourcing = lazy(() => import('@/pages/GoogleMapsSourcing'))
-const WarRoom = lazy(() => import('@/pages/WarRoom'))
-
-// Lazy loaded pages - Prospecting Sources (Multi-Source Aggregation)
-const ProspectingSources = lazy(() => import('@/pages/ProspectingSources'))
-
-// Lazy loaded pages - Automation Gaps
-const LeadPipeline = lazy(() => import('@/pages/LeadPipeline'))
-const Inbox = lazy(() => import('@/pages/Inbox'))
-const ClientSetup = lazy(() => import('@/pages/ClientSetup'))
+const Prospects = lazy(() => import('@/pages/Prospects'))
 
 // Auth guard - simplified, no forced onboarding
 function ProtectedRoute({ children }) {
@@ -307,82 +271,81 @@ export default function App() {
                           {/* Dashboard */}
                           <Route index element={<Dashboard />} />
 
-                          {/* Core v4.0 Pages */}
-                          <Route path="prospects" element={<Prospects />} />
-                          <Route path="prospects/:prospectId" element={<Prospects />} />
-                          <Route path="scanner" element={<Scanner />} />
-                          <Route path="forgeur" element={<Forgeur />} />
-                          <Route path="radar" element={<Radar />} />
-                          <Route path="campaigns" element={<Campaigns />} />
-                          <Route path="proof" element={<Proof />} />
+                          {/* v5.0 Hub Pages */}
+                          <Route path="autopilot" element={<AutoPilotHub />} />
+                          <Route path="sourcing" element={<SourcingHub />} />
+                          <Route path="tools" element={<ToolsHub />} />
+                          <Route path="crm" element={<CRMHub />} />
+                          <Route path="outreach" element={<OutreachHub />} />
+                          <Route path="inbox" element={<InboxHub />} />
+                          <Route path="performance" element={<PerformanceHub />} />
+                          <Route path="config" element={<ConfigHub />} />
+                          <Route path="admin" element={<AdminHub />} />
+
+                          {/* Legacy pages still needed as direct routes */}
                           <Route path="templates" element={<Templates />} />
                           <Route path="templates/:templateId" element={<Templates />} />
                           <Route path="sequences" element={<Sequences />} />
                           <Route path="sequences/:sequenceId" element={<Sequences />} />
                           <Route path="interactions" element={<Interactions />} />
-                          <Route path="analytics" element={<Analytics />} />
+                          <Route path="prospects/:prospectId" element={<Prospects />} />
 
-                          {/* Team Management (requires permission) */}
-                          <Route
-                            path="team"
-                            element={
-                              <PermissionGuard permission="team:read">
-                                <Team />
-                              </PermissionGuard>
-                            }
-                          />
+                          {/* ============================================ */}
+                          {/* REDIRECTIONS — anciennes routes vers v5.0 */}
+                          {/* ============================================ */}
 
-                          {/* Integrations (requires admin) */}
-                          <Route
-                            path="integrations"
-                            element={
-                              <PermissionGuard permission="integrations:read">
-                                <Integrations />
-                              </PermissionGuard>
-                            }
-                          />
+                          {/* AutoPilot */}
+                          <Route path="daily-prospects" element={<Navigate to="/app/autopilot?tab=daily" replace />} />
+                          <Route path="test-autopilot" element={<Navigate to="/app/autopilot?tab=test" replace />} />
+                          <Route path="autopilot/setup" element={<Navigate to="/app/autopilot?tab=setup" replace />} />
 
-                          {/* Settings */}
-                          <Route path="settings" element={<Settings />} />
-                          <Route path="settings/:section" element={<Settings />} />
+                          {/* Sourcing */}
+                          <Route path="hunter" element={<Navigate to="/app/sourcing?tab=social" replace />} />
+                          <Route path="linkedin" element={<Navigate to="/app/sourcing?tab=linkedin" replace />} />
+                          <Route path="google-maps" element={<Navigate to="/app/sourcing?tab=maps" replace />} />
+                          <Route path="prospecting-sources" element={<Navigate to="/app/sourcing" replace />} />
+                          <Route path="enrichment" element={<Navigate to="/app/sourcing?tab=enrichment" replace />} />
 
-                          {/* Hunter Agent (Instagram + TikTok prospecting) */}
-                          <Route path="hunter" element={<Hunter />} />
-                          <Route path="hunter-pricing" element={<HunterPricing />} />
-                          <Route path="email-sequences" element={<EmailSequences />} />
-                          <Route path="whatsapp" element={<WhatsAppDashboard />} />
-                          <Route path="social-outreach" element={<SocialOutreach />} />
+                          {/* Outils IA */}
+                          <Route path="scanner" element={<Navigate to="/app/tools" replace />} />
+                          <Route path="forgeur" element={<Navigate to="/app/tools?tab=forgeur" replace />} />
+                          <Route path="radar" element={<Navigate to="/app/tools?tab=radar" replace />} />
+                          <Route path="ai" element={<Navigate to="/app/tools?tab=ai" replace />} />
+                          <Route path="posting" element={<Navigate to="/app/tools?tab=posting" replace />} />
 
-                          {/* AI Personalization (Multi-Provider System) */}
-                          <Route path="ai" element={<AIPersonalization />} />
-                          <Route path="monitoring" element={<MonitoringDashboard />} />
-                          <Route path="enrichment" element={<EmailEnrichment />} />
-                          <Route path="posting" element={<MultiPlatformPosting />} />
+                          {/* CRM */}
+                          <Route path="prospects" element={<Navigate to="/app/crm?tab=prospects" replace />} />
+                          <Route path="pipeline" element={<Navigate to="/app/crm?tab=pipeline" replace />} />
 
-                          {/* Autopilot System */}
-                          <Route path="daily-prospects" element={<DailyProspects />} />
-                          <Route path="test-autopilot" element={<TestAutopilot />} />
+                          {/* Outreach */}
+                          <Route path="campaigns" element={<Navigate to="/app/outreach" replace />} />
+                          <Route path="email-sequences" element={<Navigate to="/app/outreach?tab=email" replace />} />
+                          <Route path="social-outreach" element={<Navigate to="/app/outreach?tab=social" replace />} />
+                          <Route path="whatsapp" element={<Navigate to="/app/outreach?tab=whatsapp" replace />} />
 
-                          {/* Revolutionary AutoPilot System */}
-                          <Route path="autopilot" element={<AutoPilotDashboard />} />
-                          <Route path="autopilot/setup" element={<AutoPilotSetup />} />
+                          {/* Inbox */}
+                          <Route path="escalations" element={<Navigate to="/app/inbox?tab=escalations" replace />} />
 
-                          {/* Prospection Machine (War Room + LinkedIn + Google Maps) */}
-                          <Route path="linkedin" element={<LinkedIn />} />
-                          <Route path="google-maps" element={<GoogleMapsSourcing />} />
-                          <Route path="war-room" element={<WarRoom />} />
+                          {/* Performance */}
+                          <Route path="analytics" element={<Navigate to="/app/performance" replace />} />
+                          <Route path="proof" element={<Navigate to="/app/performance?tab=proof" replace />} />
+                          <Route path="monitoring" element={<Navigate to="/app/performance?tab=monitoring" replace />} />
 
-                          {/* Prospecting Sources (Multi-Source Aggregation) */}
-                          <Route path="prospecting-sources" element={<ProspectingSources />} />
+                          {/* Config */}
+                          <Route path="settings" element={<Navigate to="/app/config" replace />} />
+                          <Route path="settings/:section" element={<Navigate to="/app/config" replace />} />
+                          <Route path="email-infra" element={<Navigate to="/app/config?section=email-infra" replace />} />
+                          <Route path="knowledge-base" element={<Navigate to="/app/config?section=knowledge" replace />} />
+                          <Route path="sequence-builder" element={<Navigate to="/app/config?section=sequences" replace />} />
+                          <Route path="voice-config" element={<Navigate to="/app/config?section=voice" replace />} />
+                          <Route path="integrations" element={<Navigate to="/app/config?section=integrations" replace />} />
+                          <Route path="team" element={<Navigate to="/app/config?section=team" replace />} />
+                          <Route path="setup" element={<Navigate to="/app/config?section=setup" replace />} />
+                          <Route path="hunter-pricing" element={<Navigate to="/app/config?section=billing" replace />} />
 
-                          {/* Automation Gaps */}
-                          <Route path="pipeline" element={<LeadPipeline />} />
-                          <Route path="inbox" element={<Inbox />} />
-                          <Route path="setup" element={<ClientSetup />} />
-
-                          {/* Admin Pages (super admin / beta users) */}
-                          <Route path="admin" element={<Admin />} />
-                          <Route path="test-email" element={<TestEmail />} />
+                          {/* Admin */}
+                          <Route path="test-email" element={<Navigate to="/app/admin?tab=test-email" replace />} />
+                          <Route path="war-room" element={<Navigate to="/app/admin?tab=war-room" replace />} />
                         </Route>
 
                         {/* ============================================ */}
