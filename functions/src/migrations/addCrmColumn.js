@@ -5,6 +5,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
 const getDb = () => getFirestore()
@@ -22,7 +23,7 @@ const STATUS_TO_CRM = {
 
 export const migrateCrmColumns = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 540,
   memory: '512MiB',
 }, async (request) => {

@@ -8,6 +8,7 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
 import { callAI, extractJSON } from '../../ai/callAI.js'
@@ -175,7 +176,7 @@ export const instagramHunter = onSchedule({
  */
 export const runInstagramHunterManual = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '1GiB',
   timeoutSeconds: 300
 }, async (request) => {
@@ -533,7 +534,7 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
  */
 export const runAdvancedInstagramScrape = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '1GiB',
   timeoutSeconds: 300
 }, async (request) => {
@@ -961,7 +962,7 @@ function runPythonScript(pythonScript, username, password) {
  */
 export const getHunterStats = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 

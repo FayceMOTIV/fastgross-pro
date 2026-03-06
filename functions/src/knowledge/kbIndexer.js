@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
@@ -87,7 +88,7 @@ async function generateEmbedding(text) {
  */
 export const indexKBDocument = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 300,
   memory: '512MiB',
 }, async (request) => {
@@ -177,7 +178,7 @@ export const indexKBDocument = onCall({
  */
 export const deleteKBDocument = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
 }, async (request) => {
   const { auth, data } = request
 

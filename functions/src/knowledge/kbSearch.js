@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
@@ -86,7 +87,7 @@ export async function searchKnowledgeBase(orgId, queryText, limit = 5, minScore 
  */
 export const searchKB = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 30,
 }, async (request) => {
   const { auth, data } = request

@@ -15,6 +15,7 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
 import * as crypto from 'crypto'
@@ -574,7 +575,7 @@ export const resetDailyCounts = onSchedule({
  */
 export const addInstagramAccount = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '512MiB',
   timeoutSeconds: 120
 }, async (request) => {
@@ -703,7 +704,7 @@ except Exception as e:
  */
 export const removeInstagramAccount = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -739,7 +740,7 @@ export const removeInstagramAccount = onCall({
  */
 export const listInstagramAccounts = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -800,7 +801,7 @@ export const listInstagramAccounts = onCall({
  */
 export const updateAccountStatus = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 

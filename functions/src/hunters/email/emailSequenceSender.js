@@ -13,6 +13,7 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { callAI } from '../../ai/callAI.js'
 import { sendEmail as sendEmailRouter } from '../../email/emailRouter.js'
@@ -349,7 +350,7 @@ function wrapEmailHtml(content, orgId, prospectId, campaignId) {
  */
 export const createEmailSequence = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '512MiB'
 }, async (request) => {
   const { auth, data } = request
@@ -407,7 +408,7 @@ export const createEmailSequence = onCall({
  */
 export const startEmailCampaign = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -516,7 +517,7 @@ export const startEmailCampaign = onCall({
  */
 export const listEmailSequences = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -562,7 +563,7 @@ export const listEmailSequences = onCall({
  */
 export const getEmailCampaignStats = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -632,7 +633,7 @@ export const getEmailCampaignStats = onCall({
  */
 export const trackEmailOpen = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 

@@ -229,8 +229,11 @@ service cloud.firestore {
       // BLACKLIST - RGPD opt-outs
       // ------------------------------------------
       match /blacklist/{email} {
-        // Public write for unsubscribe
-        allow create: if true;
+        // Authenticated users can add to blacklist (unsubscribe via Cloud Functions uses Admin SDK)
+        allow create: if isAuthenticated()
+          && request.resource.data.keys().hasOnly(['email', 'reason', 'addedAt'])
+          && request.resource.data.email is string
+          && request.resource.data.email.size() < 255;
         allow read: if canRead(orgId);
         allow update, delete: if canAdmin(orgId);
       }
@@ -617,6 +620,14 @@ service cloud.firestore {
       match /replyFeeds/{replyId} {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // HOT QUEUE - Real-time hot lead queue (Module 5)
+      // ------------------------------------------
+      match /hotQueue/{prospectId} {
+        allow read: if canRead(orgId);
+        allow write: if canWrite(orgId);
       }
 
       // ------------------------------------------

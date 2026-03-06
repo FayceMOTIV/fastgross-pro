@@ -5,6 +5,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
 const getDb = () => getFirestore()
@@ -14,7 +15,7 @@ const getDb = () => getFirestore()
  */
 export const runSocialHuntingCampaign = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '2GiB',
   timeoutSeconds: 540
 }, async (request) => {
@@ -158,7 +159,7 @@ export const runSocialHuntingCampaign = onCall({
  */
 export const getOrchestrationStatus = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -248,7 +249,7 @@ export const getOrchestrationStatus = onCall({
  */
 export const deduplicateProspects = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '1GiB',
   timeoutSeconds: 300
 }, async (request) => {

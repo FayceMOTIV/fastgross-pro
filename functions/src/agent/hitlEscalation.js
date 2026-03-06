@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
 
@@ -14,7 +15,7 @@ const getDb = () => getFirestore()
  */
 export const getEscalations = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
 }, async (request) => {
   const { auth, data } = request
 
@@ -71,7 +72,7 @@ export const getEscalations = onCall({
  */
 export const handleEscalation = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 60,
   memory: '256MiB',
 }, async (request) => {
@@ -168,7 +169,7 @@ export const handleEscalation = onCall({
  */
 export const generateEscalationSummary = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 30,
   memory: '256MiB',
 }, async (request) => {

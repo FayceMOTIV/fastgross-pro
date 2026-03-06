@@ -8,6 +8,7 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../../ai/callAI.js'
 
@@ -214,7 +215,7 @@ export const tiktokHunter = onSchedule({
  */
 export const runTikTokHunterManual = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '1GiB',
   timeoutSeconds: 300
 }, async (request) => {
@@ -594,7 +595,7 @@ Reponds UNIQUEMENT avec ce JSON (pas d'autre texte):
  */
 export const getTikTokHunterStats = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 

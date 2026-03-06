@@ -368,8 +368,10 @@ export default function Legal() {
                   <br />
                   Entreprise Individuelle
                   <br />
+                  <strong>SIRET :</strong> 935 149 729 00017
                   <br />
-                  <strong>Editeur responsable :</strong> Faical Kriouar
+                  <br />
+                  <strong>Directeur de la publication :</strong> Faical Kriouar
                   <br />
                   <br />
                   <strong>Siege social :</strong>

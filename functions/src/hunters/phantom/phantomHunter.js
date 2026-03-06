@@ -14,6 +14,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../../ai/callAI.js'
 
@@ -197,7 +198,7 @@ function extractEmailFromBio(bio) {
  */
 export const runPhantomScrape = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '1GiB',
   timeoutSeconds: 120
 }, async (request) => {
@@ -272,7 +273,7 @@ export const runPhantomScrape = onCall({
  */
 export const listPhantoms = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'User must be authenticated')
 

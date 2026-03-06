@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
@@ -36,7 +37,7 @@ async function incrementDailyStat(orgId, field, increment = 1) {
  */
 export const updateDailyAnalytics = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
 }, async (request) => {
   const { auth, data } = request
 

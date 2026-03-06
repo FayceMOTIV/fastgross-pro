@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
 import {
@@ -95,7 +96,7 @@ function shouldEscalate({ kbMaxScore, sentimentScore, leadScore, turnCount, mess
  */
 export const agentRespond = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   timeoutSeconds: 60,
   memory: '512MiB',
 }, async (request) => {
@@ -370,7 +371,7 @@ IMPORTANT: Reponds UNIQUEMENT avec le message a envoyer, sans guillemets ni pref
  */
 export const getAgentStatus = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
 }, async (request) => {
   const { auth, data } = request
 

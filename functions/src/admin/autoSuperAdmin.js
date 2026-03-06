@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 
 const getDb = () => getFirestore()
@@ -33,7 +34,7 @@ async function makeSuperAdmin(userId, email) {
  */
 export const checkFirstUser = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth } = request
 
@@ -93,7 +94,7 @@ export const checkFirstUser = onCall({
  */
 export const getAdminStatus = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth } = request
 

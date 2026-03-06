@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { sendEmail, getEmailStatus } from '../email/emailRouter.js'
 
@@ -25,7 +26,7 @@ async function canTestEmail(userId) {
  */
 export const sendTestEmail = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -114,7 +115,7 @@ export const sendTestEmail = onCall({
  */
 export const getTestEmailLogs = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
@@ -161,7 +162,7 @@ export const getTestEmailLogs = onCall({
  */
 export const verifyEmailConfig = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth } = request
 

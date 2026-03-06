@@ -20,6 +20,7 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
 import { callAI } from '../../ai/callAI.js'
@@ -394,7 +395,7 @@ export const instagramDmSender = onSchedule({
  */
 export const sendManualDM = onCall({
   region: 'europe-west1',
-  cors: true,
+  cors: ALLOWED_ORIGINS,
   memory: '512MiB',
   timeoutSeconds: 120
 }, async (request) => {
@@ -719,7 +720,7 @@ except Exception as e:
  */
 export const getDMStats = onCall({
   region: 'europe-west1',
-  cors: true
+  cors: ALLOWED_ORIGINS
 }, async (request) => {
   const { auth, data } = request
 
