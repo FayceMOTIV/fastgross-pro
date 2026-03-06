@@ -45,18 +45,101 @@ const CHANNEL_COLORS = {
   call: 'bg-amber-100 text-amber-700 border-amber-200',
 }
 
+// Psych sequence template (from psychSequenceEngine)
+const PSYCH_TECHNIQUES = {
+  curiosity: { label: 'Curiosite', color: 'text-purple-600 bg-purple-50', emoji: '🤔' },
+  value: { label: 'Valeur', color: 'text-blue-600 bg-blue-50', emoji: '💎' },
+  social_proof: { label: 'Preuve sociale', color: 'text-green-600 bg-green-50', emoji: '⭐' },
+  urgency: { label: 'Urgence', color: 'text-orange-600 bg-orange-50', emoji: '⏰' },
+  rupture: { label: 'Rupture', color: 'text-red-600 bg-red-50', emoji: '🚪' },
+}
+
 const TEMPLATES = [
+  {
+    name: 'Psychologique - 14 jours',
+    desc: 'Sequence basee sur la psychologie de vente',
+    psychEnabled: true,
+    steps: [
+      {
+        channel: 'email',
+        delay: 0,
+        content: 'Question intrigante (curiosite)',
+        conditions: {},
+        technique: 'curiosity',
+      },
+      {
+        channel: 'email',
+        delay: 3,
+        content: 'Insight gratuit personnalise (valeur)',
+        conditions: { skipIfReplied: true },
+        technique: 'value',
+      },
+      {
+        channel: 'whatsapp',
+        delay: 5,
+        content: 'Message court + cas client (preuve sociale)',
+        conditions: { skipIfReplied: true },
+        technique: 'social_proof',
+      },
+      {
+        channel: 'email',
+        delay: 7,
+        content: 'Cas client similaire (preuve sociale)',
+        conditions: { skipIfReplied: true },
+        technique: 'social_proof',
+      },
+      {
+        channel: 'email',
+        delay: 10,
+        content: 'Offre limitee dans le temps (urgence)',
+        conditions: { skipIfReplied: true },
+        technique: 'urgency',
+      },
+      {
+        channel: 'email',
+        delay: 14,
+        content: 'Cloture du dossier (rupture)',
+        conditions: { skipIfReplied: true },
+        technique: 'rupture',
+      },
+    ],
+  },
   {
     name: '7 touches - 21 jours',
     desc: 'Sequence standard B2B',
     steps: [
       { channel: 'email', delay: 0, content: 'Premier email de prospection', conditions: {} },
-      { channel: 'email', delay: 3, content: 'Relance email #1', conditions: { skipIfReplied: true } },
-      { channel: 'linkedin', delay: 5, content: 'Connexion LinkedIn', conditions: { skipIfReplied: true } },
-      { channel: 'email', delay: 7, content: 'Email valeur ajoutee', conditions: { skipIfReplied: true } },
+      {
+        channel: 'email',
+        delay: 3,
+        content: 'Relance email #1',
+        conditions: { skipIfReplied: true },
+      },
+      {
+        channel: 'linkedin',
+        delay: 5,
+        content: 'Connexion LinkedIn',
+        conditions: { skipIfReplied: true },
+      },
+      {
+        channel: 'email',
+        delay: 7,
+        content: 'Email valeur ajoutee',
+        conditions: { skipIfReplied: true },
+      },
       { channel: 'sms', delay: 10, content: 'SMS court', conditions: { skipIfReplied: true } },
-      { channel: 'email', delay: 14, content: 'Dernier email', conditions: { skipIfReplied: true } },
-      { channel: 'call', delay: 21, content: 'Appel telephonique', conditions: { skipIfReplied: true, onlyIfScoreAbove: 50 } },
+      {
+        channel: 'email',
+        delay: 14,
+        content: 'Dernier email',
+        conditions: { skipIfReplied: true },
+      },
+      {
+        channel: 'call',
+        delay: 21,
+        content: 'Appel telephonique',
+        conditions: { skipIfReplied: true, onlyIfScoreAbove: 50 },
+      },
     ],
   },
   {
@@ -65,8 +148,18 @@ const TEMPLATES = [
     steps: [
       { channel: 'email', delay: 0, content: 'Email personnalise urgent', conditions: {} },
       { channel: 'call', delay: 1, content: 'Appel direct', conditions: { onlyIfScoreAbove: 70 } },
-      { channel: 'sms', delay: 2, content: 'SMS avec lien calendly', conditions: { skipIfReplied: true } },
-      { channel: 'email', delay: 3, content: 'Derniere relance', conditions: { skipIfReplied: true } },
+      {
+        channel: 'sms',
+        delay: 2,
+        content: 'SMS avec lien calendly',
+        conditions: { skipIfReplied: true },
+      },
+      {
+        channel: 'email',
+        delay: 3,
+        content: 'Derniere relance',
+        conditions: { skipIfReplied: true },
+      },
     ],
   },
   {
@@ -74,11 +167,26 @@ const TEMPLATES = [
     desc: 'Leads froids, nurturing long terme',
     steps: [
       { channel: 'email', delay: 0, content: 'Email introduction', conditions: {} },
-      { channel: 'email', delay: 14, content: 'Contenu educatif #1', conditions: { skipIfReplied: true } },
+      {
+        channel: 'email',
+        delay: 14,
+        content: 'Contenu educatif #1',
+        conditions: { skipIfReplied: true },
+      },
       { channel: 'linkedin', delay: 21, content: 'Connexion + message', conditions: {} },
       { channel: 'email', delay: 30, content: 'Etude de cas', conditions: { skipIfReplied: true } },
-      { channel: 'email', delay: 60, content: 'Offre speciale', conditions: { skipIfReplied: true } },
-      { channel: 'email', delay: 90, content: 'Dernier contact', conditions: { skipIfReplied: true } },
+      {
+        channel: 'email',
+        delay: 60,
+        content: 'Offre speciale',
+        conditions: { skipIfReplied: true },
+      },
+      {
+        channel: 'email',
+        delay: 90,
+        content: 'Dernier contact',
+        conditions: { skipIfReplied: true },
+      },
     ],
   },
   {
@@ -86,9 +194,24 @@ const TEMPLATES = [
     desc: 'Prospects utilisant un concurrent',
     steps: [
       { channel: 'email', delay: 0, content: 'Comparaison objective', conditions: {} },
-      { channel: 'email', delay: 4, content: 'Etude de cas migration', conditions: { skipIfReplied: true } },
-      { channel: 'call', delay: 7, content: 'Appel decouverte', conditions: { skipIfReplied: true, onlyIfScoreAbove: 40 } },
-      { channel: 'email', delay: 14, content: 'Offre migration', conditions: { skipIfReplied: true } },
+      {
+        channel: 'email',
+        delay: 4,
+        content: 'Etude de cas migration',
+        conditions: { skipIfReplied: true },
+      },
+      {
+        channel: 'call',
+        delay: 7,
+        content: 'Appel decouverte',
+        conditions: { skipIfReplied: true, onlyIfScoreAbove: 40 },
+      },
+      {
+        channel: 'email',
+        delay: 14,
+        content: 'Offre migration',
+        conditions: { skipIfReplied: true },
+      },
     ],
   },
 ]
@@ -109,13 +232,18 @@ function StepCard({ step, index, onUpdate, onDelete }) {
           className={`border rounded-xl bg-white transition-shadow ${snapshot.isDragging ? 'shadow-lg' : 'shadow-sm'}`}
         >
           <div className="flex items-center gap-3 p-3">
-            <div {...provided.dragHandleProps} className="cursor-grab text-gray-300 hover:text-gray-500">
+            <div
+              {...provided.dragHandleProps}
+              className="cursor-grab text-gray-300 hover:text-gray-500"
+            >
               <GripVertical className="w-4 h-4" />
             </div>
 
             {/* Timeline connector */}
             <div className="flex flex-col items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${color}`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center border ${color}`}
+              >
                 <Icon className="w-4 h-4" />
               </div>
             </div>
@@ -128,8 +256,18 @@ function StepCard({ step, index, onUpdate, onDelete }) {
                   <Clock className="w-3 h-3" />
                   J+{step.delay}
                 </span>
+                {step.technique && PSYCH_TECHNIQUES[step.technique] && (
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded font-medium ${PSYCH_TECHNIQUES[step.technique].color}`}
+                  >
+                    {PSYCH_TECHNIQUES[step.technique].emoji}{' '}
+                    {PSYCH_TECHNIQUES[step.technique].label}
+                  </span>
+                )}
                 {step.conditions?.skipIfReplied && (
-                  <span className="text-xs px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">Skip si repondu</span>
+                  <span className="text-xs px-1.5 py-0.5 bg-gray-100 rounded text-gray-500">
+                    Skip si repondu
+                  </span>
                 )}
                 {step.conditions?.onlyIfScoreAbove && (
                   <span className="text-xs px-1.5 py-0.5 bg-indigo-50 rounded text-indigo-600">
@@ -137,11 +275,16 @@ function StepCard({ step, index, onUpdate, onDelete }) {
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-700 truncate mt-0.5">{step.content || 'Message vide'}</p>
+              <p className="text-sm text-gray-700 truncate mt-0.5">
+                {step.content || 'Message vide'}
+              </p>
             </div>
 
             <div className="flex items-center gap-1">
-              <button onClick={() => setExpanded(!expanded)} className="p-1 text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
                 {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
               <button onClick={onDelete} className="p-1 text-gray-400 hover:text-red-500">
@@ -208,10 +351,12 @@ function StepCard({ step, index, onUpdate, onDelete }) {
                     <input
                       type="checkbox"
                       checked={step.conditions?.skipIfReplied || false}
-                      onChange={(e) => onUpdate({
-                        ...step,
-                        conditions: { ...step.conditions, skipIfReplied: e.target.checked },
-                      })}
+                      onChange={(e) =>
+                        onUpdate({
+                          ...step,
+                          conditions: { ...step.conditions, skipIfReplied: e.target.checked },
+                        })
+                      }
                       className="rounded border-gray-300"
                     />
                     Skip si repondu
@@ -220,10 +365,12 @@ function StepCard({ step, index, onUpdate, onDelete }) {
                     <input
                       type="checkbox"
                       checked={step.conditions?.skipIfOpened || false}
-                      onChange={(e) => onUpdate({
-                        ...step,
-                        conditions: { ...step.conditions, skipIfOpened: e.target.checked },
-                      })}
+                      onChange={(e) =>
+                        onUpdate({
+                          ...step,
+                          conditions: { ...step.conditions, skipIfOpened: e.target.checked },
+                        })
+                      }
                       className="rounded border-gray-300"
                     />
                     Skip si ouvert
@@ -235,10 +382,15 @@ function StepCard({ step, index, onUpdate, onDelete }) {
                       min={0}
                       max={100}
                       value={step.conditions?.onlyIfScoreAbove || ''}
-                      onChange={(e) => onUpdate({
-                        ...step,
-                        conditions: { ...step.conditions, onlyIfScoreAbove: parseInt(e.target.value) || 0 },
-                      })}
+                      onChange={(e) =>
+                        onUpdate({
+                          ...step,
+                          conditions: {
+                            ...step.conditions,
+                            onlyIfScoreAbove: parseInt(e.target.value) || 0,
+                          },
+                        })
+                      }
                       className="w-14 border border-gray-200 rounded px-1.5 py-0.5 text-sm"
                       placeholder="0"
                     />
@@ -266,7 +418,18 @@ export default function SequenceBuilder() {
   // Load sequences
   useEffect(() => {
     if (!orgId) {
-      setSequences(TEMPLATES.map((t, i) => ({ id: `template-${i}`, name: t.name, desc: t.desc, steps: t.steps, stepsCount: t.steps.length, active: i === 0, leadsActive: [12, 5, 8, 3][i], replyRate: [8.5, 15.2, 3.1, 6.7][i] })))
+      setSequences(
+        TEMPLATES.map((t, i) => ({
+          id: `template-${i}`,
+          name: t.name,
+          desc: t.desc,
+          steps: t.steps,
+          stepsCount: t.steps.length,
+          active: i === 0,
+          leadsActive: [12, 5, 8, 3][i],
+          replyRate: [8.5, 15.2, 3.1, 6.7][i],
+        }))
+      )
       return
     }
     const ref = collection(db, 'organizations', orgId, 'sequences')
@@ -290,7 +453,15 @@ export default function SequenceBuilder() {
   }
 
   const addStep = () => {
-    setSteps([...steps, { channel: 'email', delay: steps.length > 0 ? (steps[steps.length - 1].delay || 0) + 3 : 0, content: '', conditions: { skipIfReplied: true } }])
+    setSteps([
+      ...steps,
+      {
+        channel: 'email',
+        delay: steps.length > 0 ? (steps[steps.length - 1].delay || 0) + 3 : 0,
+        content: '',
+        conditions: { skipIfReplied: true },
+      },
+    ])
   }
 
   const updateStep = (index, updated) => {
@@ -338,7 +509,7 @@ export default function SequenceBuilder() {
 
   const generateWithAI = async () => {
     if (!seqName) {
-      toast.error('Donnez un nom a la sequence d\'abord')
+      toast.error("Donnez un nom a la sequence d'abord")
       return
     }
     setGenerating(true)
@@ -401,17 +572,19 @@ export default function SequenceBuilder() {
                 key={seq.id}
                 onClick={() => selectSequence(seq)}
                 className={`w-full text-left p-2 rounded-lg text-sm transition-all ${
-                  selectedSeq?.id === seq.id ? 'bg-indigo-50 border border-indigo-200' : 'hover:bg-white hover:shadow-sm'
+                  selectedSeq?.id === seq.id
+                    ? 'bg-indigo-50 border border-indigo-200'
+                    : 'hover:bg-white hover:shadow-sm'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <p className="font-medium text-gray-700">{seq.name}</p>
-                  {seq.active && (
-                    <span className="w-2 h-2 rounded-full bg-green-400" />
-                  )}
+                  {seq.active && <span className="w-2 h-2 rounded-full bg-green-400" />}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-gray-400">{seq.stepsCount || seq.steps?.length || 0} etapes</span>
+                  <span className="text-xs text-gray-400">
+                    {seq.stepsCount || seq.steps?.length || 0} etapes
+                  </span>
                   {seq.leadsActive > 0 && (
                     <span className="text-xs text-gray-400">· {seq.leadsActive} leads</span>
                   )}
@@ -441,7 +614,11 @@ export default function SequenceBuilder() {
               disabled={generating}
               className="px-3 py-1.5 text-sm bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 flex items-center gap-1 disabled:opacity-50"
             >
-              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+              {generating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Wand2 className="w-4 h-4" />
+              )}
               Generer IA
             </button>
             <button

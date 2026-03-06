@@ -6,7 +6,16 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { httpsCallable } from 'firebase/functions'
-import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  setDoc,
+  deleteDoc,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { useOrg } from '@/contexts/OrgContext'
 import { functions, db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
@@ -31,9 +40,12 @@ import {
   Swords,
   ChevronDown,
   ChevronUp,
+  Wand2,
 } from 'lucide-react'
+import KBWizard from '@/components/kb/KBWizard'
 
 const TABS = [
+  { id: 'wizard', label: 'Wizard', icon: Wand2 },
   { id: 'documents', label: 'Documents', icon: FileText },
   { id: 'objections', label: 'Objections', icon: Shield },
   { id: 'competitors', label: 'Concurrents', icon: Swords },
@@ -79,6 +91,11 @@ export default function KnowledgeBase() {
       </div>
 
       {/* Content */}
+      {activeTab === 'wizard' && (
+        <div className="card p-6">
+          <KBWizard />
+        </div>
+      )}
       {activeTab === 'documents' && <DocumentsSection orgId={orgId} />}
       {activeTab === 'objections' && <ObjectionsSection orgId={orgId} />}
       {activeTab === 'competitors' && <CompetitorsSection orgId={orgId} />}
@@ -162,16 +179,19 @@ function DocumentsSection({ orgId }) {
     }
   }, [orgId, mode, textInput, urlInput, titleInput])
 
-  const handleDelete = useCallback(async (docId) => {
-    if (!orgId) return
-    try {
-      const deleteFn = httpsCallable(functions, 'deleteKBDocument')
-      await deleteFn({ orgId, docId })
-      toast.success('Document supprime')
-    } catch (error) {
-      toast.error('Erreur: ' + error.message)
-    }
-  }, [orgId])
+  const handleDelete = useCallback(
+    async (docId) => {
+      if (!orgId) return
+      try {
+        const deleteFn = httpsCallable(functions, 'deleteKBDocument')
+        await deleteFn({ orgId, docId })
+        toast.success('Document supprime')
+      } catch (error) {
+        toast.error('Erreur: ' + error.message)
+      }
+    },
+    [orgId]
+  )
 
   return (
     <div className="space-y-6">
@@ -247,7 +267,10 @@ function DocumentsSection({ orgId }) {
         ) : (
           <div className="space-y-2">
             {docs.map((d) => (
-              <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div
+                key={d.id}
+                className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+              >
                 <div className="flex items-center gap-3">
                   <FileText className="w-4 h-4 text-purple-500" />
                   <div>
@@ -290,45 +313,46 @@ function ObjectionsSection({ orgId }) {
   }, [])
 
   const updateObjection = useCallback((id, field, value) => {
-    setObjections((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, [field]: value } : o))
-    )
+    setObjections((prev) => prev.map((o) => (o.id === id ? { ...o, [field]: value } : o)))
   }, [])
 
   const removeObjection = useCallback((id) => {
     setObjections((prev) => prev.filter((o) => o.id !== id))
   }, [])
 
-  const generateVariants = useCallback(async (id) => {
-    const obj = objections.find((o) => o.id === id)
-    if (!obj?.objection) {
-      toast.error('Saisissez d\'abord l\'objection')
-      return
-    }
+  const generateVariants = useCallback(
+    async (id) => {
+      const obj = objections.find((o) => o.id === id)
+      if (!obj?.objection) {
+        toast.error("Saisissez d'abord l'objection")
+        return
+      }
 
-    setGenerating(id)
-    try {
-      // Use callAI via the agent
-      const respondFn = httpsCallable(functions, 'agentRespond')
-      const result = await respondFn({
-        orgId,
-        leadId: 'test',
-        message: obj.objection,
-      })
+      setGenerating(id)
+      try {
+        // Use callAI via the agent
+        const respondFn = httpsCallable(functions, 'agentRespond')
+        const result = await respondFn({
+          orgId,
+          leadId: 'test',
+          message: obj.objection,
+        })
 
-      // Generate 3 variants
-      updateObjection(id, 'aiVariants', [
-        result.data.response,
-        obj.response || result.data.response,
-        result.data.response,
-      ])
-      toast.success('3 variantes generees')
-    } catch {
-      toast.error('Erreur generation IA')
-    } finally {
-      setGenerating(null)
-    }
-  }, [orgId, objections])
+        // Generate 3 variants
+        updateObjection(id, 'aiVariants', [
+          result.data.response,
+          obj.response || result.data.response,
+          result.data.response,
+        ])
+        toast.success('3 variantes generees')
+      } catch {
+        toast.error('Erreur generation IA')
+      } finally {
+        setGenerating(null)
+      }
+    },
+    [orgId, objections]
+  )
 
   const saveObjections = useCallback(async () => {
     if (!orgId) {
@@ -362,7 +386,8 @@ function ObjectionsSection({ orgId }) {
           Gestion des objections
         </h3>
         <p className="text-sm text-gray-500">
-          Definissez les objections courantes et les reponses recommandees. L'agent IA les utilisera automatiquement.
+          Definissez les objections courantes et les reponses recommandees. L'agent IA les utilisera
+          automatiquement.
         </p>
 
         <div className="space-y-4">
@@ -440,7 +465,10 @@ function CompetitorsSection({ orgId }) {
   const [analyzing, setAnalyzing] = useState(null)
 
   const addCompetitor = useCallback(() => {
-    setCompetitors((prev) => [...prev, { id: `new-${Date.now()}`, name: '', url: '', analysis: '' }])
+    setCompetitors((prev) => [
+      ...prev,
+      { id: `new-${Date.now()}`, name: '', url: '', analysis: '' },
+    ])
   }, [])
 
   const updateCompetitor = useCallback((id, field, value) => {
@@ -451,34 +479,43 @@ function CompetitorsSection({ orgId }) {
     setCompetitors((prev) => prev.filter((c) => c.id !== id))
   }, [])
 
-  const analyzeCompetitor = useCallback(async (id) => {
-    const comp = competitors.find((c) => c.id === id)
-    if (!comp?.name) {
-      toast.error('Saisissez le nom du concurrent')
-      return
-    }
-
-    setAnalyzing(id)
-    try {
-      // Index competitor info as KB
-      if (orgId) {
-        const indexFn = httpsCallable(functions, 'indexKBDocument')
-        await indexFn({
-          orgId,
-          url: comp.url || undefined,
-          text: comp.url ? undefined : `Concurrent: ${comp.name}. Site web: ${comp.url || 'non renseigne'}`,
-          title: `Concurrent: ${comp.name}`,
-          type: 'competitor',
-        })
+  const analyzeCompetitor = useCallback(
+    async (id) => {
+      const comp = competitors.find((c) => c.id === id)
+      if (!comp?.name) {
+        toast.error('Saisissez le nom du concurrent')
+        return
       }
-      toast.success(`${comp.name} analyse et indexe`)
-      updateCompetitor(id, 'analysis', 'Analyse effectuee — l\'agent IA utilisera ces informations pour se differencier')
-    } catch (error) {
-      toast.error('Erreur: ' + error.message)
-    } finally {
-      setAnalyzing(null)
-    }
-  }, [orgId, competitors])
+
+      setAnalyzing(id)
+      try {
+        // Index competitor info as KB
+        if (orgId) {
+          const indexFn = httpsCallable(functions, 'indexKBDocument')
+          await indexFn({
+            orgId,
+            url: comp.url || undefined,
+            text: comp.url
+              ? undefined
+              : `Concurrent: ${comp.name}. Site web: ${comp.url || 'non renseigne'}`,
+            title: `Concurrent: ${comp.name}`,
+            type: 'competitor',
+          })
+        }
+        toast.success(`${comp.name} analyse et indexe`)
+        updateCompetitor(
+          id,
+          'analysis',
+          "Analyse effectuee — l'agent IA utilisera ces informations pour se differencier"
+        )
+      } catch (error) {
+        toast.error('Erreur: ' + error.message)
+      } finally {
+        setAnalyzing(null)
+      }
+    },
+    [orgId, competitors]
+  )
 
   return (
     <div className="space-y-6">
@@ -493,7 +530,10 @@ function CompetitorsSection({ orgId }) {
 
         <div className="space-y-3">
           {competitors.map((comp) => (
-            <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+            <div
+              key={comp.id}
+              className="flex items-center gap-3 p-3 rounded-lg border border-gray-200"
+            >
               <input
                 type="text"
                 placeholder="Nom du concurrent"
@@ -617,13 +657,15 @@ function TestAgentSection({ orgId }) {
 
             {/* Metrics */}
             <div className="flex flex-wrap gap-3">
-              <div className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                response.confidenceScore >= 70
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : response.confidenceScore >= 40
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-red-100 text-red-700'
-              }`}>
+              <div
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+                  response.confidenceScore >= 70
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : response.confidenceScore >= 40
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-red-100 text-red-700'
+                }`}
+              >
                 Confiance: {response.confidenceScore}%
               </div>
               <div className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-600">

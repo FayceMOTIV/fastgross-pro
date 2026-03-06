@@ -417,6 +417,9 @@ export default function AutoPilotDashboard() {
           </div>
         </div>
 
+        {/* Alex Auto-Optimizer Insights */}
+        <AlexOptimizerInsights orgId={currentOrg?.id} />
+
         {/* AI Insight */}
         <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
           <div className="flex items-start gap-4">
@@ -434,6 +437,80 @@ export default function AutoPilotDashboard() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function AlexOptimizerInsights({ orgId }) {
+  const [optimization, setOptimization] = useState(null)
+
+  useEffect(() => {
+    if (!orgId) return
+    const loadOptimization = async () => {
+      try {
+        const optDoc = await getDoc(doc(db, 'organizations', orgId, 'settings', 'alexOptimization'))
+        if (optDoc.exists()) setOptimization(optDoc.data())
+      } catch {
+        /* no optimization yet */
+      }
+    }
+    loadOptimization()
+  }, [orgId])
+
+  if (!optimization) return null
+
+  const metrics = optimization.metrics || {}
+  const toneLabel = {
+    current: 'Ton actuel (ca marche)',
+    more_direct: 'Plus direct',
+    more_casual: 'Plus casual/humain',
+  }
+
+  return (
+    <div className="mt-8 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+          <TrendingUp className="w-5 h-5 text-indigo-400" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-white">Alex Auto-Optimizer</h2>
+          <p className="text-sm text-white/60">Dernieres optimisations automatiques</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white/5 rounded-xl p-3">
+          <p className="text-xs text-white/50">Reply rate</p>
+          <p className="text-xl font-bold text-white">{metrics.replyRate || 0}%</p>
+        </div>
+        <div className="bg-white/5 rounded-xl p-3">
+          <p className="text-xs text-white/50">Meilleur canal</p>
+          <p className="text-xl font-bold text-white capitalize">{metrics.bestChannel || '-'}</p>
+        </div>
+        <div className="bg-white/5 rounded-xl p-3">
+          <p className="text-xs text-white/50">Meilleure heure</p>
+          <p className="text-xl font-bold text-white">
+            {metrics.bestHour !== null ? `${metrics.bestHour}h` : '-'}
+          </p>
+        </div>
+        <div className="bg-white/5 rounded-xl p-3">
+          <p className="text-xs text-white/50">Ton suggere</p>
+          <p className="text-sm font-bold text-white">
+            {toneLabel[optimization.preferred_tone] || '-'}
+          </p>
+        </div>
+      </div>
+
+      {optimization.lastOptimizedAt && (
+        <p className="text-xs text-white/40 mt-3">
+          Derniere optimisation :{' '}
+          {new Date(
+            optimization.lastOptimizedAt?.seconds
+              ? optimization.lastOptimizedAt.seconds * 1000
+              : optimization.lastOptimizedAt
+          ).toLocaleDateString('fr-FR')}
+        </p>
+      )}
     </div>
   )
 }

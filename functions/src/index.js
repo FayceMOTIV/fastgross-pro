@@ -168,7 +168,7 @@ export {
 export { facebookHunter, runFacebookHunterManual, getFacebookHunterStats } from './hunters/facebook/facebookHunter.js'
 
 // --- Google Maps Hunter ---
-export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats } from './hunters/googlemaps/googleMapsHunter.js'
+export { googleMapsHunter, runGoogleMapsHunterManual, getGoogleMapsHunterStats, runGoogleMapsSourcingManual } from './hunters/googlemaps/googleMapsHunter.js'
 
 // --- LinkedIn Hunter (HeyReach + Apify) ---
 export { linkedinHunter, runLinkedInHunterManual, getLinkedInHunterStats, syncLinkedInInbox, addLinkedInAccount, removeLinkedInAccount } from './hunters/linkedin/linkedinHunter.js'
@@ -231,6 +231,43 @@ export { webhookIncoming } from './alex/webhookIncoming.js'
 export { rescueScheduler } from './alex/rescueScheduler.js'
 export { transferLeadToClient } from './alex/transferLeadToClient.js'
 export { dailyReset } from './alex/dailyReset.js'
+export { sendManualMessage } from './alex/sendMessage.js'
+
+// ============================================
+// Notification System (v6.0)
+// ============================================
+export { sendNotification } from './notifications/notificationSender.js'
+
+// ============================================
+// KB Wizard (v6.0 - Module 4)
+// ============================================
+export { processKBWizard } from './knowledge/kbWizardProcessor.js'
+
+// ============================================
+// Signal Monitor (v6.0 - Module 1)
+// ============================================
+export { signalMonitorCron } from './engine/signalMonitor.js'
+
+// ============================================
+// Auto-Optimizer (v6.0 - Module 8)
+// ============================================
+export { autoOptimizerCron } from './alex/autoOptimizer.js'
+export { getAlexAnalytics } from './analytics/alexAnalytics.js'
+
+// ============================================
+// Deliverability Monitor (v6.0 - Module 10)
+// ============================================
+export { deliverabilityMonitorCron, getDeliverabilityScore } from './email/deliverabilityMonitor.js'
+
+// ============================================
+// Adaptive Warmup (v6.0 - Module 10)
+// ============================================
+export { getAdaptiveWarmupLimit } from './email/warmup.js'
+
+// ============================================
+// Enhanced Deliverability (v6.0 - Module 10)
+// ============================================
+export { checkReverseDNS, checkBlacklists } from './email/deliverability.js'
 
 // ============================================
 // Cloud Tasks Agents (serverless BullMQ replacement)

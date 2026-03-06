@@ -29,9 +29,14 @@ export function advancedScoring(prospect, icp) {
   const dataResult = calculateDataQuality(prospect)
 
   // ============================================
+  // SIGNAL BONUS (from signalMonitor web scan, max +10)
+  // ============================================
+  const signalBonus = Math.min(10, Math.round((prospect.signalBonus || 0) / 5))
+
+  // ============================================
   // CALCUL DU SCORE TOTAL
   // ============================================
-  const total = fitResult.score + intentScore + dataResult.score
+  const total = fitResult.score + intentScore + dataResult.score + signalBonus
 
   // ============================================
   // PRIORITE basee sur le combo Fit + Intent

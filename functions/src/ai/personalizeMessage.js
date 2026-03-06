@@ -10,6 +10,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getLoadBalancer } from './loadBalancer.js'
+import { getCountryProfile } from '../engine/countryProfiles.js'
 
 /**
  * Cloud Function : Genere des angles de personnalisation pour un prospect
@@ -48,12 +49,18 @@ export const personalizeMessage = onCall(
         prospectFollowers,
         businessType,
         targetService,
-        strategy = 'speed'
+        strategy = 'speed',
+        country,
+        language,
       } = request.data
 
       if (!prospectName || !prospectBio) {
         throw new HttpsError('invalid-argument', 'prospectName and prospectBio are required')
       }
+
+      // Contexte pays (Module 7)
+      const countryProfile = country ? getCountryProfile({ country }) : null
+      const targetLanguage = language || countryProfile?.language || 'fr'
 
       // Get load balancer
       const loadBalancer = getLoadBalancer()
@@ -66,7 +73,11 @@ export const personalizeMessage = onCall(
           prospectCategory: prospectCategory || 'Unknown',
           prospectFollowers: prospectFollowers || '0',
           businessType: businessType || 'Generic',
-          targetService: targetService || 'Services de creation de contenu video'
+          targetService: targetService || 'Services de creation de contenu video',
+          language: targetLanguage,
+          countryContext: countryProfile
+            ? `Prospect base en ${countryProfile.name}. Utilise les salutations locales: "${countryProfile.greetings.formal}". Reponds en ${targetLanguage === 'fr' ? 'francais' : 'anglais'}.`
+            : null,
         },
         strategy
       )

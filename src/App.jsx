@@ -295,57 +295,157 @@ export default function App() {
                           {/* ============================================ */}
 
                           {/* AutoPilot */}
-                          <Route path="daily-prospects" element={<Navigate to="/app/autopilot?tab=daily" replace />} />
-                          <Route path="test-autopilot" element={<Navigate to="/app/autopilot?tab=test" replace />} />
-                          <Route path="autopilot/setup" element={<Navigate to="/app/autopilot?tab=setup" replace />} />
+                          <Route
+                            path="daily-prospects"
+                            element={<Navigate to="/app/autopilot?tab=daily" replace />}
+                          />
+                          <Route
+                            path="test-autopilot"
+                            element={<Navigate to="/app/autopilot?tab=test" replace />}
+                          />
+                          <Route
+                            path="autopilot/setup"
+                            element={<Navigate to="/app/autopilot?tab=setup" replace />}
+                          />
 
                           {/* Sourcing */}
-                          <Route path="hunter" element={<Navigate to="/app/sourcing?tab=social" replace />} />
-                          <Route path="linkedin" element={<Navigate to="/app/sourcing?tab=linkedin" replace />} />
-                          <Route path="google-maps" element={<Navigate to="/app/sourcing?tab=maps" replace />} />
-                          <Route path="prospecting-sources" element={<Navigate to="/app/sourcing" replace />} />
-                          <Route path="enrichment" element={<Navigate to="/app/sourcing?tab=enrichment" replace />} />
+                          <Route
+                            path="hunter"
+                            element={<Navigate to="/app/sourcing?tab=social" replace />}
+                          />
+                          <Route
+                            path="linkedin"
+                            element={<Navigate to="/app/sourcing?tab=linkedin" replace />}
+                          />
+                          <Route
+                            path="google-maps"
+                            element={<Navigate to="/app/sourcing?tab=maps" replace />}
+                          />
+                          <Route
+                            path="prospecting-sources"
+                            element={<Navigate to="/app/sourcing" replace />}
+                          />
+                          <Route
+                            path="enrichment"
+                            element={<Navigate to="/app/sourcing?tab=enrichment" replace />}
+                          />
 
                           {/* Outils IA */}
                           <Route path="scanner" element={<Navigate to="/app/tools" replace />} />
-                          <Route path="forgeur" element={<Navigate to="/app/tools?tab=forgeur" replace />} />
-                          <Route path="radar" element={<Navigate to="/app/tools?tab=radar" replace />} />
+                          <Route
+                            path="forgeur"
+                            element={<Navigate to="/app/tools?tab=forgeur" replace />}
+                          />
+                          <Route
+                            path="radar"
+                            element={<Navigate to="/app/tools?tab=radar" replace />}
+                          />
                           <Route path="ai" element={<Navigate to="/app/tools?tab=ai" replace />} />
-                          <Route path="posting" element={<Navigate to="/app/tools?tab=posting" replace />} />
+                          <Route
+                            path="posting"
+                            element={<Navigate to="/app/tools?tab=posting" replace />}
+                          />
 
                           {/* CRM */}
-                          <Route path="prospects" element={<Navigate to="/app/crm?tab=prospects" replace />} />
-                          <Route path="pipeline" element={<Navigate to="/app/crm?tab=pipeline" replace />} />
+                          <Route
+                            path="prospects"
+                            element={<Navigate to="/app/crm?tab=prospects" replace />}
+                          />
+                          <Route
+                            path="pipeline"
+                            element={<Navigate to="/app/crm?tab=pipeline" replace />}
+                          />
 
                           {/* Outreach */}
-                          <Route path="campaigns" element={<Navigate to="/app/outreach" replace />} />
-                          <Route path="email-sequences" element={<Navigate to="/app/outreach?tab=email" replace />} />
-                          <Route path="social-outreach" element={<Navigate to="/app/outreach?tab=social" replace />} />
-                          <Route path="whatsapp" element={<Navigate to="/app/outreach?tab=whatsapp" replace />} />
+                          <Route
+                            path="campaigns"
+                            element={<Navigate to="/app/outreach" replace />}
+                          />
+                          <Route
+                            path="email-sequences"
+                            element={<Navigate to="/app/outreach?tab=email" replace />}
+                          />
+                          <Route
+                            path="social-outreach"
+                            element={<Navigate to="/app/outreach?tab=social" replace />}
+                          />
+                          <Route
+                            path="whatsapp"
+                            element={<Navigate to="/app/outreach?tab=whatsapp" replace />}
+                          />
 
                           {/* Inbox */}
-                          <Route path="escalations" element={<Navigate to="/app/inbox?tab=escalations" replace />} />
+                          <Route
+                            path="escalations"
+                            element={<Navigate to="/app/inbox?tab=escalations" replace />}
+                          />
 
                           {/* Performance */}
-                          <Route path="analytics" element={<Navigate to="/app/performance" replace />} />
-                          <Route path="proof" element={<Navigate to="/app/performance?tab=proof" replace />} />
-                          <Route path="monitoring" element={<Navigate to="/app/performance?tab=monitoring" replace />} />
+                          <Route
+                            path="analytics"
+                            element={<Navigate to="/app/performance" replace />}
+                          />
+                          <Route
+                            path="proof"
+                            element={<Navigate to="/app/performance?tab=proof" replace />}
+                          />
+                          <Route
+                            path="monitoring"
+                            element={<Navigate to="/app/performance?tab=monitoring" replace />}
+                          />
 
                           {/* Config */}
                           <Route path="settings" element={<Navigate to="/app/config" replace />} />
-                          <Route path="settings/:section" element={<Navigate to="/app/config" replace />} />
-                          <Route path="email-infra" element={<Navigate to="/app/config?section=email-infra" replace />} />
-                          <Route path="knowledge-base" element={<Navigate to="/app/config?section=knowledge" replace />} />
-                          <Route path="sequence-builder" element={<Navigate to="/app/config?section=sequences" replace />} />
-                          <Route path="voice-config" element={<Navigate to="/app/config?section=voice" replace />} />
-                          <Route path="integrations" element={<Navigate to="/app/config?section=integrations" replace />} />
-                          <Route path="team" element={<Navigate to="/app/config?section=team" replace />} />
-                          <Route path="setup" element={<Navigate to="/app/config?section=setup" replace />} />
-                          <Route path="hunter-pricing" element={<Navigate to="/app/config?section=billing" replace />} />
+                          <Route
+                            path="settings/:section"
+                            element={<Navigate to="/app/config" replace />}
+                          />
+                          <Route
+                            path="email-infra"
+                            element={<Navigate to="/app/config?section=email-infra" replace />}
+                          />
+                          <Route
+                            path="knowledge-base"
+                            element={<Navigate to="/app/config?section=knowledge" replace />}
+                          />
+                          <Route
+                            path="base-de-connaissances"
+                            element={<Navigate to="/app/config?section=knowledge" replace />}
+                          />
+                          <Route
+                            path="sequence-builder"
+                            element={<Navigate to="/app/config?section=sequences" replace />}
+                          />
+                          <Route
+                            path="voice-config"
+                            element={<Navigate to="/app/config?section=voice" replace />}
+                          />
+                          <Route
+                            path="integrations"
+                            element={<Navigate to="/app/config?section=integrations" replace />}
+                          />
+                          <Route
+                            path="team"
+                            element={<Navigate to="/app/config?section=team" replace />}
+                          />
+                          <Route
+                            path="setup"
+                            element={<Navigate to="/app/config?section=setup" replace />}
+                          />
+                          <Route
+                            path="hunter-pricing"
+                            element={<Navigate to="/app/config?section=billing" replace />}
+                          />
 
                           {/* Admin */}
-                          <Route path="test-email" element={<Navigate to="/app/admin?tab=test-email" replace />} />
-                          <Route path="war-room" element={<Navigate to="/app/admin?tab=war-room" replace />} />
+                          <Route
+                            path="test-email"
+                            element={<Navigate to="/app/admin?tab=test-email" replace />}
+                          />
+                          <Route
+                            path="war-room"
+                            element={<Navigate to="/app/admin?tab=war-room" replace />}
+                          />
                         </Route>
 
                         {/* ============================================ */}

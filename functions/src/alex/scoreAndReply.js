@@ -9,6 +9,9 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Groq from 'groq-sdk'
 import { sendMessage } from './sendMessage.js'
 import { sendTelegramAlert } from './sendTelegramAlert.js'
+import { sendNotification } from '../notifications/notificationSender.js'
+import { NOTIFICATION_TYPES } from '../notifications/notificationTemplates.js'
+import { addToHotQueue } from '../notifications/hotQueueManager.js'
 
 const getDb = () => getFirestore()
 
@@ -58,6 +61,9 @@ export async function scoreAndReply(params) {
     logger.warn(`Prospect ${prospectId} is blacklisted, skipping scoreAndReply`)
     return { success: false, error: 'prospect_blacklisted' }
   }
+
+  // Verifier si Alex est en pause sur ce prospect (Module 9 — CRM Dialogue)
+  const isAlexPaused = prospect.alexPaused === true
 
   // Charger config Alex
   let alexConfig = {}
@@ -209,11 +215,13 @@ export async function scoreAndReply(params) {
   }
 
   // ============================================
-  // ETAPE 4 : Envoyer la reponse Alex
+  // ETAPE 4 : Envoyer la reponse Alex (sauf si pause)
   // ============================================
   let sendResult = { success: false }
 
-  if (alexReply) {
+  if (isAlexPaused) {
+    logger.info(`Alex paused for prospect ${prospectId}, skipping auto-reply`)
+  } else if (alexReply) {
     sendResult = await sendMessage({
       orgId,
       prospectId,
@@ -230,9 +238,50 @@ export async function scoreAndReply(params) {
   }
 
   // ============================================
-  // ETAPE 5 : Alerte Telegram si score > 80
+  // ETAPE 5 : Notifications si score >= 80
   // ============================================
-  if (score > 80) {
+  if (score >= 80) {
+    // Ajouter a la hot queue (Module 5)
+    try {
+      await addToHotQueue({ orgId, prospectId, prospect, score, scoring, channel })
+    } catch (err) {
+      logger.warn('Hot queue add failed (non-blocking):', err.message)
+    }
+
+    // Charger interactions pour notification riche
+    let recentInteractions = []
+    try {
+      const interSnap = await getDb()
+        .collection('organizations').doc(orgId)
+        .collection('interactions')
+        .where('prospectId', '==', prospectId)
+        .orderBy('createdAt', 'desc')
+        .limit(10)
+        .get()
+      recentInteractions = interSnap.docs.map((d) => d.data())
+    } catch (err) {
+      logger.warn('Could not load interactions for notification:', err.message)
+    }
+
+    // Notification riche WhatsApp + Telegram
+    try {
+      await sendNotification({
+        orgId,
+        type: NOTIFICATION_TYPES.HOT_LEAD,
+        data: {
+          prospect,
+          score,
+          scoring,
+          interactions: recentInteractions,
+          orgName: orgData.name || orgId,
+          channel,
+        },
+      })
+    } catch (err) {
+      logger.warn('Rich notification failed (non-blocking):', err.message)
+    }
+
+    // Legacy Telegram alert (fallback)
     try {
       await sendTelegramAlert({
         prospectName: prospect.name || prospect.firstName || from,

@@ -110,12 +110,24 @@ const TIMEZONES = [
   'Africa/Tunis',
 ]
 
+const TARGET_COUNTRIES = [
+  { code: 'FR', label: 'France', flag: '🇫🇷' },
+  { code: 'BE', label: 'Belgique', flag: '🇧🇪' },
+  { code: 'CH', label: 'Suisse', flag: '🇨🇭' },
+  { code: 'LU', label: 'Luxembourg', flag: '🇱🇺' },
+  { code: 'CA', label: 'Canada', flag: '🇨🇦' },
+  { code: 'MA', label: 'Maroc', flag: '🇲🇦' },
+  { code: 'SN', label: 'Senegal', flag: '🇸🇳' },
+  { code: 'CI', label: "Cote d'Ivoire", flag: '🇨🇮' },
+]
+
 const DEFAULT_FORM = {
   // Step 1
   companyName: '',
   industry: '',
   targetAudience: '',
   website: '',
+  targetCountries: ['FR'],
   // Step 2
   whatsappEnabled: false,
   evolutionApiUrl: '',

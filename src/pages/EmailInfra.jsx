@@ -23,22 +23,60 @@ import {
 } from 'lucide-react'
 
 const STEPS = [
-  { id: 1, title: 'Domaines d\'envoi', icon: Globe, desc: 'Configurer vos domaines et DNS' },
-  { id: 2, title: 'Boites email', icon: Mail, desc: 'Connecter vos comptes d\'envoi' },
+  { id: 1, title: "Domaines d'envoi", icon: Globe, desc: 'Configurer vos domaines et DNS' },
+  { id: 2, title: 'Boites email', icon: Mail, desc: "Connecter vos comptes d'envoi" },
   { id: 3, title: 'Warm-up', icon: Zap, desc: 'Rechauffement automatique' },
-  { id: 4, title: 'Test & Monitoring', icon: Shield, desc: 'Tester et surveiller' },
+  { id: 4, title: 'Delivrabilite', icon: BarChart3, desc: 'Score A-F par compte' },
+  { id: 5, title: 'Test & Monitoring', icon: Shield, desc: 'Tester et surveiller' },
 ]
 
 // Demo data
 const DEMO_DOMAINS = [
   { domain: 'facemedia.tech', spf: true, dkim: true, dmarc: true, score: 95, status: 'verified' },
-  { domain: 'outreach.facemedia.tech', spf: true, dkim: false, dmarc: true, score: 65, status: 'partial' },
+  {
+    domain: 'outreach.facemedia.tech',
+    spf: true,
+    dkim: false,
+    dmarc: true,
+    score: 65,
+    status: 'partial',
+  },
 ]
 
 const DEMO_ACCOUNTS = [
-  { id: '1', email: 'alex@facemedia.tech', provider: 'ses', sentToday: 45, dailyLimit: 200, bounceRate: 0.8, spamRate: 0.02, warmupScore: 92, status: 'active' },
-  { id: '2', email: 'contact@facemedia.tech', provider: 'smtp', sentToday: 12, dailyLimit: 100, bounceRate: 1.2, spamRate: 0.05, warmupScore: 78, status: 'active' },
-  { id: '3', email: 'sales@outreach.facemedia.tech', provider: 'ses', sentToday: 0, dailyLimit: 50, bounceRate: 0, spamRate: 0, warmupScore: 35, status: 'warming' },
+  {
+    id: '1',
+    email: 'alex@facemedia.tech',
+    provider: 'ses',
+    sentToday: 45,
+    dailyLimit: 200,
+    bounceRate: 0.8,
+    spamRate: 0.02,
+    warmupScore: 92,
+    status: 'active',
+  },
+  {
+    id: '2',
+    email: 'contact@facemedia.tech',
+    provider: 'smtp',
+    sentToday: 12,
+    dailyLimit: 100,
+    bounceRate: 1.2,
+    spamRate: 0.05,
+    warmupScore: 78,
+    status: 'active',
+  },
+  {
+    id: '3',
+    email: 'sales@outreach.facemedia.tech',
+    provider: 'ses',
+    sentToday: 0,
+    dailyLimit: 50,
+    bounceRate: 0,
+    spamRate: 0,
+    warmupScore: 35,
+    status: 'warming',
+  },
 ]
 
 function StatusBadge({ status }) {
@@ -59,7 +97,9 @@ function StatusBadge({ status }) {
     paused: 'Pause',
   }
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[status] || styles.missing}`}>
+    <span
+      className={`text-xs px-2 py-0.5 rounded-full font-medium ${styles[status] || styles.missing}`}
+    >
       {labels[status] || status}
     </span>
   )
@@ -136,7 +176,11 @@ function StepDomains({ orgId }) {
                 disabled={checking}
                 className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
               >
-                {checking ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                {checking ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3 h-3" />
+                )}
                 Reverifier
               </button>
             </div>
@@ -149,7 +193,9 @@ function StepDomains({ orgId }) {
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs mb-1">
                   <span className="text-gray-500">Score delivrabilite</span>
-                  <span className={`font-medium ${d.score > 80 ? 'text-green-600' : d.score > 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                  <span
+                    className={`font-medium ${d.score > 80 ? 'text-green-600' : d.score > 50 ? 'text-amber-600' : 'text-red-600'}`}
+                  >
                     {d.score}/100
                   </span>
                 </div>
@@ -205,13 +251,17 @@ function StepAccounts({ orgId }) {
               <p className="text-xs text-gray-500">Limite/j</p>
             </div>
             <div>
-              <p className={`text-lg font-semibold ${acc.bounceRate > 3 ? 'text-red-600' : 'text-gray-900'}`}>
+              <p
+                className={`text-lg font-semibold ${acc.bounceRate > 3 ? 'text-red-600' : 'text-gray-900'}`}
+              >
                 {acc.bounceRate}%
               </p>
               <p className="text-xs text-gray-500">Bounce</p>
             </div>
             <div>
-              <p className={`text-lg font-semibold ${acc.spamRate > 0.1 ? 'text-red-600' : 'text-gray-900'}`}>
+              <p
+                className={`text-lg font-semibold ${acc.spamRate > 0.1 ? 'text-red-600' : 'text-gray-900'}`}
+              >
                 {acc.spamRate}%
               </p>
               <p className="text-xs text-gray-500">Spam</p>
@@ -282,7 +332,9 @@ function StepWarmup({ orgId }) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-medium text-gray-900">Warmup automatique</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Rechauffement progressif de vos boites email</p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Rechauffement progressif de vos boites email
+            </p>
           </div>
           <div className="flex gap-2">
             <button
@@ -303,11 +355,15 @@ function StepWarmup({ orgId }) {
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-indigo-600">{warmupStatus?.totalAccounts || 3}</p>
+              <p className="text-2xl font-bold text-indigo-600">
+                {warmupStatus?.totalAccounts || 3}
+              </p>
               <p className="text-xs text-gray-500 mt-1">Comptes</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-600">{warmupStatus?.activeWarmups || 2}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {warmupStatus?.activeWarmups || 2}
+              </p>
               <p className="text-xs text-gray-500 mt-1">En warmup</p>
             </div>
             <div>
@@ -325,6 +381,79 @@ function StepWarmup({ orgId }) {
           <li>Jour 8-14 : 20-40 emails/jour, augmentation progressive</li>
           <li>Jour 15-21 : 50-100 emails/jour, reputation etablie</li>
           <li>Jour 22+ : Limite configuree, monitoring continu</li>
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function StepDeliverability({ orgId }) {
+  const [accounts, setAccounts] = useState(DEMO_ACCOUNTS)
+
+  useEffect(() => {
+    if (!orgId) return
+    const ref = collection(db, 'organizations', orgId, 'emailAccounts')
+    const q = query(ref, orderBy('createdAt', 'desc'))
+    const unsub = onSnapshot(q, (snap) => {
+      if (!snap.empty) {
+        setAccounts(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+      }
+    })
+    return () => unsub()
+  }, [orgId])
+
+  return (
+    <div className="space-y-4">
+      <div className="border border-gray-200 rounded-xl p-5 bg-white">
+        <div className="flex items-center gap-2 mb-4">
+          <Shield className="w-5 h-5 text-indigo-500" />
+          <h3 className="font-medium text-gray-900">Score Delivrabilite par compte</h3>
+        </div>
+        <div className="space-y-3">
+          {accounts.map((acc) => {
+            const grade = acc.deliverabilityGrade || null
+            const score = acc.deliverabilityScore || 0
+            const gradeColor =
+              grade === 'A+' || grade === 'A'
+                ? 'text-green-600 bg-green-100'
+                : grade === 'B'
+                  ? 'text-blue-600 bg-blue-100'
+                  : grade === 'C'
+                    ? 'text-amber-600 bg-amber-100'
+                    : 'text-red-600 bg-red-100'
+            return (
+              <div
+                key={acc.id}
+                className="flex items-center justify-between p-3 border border-gray-100 rounded-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <Mail className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-900">{acc.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {grade ? (
+                    <>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${gradeColor}`}>
+                        {grade}
+                      </span>
+                      <span className="text-xs text-gray-500">{score}/100</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-gray-400">Non verifie</span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-blue-700">
+        <p className="font-medium mb-1">Score de delivrabilite</p>
+        <p>Le score est calcule automatiquement chaque jour a 5h du matin. Il combine :</p>
+        <ul className="mt-1 space-y-0.5 text-blue-600">
+          <li>SPF (20pts) + DKIM (20pts) + DMARC (20pts) + MX (10pts)</li>
+          <li>Bounce rate (15pts) + Warmup level (15pts)</li>
         </ul>
       </div>
     </div>
@@ -378,7 +507,9 @@ function StepMonitoring({ orgId }) {
           </button>
         </div>
         {testResult && (
-          <div className={`mt-4 p-4 rounded-lg ${testResult.score > 80 ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+          <div
+            className={`mt-4 p-4 rounded-lg ${testResult.score > 80 ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}
+          >
             <div className="flex items-center gap-2 mb-2">
               {testResult.score > 80 ? (
                 <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -401,9 +532,14 @@ function StepMonitoring({ orgId }) {
             { label: 'Warmup score < 50%', active: true },
             { label: 'Quota journalier atteint', active: false },
           ].map((alert) => (
-            <div key={alert.label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+            <div
+              key={alert.label}
+              className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+            >
               <span className="text-sm text-gray-700">{alert.label}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${alert.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${alert.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+              >
                 {alert.active ? 'Actif' : 'Inactif'}
               </span>
             </div>
@@ -421,11 +557,18 @@ export default function EmailInfra() {
 
   const renderStep = () => {
     switch (currentStep) {
-      case 1: return <StepDomains orgId={orgId} />
-      case 2: return <StepAccounts orgId={orgId} />
-      case 3: return <StepWarmup orgId={orgId} />
-      case 4: return <StepMonitoring orgId={orgId} />
-      default: return null
+      case 1:
+        return <StepDomains orgId={orgId} />
+      case 2:
+        return <StepAccounts orgId={orgId} />
+      case 3:
+        return <StepWarmup orgId={orgId} />
+      case 4:
+        return <StepDeliverability orgId={orgId} />
+      case 5:
+        return <StepMonitoring orgId={orgId} />
+      default:
+        return null
     }
   }
 
@@ -460,11 +603,15 @@ export default function EmailInfra() {
                       : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
-                <div className={`flex items-center justify-center w-7 h-7 rounded-full border-2 ${
-                  isComplete ? 'bg-green-500 border-green-500 text-white' :
-                  isActive ? 'bg-indigo-500 border-indigo-500 text-white' :
-                  'border-gray-300 text-gray-400'
-                }`}>
+                <div
+                  className={`flex items-center justify-center w-7 h-7 rounded-full border-2 ${
+                    isComplete
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : isActive
+                        ? 'bg-indigo-500 border-indigo-500 text-white'
+                        : 'border-gray-300 text-gray-400'
+                  }`}
+                >
                   {isComplete ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : (
@@ -482,9 +629,7 @@ export default function EmailInfra() {
       </div>
 
       {/* Step content */}
-      <div className="mb-6">
-        {renderStep()}
-      </div>
+      <div className="mb-6">{renderStep()}</div>
 
       {/* Navigation */}
       <div className="flex justify-between">
@@ -496,8 +641,8 @@ export default function EmailInfra() {
           Precedent
         </button>
         <button
-          onClick={() => setCurrentStep(Math.min(4, currentStep + 1))}
-          disabled={currentStep === 4}
+          onClick={() => setCurrentStep(Math.min(5, currentStep + 1))}
+          disabled={currentStep === 5}
           className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-30 flex items-center gap-1"
         >
           Suivant

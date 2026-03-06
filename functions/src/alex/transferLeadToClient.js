@@ -7,6 +7,8 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
+import { sendNotification } from '../notifications/notificationSender.js'
+import { NOTIFICATION_TYPES } from '../notifications/notificationTemplates.js'
 
 const getDb = () => getFirestore()
 
@@ -149,6 +151,24 @@ export const transferLeadToClient = onCall(
         })
 
       logger.info(`Lead ${prospectId} transferred to ${cleanPhone} for org ${orgId}`)
+
+      // Envoyer notification riche (WhatsApp + Telegram)
+      try {
+        await sendNotification({
+          orgId,
+          type: NOTIFICATION_TYPES.HOT_LEAD,
+          data: {
+            prospect,
+            score: prospect.alexScore || 0,
+            scoring: prospect.alexScoring,
+            interactions,
+            orgName: orgData.name,
+            channel: 'whatsapp',
+          },
+        })
+      } catch (err) {
+        logger.warn('Rich notification failed (non-blocking):', err.message)
+      }
 
       return {
         success: true,

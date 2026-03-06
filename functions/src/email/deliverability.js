@@ -259,12 +259,39 @@ export async function runDeliverabilityTest(orgId, inboxId) {
 }
 
 /**
- * Verifie si un domaine est blackliste
+ * Verifie rDNS (reverse DNS) pour un domaine
+ */
+export async function checkReverseDNS(domain) {
+  const resolvePtr = promisify(dns.reverse)
+  try {
+    const mxRecords = await resolveMx(domain)
+    if (!mxRecords || mxRecords.length === 0) return { valid: false, detail: 'No MX records' }
+
+    const primaryMx = mxRecords.sort((a, b) => a.priority - b.priority)[0].exchange
+    const resolveDns = promisify(dns.resolve4)
+    const ips = await resolveDns(primaryMx)
+    if (!ips || ips.length === 0) return { valid: false, detail: 'MX has no A record' }
+
+    try {
+      const ptrs = await resolvePtr(ips[0])
+      return {
+        valid: ptrs && ptrs.length > 0,
+        ip: ips[0],
+        ptr: ptrs?.[0] || null,
+        detail: ptrs?.length > 0 ? `rDNS: ${ptrs[0]}` : 'No PTR record',
+      }
+    } catch {
+      return { valid: false, ip: ips[0], detail: 'No PTR record found' }
+    }
+  } catch {
+    return { valid: false, detail: 'rDNS check failed' }
+  }
+}
+
+/**
+ * Verifie si un domaine est blackliste via DNS lookup
  */
 export async function checkBlacklists(domain) {
-  // En production, on verifierait les principales blacklists
-  // Spamhaus, Barracuda, SpamCop, etc.
-
   const blacklists = [
     'zen.spamhaus.org',
     'bl.spamcop.net',
@@ -272,6 +299,7 @@ export async function checkBlacklists(domain) {
     'b.barracudacentral.org'
   ]
 
+  const resolveA = promisify(dns.resolve4)
   const results = {
     domain,
     checkedAt: new Date(),
@@ -279,12 +307,35 @@ export async function checkBlacklists(domain) {
     lists: []
   }
 
-  // Simulation - en prod, faire de vraies requetes DNS
+  // Resolve domain MX to IP for DNSBL checks
+  let ip = null
+  try {
+    const mxRecords = await resolveMx(domain)
+    if (mxRecords?.length > 0) {
+      const ips = await resolveA(mxRecords[0].exchange)
+      ip = ips?.[0]
+    }
+  } catch { /* no MX */ }
+
+  if (!ip) {
+    // Fallback: can't check without IP
+    for (const list of blacklists) {
+      results.lists.push({ name: list, listed: false, note: 'IP not resolved' })
+    }
+    return results
+  }
+
+  // Reverse IP for DNSBL query
+  const reversedIp = ip.split('.').reverse().join('.')
+
   for (const list of blacklists) {
-    results.lists.push({
-      name: list,
-      listed: false
-    })
+    try {
+      await resolveA(`${reversedIp}.${list}`)
+      results.lists.push({ name: list, listed: true })
+      results.blacklisted = true
+    } catch {
+      results.lists.push({ name: list, listed: false })
+    }
   }
 
   return results

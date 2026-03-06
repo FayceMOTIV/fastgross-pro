@@ -196,6 +196,30 @@ async function processOrg(org, globalResults) {
       return
     }
 
+    // F-bis. Integrate psych sequences for prospects with active sequences
+    let psychEngine = null
+    try {
+      const mod = await import('../engine/psychSequenceEngine.js')
+      psychEngine = mod
+    } catch { /* psychSequenceEngine not available */ }
+
+    if (psychEngine) {
+      for (const prospect of prospects.slice(0, 20)) {
+        if (prospect.sequenceStep !== undefined) {
+          try {
+            const step = psychEngine.getCurrentPsychStep(prospect)
+            if (step) {
+              const adaptiveChannel = psychEngine.selectAdaptiveChannel(prospect, step, healthyChannels)
+              if (adaptiveChannel && prospect[`${adaptiveChannel}Channel`] !== false) {
+                prospect._psyChannel = adaptiveChannel
+                prospect._psyTechnique = step.technique
+              }
+            }
+          } catch { /* skip psych for this prospect */ }
+        }
+      }
+    }
+
     // F. Pour chaque canal sain avec budget, dispatcher
     const orgResults = { sent: 0, failed: 0, skipped: 0 }
 

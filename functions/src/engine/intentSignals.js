@@ -176,6 +176,27 @@ export function detectBuyingSignals(prospect, icp) {
   }
 
   // ============================================
+  // SIGNALS 11-15: Web-Scanned Signals (from signalMonitor)
+  // tech_change, competitor_issue, seasonal, regulatory, social_engagement
+  // ============================================
+  const monitorSignals = prospect.signals || []
+  for (const sig of monitorSignals) {
+    const validTypes = ['tech_change', 'competitor_issue', 'seasonal', 'regulatory', 'social_engagement']
+    if (validTypes.includes(sig.type)) {
+      signals.push({
+        type: sig.type,
+        strength: sig.score >= 20 ? 'strong' : 'medium',
+        score: sig.score,
+        detail: sig.label || sig.type,
+        source: sig.source || 'web_scan',
+        insight: sig.snippet || '',
+        detectedAt: sig.detectedAt,
+      })
+      intentScore += sig.score
+    }
+  }
+
+  // ============================================
   // Calculer la priorite globale
   // ============================================
   let priority

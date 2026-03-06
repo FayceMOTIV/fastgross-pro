@@ -89,6 +89,7 @@ export default function ConfigHub() {
       case 'schedule':
         return <ScheduleSettings />
       case 'email-infra':
+      case 'email':
         return <EmailInfra />
       case 'knowledge':
         return <KnowledgeBase />

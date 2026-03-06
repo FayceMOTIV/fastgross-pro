@@ -171,6 +171,43 @@ export async function getWarmupOverview(orgId) {
 }
 
 /**
+ * Adaptive warmup: adjust daily limit based on bounce rate
+ * If bounce rate < 1% → accelerate (+10 emails/day cap)
+ * If bounce rate > 3% → slow down (-10 emails/day cap)
+ */
+export function getAdaptiveWarmupLimit(inbox) {
+  const baseStatus = getWarmupStatus(inbox)
+  if (!baseStatus.enabled || baseStatus.status === 'ready') return baseStatus
+
+  const bounceRate = inbox.bounceRate || 0
+  let adjustment = 0
+
+  if (bounceRate < 1 && baseStatus.daysSinceCreation >= 7) {
+    adjustment = Math.min(10, Math.floor(baseStatus.dailyLimit * 0.3))
+  } else if (bounceRate > 3) {
+    adjustment = -Math.min(10, Math.floor(baseStatus.dailyLimit * 0.5))
+  } else if (bounceRate > 5) {
+    adjustment = -Math.floor(baseStatus.dailyLimit * 0.7)
+  }
+
+  const adaptedLimit = Math.max(2, baseStatus.dailyLimit + adjustment)
+
+  return {
+    ...baseStatus,
+    dailyLimit: adaptedLimit,
+    originalLimit: baseStatus.dailyLimit,
+    adjustment,
+    adaptive: true,
+    bounceRate,
+    adaptiveReason: adjustment > 0
+      ? 'Bounce rate bas, acceleration du warmup'
+      : adjustment < 0
+        ? 'Bounce rate eleve, ralentissement du warmup'
+        : 'Rythme normal',
+  }
+}
+
+/**
  * Genere les recommandations de warm-up
  */
 export function getWarmupRecommendations(warmupStatus) {

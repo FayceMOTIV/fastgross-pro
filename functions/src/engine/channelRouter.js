@@ -11,6 +11,7 @@
 
 import { getFirestore } from 'firebase-admin/firestore';
 import { canContactOnChannel } from '../compliance/unifiedOptManager.js';
+import { getCountryProfile } from './countryProfiles.js';
 
 const getDb = () => getFirestore();
 
@@ -93,7 +94,7 @@ export async function selectOptimalChannel(orgId, prospectId, options = {}) {
       ? options.channels.filter(c => availableChannels.includes(c))
       : availableChannels;
 
-    // 5. Determiner priorite selon score
+    // 5. Determiner priorite selon score + pays
     const score = prospect.score || 0;
     let priorityTier;
     if (score >= 80) priorityTier = 'hot';
@@ -101,7 +102,15 @@ export async function selectOptimalChannel(orgId, prospectId, options = {}) {
     else if (score >= 25) priorityTier = 'cold';
     else priorityTier = 'ice';
 
-    const priorityOrder = CHANNEL_PRIORITY_BY_SCORE[priorityTier];
+    // Adapter la priorite selon le pays du prospect (Module 7)
+    const countryProfile = getCountryProfile(prospect);
+    const countryPriority = countryProfile?.channels?.priority;
+    const defaultPriority = CHANNEL_PRIORITY_BY_SCORE[priorityTier];
+
+    // Fusionner : canaux pays en priorite, puis le reste du tier
+    const priorityOrder = countryPriority
+      ? [...new Set([...countryPriority, ...defaultPriority])]
+      : defaultPriority;
 
     // 6. Trier les candidats par priorite
     candidateChannels.sort((a, b) => {

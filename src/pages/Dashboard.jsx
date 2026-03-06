@@ -60,6 +60,7 @@ import { useRealDashboardStats, useEngineStatus } from '@/hooks/useFirestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
 import { useAdminStatus } from '@/hooks/useCloudFunctions'
+import HotQueueWidget from '@/components/HotQueueWidget'
 
 // Channel icon mapping
 const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
@@ -977,6 +978,9 @@ export default function Dashboard() {
         transition={{ delay: 0.45 }}
         className="card p-6 border-success/20"
       >
+        {/* Hot Queue Widget (Module 5) */}
+        <HotQueueWidget />
+
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5 text-success" />

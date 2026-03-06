@@ -3,6 +3,7 @@
  * WhatsApp (Evolution API), Email (Instantly), Instagram (Wave.co), LinkedIn (Waalaxy)
  */
 
+import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
@@ -90,7 +91,7 @@ export async function sendMessage(params) {
           channel,
           direction: 'out',
           message,
-          source: 'alex',
+          source: metadata.source || 'alex',
           messageId: result.messageId || null,
           createdAt: FieldValue.serverTimestamp(),
         })
@@ -266,3 +267,36 @@ async function sendViaLinkedIn(profileUrl, text, metadata = {}) {
     return { success: false, error: error.message, provider: 'waalaxy' }
   }
 }
+
+/**
+ * Callable: envoi manuel d'un message par le commercial (CRM Dialogue)
+ */
+export const sendManualMessage = onCall(
+  { region: 'europe-west1', timeoutSeconds: 30, memory: '256MiB' },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentication required')
+    }
+
+    const { orgId, prospectId, channel, message, to, source } = request.data || {}
+
+    if (!orgId || !prospectId || !channel || !message || !to) {
+      throw new HttpsError('invalid-argument', 'orgId, prospectId, channel, message, to are required')
+    }
+
+    const result = await sendMessage({
+      orgId,
+      prospectId,
+      channel,
+      message,
+      to,
+      metadata: { source: source || 'manual' },
+    })
+
+    if (!result.success) {
+      throw new HttpsError('internal', result.error || 'Send failed')
+    }
+
+    return result
+  }
+)

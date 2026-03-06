@@ -7,6 +7,7 @@
 
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { getCountryProfile } from '../../engine/countryProfiles.js'
 
 const getDb = () => getFirestore()
 
@@ -157,6 +158,27 @@ export async function getBusinessHoursForOrg(orgId) {
       isOpen: false,
       nextWindow: getNextSendWindow('Europe/Paris'),
     }
+  }
+}
+
+/**
+ * Verifie les heures ouvrables en utilisant la timezone du prospect (pas de l'org)
+ * @param {object} prospect - Donnees prospect
+ * @param {object} org - Donnees organisation (fallback)
+ * @returns {{ isOpen: boolean, timezone: string, nextWindow: object|null }}
+ */
+export function isOpenForProspect(prospect, org = {}) {
+  const countryProfile = getCountryProfile(prospect)
+  const prospectTimezone = prospect?.timezone || countryProfile.timezone
+  const hours = countryProfile.businessHours || org.businessHours || null
+
+  const isOpen = isWithinBusinessHours(prospectTimezone, hours)
+
+  return {
+    isOpen,
+    timezone: prospectTimezone,
+    country: countryProfile.code,
+    nextWindow: isOpen ? null : getNextSendWindow(prospectTimezone, hours),
   }
 }
 

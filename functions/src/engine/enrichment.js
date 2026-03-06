@@ -110,6 +110,24 @@ export async function enrichProspect(company, icp) {
     console.log('Enrichment: LinkedIn failed:', e.message)
   }
 
+  // SOURCE 5: Prospect Researcher (web + social insights)
+  try {
+    const { researchProspect } = await import('./prospectResearcher.js')
+    if (company.id && company.orgId) {
+      const research = await researchProspect({
+        orgId: company.orgId,
+        prospectId: company.id,
+        prospect: { ...company, ...enriched },
+      })
+      if (research?.insights?.length > 0) {
+        enriched.research = research
+        enriched.sources.push('web_research')
+      }
+    }
+  } catch {
+    // prospectResearcher not available or failed — skip
+  }
+
   // Calculer la completude des donnees
   enriched.dataCompleteness = calculateDataCompleteness(enriched)
 
