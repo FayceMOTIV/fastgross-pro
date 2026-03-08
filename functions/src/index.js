@@ -116,6 +116,7 @@ export { smsStatusWebhook, smsInboundWebhook } from './channels/sms/webhooks.js'
 // --- WhatsApp (Evolution API Multi-Tenant + Meta Cloud API) ---
 export { sendWhatsApp, markAsRead, isInSessionWindow, createSession, getApprovedTemplate, syncTemplatesFromMeta, submitTemplateForApproval, checkWhatsAppAvailability, checkBatchAvailability, createWhatsAppInstance, getWhatsAppQRCode, getWhatsAppConnectionStatus, disconnectWhatsApp } from './channels/whatsapp/whatsappCallable.js'
 export { evolutionWebhookHandler as evolutionWebhook } from './channels/whatsapp/evolutionWebhook.js'
+export { retryFailedWhatsApp } from './channels/whatsapp/retryFailedWhatsApp.js'
 
 // --- Instagram (Meta Graph API) ---
 export { sendInstagramDM, sendPrivateReply, processCommentTrigger, createCommentTrigger } from './channels/instagram/instagramCallable.js'

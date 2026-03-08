@@ -442,10 +442,10 @@ export function detectResponseTags(response) {
   const lower = response.toLowerCase();
   if (/non merci|pas interesse|arretez|stop|desabonner/i.test(lower)) tags.push('refus');
   if (/rdv|rendez-vous|disponible|quand|on peut se voir/i.test(lower)) tags.push('interet_rdv');
-  if (/prix|cout|combien|tarif|budget/i.test(lower)) tags.push('objection_prix');
+  if (/prix|cout|combien|tarif|budget|cher|onere/i.test(lower)) tags.push('objection_prix');
   if (/merci|interessant|parfait|super|genial/i.test(lower)) tags.push('positif');
   if (/pas le temps|occupe|plus tard|rappel/i.test(lower)) tags.push('objection_temps');
-  if (/deja un prestataire|on a deja|fournisseur/i.test(lower)) tags.push('objection_concurrent');
+  if (/deja un prestataire|on a deja|fournisseur|travaille deja|concurrent|hubspot|salesforce|pipedrive/i.test(lower)) tags.push('objection_concurrent');
   if (tags.length === 0) tags.push('neutre');
   return tags;
 }

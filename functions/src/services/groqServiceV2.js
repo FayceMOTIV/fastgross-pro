@@ -247,7 +247,139 @@ Critères : présence web, secteur actif, taille, indicateurs de budget, signaux
   }
 }
 
+// ─── GEMINI FLASH FALLBACK ────────────────────────────────────────────────────
+
+/**
+ * Genere un message avec fallback Groq → Gemini Flash
+ * @param {Object} params - { prospect, channel, template, systemPrompt }
+ * @returns {Object} { message, subject, provider, model }
+ */
+export async function generateMessageWithFallback({ prospect, channel = 'whatsapp', template = null, systemPrompt = null }) {
+  const channelLimits = { sms: 155, whatsapp: 250, email: 600, linkedin: 300 };
+  const maxChars = channelLimits[channel] || 250;
+
+  const defaultSystemPrompt = systemPrompt || `Tu es Alex, commercial digital expert pour Face Media Factory.
+Tu ecris un message ${channel.toUpperCase()} de prospection B2B en francais.
+Prospect : ${prospect.name || prospect.nom_complet || 'inconnu'}, secteur ${prospect.industry || prospect.secteur || 'commerce'}, ville ${prospect.city || prospect.ville || 'France'}.
+Regles ABSOLUES :
+- Max ${maxChars} caracteres
+- Pas de "OBJET:" ni de sujet dans le message (sauf email)
+- Utiliser le NOM DE VILLE (pas le code postal)
+- Ton professionnel mais humain, tutoiement interdit
+- 1 question ouverte a la fin
+- Pas de prix, pas de remise inventee`;
+
+  // --- Try 1: Groq llama-3.3-70b-versatile ---
+  try {
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: defaultSystemPrompt },
+        { role: 'user', content: template || `Genere un message ${channel} percutant pour ce prospect.` },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    });
+
+    const raw = response.choices[0]?.message?.content?.trim();
+    if (raw) {
+      const cleaned = cleanMessage(raw, channel);
+      return { message: cleaned, subject: null, provider: 'groq', model: 'llama-3.3-70b-versatile' };
+    }
+  } catch (err) {
+    console.warn('[generateMessageWithFallback] Groq failed:', err.message);
+  }
+
+  // --- Try 2: Gemini 1.5 Flash (NOT llama-3.1-8b-instant) ---
+  try {
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!geminiKey) throw new Error('GEMINI_API_KEY not set');
+
+    const geminiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    const response = await fetch(`${geminiUrl}?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `${defaultSystemPrompt}\n\n${template || `Genere un message ${channel} percutant pour ce prospect.`}` }],
+        }],
+        generationConfig: { maxOutputTokens: 500, temperature: 0.7 },
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || 'Gemini API error');
+
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (raw) {
+      const cleaned = cleanMessage(raw, channel);
+      return { message: cleaned, subject: null, provider: 'gemini', model: 'gemini-2.0-flash' };
+    }
+  } catch (err) {
+    console.warn('[generateMessageWithFallback] Gemini failed:', err.message);
+  }
+
+  // --- Fallback statique ---
+  const fallbackMessages = {
+    sms: `Bonjour, je suis Alex de Face Media Factory. Nous aidons les entreprises comme la votre a developper leur presence digitale. Echangeons ?`,
+    whatsapp: `Bonjour ! Je suis Alex de Face Media Factory. J'ai analyse votre presence en ligne et j'ai identifie des opportunites pour developper votre visibilite digitale. Seriez-vous disponible pour un echange rapide ?`,
+    email: `Bonjour,\n\nJe me permets de vous contacter car j'ai analyse la presence en ligne de votre entreprise. J'ai identifie plusieurs leviers pour ameliorer votre visibilite digitale.\n\nSeriez-vous disponible pour un echange de 15 minutes ?\n\nCordialement,\nAlex - Face Media Factory`,
+  };
+
+  return {
+    message: fallbackMessages[channel] || fallbackMessages.whatsapp,
+    subject: null,
+    provider: 'static',
+    model: 'fallback',
+  };
+}
+
 // ─── POST-PROCESSING ────────────────────────────────────────────────────────
+
+/**
+ * Nettoie un message genere par IA — supprime artefacts LLM
+ * @param {string} message - Message brut
+ * @param {string} channel - Canal (sms, whatsapp, email)
+ * @returns {string} Message nettoye
+ */
+export function cleanMessage(message, channel = 'whatsapp') {
+  if (!message) return message;
+  let cleaned = message;
+
+  // 1. Supprimer "OBJET:" / "Objet:" / "Subject:" en debut (sauf email)
+  if (channel !== 'email') {
+    cleaned = cleaned.replace(/^(OBJET|Objet|Subject|Sujet)\s*:\s*[^\n]*\n*/i, '');
+  }
+
+  // 2. Supprimer les guillemets englobants
+  cleaned = cleaned.replace(/^["']|["']$/g, '');
+
+  // 3. Remplacer les codes postaux par noms de villes courants
+  const CP_TO_CITY = {
+    '69001': 'Lyon', '69002': 'Lyon', '69003': 'Lyon', '69000': 'Lyon',
+    '75001': 'Paris', '75002': 'Paris', '75003': 'Paris', '75000': 'Paris',
+    '13001': 'Marseille', '13000': 'Marseille',
+    '33000': 'Bordeaux', '33100': 'Bordeaux',
+    '31000': 'Toulouse', '31100': 'Toulouse',
+    '59000': 'Lille', '59800': 'Lille',
+    '67000': 'Strasbourg', '44000': 'Nantes',
+    '06000': 'Nice', '34000': 'Montpellier',
+    '35000': 'Rennes', '38000': 'Grenoble',
+    '01000': 'Bourg-en-Bresse',
+  };
+
+  for (const [cp, city] of Object.entries(CP_TO_CITY)) {
+    cleaned = cleaned.replaceAll(cp, city);
+  }
+
+  // 4. Supprimer les asterisques markdown
+  cleaned = cleaned.replace(/\*\*/g, '').replace(/\*/g, '');
+
+  // 5. Enforce channel length
+  cleaned = enforceChannelLength(cleaned.trim(), channel);
+
+  return cleaned;
+}
 
 /**
  * Enforce strict channel character limits

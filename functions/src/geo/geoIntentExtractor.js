@@ -12,7 +12,7 @@ import { resolveGeoZone } from './geoZoneResolver.js';
 
 const MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
 
-const SECTEURS_NAF = {
+export const SECTEURS_NAF = {
   'plombier': '4322A', 'plomberie': '4322A',
   'electricien': '4321A', 'electricite': '4321A',
   'restaurant': '5610A', 'restauration': '5610A',

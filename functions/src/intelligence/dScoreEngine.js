@@ -1001,6 +1001,126 @@ Ton : professionnel, direct, sans jargon excessif. Pas de bullet points — du t
 /**
  * Resume de secours sans IA
  */
+// ============================================
+// CHANNEL DETECTION — WhatsApp-first
+// ============================================
+
+/**
+ * Detecte le canal optimal pour un lead — WhatsApp-first pour tous les numeros
+ * @param {Object} lead - Donnees du lead { phone, email, instagram, linkedin }
+ * @returns {Object} { primary, fallback, reason, formattedPhone }
+ */
+export function detectOptimalChannel(lead) {
+  const phone = lead.phone || lead.mobile || lead.telephone || null
+  const email = lead.email || null
+  const instagram = lead.instagram || lead.instagramHandle || null
+  const linkedin = lead.linkedinUrl || lead.linkedin || null
+
+  // Phone present → WhatsApp first, SMS fallback
+  if (phone) {
+    const formatted = formatWhatsAppNumber(phone)
+    return {
+      primary: 'whatsapp',
+      fallback: 'sms',
+      reason: 'phone_available_whatsapp_first',
+      formattedPhone: formatted,
+      smsPhone: formatSMSNumber(phone),
+    }
+  }
+
+  // Email only → email
+  if (email) {
+    return {
+      primary: 'email',
+      fallback: null,
+      reason: 'email_only',
+      formattedPhone: null,
+      smsPhone: null,
+    }
+  }
+
+  // Social only → instagram or linkedin
+  if (instagram) {
+    return {
+      primary: 'instagram',
+      fallback: linkedin ? 'linkedin' : null,
+      reason: 'social_only_instagram',
+      formattedPhone: null,
+      smsPhone: null,
+    }
+  }
+
+  if (linkedin) {
+    return {
+      primary: 'linkedin',
+      fallback: null,
+      reason: 'social_only_linkedin',
+      formattedPhone: null,
+      smsPhone: null,
+    }
+  }
+
+  return {
+    primary: null,
+    fallback: null,
+    reason: 'no_contact_info',
+    formattedPhone: null,
+    smsPhone: null,
+  }
+}
+
+/**
+ * Formate un numero pour WhatsApp (format international sans +)
+ * WhatsApp attend : 33612345678 (pas +33, pas 06)
+ */
+export function formatWhatsAppNumber(phone) {
+  if (!phone) return null
+  let cleaned = phone.replace(/[\s\-\.\(\)]/g, '')
+
+  // Deja au format international avec +
+  if (cleaned.startsWith('+')) {
+    return cleaned.substring(1) // Retirer le +
+  }
+
+  // Format francais 0X → 33X
+  if (cleaned.startsWith('0') && cleaned.length === 10) {
+    return '33' + cleaned.substring(1)
+  }
+
+  // Deja au format 33...
+  if (cleaned.startsWith('33') && cleaned.length >= 11) {
+    return cleaned
+  }
+
+  return cleaned
+}
+
+/**
+ * Formate un numero pour SMS (format E.164 avec +)
+ * SMS attend : +33612345678
+ */
+export function formatSMSNumber(phone) {
+  if (!phone) return null
+  let cleaned = phone.replace(/[\s\-\.\(\)]/g, '')
+
+  // Deja au format +XX
+  if (cleaned.startsWith('+')) {
+    return cleaned
+  }
+
+  // Format francais 0X → +33X
+  if (cleaned.startsWith('0') && cleaned.length === 10) {
+    return '+33' + cleaned.substring(1)
+  }
+
+  // Format 33... → +33...
+  if (cleaned.startsWith('33') && cleaned.length >= 11) {
+    return '+' + cleaned
+  }
+
+  return '+' + cleaned
+}
+
 function generateFallbackSummary(dScore, urgency, topSignals) {
   const urgencyLabel = {
     CRITIQUE: 'en retard critique sur sa transformation digitale',
