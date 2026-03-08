@@ -358,6 +358,11 @@ export { vapiWebhook } from './voice/vapiWebhook.js'
 export { initiateVoiceCall, vapiCallbackWebhook, autoVoiceCallTrigger } from './voice/voiceFunction.js'
 
 // ============================================
+// CA Estimation Engine — 10 sources croisees (v5.0)
+// ============================================
+export { estimateLeadCA } from './ca/caFunction.js'
+
+// ============================================
 // DScore Intelligence Engine (v4.0)
 // ============================================
 export { calculateLeadDScore, onLeadCreatedCalculateDScore, onLeadParticuliersCalculateDScore } from './intelligence/dScoreFunction.js'

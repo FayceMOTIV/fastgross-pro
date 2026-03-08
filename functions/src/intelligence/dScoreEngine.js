@@ -15,6 +15,7 @@
 
 import Groq from 'groq-sdk'
 import axios from 'axios'
+import { estimateCALight } from '../ca/caEstimationEngine.js'
 
 // ============================================
 // CONFIGURATION
@@ -657,16 +658,44 @@ export async function calculateDScore(leadData, options = {}) {
     summary = generateFallbackSummary(dScore, urgency, topSignals)
   }
 
+  // ============================================
+  // ESTIMATION CA (sources rapides, pas d'API externe)
+  // ============================================
+
+  let caEstimation = null
+  try {
+    caEstimation = await estimateCALight(leadData)
+  } catch (err) {
+    console.warn('[DScore] CA estimation failed:', err.message)
+  }
+
+  // Bonus DScore +10 si CA confirme avec confiance elevee (>=60)
+  let dScoreFinal = dScore
+  if (caEstimation?.caEstime && caEstimation.confidence >= 60) {
+    // CA confirme = entreprise active = potentiel prospect
+    dScoreFinal = Math.min(dScore + 10, 100)
+  }
+
   const elapsed = Date.now() - startTime
 
   return {
-    dScore,
+    dScore: dScoreFinal,
+    dScoreRaw: dScore,
     urgency,
     strategy,
     alexTone,
     summary,
     dimensions,
     topSignals,
+    caEstimation: caEstimation ? {
+      caEstime: caEstimation.caEstime,
+      caLow: caEstimation.caLow,
+      caHigh: caEstimation.caHigh,
+      confidence: caEstimation.confidence,
+      label: caEstimation.label,
+      nbSources: caEstimation.nbSources,
+      verdictSeuil: caEstimation.verdictSeuil,
+    } : null,
     calculatedAt: new Date().toISOString(),
     computeTimeMs: elapsed,
   }

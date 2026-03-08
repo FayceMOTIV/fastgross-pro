@@ -10,6 +10,7 @@
 
 import { getProductProfile, buildProductSection } from './productProfileEngine.js'
 import { buildAlexMemoryContext } from '../memory/alexMemoryEngine.js'
+import { estimateCALight } from '../ca/caEstimationEngine.js'
 import { logger } from 'firebase-functions/v2'
 
 /**
@@ -65,6 +66,20 @@ export async function buildAlexUniversalPrompt({ orgId, lead, channel = 'whatsap
     logger.warn('AlexMemory unavailable, proceeding without:', err.message)
   }
 
+  // -- Couche 4 bis : CA Estimation (lightweight) --
+  let caSection = ''
+  try {
+    const caResult = await estimateCALight(lead)
+    if (caResult?.caEstime) {
+      const caFormatted = caResult.caEstime >= 1_000_000
+        ? `${(caResult.caEstime / 1_000_000).toFixed(1)}M EUR`
+        : `${Math.round(caResult.caEstime / 1000)}k EUR`
+      caSection = `CA estime : ~${caFormatted} (confiance ${caResult.label})`
+    }
+  } catch (err) {
+    logger.warn('CA estimation unavailable:', err.message)
+  }
+
   const orgName = orgData?.name || profile?.product?.nom || 'notre agence'
 
   // -- Assemblage final (Couche 1 + 2 + 3 + 4) --
@@ -91,6 +106,7 @@ ${lead?.noteGoogle ? `Note Google : ${lead.noteGoogle}/5` : ''}
 ${lead?.nbAvis ? `Nombre d'avis : ${lead.nbAvis}` : ''}
 ${lead?.website ? `Site web : ${lead.website}` : ''}
 ${lead?.industry ? `Secteur : ${lead.industry}` : ''}
+${caSection ? caSection : ''}
 
 ## CANAL ET FORMAT
 Canal : ${channel.toUpperCase()}
