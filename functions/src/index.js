@@ -429,6 +429,11 @@ export { updateClientGeoSettings, getGeoSettings, detectGeoFromMessage, resolveZ
 export { consolidateAlexMemory, forceConsolidateNiche, onInteractionCreated, getAlexMemoryContext, getAlexMemoryStats } from './memory/memoryFunction.js'
 
 // ============================================
+// Product Profile — Alex Universel (multi-tenant product config)
+// ============================================
+export { updateProductProfile, getProductProfileCallable } from './agent/productProfileEngine.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData, seedSubscriptionPlans } from './dev/seedData.js'

@@ -12,7 +12,7 @@ import { sendTelegramAlert } from './sendTelegramAlert.js'
 import { sendNotification } from '../notifications/notificationSender.js'
 import { NOTIFICATION_TYPES } from '../notifications/notificationTemplates.js'
 import { addToHotQueue } from '../notifications/hotQueueManager.js'
-import { buildAlexMemoryContext } from '../memory/alexMemoryEngine.js'
+import { buildAlexUniversalPrompt } from '../agent/alexSystemPromptBuilder.js'
 
 const getDb = () => getFirestore()
 
@@ -137,18 +137,19 @@ export async function scoreAndReply(params) {
   try {
     const replyPrompt = buildReplyPrompt(message, prospect, scoring, channel, orgData, alexConfig)
 
-    // Câblage AlexMemory — enrich system prompt with learned patterns
-    let memoryContext = ''
+    // System prompt 4 couches : invariants + product profile + memory + lead context
+    let systemPrompt = ''
     try {
-      const nafCode = prospect.naf || prospect.codeNaf || prospect.activitePrincipale || null
-      const zone = prospect.departement || prospect.code_postal?.slice(0, 2) || null
-      memoryContext = await buildAlexMemoryContext(nafCode, zone, channel)
-    } catch (memErr) {
-      logger.warn('AlexMemory context failed (non-blocking):', memErr.message)
+      systemPrompt = await buildAlexUniversalPrompt({
+        orgId,
+        lead: prospect,
+        channel,
+        orgData,
+      })
+    } catch (promptErr) {
+      logger.warn('Universal prompt build failed, using legacy:', promptErr.message)
+      systemPrompt = buildAlexSystemPromptLegacy(orgData, alexConfig, channel)
     }
-
-    const systemPrompt = buildAlexSystemPrompt(orgData, alexConfig, channel)
-      + (memoryContext ? `\n\nMEMOIRE ALEX (patterns appris):\n${memoryContext}` : '')
 
     const replyResponse = await groq.chat.completions.create({
       model: alexConfig.replyModel || 'llama-3.3-70b-versatile',
@@ -386,7 +387,7 @@ Detection de signaux d'achat chauds:
 - "On pourrait commencer quand?" → score >= 95`
 }
 
-function buildAlexSystemPrompt(orgData, alexConfig, channel) {
+function buildAlexSystemPromptLegacy(orgData, alexConfig, channel) {
   const orgName = orgData.name || 'notre agence'
   const language = alexConfig.language || 'francais'
 
