@@ -36,17 +36,32 @@ export async function reverseEnrich(username, platform, rawPost) {
   // ETAPE 2 : Analyse contenu public via Groq
   const context = await analyzePublicContent(username, platform, rawPost, profiles)
 
-  // ETAPE 3 : Si entreprise detectee → lookup SIRENE
+  // ETAPE 3 : Si entreprise detectee → lookup SIRENE puis Pappers
   if (context.company || context.companyHint) {
     const companyName = context.company || context.companyHint
     const sireneResult = await lookupSirene(companyName, context.city)
     if (sireneResult) {
+      // Enrichir via Pappers si SIREN disponible (donnees plus riches)
+      const pappersData = await enrichWithPappers(sireneResult.siret || sireneResult.siren, companyName, context.city)
       return {
         ...sireneResult,
+        ...pappersData,
         sourceUsername: username,
         sourcePlatform: platform,
         enrichmentLevel: 'full',
-        enrichmentMethod: 'sirene_company'
+        enrichmentMethod: pappersData ? 'sirene_pappers' : 'sirene_company'
+      }
+    }
+
+    // Fallback : Pappers direct si SIRENE n'a rien trouve
+    const pappersOnly = await enrichWithPappers(null, companyName, context.city)
+    if (pappersOnly) {
+      return {
+        ...pappersOnly,
+        sourceUsername: username,
+        sourcePlatform: platform,
+        enrichmentLevel: 'full',
+        enrichmentMethod: 'pappers_direct'
       }
     }
   }
@@ -319,6 +334,31 @@ export async function enrichFromWebsite(websiteUrl) {
     }))
     return null
   }
+}
+
+/**
+ * Enrichit via Pappers (apres SIRENE, pour donnees supplementaires)
+ * Silencieux si PAPPERS_API_TOKEN non configure
+ */
+async function enrichWithPappers(sirenOrSiret, companyName, city) {
+  if (!process.env.PAPPERS_API_TOKEN) return null
+
+  try {
+    const { enrichBySiren, enrichByName } = await import('./pappersEnricher.js')
+
+    if (sirenOrSiret) {
+      const result = await enrichBySiren(sirenOrSiret)
+      if (result) return result
+    }
+
+    if (companyName) {
+      return await enrichByName(companyName, city)
+    }
+  } catch {
+    // Pappers non disponible — continuer sans
+  }
+
+  return null
 }
 
 /**

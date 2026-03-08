@@ -212,6 +212,11 @@ export { personalizeMessage, getAIStatus } from './ai/personalizeMessage.js'
 export { enrichEmail, enrichEmailsBatch, getEnrichmentStatus } from './enrichment/enrichEmail.js'
 
 // ============================================
+// Company Enrichment (Pappers.fr — 10k fiches/mois free)
+// ============================================
+export { enrichCompanyPappers, getPappersQuota } from './enrichment/pappersEnricher.js'
+
+// ============================================
 // Email Verification (NeverBounce SMTP-level)
 // ============================================
 export { verifyEmailNB, getNeverBounceCredits } from './enrichment/neverBounceVerifier.js'
