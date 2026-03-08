@@ -11,6 +11,7 @@
 import { getProductProfile, buildProductSection } from './productProfileEngine.js'
 import { buildAlexMemoryContext } from '../memory/alexMemoryEngine.js'
 import { estimateCALight } from '../ca/caEstimationEngine.js'
+import { orchestrateSignalsWithCache } from '../signals/signalOrchestrator.js'
 import { logger } from 'firebase-functions/v2'
 
 /**
@@ -80,6 +81,46 @@ export async function buildAlexUniversalPrompt({ orgId, lead, channel = 'whatsap
     logger.warn('CA estimation unavailable:', err.message)
   }
 
+  // -- Couche 4 ter : Intelligence Signals V2 --
+  let signalsSection = ''
+  try {
+    const sig = await orchestrateSignalsWithCache(lead)
+    const parts = []
+
+    if (sig?.director?.fullName) {
+      parts.push(`Dirigeant : ${sig.director.fullName}${sig.director.poste ? ` (${sig.director.poste})` : ''}${sig.director.isNew ? ' — NOUVEAU DIRIGEANT' : ''}`)
+    }
+    if (sig?.intent?.hasPositiveSignals && sig.intent.icebreaker) {
+      parts.push(`Signal d'achat : ${sig.intent.topSignal?.label || 'detecte'}`)
+      parts.push(`Accroche suggeree : "${sig.intent.icebreaker}"`)
+    }
+    if (sig?.timing?.isInOptimalWindow) {
+      parts.push(`Timing : ${sig.timing.recommendation}`)
+    }
+    if (sig?.growth?.tendance && sig.growth.tendance !== 'INCONNU') {
+      parts.push(`Croissance : ${sig.growth.tendance}${sig.growth.caCroissancePct ? ` (${sig.growth.caCroissancePct > 0 ? '+' : ''}${sig.growth.caCroissancePct}%)` : ''}`)
+    }
+    if (sig?.certs?.certifications?.length > 0) {
+      parts.push(`Certifications : ${sig.certs.certifications.join(', ')}`)
+    }
+    if (sig?.techno?.maturiteLabel) {
+      parts.push(`Maturite digitale : ${sig.techno.maturiteLabel} (${sig.techno.maturiteScore}/100)`)
+    }
+    if (sig?.pain?.topPain) {
+      parts.push(`Point de douleur principal : ${sig.pain.topPain.label}`)
+      parts.push(`Hook douleur : "${sig.pain.topPain.alexHook}"`)
+    }
+    if (sig?.social?.alexContext) {
+      parts.push(`Presence sociale : ${sig.social.alexContext}`)
+    }
+
+    if (parts.length > 0) {
+      signalsSection = parts.join('\n')
+    }
+  } catch (err) {
+    logger.warn('Signals enrichment unavailable:', err.message)
+  }
+
   const orgName = orgData?.name || profile?.product?.nom || 'notre agence'
 
   // -- Assemblage final (Couche 1 + 2 + 3 + 4) --
@@ -107,6 +148,8 @@ ${lead?.nbAvis ? `Nombre d'avis : ${lead.nbAvis}` : ''}
 ${lead?.website ? `Site web : ${lead.website}` : ''}
 ${lead?.industry ? `Secteur : ${lead.industry}` : ''}
 ${caSection ? caSection : ''}
+${signalsSection ? signalsSection : ''}
+${signalsSection ? '\nIMPORTANT: Si tu connais le prenom du dirigeant, utilise-le naturellement. Si un icebreaker est suggere, adapte-le a ton style. Si une douleur est detectee, commence par la.' : ''}
 
 ## CANAL ET FORMAT
 Canal : ${channel.toUpperCase()}

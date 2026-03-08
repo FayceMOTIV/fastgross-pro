@@ -16,6 +16,7 @@
 import Groq from 'groq-sdk'
 import axios from 'axios'
 import { estimateCALight } from '../ca/caEstimationEngine.js'
+import { orchestrateSignalsWithCache } from '../signals/signalOrchestrator.js'
 
 // ============================================
 // CONFIGURATION
@@ -676,6 +677,35 @@ export async function calculateDScore(leadData, options = {}) {
     dScoreFinal = Math.min(dScore + 10, 100)
   }
 
+  // ============================================
+  // INTELLIGENCE SIGNALS V2 (8 dimensions)
+  // ============================================
+
+  let signalsEnrichment = null
+  if (options?.enrichSignals !== false) {
+    try {
+      const signalsResult = await orchestrateSignalsWithCache(leadData, options)
+      const bonus = signalsResult?.totalDScoreBonus || 0
+      if (bonus > 0) {
+        dScoreFinal = Math.min(dScoreFinal + bonus, 100)
+      }
+      signalsEnrichment = {
+        totalDScoreBonus: bonus,
+        intent: signalsResult.intent,
+        techno: signalsResult.techno,
+        director: signalsResult.director,
+        growth: signalsResult.growth,
+        pain: signalsResult.pain,
+        timing: signalsResult.timing,
+        certs: signalsResult.certs,
+        social: signalsResult.social,
+        enrichedLead: signalsResult.enrichedLead,
+      }
+    } catch (err) {
+      console.warn('[DScore] Signal enrichment failed:', err.message)
+    }
+  }
+
   const elapsed = Date.now() - startTime
 
   return {
@@ -696,6 +726,7 @@ export async function calculateDScore(leadData, options = {}) {
       nbSources: caEstimation.nbSources,
       verdictSeuil: caEstimation.verdictSeuil,
     } : null,
+    signalsEnrichment,
     calculatedAt: new Date().toISOString(),
     computeTimeMs: elapsed,
   }

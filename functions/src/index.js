@@ -385,7 +385,7 @@ export { createReseller, inviteResellerClient, activateViaInvite, getResellerDas
 // ============================================
 // Signals Intelligence Layer (v4.0)
 // ============================================
-export { scrapeCompetitorReviewsCallable, dailyCompetitorReviewsScan, fetchGithubSignalsCallable, fetchConferenceSpeakersCron } from './signals/signalsFunction.js'
+export { enrichLeadSignals, scrapeCompetitorReviewsCallable, dailyCompetitorReviewsScan, fetchGithubSignalsCallable, fetchConferenceSpeakersCron } from './signals/signalsFunction.js'
 
 // ============================================
 // A/B Testing Engine — Thompson Sampling (v4.0)

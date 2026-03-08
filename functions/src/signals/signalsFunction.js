@@ -17,8 +17,52 @@ import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { scrapeNegativeReviews, runCompetitorReviewsScan } from './competitorReviewsScraper.js'
 import { fetchGithubCompanySignals } from './githubSignalsClient.js'
 import { scanConferenceSpeakers } from './conferenceSpeakersClient.js'
+import { orchestrateSignalsWithCache } from './signalOrchestrator.js'
 
 const getDb = () => getFirestore()
+
+// ============================================
+// 0. Intelligence Signals V2 — Enrich Lead (8 dimensions)
+// ============================================
+export const enrichLeadSignals = onCall(
+  {
+    region: 'europe-west1',
+    cors: ALLOWED_ORIGINS,
+    memory: '512MiB',
+    timeoutSeconds: 30,
+  },
+  async (request) => {
+    const { auth, data } = request
+    if (!auth) throw new HttpsError('unauthenticated', 'Authentification requise')
+
+    const lead = data?.lead
+    if (!lead || typeof lead !== 'object') {
+      throw new HttpsError('invalid-argument', 'lead est requis (objet prospect)')
+    }
+
+    logger.info(`[Signals V2] Enrichment requested by ${auth.uid} for ${lead.siren || lead.nom || '?'}`)
+
+    try {
+      const result = await orchestrateSignalsWithCache(lead)
+      return {
+        success: true,
+        totalDScoreBonus: result.totalDScoreBonus,
+        intent: result.intent,
+        techno: result.techno,
+        director: result.director,
+        growth: result.growth,
+        pain: result.pain,
+        timing: result.timing,
+        certs: result.certs,
+        social: result.social,
+        enrichedLead: result.enrichedLead,
+      }
+    } catch (err) {
+      logger.error('[Signals V2] Enrichment failed:', err.message)
+      throw new HttpsError('internal', `Enrichissement echoue: ${err.message}`)
+    }
+  }
+)
 
 // ============================================
 // 1. Competitor Reviews — Callable
