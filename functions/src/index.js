@@ -418,6 +418,11 @@ export { crmWebhookIngest } from './integrations/crmSync.js'
 export { launchIntentHunterPro, launchIntentHunterParticuliers, getIntentHunterStats } from './intentHunter/intentHunterCallable.js'
 
 // ============================================
+// GeoZone Intelligent (v5.0)
+// ============================================
+export { updateClientGeoSettings, getGeoSettings, detectGeoFromMessage, resolveZone } from './geo/geoFunction.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData, seedSubscriptionPlans } from './dev/seedData.js'
