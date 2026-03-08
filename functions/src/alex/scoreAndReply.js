@@ -153,6 +153,17 @@ export async function scoreAndReply(params) {
     })
 
     alexReply = replyResponse.choices?.[0]?.message?.content?.trim() || ''
+
+    // P2 — Enforce channel length limits
+    alexReply = enforceMessageLength(alexReply, channel)
+
+    // P3 — Safety check (no invented prices, refunds, fake references)
+    const safetyResult = safetyCheckAlexMessage(alexReply)
+    if (!safetyResult.safe) {
+      logger.warn(`Alex safety check triggered for ${prospectId}:`, safetyResult.violations)
+      alexReply = safetyResult.message
+    }
+
     logger.info(`Generated Alex reply for ${prospectId} (${alexReply.length} chars)`)
   } catch (err) {
     logger.error('Groq reply generation failed:', err.message)
@@ -436,7 +447,14 @@ Escalader immediatement si: signal d'achat chaud confirme, prospect VIP, situati
 STRUCTURE D'UN BON MESSAGE
 1. Accroche personnalisee (prenom + element specifique a eux)
 2. Insight ou question qui fait reflechir
-3. CTA unique et clair`
+3. CTA unique et clair
+
+INTERDICTIONS ABSOLUES (violation = blocage immediat)
+- JAMAIS inventer un prix, tarif, forfait ou montant. Si on te demande "c'est combien?", reponds: "Ca depend de votre situation, on fait le point en 15 min?"
+- JAMAIS promettre de remboursement, garantie satisfait ou rembourse, ou essai gratuit sauf si explicitement configure
+- JAMAIS citer de faux clients, fausses references ou faux chiffres. Utilise uniquement des formulations generiques: "des entreprises de votre secteur" sans nommer
+- JAMAIS donner de pourcentage de resultat invente ("30% de CA en plus", "x clients gagnes")
+- Si le prospect insiste sur le prix, TOUJOURS rediriger vers un appel: "Chaque projet est different, 15 min ensemble et je vous fais une proposition adaptee"`
 }
 
 function buildReplyPrompt(message, prospect, scoring, channel, orgData, alexConfig) {
@@ -478,4 +496,75 @@ ${scoring.cialdiniLever !== 'none' ? `Principe Cialdini recommande: ${scoring.ci
 ${scoring.suggestedMethod !== 'none' ? `Methode recommandee: ${scoring.suggestedMethod}` : ''}
 
 CONSIGNE: Genere UNE reponse. Applique la strategie ci-dessus. Finis par une question OU un CTA (pas les deux). Sois humain, pas robotique.`
+}
+
+// ============================================
+// Post-processing — Length + Safety
+// ============================================
+
+/**
+ * P2 — Enforce strict channel character limits
+ * Truncates at last sentence boundary to keep message coherent
+ */
+function enforceMessageLength(message, channel) {
+  const limits = { sms: 155, whatsapp: 250, email: 600 }
+  const max = limits[channel] || 600
+  if (!message || message.length <= max) return message
+
+  const truncated = message.slice(0, max)
+  const lastSentence = truncated.lastIndexOf('.')
+  const lastQuestion = truncated.lastIndexOf('?')
+  const lastExcl = truncated.lastIndexOf('!')
+  const breakPoint = Math.max(lastSentence, lastQuestion, lastExcl)
+
+  if (breakPoint > max * 0.5) {
+    return message.slice(0, breakPoint + 1).trim()
+  }
+
+  const lastSpace = truncated.lastIndexOf(' ')
+  if (lastSpace > max * 0.6) {
+    return message.slice(0, lastSpace).trim()
+  }
+
+  return truncated.trim()
+}
+
+/**
+ * P3 — Safety check: block invented prices, refunds, fake references
+ * Returns { safe: boolean, message: string, violations?: string[] }
+ */
+function safetyCheckAlexMessage(message) {
+  if (!message) return { safe: true, message }
+
+  const forbidden = [
+    { pattern: /\d+\s*€/i, label: 'price_euro_symbol' },
+    { pattern: /\d+\s*euros?\b/i, label: 'price_euro_word' },
+    { pattern: /tarifs?\s*(?:de|à|a|:)\s*\d/i, label: 'price_tarif' },
+    { pattern: /(?:co[uû]te|prix)\s*(?:de|:)?\s*\d/i, label: 'price_explicit' },
+    { pattern: /forfait\s*(?:à|a|de|:)\s*\d/i, label: 'price_forfait' },
+    { pattern: /(?:à|a) partir de\s*\d/i, label: 'price_starting' },
+    { pattern: /rembours[ée]?/i, label: 'refund' },
+    { pattern: /satisfait ou/i, label: 'money_back' },
+    { pattern: /garantie\s*de\s*remboursement/i, label: 'refund_guarantee' },
+  ]
+
+  const violations = []
+  for (const { pattern, label } of forbidden) {
+    if (pattern.test(message)) {
+      violations.push(label)
+    }
+  }
+
+  if (violations.length === 0) return { safe: true, message }
+
+  // Clean message: replace price patterns with demo redirect
+  let cleaned = message
+  cleaned = cleaned.replace(/\d+\s*€\s*(?:\/\s*mois|par\s*mois)?/gi, '[tarif sur devis]')
+  cleaned = cleaned.replace(/\d+\s*euros?\s*(?:\/\s*mois|par\s*mois)?/gi, '[tarif sur devis]')
+  cleaned = cleaned.replace(/(?:à|a) partir de\s*\d+[^\n.!?]*/gi, 'un tarif adapte a votre situation')
+  cleaned = cleaned.replace(/rembours[ée]?s?/gi, 'adapte')
+  cleaned = cleaned.replace(/satisfait ou rembours[ée]?/gi, 'sans engagement')
+  cleaned = cleaned.replace(/garantie de remboursement/gi, 'sans engagement')
+
+  return { safe: false, message: cleaned, violations }
 }

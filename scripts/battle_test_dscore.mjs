@@ -20,7 +20,8 @@ const AVATARS = [
     placeData: { found: false, rating: null, reviewCount: 0, hasPhotos: false, ownerResponseRate: 0 },
     socialData: { facebookLastPost: null, instagramFollowers: 0, hasLinkedinPage: false },
     reviewsData: { trustpilotScore: 2.1, unrepliedNegative: 3 },
-    expectedDScore: { min: 10, max: 22 },
+    // DScore = NEED score (high = more digital gaps = CRITIQUE)
+    expectedDScore: { min: 78, max: 95 },
     expectedUrgency: 'CRITIQUE'
   },
   {
@@ -33,7 +34,8 @@ const AVATARS = [
     placeData: { found: true, rating: 4.2, reviewCount: 87, hasPhotos: true, ownerResponseRate: 0.45 },
     socialData: { facebookLastPost: new Date(Date.now() - 24*60*60*1000).toISOString(), instagramFollowers: 450, hasLinkedinPage: false },
     reviewsData: { trustpilotScore: null, unrepliedNegative: 1 },
-    expectedDScore: { min: 40, max: 60 },
+    // Partial presence — medium need
+    expectedDScore: { min: 45, max: 70 },
     expectedUrgency: 'LATENT'
   },
   {
@@ -46,8 +48,9 @@ const AVATARS = [
     placeData: { found: true, rating: 3.8, reviewCount: 12, hasPhotos: true, ownerResponseRate: 0.7 },
     socialData: { facebookLastPost: new Date(Date.now() - 15*24*60*60*1000).toISOString(), instagramFollowers: 0, hasLinkedinPage: true, linkedinEmployees: 47 },
     reviewsData: { trustpilotScore: 3.5, unrepliedNegative: 0 },
-    expectedDScore: { min: 58, max: 75 },
-    expectedUrgency: 'MATURE'
+    // Good presence but gaps — medium need (no website = +30% weight)
+    expectedDScore: { min: 50, max: 75 },
+    expectedUrgency: 'LATENT'
   },
   {
     id: 'nadia_coiffeuse',
@@ -59,8 +62,9 @@ const AVATARS = [
     placeData: { found: false, rating: null, reviewCount: 0, hasPhotos: false, ownerResponseRate: 0 },
     socialData: { facebookLastPost: new Date(Date.now() - 1*60*60*1000).toISOString(), instagramFollowers: 2300, hasLinkedinPage: false },
     reviewsData: { trustpilotScore: null, unrepliedNegative: 0 },
-    expectedDScore: { min: 30, max: 50 },
-    expectedUrgency: 'LATENT'
+    // Social only, no Maps, no website — high need
+    expectedDScore: { min: 65, max: 85 },
+    expectedUrgency: 'CRITIQUE'
   },
   {
     id: 'pierre_yves_expert_comptable',
@@ -72,8 +76,9 @@ const AVATARS = [
     placeData: { found: true, rating: 4.7, reviewCount: 34, hasPhotos: true, ownerResponseRate: 0.85 },
     socialData: { facebookLastPost: new Date(Date.now() - 3*24*60*60*1000).toISOString(), instagramFollowers: 120, hasLinkedinPage: true, linkedinEmployees: 8 },
     reviewsData: { trustpilotScore: 4.5, unrepliedNegative: 0 },
-    expectedDScore: { min: 65, max: 82 },
-    expectedUrgency: 'MATURE'
+    // Best presence — lowest need (but no website = still +30%)
+    expectedDScore: { min: 40, max: 65 },
+    expectedUrgency: 'LATENT'
   }
 ];
 

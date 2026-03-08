@@ -108,7 +108,14 @@ export class GroqService {
       max_tokens: 1000,
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    const result = JSON.parse(response.choices[0].message.content);
+
+    // P2 — Enforce channel length limits post-generation
+    if (result.message) {
+      result.message = enforceChannelLength(result.message, channel);
+    }
+
+    return result;
   }
 
   /**
@@ -238,4 +245,33 @@ Critères : présence web, secteur actif, taille, indicateurs de budget, signaux
 
     return JSON.parse(response.choices[0].message.content);
   }
+}
+
+// ─── POST-PROCESSING ────────────────────────────────────────────────────────
+
+/**
+ * Enforce strict channel character limits
+ * Truncates at last sentence boundary to keep message coherent
+ */
+function enforceChannelLength(message, channel) {
+  const limits = { sms: 155, whatsapp: 250, email: 600, linkedin: 300 };
+  const max = limits[channel] || 600;
+  if (!message || message.length <= max) return message;
+
+  const truncated = message.slice(0, max);
+  const lastSentence = truncated.lastIndexOf('.');
+  const lastQuestion = truncated.lastIndexOf('?');
+  const lastExcl = truncated.lastIndexOf('!');
+  const breakPoint = Math.max(lastSentence, lastQuestion, lastExcl);
+
+  if (breakPoint > max * 0.5) {
+    return message.slice(0, breakPoint + 1).trim();
+  }
+
+  const lastSpace = truncated.lastIndexOf(' ');
+  if (lastSpace > max * 0.6) {
+    return message.slice(0, lastSpace).trim();
+  }
+
+  return truncated.trim();
 }

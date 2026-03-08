@@ -3,7 +3,7 @@
  * Usage : node scripts/run_battle_test.mjs
  */
 import { execSync } from 'child_process';
-import { mkdirSync } from 'fs';
+import { mkdirSync, readFileSync, existsSync } from 'fs';
 
 const START_TIME = Date.now();
 
@@ -18,6 +18,27 @@ mkdirSync('/tmp/fmf_battle_test/conversations', { recursive: true });
 mkdirSync('/tmp/fmf_battle_test/dscore', { recursive: true });
 mkdirSync('/tmp/fmf_battle_test/messages', { recursive: true });
 
+// Resolve functions env and node_modules
+const projectRoot = new URL('..', import.meta.url).pathname;
+const functionsNodeModules = `${projectRoot}functions/node_modules`;
+
+// Load functions/.env into environment for Groq, Firebase, etc.
+const functionsEnvPath = `${projectRoot}functions/.env`;
+if (existsSync(functionsEnvPath)) {
+  const envContent = readFileSync(functionsEnvPath, 'utf8');
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx > 0) {
+      const key = trimmed.slice(0, eqIdx).trim();
+      const value = trimmed.slice(eqIdx + 1).trim();
+      if (!process.env[key]) process.env[key] = value;
+    }
+  }
+  console.log('✅ Loaded functions/.env');
+}
+
 function runScript(name, path) {
   console.log(`\n${'─'.repeat(60)}`);
   console.log(`🚀 LANCEMENT : ${name}`);
@@ -26,7 +47,7 @@ function runScript(name, path) {
   try {
     execSync(`node ${path}`, {
       stdio: 'inherit',
-      env: { ...process.env },
+      env: { ...process.env, NODE_PATH: functionsNodeModules },
       timeout: 300000
     });
     console.log(`\n✅ ${name} : TERMINÉ`);
