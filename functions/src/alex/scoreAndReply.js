@@ -13,6 +13,7 @@ import { sendNotification } from '../notifications/notificationSender.js'
 import { NOTIFICATION_TYPES } from '../notifications/notificationTemplates.js'
 import { addToHotQueue } from '../notifications/hotQueueManager.js'
 import { buildAlexUniversalPrompt } from '../agent/alexSystemPromptBuilder.js'
+import { initiateAlexCall } from '../voice/alexVoiceEngine.js'
 
 const getDb = () => getFirestore()
 
@@ -582,4 +583,65 @@ function safetyCheckAlexMessage(message) {
   cleaned = cleaned.replace(/garantie de remboursement/gi, 'sans engagement')
 
   return { safe: false, message: cleaned, violations }
+}
+
+// ============================================
+// J+3 Voice Trigger — Auto-call leads with no response after 3 days
+// ============================================
+
+/**
+ * Check if a lead should be called (no response after 3 days of text outreach).
+ * Called by rescueScheduler or can be triggered manually.
+ *
+ * @param {Object} params
+ * @param {string} params.orgId
+ * @param {string} params.prospectId
+ * @param {Object} params.prospect - Prospect data
+ */
+export async function checkAndTriggerVoiceCall({ orgId, prospectId, prospect }) {
+  if (!orgId || !prospectId || !prospect) return
+
+  // Only trigger for leads that have been contacted but never responded
+  const lastOutbound = prospect.alexLastOutbound || prospect.lastContactedAt
+  if (!lastOutbound) return
+
+  const daysSinceContact = (Date.now() - lastOutbound.toDate?.().getTime?.()) / (1000 * 60 * 60 * 24)
+
+  // Not yet 3 days
+  if (daysSinceContact < 3) return
+
+  // Already responded — no need for voice escalation
+  if (prospect.alexLastInbound) {
+    const lastInbound = prospect.alexLastInbound.toDate?.().getTime?.() || 0
+    const lastOutboundTime = lastOutbound.toDate?.().getTime?.() || 0
+    if (lastInbound > lastOutboundTime) return
+  }
+
+  // Already called recently
+  if (prospect.lastVoiceCallAt) {
+    const daysSinceCall = (Date.now() - prospect.lastVoiceCallAt.toDate?.().getTime?.()) / (1000 * 60 * 60 * 24)
+    if (daysSinceCall < 30) return
+  }
+
+  // Must have a phone number
+  if (!prospect.phone && !prospect.telephone && !prospect.tel) return
+
+  // Don't call ice/disqualified leads
+  if (['ice', 'disqualified'].includes(prospect.alexStatus)) return
+
+  try {
+    const result = await initiateAlexCall(prospect, {
+      orgId,
+      leadId: prospectId,
+      trigger: 'j3_noreply',
+    })
+
+    if (result.success) {
+      logger.info(`[J+3 Voice] Call triggered for ${prospectId}: ${result.callId}`)
+    } else {
+      logger.info(`[J+3 Voice] Call skipped for ${prospectId}: ${result.error}`)
+    }
+  } catch (err) {
+    logger.warn(`[J+3 Voice] Failed for ${prospectId}:`, err.message)
+  }
 }

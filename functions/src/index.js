@@ -356,6 +356,7 @@ export { alertsEngine } from './notifications/alertsEngine.js'
 export { vapiOutbound } from './voice/vapiOutbound.js'
 export { vapiWebhook } from './voice/vapiWebhook.js'
 export { initiateVoiceCall, vapiCallbackWebhook, autoVoiceCallTrigger } from './voice/voiceFunction.js'
+export { initiateAlexCallFn, alexVoiceWebhook, scheduleVoiceCampaignFn } from './voice/alexVoiceFunctions.js'
 
 // ============================================
 // CA Estimation Engine — 10 sources croisees (v5.0)

@@ -735,6 +735,14 @@ service cloud.firestore {
         allow update: if canWrite(orgId);
         allow delete: if canManage(orgId);
       }
+
+      // ------------------------------------------
+      // PIPELINE - Qualified leads pipeline (Alex Voice + other sources)
+      // ------------------------------------------
+      match /pipeline/{pipeId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
     }
 
     // ============================================
@@ -940,6 +948,22 @@ service cloud.firestore {
     match /clients/{clientId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated();
+    }
+
+    // ============================================
+    // VOICE CALLS - Alex Voice call records
+    // ============================================
+    match /voiceCalls/{callId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // SCHEDULED CALLS - Voice call scheduling
+    // ============================================
+    match /scheduledCalls/{schedId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
     }
   }
 }
