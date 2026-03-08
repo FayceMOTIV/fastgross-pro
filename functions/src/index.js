@@ -350,10 +350,41 @@ export { calendlyWebhook } from './booking/calendlyWebhook.js'
 export { alertsEngine } from './notifications/alertsEngine.js'
 
 // ============================================
-// Voice Agent (Vapi)
+// Voice Agent (Vapi + Retell)
 // ============================================
 export { vapiOutbound } from './voice/vapiOutbound.js'
 export { vapiWebhook } from './voice/vapiWebhook.js'
+export { initiateVoiceCall, vapiCallbackWebhook, autoVoiceCallTrigger } from './voice/voiceFunction.js'
+
+// ============================================
+// DScore Intelligence Engine (v4.0)
+// ============================================
+export { calculateLeadDScore, onLeadCreatedCalculateDScore, onLeadParticuliersCalculateDScore } from './intelligence/dScoreFunction.js'
+
+// ============================================
+// ROI Analytics Engine (v4.0)
+// ============================================
+export { getROIMetrics, computeNightlyROI } from './analytics/roiFunction.js'
+
+// ============================================
+// ABM Multi-Decideurs (v4.0)
+// ============================================
+export { identifyAndContactDecisionMakers, launchABMCampaign } from './abm/abmFunction.js'
+
+// ============================================
+// White-label Reseller (v4.0)
+// ============================================
+export { createReseller, inviteResellerClient, activateViaInvite, getResellerDashboard, monthlyResellerCommissions } from './reseller/resellerFunction.js'
+
+// ============================================
+// Signals Intelligence Layer (v4.0)
+// ============================================
+export { scrapeCompetitorReviewsCallable, dailyCompetitorReviewsScan, fetchGithubSignalsCallable, fetchConferenceSpeakersCron } from './signals/signalsFunction.js'
+
+// ============================================
+// A/B Testing Engine — Thompson Sampling (v4.0)
+// ============================================
+export { runABTest, recordABTestResultCallable, getWinningVariant, getABTestDashboard, rotateAbVariants } from './signals/abTestingFunction.js'
 
 // ============================================
 // Migrations

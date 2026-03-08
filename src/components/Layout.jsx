@@ -34,6 +34,8 @@ import {
   Kanban,
   Compass,
   Crosshair,
+  Gauge,
+  BadgeDollarSign,
 } from 'lucide-react'
 
 // v5.0 Navigation — 9 items max
@@ -45,6 +47,7 @@ const navItems = [
   { to: '/app/outreach', icon: Send, label: 'Outreach' },
   { to: '/app/inbox', icon: MessageSquare, label: 'Inbox' },
   { to: '/app/intent-hunter', icon: Crosshair, label: 'Intent Hunter' },
+  { to: '/app/roi', icon: Gauge, label: 'ROI' },
   { to: '/app/performance', icon: BarChart3, label: 'Performance' },
 ]
 
@@ -83,6 +86,8 @@ const pageTitles = {
   '/app/campaigns/list': 'Campagnes',
   '/app/campaigns/settings': 'Parametres Campagne',
   '/app/campaigns/hitl': "File d'approbation",
+  '/app/roi': 'Tableau de bord ROI',
+  '/app/reseller': 'Espace Revendeur',
 }
 
 export default function Layout() {
@@ -366,6 +371,22 @@ export default function Layout() {
           >
             <Settings className="w-5 h-5" />
             <span>Configuration</span>
+          </NavLink>
+
+          {/* Reseller link */}
+          <NavLink
+            to="/app/reseller"
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isActive
+                  ? 'bg-emerald-50 text-emerald-600'
+                  : 'text-text-secondary hover:text-text hover:bg-surface-hover'
+              }`
+            }
+          >
+            <BadgeDollarSign className="w-5 h-5" />
+            <span>Revendeur</span>
           </NavLink>
 
           {/* Admin links - only for super admins */}

@@ -30,6 +30,9 @@ Face Media Factory est un SaaS multi-tenant de prospection intelligente multican
 | Enrichissement | Derrick > Apollo > Hunter > Dropcontact > BetterContact | Waterfall 5 providers |
 | Verification | NeverBounce | SMTP-level |
 | Posting | Postiz + Late API | Multi-plateforme |
+| Voice IA | Vapi + Retell AI | Appels sortants IA, voice clone |
+| Enrichissement B2B | Pappers.fr | SIREN/NAF, decideurs, bilans |
+| Signaux | GitHub API + Trustpilot + G2 | Intelligence competitive |
 
 ---
 
@@ -41,7 +44,7 @@ face-media-factory/
 │   ├── App.jsx                       # Router + Auth/Org guards + permissions
 │   ├── main.jsx                      # Entry point + Toast config
 │   │
-│   ├── pages/ (46 pages)
+│   ├── pages/ (48 pages)
 │   │   ├── Landing.jsx               # Page d'accueil marketing
 │   │   ├── Pricing.jsx               # Tarification 3 forfaits
 │   │   ├── Login.jsx / Signup.jsx    # Auth
@@ -80,6 +83,8 @@ face-media-factory/
 │   │   ├── Onboarding*.jsx           # Flow onboarding (4 pages)
 │   │   ├── TestEmail.jsx             # Test email admin
 │   │   ├── TestAutopilot.jsx         # Test autopilot
+│   │   ├── ROIDashboard.jsx          # Dashboard ROI (NRR, LTV, CAC)
+│   │   ├── ResellerDashboard.jsx     # Dashboard revendeurs white-label
 │   │   └── Unsubscribe.jsx           # Page desinscription
 │   │
 │   ├── components/
@@ -92,6 +97,10 @@ face-media-factory/
 │   │   ├── ai/ (3)                  # MessageGenerator, ProviderStatus, PuterMessageGenerator
 │   │   ├── analytics/ (2)           # ChannelComparisonChart, MultichannelFunnel
 │   │   ├── pricing/ (2)             # PricingCard, PricingToggle
+│   │   ├── DScoreWidget.jsx          # Score digitalisation (0-100, badges urgence)
+│   │   ├── ABMPanel.jsx              # Panel ABM multi-decideurs
+│   │   ├── ABVariantPicker.jsx       # Selecteur variantes A/B
+│   │   ├── VoiceCallButton.jsx       # Bouton appel vocal Vapi/Retell
 │   │   └── ... (24 composants racine)
 │   │
 │   ├── hooks/ (12)
@@ -123,7 +132,7 @@ face-media-factory/
 │   └── styles/globals.css           # Tailwind + theme
 │
 ├── functions/src/                    # Backend Cloud Functions
-│   ├── index.js                      # 125 exports (point d'entree unique)
+│   ├── index.js                      # 160+ exports (point d'entree unique)
 │   │
 │   ├── agents/ (7)                  # Cloud Tasks Agents (remplace BullMQ)
 │   │   ├── emailAgent.js            # HTTP handler — envoi emails
@@ -224,6 +233,37 @@ face-media-factory/
 │   │   ├── emailWaterfall.js      # Logique waterfall
 │   │   └── neverBounceVerifier.js # Verification NeverBounce
 │   │
+│   ├── intelligence/ (2)          # DScore — scoring digitalisation leads (0-100)
+│   │   ├── dScoreEngine.js        # Moteur 5 dimensions (web, GMB, social, recrutement, avis)
+│   │   └── dScoreFunction.js      # Callables + triggers Firestore
+│   │
+│   ├── analytics/ (2)            # ROI Analytics Engine
+│   │   ├── roiEngine.js           # NRR, LTV, CAC, payback period
+│   │   └── roiFunction.js         # Callables + nightly snapshot
+│   │
+│   ├── abm/ (2)                  # ABM Multi-Decideurs
+│   │   ├── abmEngine.js           # Identification decideurs via Pappers/SIREN
+│   │   └── abmFunction.js         # Callables ABM
+│   │
+│   ├── reseller/ (2)             # White-label Reseller
+│   │   ├── resellerEngine.js      # Invitations, commissions, dashboard
+│   │   └── resellerFunction.js    # Callables reseller
+│   │
+│   ├── signals/ (6)              # Signals Intelligence + A/B Testing
+│   │   ├── signalsFunction.js     # Callables signals
+│   │   ├── abTestingEngine.js     # Thompson Sampling multi-armed bandit
+│   │   ├── abTestingFunction.js   # Callables A/B tests
+│   │   ├── competitorReviewsScraper.js  # Trustpilot, G2, Google
+│   │   ├── githubSignalsClient.js       # GitHub activity signals
+│   │   └── conferenceSpeakersClient.js  # Conference speaker intelligence
+│   │
+│   ├── voice/ (5)                # Voice Agent (Vapi + Retell)
+│   │   ├── voiceEngine.js         # Orchestration appels vocaux
+│   │   ├── voiceFunction.js       # Callables voice
+│   │   ├── vapiOutbound.js        # Vapi outbound calls
+│   │   ├── vapiWebhook.js         # Vapi webhook handler
+│   │   └── retellClient.js        # Retell AI voice client
+│   │
 │   ├── compliance/ (1)            # RGPD + opt-in/opt-out unifie
 │   ├── autopilot/ (5)            # AutoPilot prospection
 │   ├── admin/ (3)                # Super admin + beta users
@@ -238,6 +278,14 @@ face-media-factory/
 │   ├── utils/ (3)               # Gemini wrapper, quotas, reset
 │   └── dev/ (1)                 # Seed data (emulator only)
 │
+├── scripts/                        # Scripts utilitaires + battle tests
+│   ├── run_battle_test.mjs        # Orchestrateur battle test V1
+│   ├── battle_test_dscore.mjs     # Test DScore (5 avatars)
+│   ├── battle_test_messages.mjs   # Test messages Alex
+│   ├── battle_test_conversations.mjs  # Test conversations adversariales
+│   └── battle_test_report.mjs     # Rapport final
+│
+├── functions/battle_test_v2_*.mjs  # Battle Test V2 (7 avatars, 10 edge cases)
 ├── firestore.rules               # Securite multi-tenant RBAC
 ├── firebase.json                 # Config Firebase
 ├── tailwind.config.js            # Theme light
@@ -288,7 +336,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 
 ---
 
-## Cloud Functions (130 deployes)
+## Cloud Functions (160+ deployes)
 
 ### Fonctions Scheduled (21)
 | Function | Schedule | Description |
@@ -314,8 +362,14 @@ API externe (SES, Evolution, HeyReach, etc.)
 | `resetDailyCounts` | daily | Reset compteurs journaliers |
 | `rescueScheduler` | periodic | Agent Alex — relance auto |
 | `dailyReset` | daily | Agent Alex — reset quotidien |
+| `computeNightlyROI` | daily 00:00 | Snapshot ROI (NRR, LTV, CAC) |
+| `dailyCompetitorReviewsScan` | daily | Scraping avis concurrents |
+| `fetchConferenceSpeakersCron` | daily | Intelligence speakers |
+| `dailyAnalyticsSnapshot` | daily | Snapshot analytics quotidien |
+| `autoVoiceCallTrigger` | periodic | Declenchement appels vocaux IA |
+| `monthlyResellerCommissions` | 1er du mois | Calcul commissions revendeurs |
 
-### Fonctions Callable (87) — principales
+### Fonctions Callable (120+) — principales
 | Categorie | Functions |
 |-----------|----------|
 | Scanner | `scanWebsite` |
@@ -340,6 +394,14 @@ API externe (SES, Evolution, HeyReach, etc.)
 | Cloud Tasks | `enqueueTask`, `enqueueBatch`, `deleteTask`, `purgeQueue`, `pauseQueue`, `resumeQueue` |
 | AI | `personalizeMessage`, `getAIStatus` |
 | Posting | `createMultiPlatformPost`, `getPostStatus`, `cancelPost` |
+| DScore | `calculateLeadDScore`, `onLeadCreatedCalculateDScore`, `onLeadParticuliersCalculateDScore` |
+| ROI | `getROIMetrics`, `updateDailyAnalytics` |
+| ABM | `identifyAndContactDecisionMakers`, `launchABMCampaign` |
+| Reseller | `createReseller`, `inviteResellerClient`, `activateViaInvite`, `getResellerDashboard` |
+| Signals | `scrapeCompetitorReviewsCallable`, `fetchGithubSignalsCallable` |
+| A/B Testing | `runABTest`, `recordABTestResultCallable`, `getWinningVariant`, `getABTestDashboard`, `rotateAbVariants` |
+| Voice | `vapiOutbound`, `initiateVoiceCall`, `getAgentStatus` |
+| Agent Alex | `agentRespond`, `agentLearning`, `getEscalations`, `handleEscalation` |
 
 ### Fonctions HTTP (18)
 | Function | Description |
@@ -362,6 +424,10 @@ API externe (SES, Evolution, HeyReach, etc.)
 | `webhookIncoming` | Agent Alex — webhook entrant |
 | `handleMFWebhook` | Webhook Merci Facteur |
 | `evolutionWebhook` | Webhook Evolution API (WhatsApp multi-tenant) |
+| `vapiWebhook` | Webhook Vapi (statut appels vocaux) |
+| `vapiCallbackWebhook` | Callback fin appel Vapi |
+| `calendlyWebhook` | Webhook Calendly (booking) |
+| `unsubscribeHandler` | Handler RGPD desinscription |
 
 ---
 
@@ -387,9 +453,15 @@ organizations/{orgId}/
 ├── suppressionList/{email}         # Liste suppression
 ├── analytics/{date}                # Analytics par jour
 ├── hunterResults/{resultId}        # Resultats sourcing
-└── integrations/whatsapp           # Config WhatsApp multi-tenant (Evolution API)
+├── integrations/whatsapp           # Config WhatsApp multi-tenant (Evolution API)
+├── abmContacts/{contactId}        # Contacts ABM multi-decideurs
+├── roiSnapshots/{date}            # Snapshots ROI quotidiens
+├── voiceCalls/{callId}            # Historique appels vocaux IA
+├── competitorReviews/{reviewId}   # Avis concurrents scrapes
+└── resellerClients/{clientId}     # Clients white-label revendeur
 
 users/{userId}                       # Profils utilisateurs
+resellers/{resellerId}               # Comptes revendeurs white-label
 betaUsers/{email}                    # Utilisateurs beta
 subscriptionPlans/{planId}           # Plans d'abonnement
 ```
@@ -498,6 +570,10 @@ firebase functions:list --project face-media-factory
 
 # Supprimer une fonction orpheline
 firebase functions:delete <name> --region europe-west1 --force --project face-media-factory
+
+# Battle Tests
+cd functions && node run_battle_test_v2.mjs       # V2 complet (7 avatars, 10 edge cases)
+node scripts/run_battle_test.mjs                   # V1 (5 avatars, DScore, messages, pipeline)
 ```
 
 ---
@@ -558,6 +634,13 @@ SERPER_API_KEY=...
 
 # Posting
 POSTIZ_API_KEY=...
+
+# Voice IA
+VAPI_API_KEY=...
+RETELL_API_KEY=...
+
+# Enrichissement B2B
+PAPPERS_API_KEY=...
 
 # Cloud Tasks
 GCP_PROJECT_ID=face-media-factory

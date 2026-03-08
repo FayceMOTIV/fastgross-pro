@@ -48,6 +48,10 @@ const IntentHunterParticuliers = lazy(() => import('@/pages/IntentHunterParticul
 const IntentHunterStats = lazy(() => import('@/pages/IntentHunterStats'))
 const UnsubscribePage = lazy(() => import('@/pages/UnsubscribePage'))
 
+// V4 pages
+const ROIDashboard = lazy(() => import('@/pages/ROIDashboard'))
+const ResellerDashboard = lazy(() => import('@/pages/ResellerDashboard'))
+
 // CRM pages
 const CRMList = lazy(() => import('@/pages/CRMList'))
 const CRMLeadDetail = lazy(() => import('@/pages/CRMLeadDetail'))
@@ -310,6 +314,10 @@ export default function App() {
                           <Route path="performance" element={<PerformanceHub />} />
                           <Route path="config" element={<ConfigHub />} />
                           <Route path="admin" element={<AdminHub />} />
+
+                          {/* V4 — ROI + Reseller */}
+                          <Route path="roi" element={<ROIDashboard />} />
+                          <Route path="reseller" element={<ResellerDashboard />} />
 
                           {/* Intent Hunter */}
                           <Route path="intent-hunter" element={<IntentHunterHome />} />
