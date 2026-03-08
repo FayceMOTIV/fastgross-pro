@@ -12,6 +12,7 @@ import {
   Globe,
   Zap,
   Wrench,
+  MapPin,
 } from 'lucide-react'
 import {
   ProspectionSettings,
@@ -26,6 +27,7 @@ import {
   DangerSettings,
   DevSettings,
 } from '@/components/settings'
+import GeoZoneSelector from '@/components/GeoZoneSelector'
 
 const isDevMode = import.meta.env.VITE_USE_EMULATORS === 'true' || import.meta.env.DEV
 
@@ -40,6 +42,7 @@ const baseTabs = [
   { id: 'organization', label: 'Organisation', icon: Building2 },
   { id: 'billing', label: 'Plan & Facturation', icon: CreditCard },
   { id: 'danger', label: 'Zone dangereuse', icon: AlertTriangle },
+  { id: 'geociblage', label: 'Geo-ciblage', icon: MapPin },
 ]
 
 const devTab = { id: 'dev', label: 'Dev Tools', icon: Wrench }
@@ -71,6 +74,8 @@ export default function Settings() {
         return <BillingSettings />
       case 'danger':
         return <DangerSettings />
+      case 'geociblage':
+        return <GeoZoneSelector />
       case 'dev':
         return isDevMode ? <DevSettings /> : null
       default:

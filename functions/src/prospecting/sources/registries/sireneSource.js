@@ -8,6 +8,7 @@
 
 import { logger } from 'firebase-functions/v2'
 import { normalizeToLead, createSourceRun, updateSourceRun, saveRawLeads, withRateLimit } from '../_baseSource.js'
+import { getClientGeoSettings } from '../../../geo/clientGeoSettings.js'
 
 const SOURCE_ID = 'sirene'
 const SOURCE_GROUP = 'registries'
@@ -70,12 +71,46 @@ export async function collect(orgId, config = {}) {
     dateFrom.setDate(dateFrom.getDate() - (config.dateRange || 30))
     const dateStr = dateFrom.toISOString().split('T')[0]
 
+    // Load client geo settings for geographic filtering
+    let geoSettings = null
+    try {
+      geoSettings = await getClientGeoSettings(orgId)
+    } catch (geoErr) {
+      logger.warn(`[sireneSource] Could not load geoSettings (non-blocking):`, geoErr.message)
+    }
+
     // Build query
     let query = `dateCreationEtablissement:[${dateStr} TO *] AND etatAdministratifEtablissement:${config.etatAdministratif || 'A'}`
 
     if (config.nafCodes?.length > 0) {
       const nafFilter = config.nafCodes.map(c => `activitePrincipaleEtablissement:${c}`).join(' OR ')
       query += ` AND (${nafFilter})`
+    }
+
+    // Geo filter from client settings
+    if (geoSettings?.zones?.length > 0) {
+      const geoFilters = []
+      for (const zone of geoSettings.zones) {
+        const sf = zone.sireneFilter || {}
+        if (sf.code_postal) {
+          geoFilters.push(`codePostalEtablissement:${sf.code_postal}`)
+        } else if (sf.code_commune) {
+          geoFilters.push(`codeCommuneEtablissement:${sf.code_commune}`)
+        } else if (sf.departement) {
+          geoFilters.push(`codePostalEtablissement:${sf.departement}*`)
+        } else if (sf.region) {
+          const REGIONS_DEPTS = { '11': ['75','77','78','91','92','93','94','95'], '24': ['18','28','36','37','41','45'], '27': ['21','25','39','58','70','71','89','90'], '28': ['14','27','50','61','76'], '32': ['02','59','60','62','80'], '44': ['08','10','51','52','54','55','57','67','68','88'], '52': ['44','49','53','72','85'], '53': ['22','29','35','56'], '75': ['16','17','19','23','24','33','40','47','64','79','86','87'], '76': ['09','11','12','30','31','32','34','46','48','65','66','81','82'], '84': ['01','03','07','15','26','38','42','43','63','69','73','74'], '93': ['04','05','06','13','83','84'], '94': ['2A','2B'] }
+          const depts = REGIONS_DEPTS[sf.region] || []
+          if (depts.length > 0) {
+            const deptFilter = depts.map(d => `codePostalEtablissement:${d}*`).join(' OR ')
+            geoFilters.push(`(${deptFilter})`)
+          }
+        }
+        // type 'france' or empty sireneFilter → no filter (national)
+      }
+      if (geoFilters.length > 0) {
+        query += ` AND (${geoFilters.join(' OR ')})`
+      }
     }
 
     const maxResults = Math.min(config.maxResults || 700, 1000)

@@ -61,6 +61,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
 import { useAdminStatus } from '@/hooks/useCloudFunctions'
 import HotQueueWidget from '@/components/HotQueueWidget'
+import AlexMemoryDashboard from '@/components/AlexMemoryDashboard'
 
 // Channel icon mapping
 const ChannelIcon = ({ channel, className = 'w-4 h-4' }) => {
@@ -1038,6 +1039,9 @@ export default function Dashboard() {
           </div>
         )}
       </motion.div>
+
+      {/* Alex Memory Dashboard */}
+      <AlexMemoryDashboard />
     </div>
   )
 }
