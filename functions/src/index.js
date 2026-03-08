@@ -423,6 +423,11 @@ export { launchIntentHunterPro, launchIntentHunterParticuliers, getIntentHunterS
 export { updateClientGeoSettings, getGeoSettings, detectGeoFromMessage, resolveZone } from './geo/geoFunction.js'
 
 // ============================================
+// Alex Memory System — 3-layer collective memory (v5.0)
+// ============================================
+export { consolidateAlexMemory, forceConsolidateNiche, onInteractionCreated, getAlexMemoryContext, getAlexMemoryStats } from './memory/memoryFunction.js'
+
+// ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
 export { seedData, seedSubscriptionPlans } from './dev/seedData.js'
