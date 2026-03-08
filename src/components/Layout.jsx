@@ -33,6 +33,7 @@ import {
   Wand2,
   Kanban,
   Compass,
+  Crosshair,
 } from 'lucide-react'
 
 // v5.0 Navigation — 9 items max
@@ -43,6 +44,7 @@ const navItems = [
   { to: '/app/crm', icon: Kanban, label: 'CRM' },
   { to: '/app/outreach', icon: Send, label: 'Outreach' },
   { to: '/app/inbox', icon: MessageSquare, label: 'Inbox' },
+  { to: '/app/intent-hunter', icon: Crosshair, label: 'Intent Hunter' },
   { to: '/app/performance', icon: BarChart3, label: 'Performance' },
 ]
 
@@ -64,12 +66,23 @@ const pageTitles = {
   '/app/crm': 'CRM',
   '/app/outreach': 'Outreach',
   '/app/inbox': 'Inbox',
+  '/app/intent-hunter': 'Intent Hunter',
+  '/app/intent-hunter/pro': 'Intent Hunter Pro',
+  '/app/intent-hunter/particuliers': 'Intent Hunter Particuliers',
+  '/app/intent-hunter/stats': 'Intent Hunter Stats',
   '/app/performance': 'Performance',
   '/app/config': 'Configuration',
   '/app/admin': 'Admin',
   '/app/templates': 'Templates',
   '/app/sequences': 'Sequences',
   '/app/interactions': 'Interactions',
+  '/app/crm/list': 'Prospects CRM',
+  '/app/crm/kanban': 'Pipeline CRM',
+  '/app/crm/lead': 'Detail Prospect',
+  '/app/campaigns/wizard': 'Nouvelle Campagne',
+  '/app/campaigns/list': 'Campagnes',
+  '/app/campaigns/settings': 'Parametres Campagne',
+  '/app/campaigns/hitl': "File d'approbation",
 }
 
 export default function Layout() {

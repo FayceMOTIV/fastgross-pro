@@ -797,6 +797,54 @@ service cloud.firestore {
     }
 
     // ============================================
+    // INTENT HUNTER — Intent leads Pro (B2B)
+    // ============================================
+    match /intentLeadsPro/{leadId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // INTENT HUNTER — Intent leads Particuliers (B2C)
+    // ============================================
+    match /intentLeadsParticuliers/{leadId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // INTENT HUNTER — Pixel visits
+    // ============================================
+    match /pixelVisits/{visitId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // INTENT HUNTER — Email Domains (reputation)
+    // ============================================
+    match /emailDomains/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // INTENT HUNTER — Referral leads
+    // ============================================
+    match /referralLeads/{leadId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // INTENT HUNTER — Prospect Memory (SP4)
+    // ============================================
+    match /prospectMemory/{leadId} {
+      allow read: if false;  // Only Cloud Functions
+      allow write: if false;
+    }
+
+    // ============================================
     // BOUNCES - Email bounce tracking
     // ============================================
     match /bounces/{bounceId} {

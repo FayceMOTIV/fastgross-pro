@@ -25,6 +25,24 @@ export { scoreLeads, getLeadInsights } from './radar/scoreLeads.js'
 // ============================================
 export { processSequence, scheduledCampaignProcessor } from './campaigns/processSequence.js'
 
+// --- Daily Digest Engine ---
+export { dailyDigestCron, generateDailyDigest, getDigestHistory } from './campaigns/dailyDigestEngine.js'
+
+// --- Dry Run Engine ---
+export { runDryRun, getDryRunHistory } from './campaigns/dryRunEngine.js'
+export { analyzeProspectProfile } from './campaigns/profileAnalyzer.js'
+
+// --- ICP Engine (Campaign Wizard) ---
+export { clarifyICP, generateCampaignStrategy, estimateProspects } from './campaigns/icpEngine.js'
+
+// --- Conversation Engine (Reply Classification) ---
+export { classifyReply as classifyCampaignReply, handleIncomingReply as handleCampaignReply } from './campaigns/conversationEngine.js'
+
+// ============================================
+// CRM Manager (Pipeline CRUD)
+// ============================================
+export { getProspectsPage, moveProspect, addInternalNote, sendManualMessage as sendCrmManualMessage, exportProspectsCSV, deleteProspectGDPR } from './crm/crmManager.js'
+
 // ============================================
 // Email Functions
 // ============================================
@@ -341,6 +359,27 @@ export { migrateCrmColumns } from './migrations/addCrmColumn.js'
 // Pipeline Prospection France (Sources officielles)
 // ============================================
 export { runProspectionFrance, getSecteursFrance } from './sourcing/sourcingCallable.js'
+
+// ============================================
+// Intent Hunter — RGPD Engine
+// ============================================
+export { unsubscribeHandler } from './compliance/rgpdEngine.js'
+
+// ============================================
+// Intent Hunter — Scheduled Jobs
+// ============================================
+export { detectCompetitorMentionsCron } from './intentHunter/shared/detectCompetitorMentions.js'
+export { recycleColdLeadsCron } from './intentHunter/shared/recycleColdLeads.js'
+
+// ============================================
+// Intent Hunter — CRM Sync (Webhook HTTP)
+// ============================================
+export { crmWebhookIngest } from './integrations/crmSync.js'
+
+// ============================================
+// Intent Hunter — Callable Functions (UI)
+// ============================================
+export { launchIntentHunterPro, launchIntentHunterParticuliers, getIntentHunterStats } from './intentHunter/intentHunterCallable.js'
 
 // ============================================
 // Dev functions (only available in development/emulator)

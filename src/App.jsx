@@ -41,6 +41,24 @@ const PerformanceHub = lazy(() => import('@/pages/PerformanceHub'))
 const ConfigHub = lazy(() => import('@/pages/ConfigHub'))
 const AdminHub = lazy(() => import('@/pages/AdminHub'))
 
+// Intent Hunter pages
+const IntentHunterHome = lazy(() => import('@/pages/IntentHunterHome'))
+const IntentHunterPro = lazy(() => import('@/pages/IntentHunterPro'))
+const IntentHunterParticuliers = lazy(() => import('@/pages/IntentHunterParticuliers'))
+const IntentHunterStats = lazy(() => import('@/pages/IntentHunterStats'))
+const UnsubscribePage = lazy(() => import('@/pages/UnsubscribePage'))
+
+// CRM pages
+const CRMList = lazy(() => import('@/pages/CRMList'))
+const CRMLeadDetail = lazy(() => import('@/pages/CRMLeadDetail'))
+const CRMKanban = lazy(() => import('@/pages/CRMKanban'))
+
+// Campaign Engine pages
+const ICPWizard = lazy(() => import('@/pages/ICPWizard'))
+const CampaignList = lazy(() => import('@/pages/CampaignList'))
+const CampaignSettings = lazy(() => import('@/pages/CampaignSettings'))
+const HITLQueue = lazy(() => import('@/pages/HITLQueue'))
+
 // Legacy pages still needed for direct routes
 const Templates = lazy(() => import('@/pages/Templates'))
 const Sequences = lazy(() => import('@/pages/Sequences'))
@@ -208,6 +226,7 @@ export default function App() {
                         {/* Unsubscribe (public, no auth) */}
                         <Route path="/unsubscribe" element={<Unsubscribe />} />
                         <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
+                        <Route path="/unsubscribed" element={<UnsubscribePage />} />
 
                         {/* ============================================ */}
                         {/* ONBOARDING ROUTES */}
@@ -276,11 +295,30 @@ export default function App() {
                           <Route path="sourcing" element={<SourcingHub />} />
                           <Route path="tools" element={<ToolsHub />} />
                           <Route path="crm" element={<CRMHub />} />
+                          <Route path="crm/list" element={<CRMList />} />
+                          <Route path="crm/kanban" element={<CRMKanban />} />
+                          <Route path="crm/lead/:prospectId" element={<CRMLeadDetail />} />
+
+                          {/* Campaign Engine */}
+                          <Route path="campaigns/wizard" element={<ICPWizard />} />
+                          <Route path="campaigns/list" element={<CampaignList />} />
+                          <Route path="campaigns/settings" element={<CampaignSettings />} />
+                          <Route path="campaigns/hitl" element={<HITLQueue />} />
+
                           <Route path="outreach" element={<OutreachHub />} />
                           <Route path="inbox" element={<InboxHub />} />
                           <Route path="performance" element={<PerformanceHub />} />
                           <Route path="config" element={<ConfigHub />} />
                           <Route path="admin" element={<AdminHub />} />
+
+                          {/* Intent Hunter */}
+                          <Route path="intent-hunter" element={<IntentHunterHome />} />
+                          <Route path="intent-hunter/pro" element={<IntentHunterPro />} />
+                          <Route
+                            path="intent-hunter/particuliers"
+                            element={<IntentHunterParticuliers />}
+                          />
+                          <Route path="intent-hunter/stats" element={<IntentHunterStats />} />
 
                           {/* Legacy pages still needed as direct routes */}
                           <Route path="templates" element={<Templates />} />
