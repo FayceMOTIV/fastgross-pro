@@ -30,7 +30,7 @@ Face Media Factory est un SaaS multi-tenant de prospection intelligente multican
 | Enrichissement | Derrick > Apollo > Hunter > Dropcontact > BetterContact | Waterfall 5 providers |
 | Verification | NeverBounce | SMTP-level |
 | Posting | Postiz + Late API | Multi-plateforme |
-| Voice IA | Vapi + Retell AI | Appels sortants IA, voice clone |
+| Voice IA | Vapi + ElevenLabs + Groq + Deepgram | Alex Voice: appels sortants IA, CNIL compliant |
 | Enrichissement B2B | Pappers.fr | SIREN/NAF, decideurs, bilans |
 | Signaux | GitHub API + Trustpilot + G2 | Intelligence competitive |
 
@@ -132,7 +132,7 @@ face-media-factory/
 │   └── styles/globals.css           # Tailwind + theme
 │
 ├── functions/src/                    # Backend Cloud Functions
-│   ├── index.js                      # 160+ exports (point d'entree unique)
+│   ├── index.js                      # 170+ exports (point d'entree unique)
 │   │
 │   ├── agents/ (7)                  # Cloud Tasks Agents (remplace BullMQ)
 │   │   ├── emailAgent.js            # HTTP handler — envoi emails
@@ -203,7 +203,7 @@ face-media-factory/
 │   │   ├── rescueScheduler.js      # Relance automatique
 │   │   ├── transferLeadToClient.js # Transfert leads qualifies
 │   │   ├── dailyReset.js           # Reset quotidien
-│   │   ├── scoreAndReply.js        # Scoring + reponse IA
+│   │   ├── scoreAndReply.js        # Scoring + reponse IA + J+3 voice trigger
 │   │   ├── sendMessage.js          # Envoi messages
 │   │   └── sendTelegramAlert.js    # Alertes Telegram
 │   │
@@ -234,7 +234,7 @@ face-media-factory/
 │   │   └── neverBounceVerifier.js # Verification NeverBounce
 │   │
 │   ├── intelligence/ (2)          # DScore — scoring digitalisation leads (0-100)
-│   │   ├── dScoreEngine.js        # Moteur 5 dimensions (web, GMB, social, recrutement, avis)
+│   │   ├── dScoreEngine.js        # Moteur 5 dimensions + Signals V2 bonus (cap 100)
 │   │   └── dScoreFunction.js      # Callables + triggers Firestore
 │   │
 │   ├── analytics/ (2)            # ROI Analytics Engine
@@ -249,19 +249,34 @@ face-media-factory/
 │   │   ├── resellerEngine.js      # Invitations, commissions, dashboard
 │   │   └── resellerFunction.js    # Callables reseller
 │   │
-│   ├── signals/ (6)              # Signals Intelligence + A/B Testing
-│   │   ├── signalsFunction.js     # Callables signals
+│   ├── signals/ (15)             # Signals Intelligence V2 + A/B Testing
+│   │   ├── signalOrchestrator.js  # Orchestrateur 8 dimensions + cache Firestore
+│   │   ├── signalsFunction.js     # Callables signals (enrichLeadSignals)
+│   │   ├── intentSignals.js       # Dimension 1: signaux d'achat (Serper)
+│   │   ├── technographyEngine.js  # Dimension 2: maturite digitale (fetch website)
+│   │   ├── directorEngine.js      # Dimension 3: identification dirigeant (Pappers)
+│   │   ├── growthScoreEngine.js   # Dimension 4: croissance entreprise (INPI/SIRENE)
+│   │   ├── activePainEngine.js    # Dimension 5: douleurs actives (multi-source)
+│   │   ├── sectorTimingEngine.js  # Dimension 6: timing sectoriel (calendrier NAF)
+│   │   ├── certificationEngine.js # Dimension 7: certifications (Qualiopi, ISO)
+│   │   ├── socialPresenceEngine.js # Dimension 8: presence sociale (Serper)
 │   │   ├── abTestingEngine.js     # Thompson Sampling multi-armed bandit
 │   │   ├── abTestingFunction.js   # Callables A/B tests
 │   │   ├── competitorReviewsScraper.js  # Trustpilot, G2, Google
 │   │   ├── githubSignalsClient.js       # GitHub activity signals
 │   │   └── conferenceSpeakersClient.js  # Conference speaker intelligence
 │   │
-│   ├── voice/ (5)                # Voice Agent (Vapi + Retell)
-│   │   ├── voiceEngine.js         # Orchestration appels vocaux
-│   │   ├── voiceFunction.js       # Callables voice
-│   │   ├── vapiOutbound.js        # Vapi outbound calls
-│   │   ├── vapiWebhook.js         # Vapi webhook handler
+│   ├── voice/ (11)               # Voice Agent — Alex Voice + Vapi + Retell
+│   │   ├── alexVoiceEngine.js     # Orchestrateur Alex Voice (pre-checks, Vapi transient)
+│   │   ├── alexVoicePromptBuilder.js # System prompt vocal 4 couches + Signals V2
+│   │   ├── alexVoiceTools.js      # 4 outils Vapi (callback, interested, disqualified, transfer)
+│   │   ├── alexVoiceFunctions.js  # 3 Cloud Functions (initiateAlexCallFn, alexVoiceWebhook, scheduleVoiceCampaignFn)
+│   │   ├── callScheduler.js       # CNIL compliance (9h-12h, 14h-18h, jours feries)
+│   │   ├── vapiWebhookHandler.js  # Webhook dispatcher (tool-calls, end-of-call, pipeline)
+│   │   ├── voiceEngine.js         # Orchestration appels vocaux (legacy)
+│   │   ├── voiceFunction.js       # Callables voice (legacy)
+│   │   ├── vapiOutbound.js        # Vapi outbound calls (legacy)
+│   │   ├── vapiWebhook.js         # Vapi webhook handler (legacy)
 │   │   └── retellClient.js        # Retell AI voice client
 │   │
 │   ├── compliance/ (1)            # RGPD + opt-in/opt-out unifie
@@ -336,7 +351,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 
 ---
 
-## Cloud Functions (160+ deployes)
+## Cloud Functions (170+ deployes)
 
 ### Fonctions Scheduled (21)
 | Function | Schedule | Description |
@@ -398,9 +413,9 @@ API externe (SES, Evolution, HeyReach, etc.)
 | ROI | `getROIMetrics`, `updateDailyAnalytics` |
 | ABM | `identifyAndContactDecisionMakers`, `launchABMCampaign` |
 | Reseller | `createReseller`, `inviteResellerClient`, `activateViaInvite`, `getResellerDashboard` |
-| Signals | `scrapeCompetitorReviewsCallable`, `fetchGithubSignalsCallable` |
+| Signals | `scrapeCompetitorReviewsCallable`, `fetchGithubSignalsCallable`, `enrichLeadSignals` |
 | A/B Testing | `runABTest`, `recordABTestResultCallable`, `getWinningVariant`, `getABTestDashboard`, `rotateAbVariants` |
-| Voice | `vapiOutbound`, `initiateVoiceCall`, `getAgentStatus` |
+| Voice | `vapiOutbound`, `initiateVoiceCall`, `getAgentStatus`, `initiateAlexCallFn`, `scheduleVoiceCampaignFn` |
 | Agent Alex | `agentRespond`, `agentLearning`, `getEscalations`, `handleEscalation` |
 
 ### Fonctions HTTP (18)
@@ -425,6 +440,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | `handleMFWebhook` | Webhook Merci Facteur |
 | `evolutionWebhook` | Webhook Evolution API (WhatsApp multi-tenant) |
 | `vapiWebhook` | Webhook Vapi (statut appels vocaux) |
+| `alexVoiceWebhook` | Webhook Alex Voice (tool-calls, end-of-call, pipeline) |
 | `vapiCallbackWebhook` | Callback fin appel Vapi |
 | `calendlyWebhook` | Webhook Calendly (booking) |
 | `unsubscribeHandler` | Handler RGPD desinscription |
@@ -458,9 +474,12 @@ organizations/{orgId}/
 ├── roiSnapshots/{date}            # Snapshots ROI quotidiens
 ├── voiceCalls/{callId}            # Historique appels vocaux IA
 ├── competitorReviews/{reviewId}   # Avis concurrents scrapes
-└── resellerClients/{clientId}     # Clients white-label revendeur
+├── resellerClients/{clientId}     # Clients white-label revendeur
+└── pipeline/{pipeId}             # Pipeline leads qualifies (Alex Voice + autres)
 
 users/{userId}                       # Profils utilisateurs
+voiceCalls/{callId}                  # Appels Alex Voice (root-level, cross-org)
+scheduledCalls/{schedId}             # Appels programmes (callbacks, retries, campagnes)
 resellers/{resellerId}               # Comptes revendeurs white-label
 betaUsers/{email}                    # Utilisateurs beta
 subscriptionPlans/{planId}           # Plans d'abonnement
@@ -573,6 +592,9 @@ firebase functions:delete <name> --region europe-west1 --force --project face-me
 
 # Battle Tests
 cd functions && node run_battle_test_v2.mjs       # V2 complet (7 avatars, 10 edge cases)
+cd functions && node run_battle_test_v5.mjs       # V5 regression (GeoZone, AlexMemory, dry run)
+cd functions && node run_signals_test.mjs          # Signals V2 (8 dimensions, 88 tests)
+cd functions && node run_voice_test.mjs            # Alex Voice (scheduler, tools, imports, 46 tests)
 node scripts/run_battle_test.mjs                   # V1 (5 avatars, DScore, messages, pipeline)
 ```
 
@@ -637,7 +659,10 @@ POSTIZ_API_KEY=...
 
 # Voice IA
 VAPI_API_KEY=...
+VAPI_PHONE_NUMBER_ID=...
+VAPI_WEBHOOK_SECRET=...
 RETELL_API_KEY=...
+ELEVENLABS_VOICE_ID=...
 
 # Enrichissement B2B
 PAPPERS_API_KEY=...
