@@ -10,6 +10,9 @@ export const db = getFirestore()
 // ============================================
 export { scanWebsite } from './scanner/analyzeWebsite.js'
 
+// Scanner 20 Boosters — Prospect digital audit
+export { runProspectScan, monitorCTLogs, monitorFranceTravail, monitorSubventions, runSeasonalityCheck, pixelTracker } from './scanner/index.js'
+
 // ============================================
 // Forgeur Functions
 // ============================================
@@ -438,6 +441,33 @@ export { consolidateAlexMemory, forceConsolidateNiche, onInteractionCreated, get
 // Product Profile — Alex Universel (multi-tenant product config)
 // ============================================
 export { updateProductProfile, getProductProfileCallable } from './agent/productProfileEngine.js'
+
+// ============================================
+// Social Omniscient v2 — Veille multi-sources (50 sources)
+// ============================================
+export {
+  scheduleSocialScans,
+  scanSingleOrg,
+} from './social/socialOrchestratorV2.js'
+
+export {
+  metaOAuthStart,
+  metaOAuthCallback,
+  linkedinOAuthStart,
+  linkedinOAuthCallback,
+} from './social/oauthHandlers.js'
+
+export {
+  processSocialLead,
+  socialManualAction,
+  configureSocialSources,
+  getSocialStats,
+} from './social/socialSignalProcessor.js'
+
+export {
+  listConnectedPlatforms,
+  disconnectSocialPlatform,
+} from './social/sessionManager.js'
 
 // ============================================
 // Dev functions (only available in development/emulator)
