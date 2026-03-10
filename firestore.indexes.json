@@ -247,6 +247,30 @@
         { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "visitedAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "alexConversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "prospects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "foundByAlex", "order": "ASCENDING" },
+        { "fieldPath": "finalScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "prospects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "contactedAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

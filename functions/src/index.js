@@ -266,6 +266,12 @@ export { transferLeadToClient } from './alex/transferLeadToClient.js'
 export { dailyReset } from './alex/dailyReset.js'
 export { sendManualMessage } from './alex/sendMessage.js'
 
+// Alex Associe Commercial — Chat IA + Actions + Rapports + Alertes
+export { chatWithAlex } from './alex/alexBrain.js'
+export { alexDailyReporter } from './alex/alexDailyReport.js'
+export { alertHotLead } from './alex/alexHotLeadAlert.js'
+export { alexAutonomousWorker } from './alex/alexAutonomousWorker.js'
+
 // ============================================
 // Notification System (v6.0)
 // ============================================
