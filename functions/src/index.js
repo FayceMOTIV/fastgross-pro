@@ -485,6 +485,10 @@ export {
   disconnectSocialPlatform,
 } from './social/sessionManager.js'
 
+// Social Scanner — VPS trigger + lead receiver
+export { triggerSocialScan } from './social/triggerSocialScan.js'
+export { receiveSocialLeads } from './social/receiveSocialLeads.js'
+
 // ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
