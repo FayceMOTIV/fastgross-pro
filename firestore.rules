@@ -965,5 +965,71 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if false; // Only Cloud Functions
     }
+
+    // ============================================
+    // SCANNER — Scan results & signals (Cloud Functions only)
+    // ============================================
+    match /scanResults/{resultId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /scanSignals/{signalId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /scanCache/{cacheId} {
+      allow read, write: if false;
+    }
+
+    match /tenantQuotas/{orgId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /scanNotifications/{notifId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /rateLimits/{limitId} {
+      allow read, write: if false;
+    }
+
+    match /scanErrors/{errorId} {
+      allow read, write: if false;
+    }
+
+    match /scanReports/{reportId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
+    match /counters/{counterId} {
+      allow read, write: if false;
+      match /shards/{shardId} {
+        allow read, write: if false;
+      }
+    }
+
+    // ============================================
+    // SOCIAL OMNISCIENT v2 — Signals & Leads
+    // ============================================
+    match /socialSignals/{signalId} {
+      allow read: if isAuthenticated()
+        && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+      allow write: if false; // Cloud Functions uniquement
+    }
+
+    match /socialLeads/{leadId} {
+      allow read: if isAuthenticated()
+        && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+      allow update: if isAuthenticated()
+        && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId
+        && request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['status', 'updatedAt', 'sequence']);
+      allow create, delete: if false;
+    }
   }
 }

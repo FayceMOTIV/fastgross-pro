@@ -10,8 +10,11 @@ export const db = getFirestore()
 // ============================================
 export { scanWebsite } from './scanner/analyzeWebsite.js'
 
-// Scanner 20 Boosters — Prospect digital audit
-export { runProspectScan, monitorCTLogs, monitorFranceTravail, monitorSubventions, runSeasonalityCheck, pixelTracker } from './scanner/index.js'
+// Scanner — Prospect digital audit + scalability
+export { runProspectScan, monitorCTLogs, monitorFranceTravail, monitorSubventions, runSeasonalityCheck, pixelTracker, enqueueScan, processScanTask, resetMonthlyQuotas, resetDailyQuotas, dailyScanReport } from './scanner/index.js'
+
+// Niche Config — Universal sector targeting
+export { updateNicheConfig, getNicheConfig } from './alex/engine/nicheConfig.js'
 
 // ============================================
 // Forgeur Functions

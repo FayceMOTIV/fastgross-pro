@@ -1,5 +1,5 @@
 /**
- * Scanner 20 Boosters — Barrel export de toutes les Cloud Functions
+ * Scanner — Barrel export de toutes les Cloud Functions
  */
 
 // Core: Scan orchestrator (onCall)
@@ -13,3 +13,12 @@ export { checkWeatherSeasonality as runSeasonalityCheck } from './sources/weathe
 
 // HTTP function
 export { pixelTracker } from './pixelVisitorTracker.js';
+
+// Scalability: Cloud Tasks queue + worker
+export { enqueueScan, processScanTask } from './queue/scanTaskQueue.js';
+
+// Scalability: Tenant quotas
+export { resetMonthlyQuotas, resetDailyQuotas } from './queue/tenantQuotas.js';
+
+// Monitoring: Daily scan report
+export { dailyScanReport } from './monitoring/scanMonitor.js';

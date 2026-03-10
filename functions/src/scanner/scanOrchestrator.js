@@ -19,6 +19,13 @@ import { generateDiagnosticSummary as generateDiagnostic } from './prospectDiagn
 
 const getDb = () => getFirestore();
 
+/**
+ * Internal scan logic — callable from Cloud Tasks worker
+ */
+export async function runScanInternal({ prospectId, domain, organizationId, businessName, location, siren }) {
+  return await executeScan({ prospectId, domain, organizationId, businessName, location, siren });
+}
+
 export const runProspectScan = onCall(
   {
     region: 'europe-west1',
@@ -30,6 +37,14 @@ export const runProspectScan = onCall(
     if (!domain || !organizationId) {
       throw new HttpsError('invalid-argument', 'domain et organizationId requis');
     }
+    return await executeScan({ prospectId, domain, organizationId, businessName, location, siren });
+  }
+);
+
+async function executeScan({ prospectId, domain, organizationId, businessName, location, siren }) {
+  if (!domain || !organizationId) {
+    throw new Error('domain et organizationId requis');
+  }
 
     console.log(`[Scan] Lancement scan complet pour ${domain}`);
 
@@ -139,8 +154,7 @@ export const runProspectScan = onCall(
 
     console.log(`[Scan] Termine ${domain}: ${signals.length} signaux, score ${totalSignalScore}, priorite ${priority}`);
     return { scanResultId: docRef.id, totalSignalScore, priority, signalsCount: signals.length };
-  }
-);
+}
 
 // Local signal extractors for sources not in scanResultsAggregator
 function extractGBPSignals(g) {
