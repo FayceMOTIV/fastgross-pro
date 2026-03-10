@@ -249,13 +249,6 @@
       ]
     },
     {
-      "collectionGroup": "alexConversations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "timestamp", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "prospects",
       "queryScope": "COLLECTION",
       "fields": [
