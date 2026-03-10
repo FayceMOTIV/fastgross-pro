@@ -272,6 +272,10 @@ export { alexDailyReporter } from './alex/alexDailyReport.js'
 export { alertHotLead } from './alex/alexHotLeadAlert.js'
 export { alexAutonomousWorker } from './alex/alexAutonomousWorker.js'
 
+// Alex WhatsApp Interface
+export { alexWhatsAppIncoming } from './alex/alexWhatsAppHandler.js'
+export { sendWhatsAppVerification, verifyWhatsAppCode, unlinkWhatsApp } from './alex/alexWhatsAppLink.js'
+
 // ============================================
 // Notification System (v6.0)
 // ============================================

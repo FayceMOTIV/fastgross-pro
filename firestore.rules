@@ -1016,6 +1016,22 @@ service cloud.firestore {
     // ============================================
     // SOCIAL OMNISCIENT v2 — Signals & Leads
     // ============================================
+    // ============================================
+    // WHATSAPP USER MAPPINGS - Alex WhatsApp link
+    // ============================================
+    match /whatsappUserMappings/{phone} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // ============================================
+    // WHATSAPP VERIFICATIONS - Code verification
+    // ============================================
+    match /whatsappVerifications/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if false; // Only Cloud Functions
+    }
+
     match /socialSignals/{signalId} {
       allow read: if isAuthenticated()
         && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
