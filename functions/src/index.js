@@ -16,6 +16,9 @@ export { runProspectScan, monitorCTLogs, monitorFranceTravail, monitorSubvention
 // Niche Config — Universal sector targeting
 export { updateNicheConfig, getNicheConfig } from './alex/engine/nicheConfig.js'
 
+// Reacteur Nucleaire — Intelligent prospect search engine
+export { learnFromProspectOutcome } from './alex/engine/learningTrigger.js'
+
 // ============================================
 // Forgeur Functions
 // ============================================
