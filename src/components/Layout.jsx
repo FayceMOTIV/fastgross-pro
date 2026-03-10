@@ -47,6 +47,7 @@ const navItems = [
   { to: '/app/outreach', icon: Send, label: 'Outreach' },
   { to: '/app/inbox', icon: MessageSquare, label: 'Inbox' },
   { to: '/app/intent-hunter', icon: Crosshair, label: 'Intent Hunter' },
+  { to: '/app/social-omniscient', icon: Rocket, label: 'Social Omniscient' },
   { to: '/app/roi', icon: Gauge, label: 'ROI' },
   { to: '/app/performance', icon: BarChart3, label: 'Performance' },
 ]

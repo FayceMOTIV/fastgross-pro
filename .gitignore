@@ -8,3 +8,4 @@ functions/.env
 functions/python_modules
 *.log
 .DS_Store
+.env.secrets.local

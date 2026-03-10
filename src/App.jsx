@@ -52,6 +52,9 @@ const UnsubscribePage = lazy(() => import('@/pages/UnsubscribePage'))
 const ROIDashboard = lazy(() => import('@/pages/ROIDashboard'))
 const ResellerDashboard = lazy(() => import('@/pages/ResellerDashboard'))
 
+// V5 Social Omniscient
+const SocialOmniscient = lazy(() => import('@/pages/SocialOmniscient'))
+
 // CRM pages
 const CRMList = lazy(() => import('@/pages/CRMList'))
 const CRMLeadDetail = lazy(() => import('@/pages/CRMLeadDetail'))
@@ -318,6 +321,9 @@ export default function App() {
                           {/* V4 — ROI + Reseller */}
                           <Route path="roi" element={<ROIDashboard />} />
                           <Route path="reseller" element={<ResellerDashboard />} />
+
+                          {/* V5 — Social Omniscient */}
+                          <Route path="social-omniscient" element={<SocialOmniscient />} />
 
                           {/* Intent Hunter */}
                           <Route path="intent-hunter" element={<IntentHunterHome />} />
