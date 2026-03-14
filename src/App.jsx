@@ -59,6 +59,9 @@ const SocialOmniscient = lazy(() => import('@/pages/SocialOmniscient'))
 // Alex V4 War Dashboard
 const WarDashboard = lazy(() => import('@/pages/WarDashboard'))
 
+// Alex V4 Prospect Hub (Kanban complet)
+const ProspectHub = lazy(() => import('@/pages/ProspectHub'))
+
 // CRM pages
 const CRMList = lazy(() => import('@/pages/CRMList'))
 const CRMLeadDetail = lazy(() => import('@/pages/CRMLeadDetail'))
@@ -325,6 +328,9 @@ export default function App() {
 
                           {/* Alex V4 — Dashboard de Guerre */}
                           <Route path="war-dashboard" element={<WarDashboard />} />
+
+                          {/* Alex V4 — Prospect Hub (Kanban complet) */}
+                          <Route path="prospect-hub" element={<ProspectHub />} />
 
                           {/* Intent Hunter */}
                           <Route path="intent-hunter" element={<IntentHunterHome />} />

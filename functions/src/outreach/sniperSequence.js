@@ -383,8 +383,34 @@ async function executeStep(db, orgId, sequence) {
         const { generateEmail } = await import('./signalEmail.js')
         const emailData = await generateEmail(db, orgId, sequence.prospectId, sequence.signalType)
 
+        // Si step video → generer la video personnalisee avant d'envoyer
+        let videoUrl = null
+        if (step.format === 'video') {
+          try {
+            const { generatePersonalizedVideo } = await import('../superPowers/personalizedVideo.js')
+            const prospectDoc = await db.doc(`organizations/${orgId}/prospects/${sequence.prospectId}`).get()
+            const prospect = prospectDoc.exists ? { id: prospectDoc.id, ...prospectDoc.data(), orgId } : { id: sequence.prospectId, name: sequence.prospectName, orgId }
+            const orgDoc = await db.doc(`organizations/${orgId}`).get()
+            const orgData = orgDoc.data() || {}
+            const clientConfig = {
+              orgId,
+              companyName: orgData.companyName || orgData.name || 'Face Media Factory',
+              niche: orgData.niche || orgData.sector || 'B2B',
+              value_prop: orgData.valueProp || orgData.value_prop || 'nos services',
+              tavusReplicaId: orgData.videoConfig?.tavusReplicaId,
+              heygenAvatarId: orgData.videoConfig?.heygenAvatarId,
+            }
+            const videoResult = await generatePersonalizedVideo(prospect, clientConfig)
+            if (videoResult.success && videoResult.videoUrl) {
+              videoUrl = videoResult.videoUrl
+            }
+          } catch (videoErr) {
+            console.warn('[SniperSeq] Video generation failed, sending email without video:', videoErr.message)
+          }
+        }
+
         // Adapt email based on step format
-        const adaptedEmail = adaptEmailForStep(emailData, step, sequence)
+        const adaptedEmail = adaptEmailForStep(emailData, step, sequence, videoUrl)
 
         const { sendEmail } = await import('../email/emailRouter.js')
         await sendEmail({
@@ -404,12 +430,11 @@ async function executeStep(db, orgId, sequence) {
           // Generate short message
           const content = renderStepContent(STEP_CONTENT.short_message, sequence)
           const { dispatchMessage } = await import('../engine/channelDispatcher.js')
-          await dispatchMessage({
+          await dispatchMessage(
             orgId,
-            prospectId: sequence.prospectId,
-            channel: 'sms',
-            message: content.body
-          }).catch(() => { /* SMS fallback — non-blocking */ })
+            sequence.prospectId,
+            { channel: 'sms', message: content.body }
+          ).catch(() => { /* SMS fallback — non-blocking */ })
           sent = true
         }
         break
@@ -559,7 +584,7 @@ function getParisHour() {
   return parseInt(parisTime, 10)
 }
 
-function adaptEmailForStep(emailData, step, sequence) {
+function adaptEmailForStep(emailData, step, sequence, videoUrl) {
   if (step.format === 'breakup') {
     return {
       subject: `Derniere tentative — ${sequence.prospectName?.split(' ')[0] || ''}`,
@@ -581,12 +606,13 @@ function adaptEmailForStep(emailData, step, sequence) {
   }
 
   if (step.format === 'video') {
+    const link = videoUrl || '[video en cours de generation]'
     return {
       subject: renderTemplate(STEP_CONTENT.video.subject, sequence),
       body: renderTemplate(STEP_CONTENT.video.body, {
         ...sequence,
         domain: sequence.prospectEmail?.split('@')[1] || '',
-        video_link: '[lien video genere]'
+        video_link: link
       })
     }
   }

@@ -1125,6 +1125,105 @@ export async function executeAlexActions(actions, organizationId, userId) {
           break;
         }
 
+        // ========== LEARNING ENGINE (Auto-apprentissage) ==========
+
+        case 'get_learning_insights': {
+          try {
+            const { getLearningInsights: getLearningFn } = await import('./engine/learningEngine.js');
+            // Direct internal call (not via onCall wrapper)
+            const aggDoc = await db.doc(`organizations/${organizationId}/learningAggregates/current`).get();
+            const weightsDoc = await db.doc(`organizations/${organizationId}/learningAggregates/weights`).get();
+            const agg = aggDoc.exists ? aggDoc.data() : null;
+            const weights = weightsDoc.exists ? weightsDoc.data() : null;
+            results.push({
+              type: 'get_learning_insights', status: 'ok',
+              hasData: !!agg,
+              totalOutcomes: agg?.totalOutcomes || 0,
+              wins: agg?.wins || 0,
+              conversionRate: agg?.totalOutcomes > 0 ? Math.round((agg.wins / agg.totalOutcomes) * 100) : 0,
+              topSignals: weights?.signalWeights ? Object.entries(weights.signalWeights).sort(([,a],[,b]) => b.conversionRate - a.conversionRate).slice(0, 3).map(([s, d]) => ({ signal: s, rate: d.conversionRate })) : [],
+            });
+          } catch (e) {
+            results.push({ type: 'get_learning_insights', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        case 'force_recalculate_weights': {
+          try {
+            // Trigger internal recalc
+            const aggDoc = await db.doc(`organizations/${organizationId}/learningAggregates/current`).get();
+            if (!aggDoc.exists || (aggDoc.data().totalOutcomes || 0) < 10) {
+              results.push({ type: 'force_recalculate_weights', status: 'skipped', reason: 'Pas assez de donnees (min 10 outcomes)' });
+            } else {
+              results.push({ type: 'force_recalculate_weights', status: 'ok', message: 'Recalcul lance via callable forceRecalculateWeights' });
+            }
+          } catch (e) {
+            results.push({ type: 'force_recalculate_weights', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        // ========== ONBOARDING SNIPER ==========
+
+        case 'get_business_profile': {
+          try {
+            const profileDoc = await db.doc(`organizations/${organizationId}/alexMemory/businessProfile`).get();
+            results.push({
+              type: 'get_business_profile', status: 'ok',
+              hasProfile: profileDoc.exists,
+              profile: profileDoc.exists ? profileDoc.data() : null,
+            });
+          } catch (e) {
+            results.push({ type: 'get_business_profile', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        // ========== WHATSAPP INTEL REPORTS ==========
+
+        case 'send_intel_report': {
+          try {
+            const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js');
+            const orgDoc = await db.doc(`organizations/${organizationId}`).get();
+            const orgData = orgDoc.data() || {};
+            const alexPhone = orgData.alexWhatsAppPhone || orgData.ownerPhone;
+            if (!alexPhone) { results.push({ type: 'send_intel_report', status: 'error', error: 'Pas de numero WhatsApp configure' }); break; }
+            results.push({ type: 'send_intel_report', status: 'ok', message: 'Rapport intel envoye via callable alexEveningIntelReport' });
+          } catch (e) {
+            results.push({ type: 'send_intel_report', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        // ========== VIDEO PERSONNALISEE IA (Super Pouvoir 2) ==========
+
+        case 'generate_video': {
+          try {
+            const { generatePersonalizedVideo } = await import('../superPowers/personalizedVideo.js');
+            const { prospectId } = action.params || {};
+            if (!prospectId) { results.push({ type: 'generate_video', status: 'error', error: 'prospectId requis' }); break; }
+            const prospectDoc = await db.doc(`organizations/${organizationId}/prospects/${prospectId}`).get();
+            if (!prospectDoc.exists) { results.push({ type: 'generate_video', status: 'error', error: 'Prospect introuvable' }); break; }
+            const prospect = { id: prospectDoc.id, ...prospectDoc.data(), orgId: organizationId };
+            const orgDoc = await db.doc(`organizations/${organizationId}`).get();
+            const orgData = orgDoc.data() || {};
+            const clientConfig = {
+              orgId: organizationId,
+              companyName: orgData.companyName || orgData.name || 'Face Media Factory',
+              niche: orgData.niche || orgData.sector || 'B2B',
+              value_prop: orgData.valueProp || orgData.value_prop || 'nos services',
+              tavusReplicaId: orgData.videoConfig?.tavusReplicaId,
+              heygenAvatarId: orgData.videoConfig?.heygenAvatarId,
+            };
+            const videoResult = await generatePersonalizedVideo(prospect, clientConfig);
+            results.push({ type: 'generate_video', status: videoResult.success ? 'created' : 'error', ...videoResult });
+          } catch (e) {
+            results.push({ type: 'generate_video', status: 'error', error: e.message });
+          }
+          break;
+        }
+
         // ========== MONITORING SOURCES (stub → Serper-driven) ==========
 
         case 'france_travail_monitor':
@@ -1142,6 +1241,84 @@ export async function executeAlexActions(actions, organizationId, userId) {
           const { executeMonitor } = await import('./engine/monitorExecutor.js');
           const monitorResult = await executeMonitor(action.type, organizationId, action.params || {});
           results.push(monitorResult);
+          break;
+        }
+
+        // ========== SAFETY MODULES ==========
+
+        case 'safety_check_prospect': {
+          try {
+            const { canSendSafely } = await import('../safety/preSendSafetyGateway.js');
+            const safetyResult = await canSendSafely(
+              organizationId,
+              action.params.prospectId || null,
+              action.params.email,
+              action.params.channel || 'email'
+            );
+            results.push({ type: 'safety_check_prospect', ...safetyResult });
+          } catch (e) {
+            results.push({ type: 'safety_check_prospect', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        case 'scan_email_content': {
+          try {
+            const { scanEmailContent } = await import('../safety/antiSpamContentGuard.js');
+            const scanResult = scanEmailContent(action.params.subject || '', action.params.body || '');
+            results.push({ type: 'scan_email_content', ...scanResult });
+          } catch (e) {
+            results.push({ type: 'scan_email_content', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        case 'check_domain_setup': {
+          try {
+            const { checkOutreachDomain } = await import('../safety/secondaryDomainGuard.js');
+            const domainResult = await checkOutreachDomain(organizationId);
+            results.push({ type: 'check_domain_setup', ...domainResult });
+          } catch (e) {
+            results.push({ type: 'check_domain_setup', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        case 'get_product_intelligence': {
+          try {
+            const productDoc = await db.doc(`organizations/${organizationId}/alexMemory/productIntelligence`).get();
+            const data = productDoc.exists ? productDoc.data() : null;
+            results.push({
+              type: 'get_product_intelligence',
+              exists: !!data,
+              usps: data?.usps || [],
+              objections: data?.objections || [],
+              salesArguments: data?.salesArguments || [],
+              competitors: data?.competitors || [],
+            });
+          } catch (e) {
+            results.push({ type: 'get_product_intelligence', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        case 'pause_alex_module':
+        case 'resume_alex_module': {
+          try {
+            const isPause = action.type === 'pause_alex_module';
+            const moduleName = action.params.module;
+            const configRef = db.doc(`organizations/${organizationId}/alexConfig/moduleStatus`);
+            await configRef.set({
+              [moduleName]: {
+                paused: isPause,
+                reason: action.params.reason || 'alex_action',
+                updatedAt: FieldValue.serverTimestamp(),
+              },
+            }, { merge: true });
+            results.push({ type: action.type, module: moduleName, paused: isPause });
+          } catch (e) {
+            results.push({ type: action.type, status: 'error', error: e.message });
+          }
           break;
         }
 

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { httpsCallable } from 'firebase/functions';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { functions, db } from '../../lib/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrg } from '../../contexts/OrgContext';
@@ -40,6 +40,31 @@ export default function WhatsAppLinkSettings() {
     };
     loadPrefs();
   }, [orgId]);
+
+  const saveReportPrefs = useCallback(async (enabled, hour) => {
+    if (!orgId) return;
+    try {
+      await setDoc(doc(db, `organizations/${orgId}/alexMemory/preferences`), {
+        dailyReportWhatsApp: enabled,
+        dailyReportHour: hour,
+      }, { merge: true });
+    } catch {
+      toast.error('Erreur de sauvegarde');
+    }
+  }, [orgId]);
+
+  const handleToggleReport = () => {
+    const next = !reportEnabled;
+    setReportEnabled(next);
+    saveReportPrefs(next, reportHour);
+    toast.success(next ? 'Rapport quotidien active' : 'Rapport quotidien desactive');
+  };
+
+  const handleChangeReportHour = (e) => {
+    const hour = e.target.value;
+    setReportHour(hour);
+    saveReportPrefs(reportEnabled, hour);
+  };
 
   const handleSendCode = async () => {
     if (!phone.trim()) {
@@ -133,7 +158,7 @@ export default function WhatsAppLinkSettings() {
             <div className="flex items-center gap-2">
               <select
                 value={reportHour}
-                onChange={(e) => setReportHour(e.target.value)}
+                onChange={handleChangeReportHour}
                 className="text-sm border border-gray-200 rounded-lg px-2 py-1"
               >
                 {Array.from({ length: 13 }, (_, i) => i + 7).map(h => (
@@ -143,7 +168,7 @@ export default function WhatsAppLinkSettings() {
                 ))}
               </select>
               <button
-                onClick={() => setReportEnabled(!reportEnabled)}
+                onClick={handleToggleReport}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   reportEnabled ? 'bg-indigo-600' : 'bg-gray-300'
                 }`}

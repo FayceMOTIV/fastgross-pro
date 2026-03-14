@@ -268,6 +268,9 @@ export { enrollInSocialWarming, getSocialWarmingStatus, cancelSocialWarming, soc
 // --- Timing Predictif (Alex V4 Super Pouvoir 10) ---
 export { predictOptimalTiming, recordTimingFeedback, getTimingAnalytics } from './outreach/timingPredictor.js'
 
+// --- Video Personnalisee IA (Alex V4 Super Pouvoir 2) ---
+export { generatePersonalizedVideoFn, getVideoStatusFn } from './superPowers/personalizedVideoFunction.js'
+
 // --- Wikidata Entity Creator (Alex V4 Module 6 SHIELD) ---
 export { checkWikidataEntity, generateWikidataEntity, getWikidataStats } from './shield/wikidataEntityCreator.js'
 
@@ -339,6 +342,21 @@ export { alexAutonomousWorker } from './alex/alexAutonomousWorker.js'
 // Alex WhatsApp Interface
 export { alexWhatsAppIncoming } from './alex/alexWhatsAppHandler.js'
 export { sendWhatsAppVerification, verifyWhatsAppCode, unlinkWhatsApp } from './alex/alexWhatsAppLink.js'
+
+// Alex Autopilot Engine — Cerveau autonome
+export { alexDailyPipeline, alexSmartEscalation } from './alex/alexAutopilotEngine.js'
+export { alexResponseWatcher } from './alex/alexResponseWatcher.js'
+export { alexWeeklyShield } from './alex/alexShieldWorker.js'
+export { alexEveningReport } from './alex/alexEveningReport.js'
+
+// Alex Learning Engine — Auto-apprentissage depuis outcomes
+export { onProspectOutcome, weeklyLearningRecalc, getLearningInsights, forceRecalculateWeights } from './alex/engine/learningEngine.js'
+
+// Alex Onboarding Sniper — 8 questions intelligentes
+export { startOnboardingSniper, answerOnboardingQuestion, getOnboardingStatus, getBusinessProfile } from './alex/onboardingSniper.js'
+
+// Alex WhatsApp Intelligence Reports — Rapport 20h + alertes temps reel
+export { alexEveningIntelReport, onProspectReplyAlert, sendAlexConfirmation, getIntelReports } from './alex/whatsappIntelReports.js'
 
 // ============================================
 // Notification System (v6.0)
@@ -552,6 +570,34 @@ export {
 // Social Scanner — VPS trigger + lead receiver
 export { triggerSocialScan } from './social/triggerSocialScan.js'
 export { receiveSocialLeads } from './social/receiveSocialLeads.js'
+
+// ============================================
+// Safety — Pre-Send Gateway + Anti-Spam + Sunset + Inactivity + Domain + Kill Switch + Dedup
+// ============================================
+
+// --- Pre-Send Safety Gateway (Module A) ---
+export { preSendSafetyCheck } from './safety/preSendSafetyGateway.js'
+
+// --- Anti-Spam Content Guard (Module B) ---
+export { scanEmailContentFn } from './safety/antiSpamContentGuard.js'
+
+// --- Sunset Policy Engine (Module C) ---
+export { weeklySunsetCleanup, manualSunsetProspect, getSunsetStats } from './safety/sunsetPolicyEngine.js'
+
+// --- User Inactivity Handler (Module D) ---
+export { userInactivityCheck, getUserActivityStatus } from './safety/userInactivityHandler.js'
+
+// --- Product Intelligence (Module E) ---
+export { monthlyProductRefresh, refreshProductIntelligence, getProductIntelligence } from './alex/productIntelligence.js'
+
+// --- Secondary Domain Guard (Module F) ---
+export { checkOutreachDomainSetup, validateSecondaryDomain } from './safety/secondaryDomainGuard.js'
+
+// --- Kill Switch Manager (Module H) ---
+export { pauseAlexModule, resumeAlexModule, getAlexModuleStatus } from './safety/killSwitchManager.js'
+
+// --- Enhanced Dedup (Module I) ---
+export { deduplicateOrg } from './safety/enhancedDedup.js'
 
 // ============================================
 // Dev functions (only available in development/emulator)
