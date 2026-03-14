@@ -10,6 +10,7 @@
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -137,6 +138,8 @@ export const manualSunsetProspect = onCall({
     throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
   }
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   const db = getDb()
   const prospectRef = db.doc(`organizations/${orgId}/prospects/${prospectId}`)
   const prospectDoc = await prospectRef.get()
@@ -184,6 +187,8 @@ export const getSunsetStats = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
 

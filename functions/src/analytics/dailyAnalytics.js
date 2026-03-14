@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -49,6 +50,8 @@ export const updateDailyAnalytics = onCall({
   if (!orgId || !event) {
     throw new HttpsError('invalid-argument', 'orgId and event are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   try {
     // Base counters

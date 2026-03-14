@@ -14,6 +14,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { identifyDecisionMakers } from './abmEngine.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -66,6 +67,8 @@ export const identifyAndContactDecisionMakers = onCall(
     if (!orgId) {
       throw new HttpsError('failed-precondition', 'Organisation non configuree')
     }
+
+    await verifyOrgMembership(uid, orgId)
 
     // Recuperer le lead
     const leadRef = getDb().doc(`organizations/${orgId}/${collectionName}/${leadId}`)
@@ -235,6 +238,8 @@ export const launchABMCampaign = onCall(
     if (!orgId) {
       throw new HttpsError('failed-precondition', 'Organisation non configuree')
     }
+
+    await verifyOrgMembership(uid, orgId)
 
     // Trouver le lead — chercher dans prospects par defaut
     // On accepte n'importe quelle collection via le champ abm

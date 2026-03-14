@@ -8,6 +8,7 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import nodemailer from 'nodemailer'
 import { google } from 'googleapis'
 import * as crypto from 'crypto'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -262,18 +263,9 @@ export const sendProspectEmail = onCall(
       throw new HttpsError('invalid-argument', 'Donnees manquantes')
     }
 
-    try {
-      // Verifier que l'utilisateur appartient a l'org
-      const memberDoc = await db
-        .collection('organizations')
-        .doc(orgId)
-        .collection('members')
-        .doc(request.auth.uid)
-        .get()
+    await verifyOrgMembership(request.auth.uid, orgId)
 
-      if (!memberDoc.exists) {
-        throw new HttpsError('permission-denied', 'Vous n\'appartenez pas a cette organisation')
-      }
+    try {
 
       // Recuperer le compte email
       const accountDoc = await db

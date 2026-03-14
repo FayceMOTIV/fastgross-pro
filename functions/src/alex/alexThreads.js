@@ -4,6 +4,7 @@
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 
@@ -16,6 +17,8 @@ export const createAlexThread = onCall(
     const { organizationId, title } = request.data || {};
     const uid = request.auth?.uid;
     if (!uid || !organizationId) throw new HttpsError('unauthenticated', 'Auth requis');
+
+    await verifyOrgMembership(uid, organizationId);
 
     const db = getDb();
     const threadRef = db.collection(`organizations/${organizationId}/alexThreads`).doc();
@@ -56,6 +59,8 @@ export const listAlexThreads = onCall(
     const uid = request.auth?.uid;
     if (!uid || !organizationId) throw new HttpsError('unauthenticated', 'Auth requis');
 
+    await verifyOrgMembership(uid, organizationId);
+
     const db = getDb();
     const snap = await db.collection(`organizations/${organizationId}/alexThreads`)
       .where('archived', '==', false)
@@ -84,6 +89,8 @@ export const deleteAlexThread = onCall(
     const uid = request.auth?.uid;
     if (!uid || !organizationId || !threadId) throw new HttpsError('invalid-argument', 'organizationId et threadId requis');
 
+    await verifyOrgMembership(uid, organizationId);
+
     const db = getDb();
     await db.doc(`organizations/${organizationId}/alexThreads/${threadId}`).update({
       archived: true,
@@ -106,6 +113,8 @@ export const renameAlexThread = onCall(
     if (!uid || !organizationId || !threadId) throw new HttpsError('invalid-argument', 'organizationId, threadId et title requis');
     if (!title || typeof title !== 'string') throw new HttpsError('invalid-argument', 'title invalide');
 
+    await verifyOrgMembership(uid, organizationId);
+
     const db = getDb();
     await db.doc(`organizations/${organizationId}/alexThreads/${threadId}`).update({
       title: title.substring(0, 100),
@@ -125,6 +134,8 @@ export const migrateAlexConversations = onCall(
     const { organizationId } = request.data || {};
     const uid = request.auth?.uid;
     if (!uid || !organizationId) throw new HttpsError('unauthenticated', 'Auth requis');
+
+    await verifyOrgMembership(uid, organizationId);
 
     const db = getDb();
 

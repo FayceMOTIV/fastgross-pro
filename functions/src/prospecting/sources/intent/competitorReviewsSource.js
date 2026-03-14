@@ -36,20 +36,14 @@ function generateMockLeads(count = 20) {
 // ─── SERPER SEARCH ──────────────────────────────────────────────────────────
 
 const searchSerper = withRateLimit(async (query) => {
-  const response = await fetch('https://google.serper.dev/search', {
-    method: 'POST',
-    headers: {
-      'X-API-KEY': process.env.SERPER_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 20 }),
-  })
+  const { cachedSerperFetch } = await import('../../../utils/serperCache.js')
+  const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 20 })
 
-  if (!response.ok) {
-    throw new Error(`Serper API ${response.status}`)
+  if (data.error) {
+    throw new Error(data.error)
   }
 
-  return response.json()
+  return data
 }, 2000)
 
 // ─── AI INTENT ANALYSIS (optional) ──────────────────────────────────────────

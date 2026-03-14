@@ -14,6 +14,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { sendEmail as sendEmailViaRouter } from '../email/emailRouter.js'
 import { searchProspects as searchCSE } from '../scraping/googleCSE.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -174,6 +175,8 @@ export const generateAutoPilotPreview = onCall(
     if (!orgId || !companyProfile || !clientAvatar) {
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 
@@ -337,20 +340,10 @@ export const launchAutoPilot = onCall(
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     try {
       const db = getDb()
-
-      // Verify user belongs to org
-      const memberDoc = await db
-        .collection('organizations')
-        .doc(orgId)
-        .collection('members')
-        .doc(request.auth.uid)
-        .get()
-
-      if (!memberDoc.exists) {
-        throw new HttpsError('permission-denied', 'Not a member of this organization')
-      }
 
       // Build keywords from avatar
       const keywords = []
@@ -484,6 +477,8 @@ export const sendAutoPilotMessage = onCall(
     if (!orgId || !prospectId || !message) {
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 
@@ -631,6 +626,8 @@ export const scheduleMeetingWithProspect = onCall(
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     try {
       const db = getDb()
 
@@ -742,6 +739,8 @@ export const getAutoPilotDashboardStats = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'Missing orgId')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     try {
       const db = getDb()
@@ -865,6 +864,8 @@ export const toggleAutoPilot = onCall(
     if (!orgId || typeof enabled !== 'boolean') {
       throw new HttpsError('invalid-argument', 'Missing required data')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     try {
       const db = getDb()

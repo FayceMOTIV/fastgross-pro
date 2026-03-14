@@ -14,6 +14,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -136,6 +137,8 @@ export const runDryRun = onCall(
     if (!orgId || !campaignId) {
       throw new HttpsError('invalid-argument', 'orgId et campaignId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 
@@ -279,6 +282,8 @@ export const getDryRunHistory = onCall(
     if (!orgId || !campaignId) {
       throw new HttpsError('invalid-argument', 'orgId et campaignId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 

@@ -8,33 +8,26 @@
 import { logger } from 'firebase-functions/v2'
 
 export async function analyzeSocialPresenceV2(lead) {
-  const serperKey = process.env.SERPER_API_KEY
   const nom = lead?.nom || lead?.denominationUsuelleUniteLegale || lead?.raisonSociale || lead?.company || null
 
-  if (!nom || !serperKey) {
+  if (!nom) {
     return buildEmptySocial('no_data')
   }
 
   try {
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
     const query = `"${nom}" (site:facebook.com OR site:instagram.com OR site:linkedin.com/company)`
 
-    const res = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 10 }),
-      signal: AbortSignal.timeout(7000),
-    })
+    const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 10 }, { timeoutMs: 7000 })
+    if (data.error) return buildEmptySocial('serper_error')
 
-    if (!res.ok) return buildEmptySocial('serper_error')
-
-    const data = await res.json()
     const results = data.organic || []
 
     const facebook  = extractSocialProfile(results, 'facebook.com')
     const instagram = extractSocialProfile(results, 'instagram.com')
     const linkedin  = extractSocialProfile(results, 'linkedin.com/company')
 
-    const pagesJaunes = await checkPagesJaunes(nom, lead?.codePostal, serperKey)
+    const pagesJaunes = await checkPagesJaunes(nom, lead?.codePostal)
 
     let socialScore = 0
     const found = []
@@ -103,20 +96,14 @@ function extractSocialProfile(results, domain) {
   }
 }
 
-async function checkPagesJaunes(nom, codePostal, serperKey) {
+async function checkPagesJaunes(nom, codePostal) {
   try {
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
     const query = `"${nom}" site:pagesjaunes.fr${codePostal ? ' ' + codePostal : ''}`
-    const res = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query, gl: 'fr', num: 3 }),
-      signal: AbortSignal.timeout(4000),
-    })
-    if (!res.ok) return { found: false }
-    const data = await res.json()
+    const data = await cachedSerperFetch('search', { q: query, gl: 'fr', num: 3 }, { timeoutMs: 4000 })
     const match = (data.organic || []).find(r => r.link?.includes('pagesjaunes.fr'))
     return match ? { found: true, url: match.link } : { found: false }
-  } catch (e) {
+  } catch {
     return { found: false }
   }
 }

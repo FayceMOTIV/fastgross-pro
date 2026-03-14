@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -27,6 +28,8 @@ export const getEscalations = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
   let query = db.collection('organizations').doc(orgId).collection('escalations')
@@ -87,6 +90,8 @@ export const handleEscalation = onCall({
   if (!orgId || !escalationId || !action) {
     throw new HttpsError('invalid-argument', 'orgId, escalationId, and action are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const validActions = ['send_as_is', 'send_modified', 'call', 'send_booking', 'close', 'blacklist']
   if (!validActions.includes(action)) {
@@ -183,6 +188,8 @@ export const generateEscalationSummary = onCall({
   if (!orgId || !leadId) {
     throw new HttpsError('invalid-argument', 'orgId and leadId are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
 

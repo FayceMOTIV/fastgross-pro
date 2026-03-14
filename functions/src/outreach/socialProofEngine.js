@@ -15,6 +15,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -110,6 +111,7 @@ export const matchSocialProof = onCall({
 
   const { orgId, prospectId, sector, signalType } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   let prospectSector = sector
@@ -157,6 +159,7 @@ export const addCaseStudy = onCall({
 
   const { orgId, caseStudy } = request.data || {}
   if (!orgId || !caseStudy) throw new HttpsError('invalid-argument', 'orgId et caseStudy requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const ref = await db.collection('organizations').doc(orgId)
@@ -178,6 +181,7 @@ export const getSocialProofStats = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
 

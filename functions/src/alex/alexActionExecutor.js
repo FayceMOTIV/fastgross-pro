@@ -614,9 +614,14 @@ export async function executeAlexActions(actions, organizationId, userId) {
         case 'send_email': {
           try {
             const { sendEmail } = await import('../email/emailRouter.js');
+            let emailHtml = `<p>${action.params.body}</p>`;
+            try {
+              const { appendUnsubscribeFooter } = await import('../compliance/rgpdEngine.js');
+              emailHtml = appendUnsubscribeFooter(emailHtml, action.params.prospectId || action.params.email, 'prospects');
+            } catch {}
             await sendEmail({
               to: action.params.email, subject: action.params.subject,
-              html: `<p>${action.params.body}</p>`, from: 'Alex <alex@facemedia.app>', orgId: organizationId,
+              html: emailHtml, from: 'Alex <alex@facemedia.app>', orgId: organizationId,
             });
             results.push({ type: 'send_email', status: 'sent' });
           } catch (e) {
@@ -980,18 +985,12 @@ export async function executeAlexActions(actions, organizationId, userId) {
         case 'reddit_ghost_search': {
           try {
             // Search Reddit via Serper for ghost agent opportunities
-            const SERPER_API_KEY = process.env.SERPER_API_KEY;
+            const { cachedSerperFetch } = await import('../utils/serperCache.js');
             const keywords = action.params?.keywords || [];
             if (keywords.length === 0) { results.push({ type: 'reddit_ghost_search', status: 'error', error: 'keywords requis' }); break; }
-            if (!SERPER_API_KEY) { results.push({ type: 'reddit_ghost_search', status: 'error', error: 'SERPER_API_KEY non configure' }); break; }
             const posts = [];
             for (const kw of keywords.slice(0, 3)) {
-              const resp = await fetch('https://google.serper.dev/search', {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-KEY': SERPER_API_KEY },
-                body: JSON.stringify({ q: `site:reddit.com ${kw}`, gl: 'fr', hl: 'fr', num: 5 }),
-                signal: AbortSignal.timeout(10000),
-              });
-              const data = await resp.json();
+              const data = await cachedSerperFetch('search', { q: `site:reddit.com ${kw}`, gl: 'fr', hl: 'fr', num: 5 }, { timeoutMs: 10000 });
               for (const item of (data.organic || [])) {
                 if (item.link?.includes('reddit.com')) posts.push({ title: item.title, url: item.link, snippet: item.snippet });
               }
@@ -1184,7 +1183,7 @@ export async function executeAlexActions(actions, organizationId, userId) {
 
         case 'send_intel_report': {
           try {
-            const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js');
+            const { sendWhatsApp: sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js');
             const orgDoc = await db.doc(`organizations/${organizationId}`).get();
             const orgData = orgDoc.data() || {};
             const alexPhone = orgData.alexWhatsAppPhone || orgData.ownerPhone;

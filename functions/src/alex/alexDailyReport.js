@@ -96,11 +96,11 @@ async function generateAndSendReport(organizationId, orgData, reportType) {
   const userPhone = prefs.userWhatsApp || orgData.ownerPhone;
   if (userPhone) {
     try {
-      const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js');
-      await sendWhatsAppMessage({
-        to: userPhone,
-        message: reportMessage,
-        organizationId,
+      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js');
+      await sendWhatsApp(organizationId, null, {
+        type: 'text',
+        text: reportMessage,
+        phone: userPhone,
         isNotification: true,
       });
     } catch (e) {

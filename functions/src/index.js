@@ -257,7 +257,7 @@ export { matchSocialProof, addCaseStudy, getSocialProofStats } from './outreach/
 export { createBooking, generatePreCallBrief, updateBookingOutcome, bookingReminderWorker } from './outreach/bookingEngine.js'
 
 // --- Agent Fantome Reddit (Alex V4 Super Pouvoir 4) ---
-export { findRedditOpportunities, generateRedditDraft, reviewRedditDraft, listRedditDrafts } from './outreach/redditGhostAgent.js'
+export { findRedditOpportunities, generateRedditDraft, reviewRedditDraft, listRedditDrafts, redditDraftCleanup } from './outreach/redditGhostAgent.js'
 
 // --- Micro-Gift Digital (Alex V4 Super Pouvoir 7) ---
 export { generateMicroGift, listMicroGifts, getMicroGiftTypes } from './outreach/microGiftGenerator.js'

@@ -9,6 +9,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import { discoverLeads, countActivePipeline } from '../services/leadFactory.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 const DEFAULT_THRESHOLD = 50
@@ -121,11 +122,17 @@ export const runPipelineRefill = onCall(
     timeoutSeconds: 300,
   },
   async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise')
+    }
+
     const { orgId, forceCount } = request.data || {}
 
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const orgDoc = await db.collection('organizations').doc(orgId).get()
@@ -167,11 +174,17 @@ export const getPipelineStats = onCall(
     region: 'europe-west1',
   },
   async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise')
+    }
+
     const { orgId } = request.data || {}
 
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 
@@ -223,11 +236,17 @@ export const updatePipelineSettings = onCall(
     region: 'europe-west1',
   },
   async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise')
+    }
+
     const { orgId, settings } = request.data || {}
 
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const validFields = ['threshold', 'autoRefill', 'queries', 'locations', 'minRating', 'minReviews']

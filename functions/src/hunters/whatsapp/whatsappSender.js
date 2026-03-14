@@ -23,6 +23,7 @@ import {
   selectBestInstance,
   recordSendEvent,
 } from './whatsappAntiBan.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -318,6 +319,10 @@ export const sendWhatsAppManual = onCall(
       throw new HttpsError('invalid-argument', 'Message or mediaUrl required')
     }
 
+    if (orgId) {
+      await verifyOrgMembership(request.auth.uid, orgId)
+    }
+
     try {
       // Check instance health first
       const health = await checkInstanceHealth(orgId)
@@ -379,6 +384,10 @@ export const getWhatsAppStats = onCall(
 
     const { orgId } = request.data
     const db = getDb()
+
+    if (orgId) {
+      await verifyOrgMembership(request.auth.uid, orgId)
+    }
 
     try {
       // Get prospects stats

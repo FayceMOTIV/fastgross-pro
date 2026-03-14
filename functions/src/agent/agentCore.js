@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 import {
   searchKB,
   getProspectProfile,
@@ -111,6 +112,8 @@ export const agentRespond = onCall({
   if (!orgId || !leadId || !message) {
     throw new HttpsError('invalid-argument', 'orgId, leadId and message are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   try {
     const db = getDb()
@@ -383,6 +386,8 @@ export const getAgentStatus = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
 

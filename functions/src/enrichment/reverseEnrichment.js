@@ -19,8 +19,6 @@ import { getFirestore } from 'firebase-admin/firestore'
 
 const getDb = () => getFirestore()
 
-const SERPER_API_KEY = process.env.SERPER_API_KEY
-
 /**
  * Enrichit un prospect a partir d'un username
  * @param {string} username
@@ -138,7 +136,9 @@ export async function reverseEnrich(username, platform, rawPost) {
  * Cherche un username sur plusieurs plateformes via Serper
  */
 async function searchUsernameCrossPlatform(username) {
-  if (!SERPER_API_KEY || !username) return {}
+  if (!username) return {}
+
+  const { cachedSerperFetch } = await import('../utils/serperCache.js')
 
   const platforms = [
     { name: 'linkedin', query: `site:linkedin.com/in "${username}"` },
@@ -150,24 +150,13 @@ async function searchUsernameCrossPlatform(username) {
 
   for (const p of platforms) {
     try {
-      const response = await fetch('https://google.serper.dev/search', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': SERPER_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ q: p.query, num: 3, gl: 'fr', hl: 'fr' })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        const firstResult = data.organic?.[0]
-        if (firstResult) {
-          results[p.name] = {
-            url: firstResult.link,
-            title: firstResult.title,
-            snippet: firstResult.snippet
-          }
+      const data = await cachedSerperFetch('search', { q: p.query, num: 3, gl: 'fr', hl: 'fr' })
+      const firstResult = data.organic?.[0]
+      if (firstResult) {
+        results[p.name] = {
+          url: firstResult.link,
+          title: firstResult.title,
+          snippet: firstResult.snippet
         }
       }
 

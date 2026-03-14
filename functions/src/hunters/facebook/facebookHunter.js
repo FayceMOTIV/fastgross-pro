@@ -13,6 +13,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../../ai/callAI.js'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -136,6 +137,8 @@ export const runFacebookHunterManual = onCall({
   if (!orgId || !keyword) {
     throw new HttpsError('invalid-argument', 'orgId and keyword are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   console.log(`🎯 Manual Facebook Hunt: org=${orgId}, keyword=${keyword}, location=${location || 'France'}`)
 
@@ -541,6 +544,8 @@ export const getFacebookHunterStats = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
 

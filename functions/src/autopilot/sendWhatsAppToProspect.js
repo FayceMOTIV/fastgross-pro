@@ -6,6 +6,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -52,17 +53,7 @@ export const sendWhatsAppToProspect = onCall(
       throw new HttpsError('invalid-argument', 'prospectId et orgId sont requis')
     }
 
-    // Verify user has access to this org
-    const memberDoc = await db
-      .collection('organizations')
-      .doc(orgId)
-      .collection('members')
-      .doc(request.auth.uid)
-      .get()
-
-    if (!memberDoc.exists) {
-      throw new HttpsError('permission-denied', 'Acces refuse a cette organisation')
-    }
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Get prospect
     const prospectDoc = await db

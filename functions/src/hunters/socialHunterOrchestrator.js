@@ -7,6 +7,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -30,6 +31,8 @@ export const runSocialHuntingCampaign = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
   const campaignConfig = config || {}
@@ -172,6 +175,8 @@ export const getOrchestrationStatus = onCall({
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   const db = getDb()
 
   try {
@@ -263,6 +268,8 @@ export const deduplicateProspects = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
   const result = await deduplicateOrgProspects(db, orgId)

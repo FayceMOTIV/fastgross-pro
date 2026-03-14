@@ -14,6 +14,7 @@ import { logger } from 'firebase-functions/v2'
 import { initiateAlexCall } from './alexVoiceEngine.js'
 import { handleVapiWebhook } from './vapiWebhookHandler.js'
 import { isCallAllowed, getNextLegalWindow } from './callScheduler.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -36,6 +37,8 @@ export const initiateAlexCallFn = onCall(
     if (!leadId || !orgId) {
       throw new HttpsError('invalid-argument', 'leadId et orgId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Load lead data
     const db = getDb()
@@ -119,6 +122,8 @@ export const scheduleVoiceCampaignFn = onCall(
     if (leadIds.length > 50) {
       throw new HttpsError('invalid-argument', 'Maximum 50 leads par campagne vocale')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     logger.info(`[AlexVoice] Campaign scheduled by ${request.auth.uid}: ${leadIds.length} leads`)
 

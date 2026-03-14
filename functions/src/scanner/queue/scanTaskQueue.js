@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { onRequest } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { checkTenantQuota } from './tenantQuotas.js';
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 const PROJECT_ID = 'face-media-factory';
@@ -28,6 +29,8 @@ export const enqueueScan = onCall(
     if (!Array.isArray(prospects) || prospects.length === 0) {
       throw new HttpsError('invalid-argument', 'prospects doit etre un tableau non vide');
     }
+
+    await verifyOrgMembership(uid, organizationId);
 
     const db = getDb();
 

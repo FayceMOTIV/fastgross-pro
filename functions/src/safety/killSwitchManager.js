@@ -9,6 +9,7 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -133,6 +134,8 @@ export const pauseAlexModule = onCall({
   const { orgId, module: moduleName, reason } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   if (moduleName === 'GLOBAL' || moduleName === 'all') {
     return setGlobalPause(orgId, true, reason || 'manual')
   }
@@ -151,6 +154,8 @@ export const resumeAlexModule = onCall({
   const { orgId, module: moduleName } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   if (moduleName === 'GLOBAL' || moduleName === 'all') {
     return setGlobalPause(orgId, false, 'manual_resume')
   }
@@ -168,6 +173,8 @@ export const getAlexModuleStatus = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const configDoc = await db.doc(`organizations/${orgId}/alexConfig/moduleStatus`).get()

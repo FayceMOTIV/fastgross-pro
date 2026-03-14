@@ -21,6 +21,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -88,6 +89,7 @@ export const scoreProspects = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId requis')
   }
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const stats = await batchScoreProspects(db, orgId, prospectIds, applyToAll)

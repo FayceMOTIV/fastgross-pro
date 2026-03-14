@@ -11,6 +11,7 @@ import { buildAlexSystemPrompt } from './alexSystemPrompt.js';
 import { loadConversationHistory } from './alexMemory.js';
 import { executeAlexActions } from './alexActionExecutor.js';
 import { parseMission, activateMission, getMissionPromptSection, updateMissionProgress } from './alexMissionTracker.js';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 const getAnthropic = () => new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -340,6 +341,8 @@ export const chatWithAlex = onCall(
       throw new HttpsError('unauthenticated', `Auth requis. uid=${uid}`);
     }
     if (!message) throw new HttpsError('invalid-argument', 'Message requis');
+
+    await verifyOrgMembership(uid, organizationId);
 
     const db = getDb();
 
@@ -672,6 +675,8 @@ export const resetAlexConversation = onCall(
     const { organizationId } = request.data || {};
     const uid = request.auth?.uid;
     if (!uid || !organizationId) throw new HttpsError('unauthenticated', 'Auth requis');
+
+    await verifyOrgMembership(uid, organizationId);
 
     const db = getDb();
 

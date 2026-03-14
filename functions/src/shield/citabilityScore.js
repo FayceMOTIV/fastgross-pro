@@ -12,6 +12,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -86,6 +87,8 @@ export const calculateCitability = onCall({
 
   const { orgId, brandName, niche, location } = request.data || {}
   if (!orgId || !brandName) throw new HttpsError('invalid-argument', 'orgId et brandName requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const result = await computeCitabilityScore(brandName, niche, location)
 

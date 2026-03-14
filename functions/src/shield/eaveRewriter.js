@@ -12,6 +12,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -80,6 +81,8 @@ export const rewriteContent = onCall({
   const { orgId, content, url, focus, tone } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
   if (!content && !url) throw new HttpsError('invalid-argument', 'content ou url requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   // Fetch content from URL if needed
   let inputContent = content

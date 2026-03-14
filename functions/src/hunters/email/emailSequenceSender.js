@@ -17,6 +17,7 @@ import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { callAI } from '../../ai/callAI.js'
 import { sendEmail as sendEmailRouter } from '../../email/emailRouter.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -369,6 +370,8 @@ export const createEmailSequence = onCall({
     throw new HttpsError('invalid-argument', 'Maximum 7 steps allowed')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   try {
     const db = getDb()
 
@@ -421,6 +424,8 @@ export const startEmailCampaign = onCall({
   if (!orgId || !prospectId || !sequenceId) {
     throw new HttpsError('invalid-argument', 'orgId, prospectId, and sequenceId are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   try {
     const db = getDb()
@@ -531,6 +536,8 @@ export const listEmailSequences = onCall({
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   try {
     const db = getDb()
 
@@ -576,6 +583,8 @@ export const getEmailCampaignStats = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   try {
     const db = getDb()
@@ -646,6 +655,8 @@ export const trackEmailOpen = onCall({
   if (!org || !prospect || !campaign) {
     throw new HttpsError('invalid-argument', 'org, prospect and campaign are required')
   }
+
+  await verifyOrgMembership(auth.uid, org)
 
   try {
     const db = getDb()

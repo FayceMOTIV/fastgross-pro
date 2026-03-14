@@ -24,6 +24,7 @@ import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
 import { callAI } from '../../ai/callAI.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -411,6 +412,8 @@ export const sendManualDM = onCall({
     throw new HttpsError('invalid-argument', 'orgId and prospectId are required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   const db = getDb()
 
   try {
@@ -732,6 +735,8 @@ export const getDMStats = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
 

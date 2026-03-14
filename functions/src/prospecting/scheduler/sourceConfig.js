@@ -8,6 +8,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import { SOURCE_REGISTRY, LEAD_SOURCES } from '../sources/_sourceRegistry.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -52,6 +53,8 @@ export const getSourceConfig = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const config = await getProspectingConfig(orgId)
     return { success: true, config }
@@ -101,6 +104,8 @@ export const updateSourceConfig = onCall(
     if (!orgId || !config) {
       throw new HttpsError('invalid-argument', 'orgId and config are required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Validate config
     const validationErrors = validateConfig(config)

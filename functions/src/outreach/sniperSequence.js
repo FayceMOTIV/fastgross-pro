@@ -23,6 +23,10 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { canSendSafely } from '../safety/preSendSafetyGateway.js'
+import { validateEmailContent } from '../safety/antiSpamContentGuard.js'
+import { appendUnsubscribeFooter } from '../compliance/rgpdEngine.js'
 
 const getDb = () => getFirestore()
 
@@ -146,6 +150,7 @@ export const createSniperSequence = onCall({
   if (!orgId || !prospectId) {
     throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
   }
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const result = await initSniperSequence(db, orgId, prospectId, signalType, request.auth.uid, customSteps)
@@ -222,6 +227,7 @@ export const pauseSniperSequence = onCall({
   if (!orgId || !sequenceId) {
     throw new HttpsError('invalid-argument', 'orgId et sequenceId requis')
   }
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   await pauseSequence(db, orgId, sequenceId, reason || 'manual')
@@ -242,6 +248,7 @@ export const getSniperSequenceStatus = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId requis')
   }
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
 
@@ -380,6 +387,21 @@ async function executeStep(db, orgId, sequence) {
     // Execute based on channel
     switch (step.channel) {
       case 'email': {
+        // Safety gateway check before send
+        const safetyResult = await canSendSafely(orgId, sequence.prospectId, sequence.prospectEmail, 'email')
+        if (!safetyResult.allowed) {
+          logger.warn(`[SniperSeq] Blocked by safety: ${safetyResult.reasons.join(', ')}`)
+          break
+        }
+
+        // Touchpoint limiter check
+        const { canAddTouchpoint: canAddEmailTp, recordTouchpoint: recordEmailTp } = await import('../engine/touchpointLimiter.js')
+        const emailTpCheck = await canAddEmailTp(orgId, sequence.prospectId, 'email')
+        if (!emailTpCheck.allowed) {
+          logger.warn(`[SniperSeq] Touchpoint limit reached for email: ${emailTpCheck.reason}`)
+          break
+        }
+
         const { generateEmail } = await import('./signalEmail.js')
         const emailData = await generateEmail(db, orgId, sequence.prospectId, sequence.signalType)
 
@@ -411,22 +433,32 @@ async function executeStep(db, orgId, sequence) {
 
         // Adapt email based on step format
         const adaptedEmail = adaptEmailForStep(emailData, step, sequence, videoUrl)
+        await validateEmailContent(adaptedEmail.subject, adaptedEmail.body)
 
         const { sendEmail } = await import('../email/emailRouter.js')
+        const htmlWithFooter = appendUnsubscribeFooter(formatHtml(adaptedEmail.body), sequence.prospectId, 'prospects')
         await sendEmail({
           to: sequence.prospectEmail,
           subject: adaptedEmail.subject,
-          html: formatHtml(adaptedEmail.body),
+          html: htmlWithFooter,
           from: 'Alex <alex@facemedia.app>',
           orgId,
           prospectId: sequence.prospectId
         })
+        await recordEmailTp(orgId, sequence.prospectId, 'email')
         sent = true
         break
       }
 
       case 'sms': {
         if (sequence.availableChannels.includes('sms')) {
+          // Touchpoint limiter check
+          const { canAddTouchpoint: canAddSmsTp, recordTouchpoint: recordSmsTp } = await import('../engine/touchpointLimiter.js')
+          const smsTpCheck = await canAddSmsTp(orgId, sequence.prospectId, 'sms')
+          if (!smsTpCheck.allowed) {
+            logger.warn(`[SniperSeq] Touchpoint limit reached for sms: ${smsTpCheck.reason}`)
+            break
+          }
           // Generate short message
           const content = renderStepContent(STEP_CONTENT.short_message, sequence)
           const { dispatchMessage } = await import('../engine/channelDispatcher.js')
@@ -435,14 +467,55 @@ async function executeStep(db, orgId, sequence) {
             sequence.prospectId,
             { channel: 'sms', message: content.body }
           ).catch(() => { /* SMS fallback — non-blocking */ })
+          await recordSmsTp(orgId, sequence.prospectId, 'sms')
           sent = true
         }
         break
       }
 
       case 'linkedin': {
-        // LinkedIn actions are logged but require manual execution or HeyReach
-        sent = true // Mark as sent (it's a suggested action)
+        const { canAddTouchpoint: canAddLiTp, recordTouchpoint: recordLiTp } = await import('../engine/touchpointLimiter.js')
+        const liTpCheck = await canAddLiTp(orgId, sequence.prospectId, 'linkedin')
+        if (!liTpCheck.allowed) break
+
+        // Load LinkedIn config for this org
+        const liConfigDoc = await db.doc(`organizations/${orgId}/integrations/linkedin`).get()
+        const liConfig = liConfigDoc.exists ? liConfigDoc.data() : null
+        const liAccountId = liConfig?.accountId || liConfig?.defaultAccountId
+
+        if (!liAccountId || !liConfig?.apiKey) {
+          logger.info(`[sniperSequence] LinkedIn skipped for ${sequence.id}: no accountId/apiKey configured`)
+          break // sent stays false → marked as 'failed'
+        }
+
+        const linkedinUrl = sequence.linkedinUrl || sequence.prospectLinkedinUrl
+        if (!linkedinUrl) {
+          logger.info(`[sniperSequence] LinkedIn skipped for ${sequence.id}: no prospect LinkedIn URL`)
+          break
+        }
+
+        try {
+          const { sendConnectionRequest, sendMessage: sendLiMessage } = await import('../hunters/linkedin/linkedinService.js')
+          const content = renderStepContent(STEP_CONTENT.linkedin_message || STEP_CONTENT.short_message, sequence)
+          const stepType = step.subType || step.linkedinAction || 'connection'
+
+          let result
+          if (stepType === 'message' || stepType === 'voice_note') {
+            result = await sendLiMessage(liAccountId, linkedinUrl, content.body, { apiKey: liConfig.apiKey })
+          } else {
+            // Default: connection request
+            result = await sendLiMessage ? await sendConnectionRequest(liAccountId, linkedinUrl, content.body, { apiKey: liConfig.apiKey }) : null
+          }
+
+          if (result?.success) {
+            await recordLiTp(orgId, sequence.prospectId, 'linkedin')
+            sent = true
+          } else {
+            logger.warn(`[sniperSequence] LinkedIn API failed for ${sequence.id}:`, result?.error)
+          }
+        } catch (liErr) {
+          logger.warn(`[sniperSequence] LinkedIn error for ${sequence.id}:`, liErr.message)
+        }
         break
       }
     }

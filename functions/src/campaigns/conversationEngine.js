@@ -10,6 +10,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -93,6 +94,8 @@ export const classifyReply = onCall(
         'orgId, prospectId, replyText et campaignId requis'
       )
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const userId = request.auth.uid
@@ -276,6 +279,8 @@ export const handleIncomingReply = onCall(
         'orgId, replyId, action et campaignId requis'
       )
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const validActions = ['approve', 'edit', 'reject', 'auto']
     if (!validActions.includes(action)) {

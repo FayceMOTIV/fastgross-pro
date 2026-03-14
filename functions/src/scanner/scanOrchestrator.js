@@ -3,6 +3,7 @@
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 import { analyzeWebsite } from './sources/websiteAnalyzer.js';
 import { detectTechStack } from './sources/techStackDetector.js';
 import { scanSeoHealth } from './sources/seoHealthScanner.js';
@@ -37,6 +38,10 @@ export const runProspectScan = onCall(
     if (!domain || !organizationId) {
       throw new HttpsError('invalid-argument', 'domain et organizationId requis');
     }
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Authentification requise');
+    }
+    await verifyOrgMembership(request.auth.uid, organizationId);
     return await executeScan({ prospectId, domain, organizationId, businessName, location, siren });
   }
 );

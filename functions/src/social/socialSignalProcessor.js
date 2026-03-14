@@ -7,6 +7,7 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import axios from 'axios';
 import Groq from 'groq-sdk';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 const VPS_SECRET_KEY = defineSecret('VPS_SECRET_KEY');
@@ -164,16 +165,12 @@ export const socialManualAction = onCall(
     const { action, leadId, orgId, customMessage } = request.data;
     if (!leadId || !orgId) throw new HttpsError('invalid-argument', 'leadId et orgId requis');
 
+    await verifyOrgMembership(request.auth.uid, orgId);
+
     const leadDoc = await getDb().collection('socialLeads').doc(leadId).get();
     if (!leadDoc.exists) throw new HttpsError('not-found', 'Lead introuvable');
 
     const lead = leadDoc.data();
-
-    // Verifier que l'uid authentifie appartient a l'org du lead
-    const userDoc = await getDb().collection('users').doc(request.auth.uid).get();
-    if (!userDoc.exists || userDoc.data()?.orgId !== lead.orgId) {
-      throw new HttpsError('permission-denied', 'Acces refuse');
-    }
 
     const message = customMessage || '';
     const vpsSecret = VPS_SECRET_KEY.value();
@@ -244,10 +241,8 @@ export const configureSocialSources = onCall(
 
     const { orgId, config } = request.data;
 
-    const userDoc = await getDb().collection('users').doc(request.auth.uid).get();
-    if (!userDoc.exists || userDoc.data()?.orgId !== orgId) {
-      throw new HttpsError('permission-denied', 'Acces refuse a cet org');
-    }
+    if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis');
+    await verifyOrgMembership(request.auth.uid, orgId);
 
     const ALLOWED_KEYS = [
       'enabled', 'keywords', 'geoZones', 'nafCodes',
@@ -276,10 +271,8 @@ export const getSocialStats = onCall(
 
     const { orgId, period = 7 } = request.data;
 
-    const userDoc = await getDb().collection('users').doc(request.auth.uid).get();
-    if (!userDoc.exists || userDoc.data()?.orgId !== orgId) {
-      throw new HttpsError('permission-denied', 'Acces refuse a cet org');
-    }
+    if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis');
+    await verifyOrgMembership(request.auth.uid, orgId);
 
     const cutoff = new Date(Date.now() - period * 24 * 60 * 60 * 1000);
 

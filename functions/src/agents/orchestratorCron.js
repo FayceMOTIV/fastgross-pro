@@ -14,10 +14,11 @@
  */
 
 import { onSchedule } from 'firebase-functions/v2/scheduler'
-import { onCall } from 'firebase-functions/v2/https'
+import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import { enqueueTask } from '../queues/taskQueue.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -230,6 +231,11 @@ export const runOrchestratorCronManual = onCall(
   async (request) => {
     const { orgId } = request.data || {}
     const db = getDb()
+
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
+    if (orgId) {
+      await verifyOrgMembership(request.auth.uid, orgId)
+    }
 
     if (orgId) {
       // Scan une seule org

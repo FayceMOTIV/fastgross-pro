@@ -98,21 +98,10 @@ export async function generateBookingLink(orgId, prospectName) {
  * 6. Web Search Prospect (uses Serper API)
  */
 export async function webSearchProspect(companyName, domain) {
-  const serperKey = process.env.SERPER_API_KEY
-  if (!serperKey) return { results: [], message: 'Serper API not configured' }
-
   try {
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
     const query = domain ? `site:${domain} OR "${companyName}"` : companyName
-    const response = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': serperKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ q: query, num: 5, gl: 'fr', hl: 'fr' }),
-    })
-
-    const data = await response.json()
+    const data = await cachedSerperFetch('search', { q: query, num: 5, gl: 'fr', hl: 'fr' })
     return {
       results: (data.organic || []).slice(0, 5).map((r) => ({
         title: r.title,

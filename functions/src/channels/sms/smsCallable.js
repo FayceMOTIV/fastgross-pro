@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 import { sendSMS as sendSMSInternal, sendSMSBatch as sendSMSBatchInternal } from './sender.js'
 import {
   sendSMS as sendSMSOvhInternal,
@@ -24,6 +25,7 @@ export const sendSMS = onCall(
     if (!orgId || !prospectId || !message) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et message requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendSMSInternal(orgId, prospectId, message, options)
   }
 )
@@ -36,6 +38,7 @@ export const sendSMSBatch = onCall(
     if (!orgId || !messages?.length) {
       throw new HttpsError('invalid-argument', 'orgId et messages requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendSMSBatchInternal(orgId, messages, options)
   }
 )
@@ -48,6 +51,7 @@ export const sendSMSOvh = onCall(
     if (!orgId || !prospectId || !message) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et message requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendSMSOvhInternal(orgId, prospectId, message, options)
   }
 )
@@ -60,6 +64,7 @@ export const sendSMSBatchOvh = onCall(
     if (!orgId || !messages?.length) {
       throw new HttpsError('invalid-argument', 'orgId et messages requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendSMSBatchOvhInternal(orgId, messages, options)
   }
 )
@@ -70,6 +75,7 @@ export const checkSMSCredits = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return checkCreditsInternal(orgId)
   }
 )
@@ -82,6 +88,7 @@ export const createSMSTemplate = onCall(
     if (!orgId || !templateData) {
       throw new HttpsError('invalid-argument', 'orgId et templateData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createSMSTemplateInternal(orgId, templateData)
   }
 )
@@ -92,6 +99,7 @@ export const getSMSTemplates = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId, category } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getSMSTemplatesInternal(orgId, category)
   }
 )

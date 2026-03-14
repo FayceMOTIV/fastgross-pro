@@ -25,6 +25,35 @@ const getDb = () => getFirestore()
 const log = (event, data) =>
   console.log(JSON.stringify({ service: 'alexAutopilot', event, ...data, ts: new Date().toISOString() }))
 
+const LOCK_TTL_MS = 30 * 60 * 1000 // 30 min
+
+async function acquireLock(db, lockName) {
+  const lockRef = db.doc(`_locks/${lockName}`)
+  try {
+    const acquired = await db.runTransaction(async (tx) => {
+      const lockDoc = await tx.get(lockRef)
+      if (lockDoc.exists) {
+        const data = lockDoc.data()
+        const age = Date.now() - (data.startedAt?.toMillis?.() || 0)
+        if (age < LOCK_TTL_MS) {
+          return false // Still locked
+        }
+      }
+      tx.set(lockRef, { startedAt: new Date(), lockedBy: lockName })
+      return true
+    })
+    return acquired
+  } catch {
+    return false
+  }
+}
+
+async function releaseLock(db, lockName) {
+  try {
+    await db.doc(`_locks/${lockName}`).delete()
+  } catch { /* best effort */ }
+}
+
 // ============================================
 // DAILY PIPELINE — 6H CHAQUE MATIN
 // ============================================
@@ -38,30 +67,40 @@ export const alexDailyPipeline = onSchedule(
   },
   async () => {
     const db = getDb()
-    log('pipeline_start', {})
 
-    const orgsSnap = await db.collection('organizations')
-      .where('prospectionEnabled', '==', true)
-      .get()
-
-    if (orgsSnap.empty) {
-      log('pipeline_no_active_orgs', {})
+    if (!await acquireLock(db, 'alexDailyPipeline')) {
+      log('pipeline_skipped_locked', {})
       return
     }
 
-    const results = []
+    try {
+      log('pipeline_start', {})
 
-    for (const orgDoc of orgsSnap.docs) {
-      try {
-        const orgResult = await runOrgPipeline(db, orgDoc.id, orgDoc.data())
-        results.push({ orgId: orgDoc.id, ...orgResult })
-      } catch (error) {
-        log('pipeline_org_error', { orgId: orgDoc.id, error: error.message })
-        results.push({ orgId: orgDoc.id, error: error.message })
+      const orgsSnap = await db.collection('organizations')
+        .where('prospectionEnabled', '==', true)
+        .get()
+
+      if (orgsSnap.empty) {
+        log('pipeline_no_active_orgs', {})
+        return
       }
-    }
 
-    log('pipeline_complete', { orgs: results.length, results })
+      const results = []
+
+      for (const orgDoc of orgsSnap.docs) {
+        try {
+          const orgResult = await runOrgPipeline(db, orgDoc.id, orgDoc.data())
+          results.push({ orgId: orgDoc.id, ...orgResult })
+        } catch (error) {
+          log('pipeline_org_error', { orgId: orgDoc.id, error: error.message })
+          results.push({ orgId: orgDoc.id, error: error.message })
+        }
+      }
+
+      log('pipeline_complete', { orgs: results.length, results })
+    } finally {
+      await releaseLock(db, 'alexDailyPipeline')
+    }
   }
 )
 
@@ -276,18 +315,27 @@ export const alexSmartEscalation = onSchedule(
     // Business hours only (8h-20h)
     if (parisHour < 8 || parisHour >= 20) return
 
-    log('escalation_start', {})
+    if (!await acquireLock(db, 'alexSmartEscalation')) {
+      log('escalation_skipped_locked', {})
+      return
+    }
 
-    const orgsSnap = await db.collection('organizations')
-      .where('prospectionEnabled', '==', true)
-      .get()
+    try {
+      log('escalation_start', {})
 
-    for (const orgDoc of orgsSnap.docs) {
-      try {
-        await runSmartEscalation(db, orgDoc.id, orgDoc.data())
-      } catch (error) {
-        log('escalation_org_error', { orgId: orgDoc.id, error: error.message })
+      const orgsSnap = await db.collection('organizations')
+        .where('prospectionEnabled', '==', true)
+        .get()
+
+      for (const orgDoc of orgsSnap.docs) {
+        try {
+          await runSmartEscalation(db, orgDoc.id, orgDoc.data())
+        } catch (error) {
+          log('escalation_org_error', { orgId: orgDoc.id, error: error.message })
+        }
       }
+    } finally {
+      await releaseLock(db, 'alexSmartEscalation')
     }
   }
 )

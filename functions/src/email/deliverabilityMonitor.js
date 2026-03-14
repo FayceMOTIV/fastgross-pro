@@ -9,6 +9,7 @@ import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import dns from 'dns'
 import { promisify } from 'util'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -212,6 +213,8 @@ export const getDeliverabilityScore = onCall(
 
     const { orgId, domain } = request.data || {}
     if (!orgId || !domain) throw new HttpsError('invalid-argument', 'orgId and domain required')
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const result = await checkDomain(domain)
     return { success: true, ...result, grade: calculateGrade(result.dnsScore) }

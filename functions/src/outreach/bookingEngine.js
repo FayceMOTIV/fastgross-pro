@@ -14,6 +14,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -28,6 +29,7 @@ export const createBooking = onCall({
 
   const { orgId, prospectId, bookingUrl, meetingType, channels, customMessage } = request.data || {}
   if (!orgId || !prospectId) throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const result = await initBooking(db, orgId, prospectId, {
@@ -48,6 +50,7 @@ export const generatePreCallBrief = onCall({
 
   const { orgId, prospectId, bookingId } = request.data || {}
   if (!orgId || !prospectId) throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const brief = await buildPreCallBrief(db, orgId, prospectId)
@@ -73,6 +76,7 @@ export const updateBookingOutcome = onCall({
 
   const { orgId, bookingId, outcome, notes } = request.data || {}
   if (!orgId || !bookingId || !outcome) throw new HttpsError('invalid-argument', 'orgId, bookingId, outcome requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const validOutcomes = ['completed', 'no_show', 'cancelled', 'rescheduled']
   if (!validOutcomes.includes(outcome)) throw new HttpsError('invalid-argument', `Outcome invalide. Valides: ${validOutcomes.join(', ')}`)
@@ -201,11 +205,27 @@ export async function initBooking(db, orgId, prospectId, options) {
   for (const channel of sendChannels) {
     try {
       if (channel === 'email' && prospect.email) {
+        // Safety gateway pre-check
+        try {
+          const { canSendSafely } = await import('../safety/preSendSafetyGateway.js')
+          const safetyCheck = await canSendSafely(orgId, null, prospect.email, 'email')
+          if (!safetyCheck.allowed) {
+            throw new Error(`Safety blocked: ${safetyCheck.reasons.join(', ')}`)
+          }
+        } catch (safetyErr) {
+          if (safetyErr.message?.includes('Safety blocked')) throw safetyErr
+          console.warn('[bookingEngine] Safety check warning:', safetyErr.message)
+        }
         const { sendEmail } = await import('../email/emailRouter.js')
+        let bookingHtml = buildBookingEmailHtml(prospect, bookingUrl, meetingType, message)
+        try {
+          const { appendUnsubscribeFooter } = await import('../compliance/rgpdEngine.js')
+          bookingHtml = appendUnsubscribeFooter(bookingHtml, prospectId, 'prospects')
+        } catch {}
         await sendEmail({
           to: prospect.email,
-          subject: `📅 Reservez votre creneau — ${getMeetingTypeLabel(meetingType)}`,
-          html: buildBookingEmailHtml(prospect, bookingUrl, meetingType, message),
+          subject: `Reservez votre creneau — ${getMeetingTypeLabel(meetingType)}`,
+          html: bookingHtml,
           from: 'Alex <alex@facemedia.app>',
           orgId,
         })
@@ -400,14 +420,30 @@ async function scheduleNoShowFollowUp(db, orgId, booking) {
   if (!booking.prospectEmail) return
 
   try {
+    // Safety gateway pre-check
+    try {
+      const { canSendSafely } = await import('../safety/preSendSafetyGateway.js')
+      const safetyCheck = await canSendSafely(orgId, null, booking.prospectEmail, 'email')
+      if (!safetyCheck.allowed) {
+        throw new Error(`Safety blocked: ${safetyCheck.reasons.join(', ')}`)
+      }
+    } catch (safetyErr) {
+      if (safetyErr.message?.includes('Safety blocked')) throw safetyErr
+      logger.warn('[bookingEngine] No-show safety check warning:', safetyErr.message)
+    }
     const { sendEmail } = await import('../email/emailRouter.js')
+    let noShowHtml = `<p>Bonjour ${(booking.prospectName || '').split(' ')[0] || ''},</p>
+<p>Il semble qu'on se soit rate pour notre rendez-vous. Pas de souci, ca arrive !</p>
+<p>Si vous souhaitez reprogrammer, voici mon lien : ${booking.bookingUrl || 'contactez-nous directement'}</p>
+<p>A bientot,<br>Alex</p>`
+    try {
+      const { appendUnsubscribeFooter } = await import('../compliance/rgpdEngine.js')
+      noShowHtml = appendUnsubscribeFooter(noShowHtml, booking.prospectId || booking.prospectEmail, 'prospects')
+    } catch {}
     await sendEmail({
       to: booking.prospectEmail,
       subject: `On s'est rate — reprogrammons ?`,
-      html: `<p>Bonjour ${(booking.prospectName || '').split(' ')[0] || ''},</p>
-<p>Il semble qu'on se soit rate pour notre rendez-vous. Pas de souci, ca arrive !</p>
-<p>Si vous souhaitez reprogrammer, voici mon lien : ${booking.bookingUrl || 'contactez-nous directement'}</p>
-<p>A bientot,<br>Alex</p>`,
+      html: noShowHtml,
       from: 'Alex <alex@facemedia.app>',
       orgId,
     })

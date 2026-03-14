@@ -16,6 +16,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -56,6 +57,7 @@ export const predictOptimalTiming = onCall({
 
   const { orgId, prospectId, channel, sector } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const prediction = await computeOptimalTiming(db, orgId, prospectId, channel, sector)
@@ -72,6 +74,7 @@ export const recordTimingFeedback = onCall({
 
   const { orgId, prospectId, channel, sentAt, opened, replied, openedAt, repliedAt } = request.data || {}
   if (!orgId || !sentAt) throw new HttpsError('invalid-argument', 'orgId et sentAt requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const sentDate = new Date(sentAt)
@@ -100,6 +103,7 @@ export const getTimingAnalytics = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const snap = await db.collection(`organizations/${orgId}/timingFeedback`)

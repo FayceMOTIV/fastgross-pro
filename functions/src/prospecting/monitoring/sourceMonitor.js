@@ -10,6 +10,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import { SOURCE_REGISTRY, SOURCE_GROUPS } from '../sources/_sourceRegistry.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -33,6 +34,8 @@ export const getProspectingDashboard = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const orgRef = db.collection('organizations').doc(orgId)
@@ -161,6 +164,8 @@ export const getSourceHealthStatus = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const orgRef = db.collection('organizations').doc(orgId)

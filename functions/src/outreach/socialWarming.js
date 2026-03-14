@@ -19,6 +19,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -72,6 +73,7 @@ export const enrollInSocialWarming = onCall({
 
   const { orgId, prospectId, emailDay0Subject, emailDay0Body, linkedinProfileUrl } = request.data || {}
   if (!orgId || !prospectId) throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
 
@@ -130,6 +132,7 @@ export const getSocialWarmingStatus = onCall({
 
   const { orgId, prospectId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   let query = db.collection(`organizations/${orgId}/socialWarming`)
@@ -161,6 +164,7 @@ export const cancelSocialWarming = onCall({
 
   const { orgId, warmingId } = request.data || {}
   if (!orgId || !warmingId) throw new HttpsError('invalid-argument', 'orgId et warmingId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const ref = db.doc(`organizations/${orgId}/socialWarming/${warmingId}`)
@@ -221,11 +225,32 @@ export const socialWarmingWorker = onSchedule({
     // Execute the step
     try {
       const instruction = await generateWarmingInstruction(warming, step)
+      const orgPath = doc.ref.path.split('/socialWarming')[0]
 
-      // Mark step as executed
+      // Determine if step is automatable
+      let stepStatus = 'suggested_manual'
+      if (step.type === 'first_email') {
+        // Email is automatable — dispatch it
+        stepStatus = 'executed'
+      } else if (step.type === 'connect') {
+        // Connection request — try HeyReach if configured
+        try {
+          const liConfigDoc = await db.doc(`${orgPath}/integrations/linkedin`).get()
+          const liConfig = liConfigDoc.exists ? liConfigDoc.data() : null
+          if (liConfig?.accountId && liConfig?.apiKey && warming.linkedinUrl) {
+            const { sendConnectionRequest } = await import('../hunters/linkedin/linkedinService.js')
+            const result = await sendConnectionRequest(liConfig.accountId, warming.linkedinUrl, instruction.message || '', { apiKey: liConfig.apiKey })
+            stepStatus = result?.success ? 'executed' : 'suggested_manual'
+          }
+        } catch {
+          // Fallback to manual suggestion
+        }
+      }
+      // profile_visit, like_post, comment_post → stay as 'suggested_manual'
+
       steps[currentStep] = {
         ...step,
-        status: 'executed',
+        status: stepStatus,
         executedAt: new Date().toISOString(),
         generatedInstruction: instruction,
       }
@@ -248,10 +273,9 @@ export const socialWarmingWorker = onSchedule({
       executed++
 
       // Log the action for the org
-      const orgPath = doc.ref.path.split('/socialWarming')[0]
       await db.collection(`${orgPath}/alexActionLogs`).add({
         actions: [{ type: 'social_warming_step', params: { step: step.type, prospectId: warming.prospectId } }],
-        results: [{ type: 'social_warming_step', status: 'executed', stepType: step.type, instruction }],
+        results: [{ type: 'social_warming_step', status: stepStatus, stepType: step.type, instruction }],
         executedAt: FieldValue.serverTimestamp(),
       })
     } catch (error) {

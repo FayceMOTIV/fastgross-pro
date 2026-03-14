@@ -5,6 +5,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import axios from 'axios';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 const VPS_SECRET_KEY = defineSecret('VPS_SECRET_KEY');
@@ -19,10 +20,8 @@ export const listConnectedPlatforms = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non connecte');
     const { orgId } = request.data;
 
-    const userDoc = await getDb().collection('users').doc(request.auth.uid).get();
-    if (!userDoc.exists || userDoc.data()?.orgId !== orgId) {
-      throw new HttpsError('permission-denied', 'Acces refuse');
-    }
+    if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis');
+    await verifyOrgMembership(request.auth.uid, orgId);
 
     const resp = await axios.get(
       `http://94.130.184.44:3001/social/sessions/${orgId}`,
@@ -39,10 +38,8 @@ export const disconnectSocialPlatform = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non connecte');
     const { orgId, platform } = request.data;
 
-    const userDoc = await getDb().collection('users').doc(request.auth.uid).get();
-    if (!userDoc.exists || userDoc.data()?.orgId !== orgId) {
-      throw new HttpsError('permission-denied', 'Acces refuse');
-    }
+    if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis');
+    await verifyOrgMembership(request.auth.uid, orgId);
 
     await axios.post('http://94.130.184.44:3001/social/disconnect-session',
       { orgId, platform },

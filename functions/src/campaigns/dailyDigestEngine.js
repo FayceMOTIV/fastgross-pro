@@ -14,6 +14,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -330,6 +331,8 @@ export const generateDailyDigest = onCall(
       throw new HttpsError('invalid-argument', 'orgId requis')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     const db = getDb()
     const dateStr = getTodayDate(date)
 
@@ -380,6 +383,8 @@ export const getDigestHistory = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const clampedLimit = Math.min(Math.max(limit, 1), 30)

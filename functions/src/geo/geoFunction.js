@@ -7,6 +7,7 @@ import { onCall } from 'firebase-functions/v2/https';
 import { setClientGeoSettings, getClientGeoSettings } from './clientGeoSettings.js';
 import { extractGeoIntent } from './geoIntentExtractor.js';
 import { resolveGeoZone } from './geoZoneResolver.js';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 
 /**
  * Mise a jour des settings geo depuis le dashboard
@@ -19,6 +20,8 @@ export const updateClientGeoSettings = onCall({
 
   const { orgId, zones, nafs, secteurs, maxLeadsPerDay, excludedCodes } = request.data;
   if (!orgId) throw new Error('orgId requis');
+
+  await verifyOrgMembership(request.auth.uid, orgId);
 
   const result = await setClientGeoSettings(orgId, {
     zones: zones || [],
@@ -41,6 +44,8 @@ export const getGeoSettings = onCall({
   if (!request.auth) throw new Error('Non authentifie');
   const { orgId } = request.data;
   if (!orgId) throw new Error('orgId requis');
+
+  await verifyOrgMembership(request.auth.uid, orgId);
 
   const settings = await getClientGeoSettings(orgId);
   return { success: true, data: settings };

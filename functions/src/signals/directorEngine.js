@@ -162,25 +162,17 @@ async function fetchDirectorFromINPI(siren) {
 }
 
 async function findLinkedIn(fullName, companyName) {
-  const serperKey = process.env.SERPER_API_KEY
-  if (!serperKey || !fullName) return null
+  if (!fullName) return null
 
   try {
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
     const query = `site:linkedin.com/in "${fullName}" "${companyName || ''}"`
-    const res = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query, gl: 'fr', num: 3 }),
-      signal: AbortSignal.timeout(5000),
-    })
-
-    if (!res.ok) return null
-    const data = await res.json()
+    const data = await cachedSerperFetch('search', { q: query, gl: 'fr', num: 3 }, { timeoutMs: 5000 })
     const first = (data.organic || [])[0]
     if (first?.link?.includes('linkedin.com/in/')) {
       return { url: first.link, snippet: first.snippet }
     }
-  } catch (e) { /* silent */ }
+  } catch { /* silent */ }
   return null
 }
 

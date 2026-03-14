@@ -10,6 +10,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -45,7 +46,7 @@ export const monthlyProductRefresh = onSchedule({
 // CORE — refreshOrgProductIntel
 // ============================================
 
-async function refreshOrgProductIntel(db, orgId, orgData) {
+export async function refreshOrgProductIntel(db, orgId, orgData) {
   const website = orgData.website || orgData.domain || ''
   const companyName = orgData.companyName || orgData.name || ''
   const sector = orgData.niche || orgData.sector || ''
@@ -80,8 +81,7 @@ async function refreshOrgProductIntel(db, orgId, orgData) {
 // ============================================
 
 async function runProductSearches(company, website, sector) {
-  const SERPER_API_KEY = process.env.SERPER_API_KEY
-  if (!SERPER_API_KEY) return []
+  const { cachedSerperFetch } = await import('../utils/serperCache.js')
 
   const queries = [
     website ? `site:${website}` : `"${company}" site officiel`,
@@ -95,13 +95,8 @@ async function runProductSearches(company, website, sector) {
 
   for (const query of queries) {
     try {
-      const resp = await fetch('https://google.serper.dev/search', {
-        method: 'POST',
-        headers: { 'X-API-KEY': SERPER_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 5 }),
-      })
-      if (resp.ok) {
-        const data = await resp.json()
+      const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 5 })
+      if (!data.error) {
         results.push({
           query,
           organic: (data.organic || []).slice(0, 3).map(r => ({
@@ -196,6 +191,8 @@ export const refreshProductIntelligence = onCall({
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   const db = getDb()
   const orgDoc = await db.doc(`organizations/${orgId}`).get()
   if (!orgDoc.exists) throw new HttpsError('not-found', 'Org non trouvee')
@@ -216,6 +213,8 @@ export const getProductIntelligence = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const doc = await db.doc(`organizations/${orgId}/alexMemory/productIntelligence`).get()

@@ -11,6 +11,7 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import dns from 'dns'
 import { promisify } from 'util'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 const resolveTxt = promisify(dns.resolveTxt)
@@ -228,6 +229,8 @@ export const checkOutreachDomainSetup = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   return checkOutreachDomain(orgId)
 })

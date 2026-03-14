@@ -3,20 +3,12 @@
  */
 
 export async function analyzeGoogleBusiness(businessName, location) {
-  const apiKey = process.env.SERPER_API_KEY;
-  if (!apiKey) return null;
-
   try {
+    const { cachedSerperFetch } = await import('../../utils/serperCache.js');
     const query = location ? `${businessName} ${location}` : businessName;
-    const resp = await fetch('https://google.serper.dev/maps', {
-      method: 'POST',
-      headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 1 }),
-      signal: AbortSignal.timeout(10000),
-    });
+    const data = await cachedSerperFetch('maps', { q: query, gl: 'fr', hl: 'fr', num: 1 }, { timeoutMs: 10000 });
 
-    if (!resp.ok) return null;
-    const data = await resp.json();
+    if (data.error) return null;
     const place = data.places?.[0];
     if (!place) return { exists: false };
 

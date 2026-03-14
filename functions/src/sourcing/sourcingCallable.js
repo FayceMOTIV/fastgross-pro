@@ -7,6 +7,7 @@ import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { db } from '../index.js'
 import { FieldValue } from 'firebase-admin/firestore'
 import { runPipelineFrance, NAF_CODES, SECTOR_LABELS } from './pipelineFrance.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 /**
  * runProspectionFrance — Pipeline complet : SIRENE → enrichissement → scoring → import CRM
@@ -42,6 +43,8 @@ export const runProspectionFrance = onCall({
   if (!targetOrgId) {
     throw new HttpsError('failed-precondition', 'Aucune organisation trouvee')
   }
+
+  await verifyOrgMembership(request.auth.uid, targetOrgId)
 
   try {
     const results = await runPipelineFrance(sector, city, limit)

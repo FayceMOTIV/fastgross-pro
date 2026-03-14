@@ -14,6 +14,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -27,31 +28,9 @@ const getDb = () => getFirestore()
  * @returns {Promise<Array>} Search results or empty array on error
  */
 async function searchSerper({ query, num = 5 }) {
-  const apiKey = process.env.SERPER_API_KEY
-  if (!apiKey) {
-    console.log(JSON.stringify({
-      event: 'serper_skip',
-      data: { reason: 'SERPER_API_KEY not configured' },
-      timestamp: Date.now()
-    }))
-    return []
-  }
-
   try {
-    const response = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey
-      },
-      body: JSON.stringify({ q: query, num })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Serper API ${response.status}: ${response.statusText}`)
-    }
-
-    const data = await response.json()
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
+    const data = await cachedSerperFetch('search', { q: query, num })
     const results = data.organic || []
 
     console.log(JSON.stringify({
@@ -163,6 +142,8 @@ export const analyzeProspectProfile = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const userId = request.auth.uid

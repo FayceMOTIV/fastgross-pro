@@ -21,6 +21,10 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { canSendSafely } from '../safety/preSendSafetyGateway.js'
+import { validateEmailContent } from '../safety/antiSpamContentGuard.js'
+import { appendUnsubscribeFooter } from '../compliance/rgpdEngine.js'
 
 const getDb = () => getFirestore()
 
@@ -115,6 +119,7 @@ export const enrollInNurturing = onCall({
 
   const { orgId, prospectId, category: forcedCategory } = request.data || {}
   if (!orgId || !prospectId) throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const result = await enrollProspect(db, orgId, prospectId, forcedCategory)
@@ -130,6 +135,7 @@ export const getNurturingStatus = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const snap = await db.collection('organizations').doc(orgId)
@@ -155,6 +161,7 @@ export const toggleNurturing = onCall({
 
   const { orgId, prospectId, action } = request.data || {}
   if (!orgId || !prospectId || !action) throw new HttpsError('invalid-argument', 'orgId, prospectId, action requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const ref = db.collection('organizations').doc(orgId).collection('nurturingQueues').doc(prospectId)
@@ -334,19 +341,43 @@ async function processTouchpoint(db, orgId, prospectId, queue) {
   // Try to dispatch via channel
   try {
     if (touchpoint.channel === 'email' && queue.email) {
-      const { sendEmail } = await import('../email/emailRouter.js')
-      await sendEmail({
-        to: queue.email,
-        subject: content.subject,
-        html: `<p>${content.body.replace(/\n/g, '<br>')}</p>`,
-        from: 'Alex <alex@facemedia.app>',
-        orgId,
-      })
-      touchpointLog.status = 'sent'
+      const safetyResult = await canSendSafely(orgId, prospectId, queue.email, 'email')
+      if (!safetyResult.allowed) {
+        touchpointLog.status = 'skipped'
+        touchpointLog.skipReason = `Safety blocked: ${safetyResult.reasons.join(', ')}`
+      } else {
+        const { canAddTouchpoint, recordTouchpoint } = await import('../engine/touchpointLimiter.js')
+        const tpCheck = await canAddTouchpoint(orgId, prospectId, 'email')
+        if (!tpCheck.allowed) {
+          touchpointLog.status = 'skipped'
+          touchpointLog.skipReason = `Touchpoint limit: ${tpCheck.reason}`
+        } else {
+          await validateEmailContent(content.subject, content.body)
+          const { sendEmail } = await import('../email/emailRouter.js')
+          const htmlBody = appendUnsubscribeFooter(`<p>${content.body.replace(/\n/g, '<br>')}</p>`, prospectId, 'prospects')
+          await sendEmail({
+            to: queue.email,
+            subject: content.subject,
+            html: htmlBody,
+            from: 'Alex <alex@facemedia.app>',
+            orgId,
+          })
+          await recordTouchpoint(orgId, prospectId, 'email')
+          touchpointLog.status = 'sent'
+        }
+      }
     } else if (touchpoint.channel === 'sms' && queue.phone) {
-      const { sendSMS } = await import('../channels/sms/ovhSmsProvider.js')
-      await sendSMS(orgId, prospectId, content.message)
-      touchpointLog.status = 'sent'
+      const { canAddTouchpoint, recordTouchpoint } = await import('../engine/touchpointLimiter.js')
+      const tpCheck = await canAddTouchpoint(orgId, prospectId, 'sms')
+      if (!tpCheck.allowed) {
+        touchpointLog.status = 'skipped'
+        touchpointLog.skipReason = `Touchpoint limit: ${tpCheck.reason}`
+      } else {
+        const { sendSMS } = await import('../channels/sms/ovhSmsProvider.js')
+        await sendSMS(orgId, prospectId, content.message)
+        await recordTouchpoint(orgId, prospectId, 'sms')
+        touchpointLog.status = 'sent'
+      }
     } else {
       touchpointLog.status = 'skipped'
       touchpointLog.skipReason = `${touchpoint.channel}: pas de coordonnees`

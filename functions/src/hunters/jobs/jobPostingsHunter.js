@@ -20,6 +20,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -115,6 +116,8 @@ export const runJobPostingsHunterManual = onCall({
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
   if (!keywords?.length) throw new HttpsError('invalid-argument', 'keywords requis (array)')
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   const db = getDb()
   const stats = await runJobPostingsScan(db, orgId, keywords, location)
   return { success: true, ...stats }
@@ -129,6 +132,8 @@ export const getJobPostingsHunterStats = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const snap = await db.collection('organizations').doc(orgId)

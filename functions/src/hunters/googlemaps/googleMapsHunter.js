@@ -13,6 +13,7 @@ import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../../ai/callAI.js'
 import axios from 'axios'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -137,6 +138,8 @@ export const runGoogleMapsHunterManual = onCall({
     throw new HttpsError('invalid-argument', 'orgId and keyword are required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   console.log(`Manual Google Maps Hunt: org=${orgId}, keyword=${keyword}, location=${location || 'France'}`)
 
   const db = getDb()
@@ -192,19 +195,10 @@ async function searchGoogleMaps(keyword, location) {
     const query = `${keyword} ${location}`
     console.log(`Serper Maps query: "${query}"`)
 
-    const response = await axios.post(
-      'https://google.serper.dev/maps',
-      { q: query, num: RATE_LIMITS.maxResultsPerSearch, gl: 'fr', hl: 'fr' },
-      {
-        headers: {
-          'X-API-KEY': SERPER_API_KEY,
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000
-      }
-    )
+    const { cachedSerperFetch } = await import('../../utils/serperCache.js')
+    const data = await cachedSerperFetch('maps', { q: query, num: RATE_LIMITS.maxResultsPerSearch, gl: 'fr', hl: 'fr' }, { timeoutMs: 15000 })
 
-    const places = response.data?.places || []
+    const places = data?.places || []
     const prospects = []
 
     for (const place of places) {
@@ -452,6 +446,8 @@ export const getGoogleMapsHunterStats = onCall({
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   const db = getDb()
 
   try {
@@ -669,6 +665,8 @@ export const runGoogleMapsSourcingManual = onCall({
   if (!orgId || !query) {
     throw new HttpsError('invalid-argument', 'orgId and query are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
   const stats = { scanned: 0, qualified: 0, saved: 0, merged: 0, skipped: 0, enriched: 0 }

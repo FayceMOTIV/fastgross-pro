@@ -11,6 +11,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 import { scrapeLinkedInSearch, scrapeLinkedInProfile } from './linkedinScraper.js'
 import {
@@ -42,17 +43,7 @@ export const linkedinHunter = onCall(
     const stats = { scraped: 0, qualified: 0, saved: 0, duplicates: 0, errors: 0 }
 
     try {
-      // Verifier membership org
-      const memberSnap = await db
-        .collection('organizations')
-        .doc(orgId)
-        .collection('members')
-        .doc(request.auth.uid)
-        .get()
-
-      if (!memberSnap.exists) {
-        throw new HttpsError('permission-denied', 'Acces non autorise a cette organisation')
-      }
+      await verifyOrgMembership(request.auth.uid, orgId)
 
       logger.info(`[linkedinHunter] Starting search for org=${orgId}: "${keywords}" in ${location || 'any'}`)
 
@@ -96,6 +87,8 @@ export const runLinkedInHunterManual = onCall(
     const stats = { scraped: 0, qualified: 0, saved: 0, duplicates: 0, errors: 0 }
 
     try {
+      await verifyOrgMembership(request.auth.uid, orgId)
+
       logger.info(`[linkedinHunter] Manual run by ${request.auth.uid} for org=${orgId}`)
 
       // Scrape
@@ -157,6 +150,8 @@ export const getLinkedInHunterStats = onCall(
     const db = getDb()
 
     try {
+      await verifyOrgMembership(request.auth.uid, orgId)
+
       // Prospects LinkedIn
       const prospectsSnap = await db
         .collection('organizations')
@@ -231,6 +226,8 @@ export const syncLinkedInInbox = onCall(
     let synced = 0
 
     try {
+      await verifyOrgMembership(request.auth.uid, orgId)
+
       // Recuperer les comptes LinkedIn de l'org
       const accountsSnap = await db
         .collection('organizations')
@@ -304,6 +301,8 @@ export const addLinkedInAccount = onCall(
     const db = getDb()
 
     try {
+      await verifyOrgMembership(request.auth.uid, orgId)
+
       const docRef = await db
         .collection('organizations')
         .doc(orgId)
@@ -348,6 +347,8 @@ export const removeLinkedInAccount = onCall(
     const db = getDb()
 
     try {
+      await verifyOrgMembership(request.auth.uid, orgId)
+
       await db
         .collection('organizations')
         .doc(orgId)

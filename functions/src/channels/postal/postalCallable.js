@@ -4,6 +4,7 @@
  */
 
 import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 import {
   sendLetter as sendLetterInternal,
   sendPostcard as sendPostcardInternal,
@@ -49,6 +50,7 @@ export const sendLetter = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendLetterInternal(orgId, prospectId, options)
   }
 )
@@ -61,6 +63,7 @@ export const sendPostcard = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendPostcardInternal(orgId, prospectId, options)
   }
 )
@@ -73,6 +76,7 @@ export const getMailStatus = onCall(
     if (!orgId || !mailId) {
       throw new HttpsError('invalid-argument', 'orgId et mailId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getMailStatusInternal(orgId, mailId, mailType)
   }
 )
@@ -85,6 +89,7 @@ export const cancelMail = onCall(
     if (!orgId || !mailId) {
       throw new HttpsError('invalid-argument', 'orgId et mailId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return cancelMailInternal(orgId, mailId, mailType)
   }
 )
@@ -101,6 +106,7 @@ export const validateAddress = onCall(
     if (!orgId || !address) {
       throw new HttpsError('invalid-argument', 'orgId et address requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return validateAddressInternal(orgId, address)
   }
 )
@@ -113,6 +119,7 @@ export const validateAddressBatch = onCall(
     if (!orgId || !addresses?.length) {
       throw new HttpsError('invalid-argument', 'orgId et addresses requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return validateAddressBatchInternal(orgId, addresses)
   }
 )
@@ -125,6 +132,7 @@ export const validateAndUpdateProspect = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return validateAndUpdateProspectInternal(orgId, prospectId)
   }
 )
@@ -137,6 +145,7 @@ export const autocompleteAddress = onCall(
     if (!orgId || !query) {
       throw new HttpsError('invalid-argument', 'orgId et query requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return autocompleteAddressInternal(orgId, query)
   }
 )
@@ -153,6 +162,7 @@ export const generatePostalHTML = onCall(
     if (!orgId || !templateId) {
       throw new HttpsError('invalid-argument', 'orgId et templateId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return generatePostalHTMLInternal(orgId, templateId, data)
   }
 )
@@ -165,6 +175,7 @@ export const createPostalTemplate = onCall(
     if (!orgId || !templateData) {
       throw new HttpsError('invalid-argument', 'orgId et templateData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createPostalTemplateInternal(orgId, templateData)
   }
 )
@@ -175,6 +186,7 @@ export const listPostalTemplates = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId, type } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return listPostalTemplatesInternal(orgId, type)
   }
 )
@@ -187,6 +199,7 @@ export const previewTemplate = onCall(
     if (!orgId || !templateId) {
       throw new HttpsError('invalid-argument', 'orgId et templateId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return previewTemplateInternal(orgId, templateId, sampleData)
   }
 )
@@ -203,6 +216,7 @@ export const createTrackingCode = onCall(
     if (!orgId || !prospectId || !mailType) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et mailType requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createTrackingCodeInternal(orgId, prospectId, mailType)
   }
 )
@@ -215,6 +229,7 @@ export const createPURL = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createPURLInternal(orgId, prospectId, template)
   }
 )
@@ -227,6 +242,7 @@ export const recordConversion = onCall(
     if (!orgId || !prospectId || !conversionType) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et conversionType requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return recordConversionInternal(orgId, prospectId, conversionType, value)
   }
 )
@@ -237,6 +253,7 @@ export const getTrackingStats = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId, days } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getTrackingStatsInternal(orgId, days)
   }
 )
@@ -253,6 +270,7 @@ export const sendLetterMF = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendLetterMFInternal(orgId, prospectId, options)
   }
 )
@@ -265,6 +283,7 @@ export const sendRegisteredLetterMF = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendRegisteredLetterMFInternal(orgId, prospectId, options)
   }
 )
@@ -277,6 +296,7 @@ export const getMailStatusMF = onCall(
     if (!orgId || !mailId) {
       throw new HttpsError('invalid-argument', 'orgId et mailId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getMailStatusMFInternal(orgId, mailId)
   }
 )
@@ -289,6 +309,7 @@ export const cancelMailMF = onCall(
     if (!orgId || !mailId) {
       throw new HttpsError('invalid-argument', 'orgId et mailId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return cancelMailMFInternal(orgId, mailId)
   }
 )

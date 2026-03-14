@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { checkQuota, incrementUsage, isChannelAvailable } from '../utils/quotas.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -29,6 +30,8 @@ export const processSequence = onCall(
     if (!campaignId || !orgId) {
       throw new HttpsError('invalid-argument', 'campaignId et orgId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const userId = request.auth.uid
 
@@ -168,6 +171,18 @@ async function sendMessage(channel, enrollment, step, campaign, orgId) {
   const content = replaceVariables(step.content, prospect, campaign)
   const subject = step.subject ? replaceVariables(step.subject, prospect, campaign) : null
 
+  // Safety gateway pre-check
+  try {
+    const { canSendSafely } = await import('../safety/preSendSafetyGateway.js')
+    const safetyCheck = await canSendSafely(orgId, null, prospect.email, channel)
+    if (!safetyCheck.allowed) {
+      throw new Error(`Safety blocked: ${safetyCheck.reasons.join(', ')}`)
+    }
+  } catch (safetyErr) {
+    if (safetyErr.message?.includes('Safety blocked')) throw safetyErr
+    console.warn('[processSequence] Safety check warning:', safetyErr.message)
+  }
+
   switch (channel) {
     case 'email':
       return sendEmail(prospect.email, subject, content, orgId)
@@ -230,11 +245,18 @@ async function sendEmail(to, subject, body, orgId) {
     },
   })
 
+  // RGPD unsubscribe footer
+  let finalHtml = body
+  try {
+    const { appendUnsubscribeFooter } = await import('../compliance/rgpdEngine.js')
+    finalHtml = appendUnsubscribeFooter(body, to, 'prospects')
+  } catch {}
+
   await transporter.sendMail({
     from: emailConfig.from || process.env.EMAIL_FROM,
     to,
     subject,
-    html: body,
+    html: finalHtml,
   })
 
   return { success: true, channel: 'email' }

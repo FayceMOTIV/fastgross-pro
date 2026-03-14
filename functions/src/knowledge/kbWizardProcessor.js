@@ -6,6 +6,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -84,6 +85,8 @@ export const processKBWizard = onCall(
     if (!orgId || !answers || typeof answers !== 'object') {
       throw new HttpsError('invalid-argument', 'orgId and answers are required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const uid = request.auth.uid
     const sections = Object.entries(answers).filter(([, content]) => content?.trim())

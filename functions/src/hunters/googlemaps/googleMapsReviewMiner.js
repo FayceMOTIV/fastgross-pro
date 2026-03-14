@@ -19,6 +19,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import axios from 'axios'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -117,6 +118,8 @@ export const runGoogleMapsReviewMinerManual = onCall({
     throw new HttpsError('invalid-argument', 'orgId requis')
   }
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   const db = getDb()
   const stats = await runReviewMinerScan(db, orgId, keywords, location, tactics)
 
@@ -136,6 +139,8 @@ export const getGoogleMapsReviewMinerStats = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId requis')
   }
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const prospectsSnap = await db

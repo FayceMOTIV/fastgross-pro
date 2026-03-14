@@ -22,6 +22,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -97,6 +98,8 @@ export const startOnboardingSniper = onCall({
   const { orgId, channel } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   const db = getDb()
 
   // Create or reset onboarding session
@@ -130,6 +133,8 @@ export const answerOnboardingQuestion = onCall({
 
   const { orgId, questionId, answer } = request.data || {}
   if (!orgId || !questionId || !answer) throw new HttpsError('invalid-argument', 'orgId, questionId et answer requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const sessionRef = db.doc(`organizations/${orgId}/alexMemory/onboardingSession`)
@@ -171,6 +176,15 @@ export const answerOnboardingQuestion = onCall({
       completedAt: FieldValue.serverTimestamp(),
     })
 
+    // Trigger product intelligence refresh in background
+    try {
+      const { refreshOrgProductIntel } = await import('./productIntelligence.js')
+      const orgDoc = await db.doc(`organizations/${orgId}`).get()
+      if (orgDoc.exists) {
+        refreshOrgProductIntel(db, orgId, orgDoc.data()).catch(e => logger.warn('Background product intel refresh failed:', e.message))
+      }
+    } catch { /* non-blocking */ }
+
     return {
       success: true,
       complete: true,
@@ -206,6 +220,8 @@ export const getOnboardingStatus = onCall({
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
 
+  await verifyOrgMembership(request.auth.uid, orgId)
+
   const db = getDb()
   const [sessionDoc, profileDoc] = await Promise.all([
     db.doc(`organizations/${orgId}/alexMemory/onboardingSession`).get(),
@@ -230,6 +246,8 @@ export const getBusinessProfile = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const doc = await db.doc(`organizations/${orgId}/alexMemory/businessProfile`).get()
@@ -301,8 +319,7 @@ async function buildBusinessProfile(db, orgId, answers) {
 // ─── Market research via Serper ──────────────────────────────────────
 
 async function researchMarket(product, competitor, idealClient, niche) {
-  const SERPER_API_KEY = process.env.SERPER_API_KEY
-  if (!SERPER_API_KEY) return { competitors: [], sectors: [], insights: '' }
+  const { cachedSerperFetch } = await import('../utils/serperCache.js')
 
   const queries = [
     competitor ? `${competitor} alternatives concurrents` : `${niche} solutions France`,
@@ -312,13 +329,7 @@ async function researchMarket(product, competitor, idealClient, niche) {
   const results = []
   for (const query of queries) {
     try {
-      const response = await fetch('https://google.serper.dev/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-API-KEY': SERPER_API_KEY },
-        body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 5 }),
-        signal: AbortSignal.timeout(10000),
-      })
-      const data = await response.json()
+      const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 5 }, { timeoutMs: 10000 })
       for (const item of (data.organic || []).slice(0, 3)) {
         results.push({ title: item.title, snippet: item.snippet })
       }

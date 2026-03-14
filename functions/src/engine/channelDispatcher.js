@@ -12,6 +12,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { selectOptimalChannel } from './channelRouter.js';
 import { canContactOnChannel, recordTouchpoint } from '../compliance/unifiedOptManager.js';
+import { canAddTouchpoint, recordTouchpoint as recordTouchpointLimit } from './touchpointLimiter.js';
 
 // Channel senders
 import { sendSMS as sendSMSBudget } from '../channels/sms/sender.js';
@@ -108,7 +109,36 @@ export async function dispatchMessage(orgId, prospectId, messageConfig, options 
 
     result.channel = channel;
 
-    // 2. Verifier compliance
+    // 2a. Safety gateway (pre-send check)
+    if (!options.skipSafety) {
+      try {
+        const { canSendSafely } = await import('../safety/preSendSafetyGateway.js');
+        const prospectSnap = await getDb().doc(`organizations/${orgId}/prospects/${prospectId}`).get();
+        const prospectEmail = prospectSnap.exists ? prospectSnap.data()?.email : null;
+        const safetyResult = await canSendSafely(orgId, prospectId, prospectEmail, channel);
+        if (!safetyResult.allowed) {
+          result.error = `Safety blocked: ${safetyResult.reasons.join(', ')}`;
+          result.safetyDetails = safetyResult;
+          await logDispatch(orgId, prospectId, result);
+          return result;
+        }
+      } catch (safetyErr) {
+        console.warn('[Dispatcher] Safety check error (non-blocking):', safetyErr.message);
+      }
+    }
+
+    // 2b. Touchpoint limiter
+    if (!options.skipTouchpoint) {
+      const touchCheck = await canAddTouchpoint(orgId, prospectId, channel);
+      if (!touchCheck.allowed) {
+        result.error = `Touchpoint limit: ${touchCheck.reason}`;
+        result.touchpointDetails = touchCheck;
+        await logDispatch(orgId, prospectId, result);
+        return result;
+      }
+    }
+
+    // 2c. Verifier compliance
     if (!options.skipCompliance) {
       const compliance = await canContactOnChannel(orgId, prospectId, channel);
       if (!compliance.canContact) {
@@ -140,6 +170,8 @@ export async function dispatchMessage(orgId, prospectId, messageConfig, options 
           result.success = true;
           result.channelResponse = sendResult;
           result.duration = Date.now() - startTime;
+          // Record touchpoint after successful send
+          try { await recordTouchpointLimit(orgId, prospectId, channel); } catch {}
           await logDispatch(orgId, prospectId, result);
           return result;
         }
@@ -298,8 +330,25 @@ async function sendEmail(orgId, prospectId, content, options) {
     const { sendEmail: sendEmailRouter } = await import('../email/emailRouter.js');
 
     const text = replaceVariables(content.text || '', prospect, options);
-    const html = replaceVariables(content.html || content.text || '', prospect, options);
+    let html = replaceVariables(content.html || content.text || '', prospect, options);
     const subject = replaceVariables(content.subject || 'Message', prospect, options);
+
+    // Anti-spam content validation
+    try {
+      const { validateEmailContent } = await import('../safety/antiSpamContentGuard.js');
+      await validateEmailContent(subject, html);
+    } catch (contentErr) {
+      if (contentErr.message?.includes('BLOCKED')) {
+        return { success: false, error: `Content blocked: ${contentErr.message}` };
+      }
+      // Warnings are non-blocking
+    }
+
+    // RGPD unsubscribe footer
+    try {
+      const { appendUnsubscribeFooter } = await import('../compliance/rgpdEngine.js');
+      html = appendUnsubscribeFooter(html, prospectId, 'prospects');
+    } catch {}
 
     const result = await sendEmailRouter({
       to: email,

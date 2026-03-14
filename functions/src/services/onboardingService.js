@@ -14,6 +14,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -154,15 +155,7 @@ export const validateSetupStep = onCall(
 
     const db = getDb()
 
-    // Verifier l'acces a l'org
-    const memberDoc = await db
-      .collection('organizations').doc(orgId)
-      .collection('members').doc(request.auth.uid)
-      .get()
-
-    if (!memberDoc.exists) {
-      throw new HttpsError('permission-denied', 'Acces refuse')
-    }
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Valider l'etape
     const validator = STEP_VALIDATORS[step]
@@ -236,15 +229,7 @@ export const completeClientSetup = onCall(
 
     const db = getDb()
 
-    // Verifier l'acces
-    const memberDoc = await db
-      .collection('organizations').doc(orgId)
-      .collection('members').doc(request.auth.uid)
-      .get()
-
-    if (!memberDoc.exists) {
-      throw new HttpsError('permission-denied', 'Acces refuse')
-    }
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Recuperer toutes les etapes sauvegardees
     const stepsSnap = await db
@@ -396,14 +381,7 @@ export const getSetupProgress = onCall(
 
     const db = getDb()
 
-    const memberDoc = await db
-      .collection('organizations').doc(orgId)
-      .collection('members').doc(request.auth.uid)
-      .get()
-
-    if (!memberDoc.exists) {
-      throw new HttpsError('permission-denied', 'Acces refuse')
-    }
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Recuperer la progression
     const stepsSnap = await db

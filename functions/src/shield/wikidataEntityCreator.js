@@ -17,6 +17,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -85,6 +86,8 @@ export const generateWikidataEntity = onCall({
 
   const { orgId, brandName, entityType, companyInfo } = request.data || {}
   if (!orgId || !brandName) throw new HttpsError('invalid-argument', 'orgId et brandName requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
 
@@ -162,6 +165,8 @@ export const getWikidataStats = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const snap = await db.collection(`organizations/${orgId}/wikidataEntities`)

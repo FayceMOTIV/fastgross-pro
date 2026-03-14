@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import axios from 'axios';
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 const META_APP_ID = defineSecret('META_APP_ID');
@@ -36,6 +37,8 @@ export const metaOAuthStart = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non connecte');
 
     const { orgId } = request.data;
+    if (orgId) await verifyOrgMembership(request.auth.uid, orgId);
+
     const state = Buffer.from(JSON.stringify({
       orgId,
       uid: request.auth.uid,
@@ -157,6 +160,8 @@ export const linkedinOAuthStart = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non connecte');
 
     const { orgId } = request.data;
+    if (orgId) await verifyOrgMembership(request.auth.uid, orgId);
+
     const state = Buffer.from(JSON.stringify({
       orgId,
       uid: request.auth.uid,

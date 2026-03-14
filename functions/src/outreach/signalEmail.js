@@ -24,6 +24,10 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { canSendSafely } from '../safety/preSendSafetyGateway.js'
+import { validateEmailContent } from '../safety/antiSpamContentGuard.js'
+import { appendUnsubscribeFooter } from '../compliance/rgpdEngine.js'
 
 const getDb = () => getFirestore()
 
@@ -398,6 +402,7 @@ export const generateSignalEmail = onCall({
   if (!orgId || !prospectId) {
     throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
   }
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const result = await generateEmail(db, orgId, prospectId, signalType, templateId, customVars)
@@ -493,17 +498,36 @@ export async function sendSignalEmail(db, orgId, prospectId, signalType, templat
     return { success: false, error: 'Prospect sans adresse email' }
   }
 
+  // Safety gateway check
+  const safetyResult = await canSendSafely(orgId, prospectId, prospect.email, 'email')
+  if (!safetyResult.allowed) {
+    console.warn(`[SignalEmail] Blocked by safety: ${safetyResult.reasons.join(', ')}`)
+    return { sent: false, reason: safetyResult.reasons.join(', ') }
+  }
+
+  // Touchpoint limiter check
+  const { canAddTouchpoint, recordTouchpoint } = await import('../engine/touchpointLimiter.js')
+  const tpCheck = await canAddTouchpoint(orgId, prospectId, 'email')
+  if (!tpCheck.allowed) {
+    return { skipped: true, reason: tpCheck.reason }
+  }
+
+  await validateEmailContent(emailData.subject, emailData.body)
+
   // Lazy import email router
   const { sendEmail } = await import('../email/emailRouter.js')
+
+  const htmlBody = appendUnsubscribeFooter(formatEmailHtml(emailData.body), prospectId, 'prospects')
 
   await sendEmail({
     to: prospect.email,
     subject: emailData.subject,
-    html: formatEmailHtml(emailData.body),
+    html: htmlBody,
     from: 'Alex <alex@facemedia.app>',
     orgId,
     prospectId
   })
+  await recordTouchpoint(orgId, prospectId, 'email')
 
   // Update prospect status
   await db.collection('organizations').doc(orgId)

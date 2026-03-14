@@ -15,6 +15,7 @@ import { logger } from 'firebase-functions/v2'
 import { getEnabledSources, isDueForRun, SOURCE_REGISTRY } from '../sources/_sourceRegistry.js'
 import { getProspectingConfig } from './sourceConfig.js'
 import { enqueueTask } from '../../queues/taskQueue.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -206,6 +207,8 @@ export const runSourceManual = onCall(
       throw new HttpsError('invalid-argument', 'orgId and sourceId are required')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     const registryEntry = SOURCE_REGISTRY[sourceId]
     if (!registryEntry) {
       throw new HttpsError('invalid-argument', `Unknown source: ${sourceId}`)
@@ -251,6 +254,8 @@ export const getSourceStats = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const orgRef = db.collection('organizations').doc(orgId)

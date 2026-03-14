@@ -21,9 +21,9 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
-const SERPER_URL = 'https://google.serper.dev/search'
 
 // ─── Response styles ─────────────────────────────────────────────────
 
@@ -58,6 +58,7 @@ export const findRedditOpportunities = onCall({
   const { orgId, keywords, subreddits, maxResults } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
   if (!keywords?.length) throw new HttpsError('invalid-argument', 'keywords requis (array)')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const results = await searchRedditPosts(keywords, subreddits, maxResults || 10)
@@ -98,6 +99,7 @@ export const generateRedditDraft = onCall({
 
   const { orgId, postUrl, postTitle, postContent, style, customContext } = request.data || {}
   if (!orgId || !postUrl) throw new HttpsError('invalid-argument', 'orgId et postUrl requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
 
@@ -160,6 +162,7 @@ export const reviewRedditDraft = onCall({
 
   const { orgId, draftId, action, editedContent } = request.data || {}
   if (!orgId || !draftId || !action) throw new HttpsError('invalid-argument', 'orgId, draftId, action requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const validActions = ['approve', 'edit', 'reject']
   if (!validActions.includes(action)) throw new HttpsError('invalid-argument', `Action invalide. Valides: ${validActions.join(', ')}`)
@@ -200,6 +203,7 @@ export const listRedditDrafts = onCall({
 
   const { orgId, status } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   let query = db.collection('organizations').doc(orgId)
@@ -277,12 +281,6 @@ Reponds en JSON :
 // ─── Search Reddit via Serper ────────────────────────────────────────
 
 async function searchRedditPosts(keywords, subreddits, maxResults) {
-  const SERPER_API_KEY = process.env.SERPER_API_KEY
-  if (!SERPER_API_KEY) {
-    logger.warn('SERPER_API_KEY not set')
-    return []
-  }
-
   const results = []
   const seen = new Set()
 
@@ -294,17 +292,8 @@ async function searchRedditPosts(keywords, subreddits, maxResults) {
     const query = `site:reddit.com ${keyword} ${subredditFilter}`.trim()
 
     try {
-      const response = await fetch(SERPER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': SERPER_API_KEY,
-        },
-        body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 10 }),
-        signal: AbortSignal.timeout(10000),
-      })
-
-      const data = await response.json()
+      const { cachedSerperFetch } = await import('../utils/serperCache.js')
+      const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 10 }, { timeoutMs: 10000 })
       for (const item of (data.organic || [])) {
         if (!item.link?.includes('reddit.com')) continue
         if (seen.has(item.link)) continue
@@ -367,3 +356,48 @@ function extractSubreddit(url) {
   const match = url.match(/reddit\.com\/r\/([^/]+)/i)
   return match ? match[1] : null
 }
+
+// ─── Scheduled: expire stale pending_review drafts ──────────────────
+
+import { onSchedule } from 'firebase-functions/v2/scheduler'
+
+export const redditDraftCleanup = onSchedule(
+  {
+    schedule: 'every 1 hours',
+    timeZone: 'Europe/Paris',
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 120,
+  },
+  async () => {
+    const db = getDb()
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000)
+
+    const orgsSnap = await db.collection('organizations').get()
+    let expired = 0
+
+    for (const orgDoc of orgsSnap.docs) {
+      const draftsSnap = await db
+        .collection(`organizations/${orgDoc.id}/redditDrafts`)
+        .where('status', '==', 'pending_review')
+        .where('createdAt', '<=', fourHoursAgo)
+        .limit(50)
+        .get()
+
+      for (const draftDoc of draftsSnap.docs) {
+        const draft = draftDoc.data()
+        await draftDoc.ref.update({
+          status: 'expired',
+          expiredAt: FieldValue.serverTimestamp(),
+          expiredReason: 'Pas de validation dans les 4h — draft expire automatiquement',
+        })
+        expired++
+        logger.info(`[redditDraftCleanup] Expired draft ${draftDoc.id} for org ${orgDoc.id}: ${draft.postTitle || 'N/A'}`)
+      }
+    }
+
+    if (expired > 0) {
+      logger.info(`[redditDraftCleanup] Total expired: ${expired}`)
+    }
+  }
+)

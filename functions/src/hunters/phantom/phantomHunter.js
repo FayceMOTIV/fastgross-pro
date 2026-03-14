@@ -17,6 +17,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../../ai/callAI.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -208,6 +209,8 @@ export const runPhantomScrape = onCall({
   const { orgId, type, phantomId, query, location, targets } = data
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId is required')
   if (!type) throw new HttpsError('invalid-argument', 'type is required (maps, instagram, linkedin)')
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
   const stats = { scraped: 0, qualified: 0, saved: 0 }

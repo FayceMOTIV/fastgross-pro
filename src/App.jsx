@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { OrgProvider, useOrg } from '@/contexts/OrgContext'
@@ -14,6 +14,7 @@ import { OnboardingProvider } from '@/components/OnboardingTour'
 import { TooltipProvider } from '@/components/Tooltip'
 import PageLoader from '@/components/PageLoader'
 import CookieBanner from '@/components/CookieBanner'
+import OnboardingSniperWizard from '@/components/OnboardingSniperWizard'
 
 // Lazy loaded pages - Public
 const Landing = lazy(() => import('@/pages/Landing'))
@@ -178,6 +179,47 @@ function PermissionGuard({ permission, fallback = null, children }) {
   return children
 }
 
+// Business profile check — shows onboarding wizard if no businessProfile exists
+function BusinessProfileCheck({ children }) {
+  const { currentOrg } = useOrg()
+  const { isDemo } = useDemo()
+  const [needsOnboardingSniper, setNeedsOnboardingSniper] = useState(false)
+  const [checked, setChecked] = useState(false)
+
+  useEffect(() => {
+    if (isDemo || !currentOrg?.id) {
+      setChecked(true)
+      return
+    }
+
+    let cancelled = false
+    async function check() {
+      try {
+        const { doc, getDoc } = await import('firebase/firestore')
+        const { db } = await import('@/lib/firebase')
+        const profileDoc = await getDoc(doc(db, `organizations/${currentOrg.id}/alexMemory/businessProfile`))
+        if (!cancelled) {
+          setNeedsOnboardingSniper(!profileDoc.exists())
+          setChecked(true)
+        }
+      } catch {
+        if (!cancelled) setChecked(true)
+      }
+    }
+
+    check()
+    return () => { cancelled = true }
+  }, [currentOrg?.id, isDemo])
+
+  if (!checked) return <PageLoader />
+
+  if (needsOnboardingSniper) {
+    return <OnboardingSniperWizard onComplete={() => setNeedsOnboardingSniper(false)} />
+  }
+
+  return children
+}
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -287,9 +329,11 @@ export default function App() {
                           element={
                             <ProtectedRoute>
                               <OrgGuard>
-                                <OnboardingProvider>
-                                  <Layout />
-                                </OnboardingProvider>
+                                <BusinessProfileCheck>
+                                  <OnboardingProvider>
+                                    <Layout />
+                                  </OnboardingProvider>
+                                </BusinessProfileCheck>
                               </OrgGuard>
                             </ProtectedRoute>
                           }

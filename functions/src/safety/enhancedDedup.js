@@ -12,6 +12,7 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -204,6 +205,8 @@ export const deduplicateOrg = onCall({
 
   const { orgId, dryRun = true } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const prospectsSnap = await db.collection(`organizations/${orgId}/prospects`)

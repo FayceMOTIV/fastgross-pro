@@ -15,6 +15,7 @@
 
 import { getFirestore } from 'firebase-admin/firestore'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -237,6 +238,8 @@ export const preSendSafetyCheck = onCall({
   if (!orgId || !email) {
     throw new HttpsError('invalid-argument', 'orgId et email requis')
   }
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   return canSendSafely(orgId, prospectId || null, email, channel || 'email')
 })

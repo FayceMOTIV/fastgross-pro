@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 import {
   sendWhatsApp as sendWhatsAppInternal,
   markAsRead as markAsReadInternal,
@@ -36,6 +37,7 @@ export const sendWhatsApp = onCall(
     if (!orgId || !prospectId || !messageData) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et messageData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendWhatsAppInternal(orgId, prospectId, messageData, options)
   }
 )
@@ -48,6 +50,7 @@ export const markAsRead = onCall(
     if (!orgId || !messageId) {
       throw new HttpsError('invalid-argument', 'orgId et messageId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return markAsReadInternal(orgId, messageId)
   }
 )
@@ -60,6 +63,7 @@ export const isInSessionWindow = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return isInSessionWindowInternal(orgId, prospectId)
   }
 )
@@ -72,6 +76,7 @@ export const createSession = onCall(
     if (!orgId || !prospectId || !phoneNumber) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et phoneNumber requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createSessionInternal(orgId, prospectId, phoneNumber)
   }
 )
@@ -84,6 +89,7 @@ export const getApprovedTemplate = onCall(
     if (!orgId || !templateName) {
       throw new HttpsError('invalid-argument', 'orgId et templateName requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getApprovedTemplateInternal(orgId, templateName)
   }
 )
@@ -94,6 +100,7 @@ export const syncTemplatesFromMeta = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return syncTemplatesFromMetaInternal(orgId)
   }
 )
@@ -106,6 +113,7 @@ export const submitTemplateForApproval = onCall(
     if (!orgId || !templateData) {
       throw new HttpsError('invalid-argument', 'orgId et templateData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return submitTemplateForApprovalInternal(orgId, templateData)
   }
 )
@@ -118,6 +126,7 @@ export const checkWhatsAppAvailability = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return checkAvailabilityInternal(orgId, prospectId)
   }
 )
@@ -130,6 +139,7 @@ export const checkBatchAvailability = onCall(
     if (!orgId || !prospectIds?.length) {
       throw new HttpsError('invalid-argument', 'orgId et prospectIds requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return checkBatchAvailabilityInternal(orgId, prospectIds)
   }
 )
@@ -144,6 +154,7 @@ export const createWhatsAppInstance = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createInstanceInternal(orgId)
   }
 )
@@ -154,6 +165,7 @@ export const getWhatsAppQRCode = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getQRCodeInternal(orgId)
   }
 )
@@ -164,6 +176,7 @@ export const getWhatsAppConnectionStatus = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getConnectionStatusInternal(orgId)
   }
 )
@@ -174,6 +187,7 @@ export const disconnectWhatsApp = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return disconnectInternal(orgId)
   }
 )

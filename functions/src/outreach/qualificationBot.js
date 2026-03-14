@@ -21,6 +21,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -229,6 +230,7 @@ export const classifyAndRespond = onCall({
   if (!orgId || !prospectId || !replyText) {
     throw new HttpsError('invalid-argument', 'orgId, prospectId et replyText requis')
   }
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const result = await processReply(db, orgId, prospectId, replyText, channel)

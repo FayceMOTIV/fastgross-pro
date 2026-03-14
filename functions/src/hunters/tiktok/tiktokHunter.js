@@ -11,6 +11,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, extractJSON } from '../../ai/callAI.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -230,6 +231,8 @@ export const runTikTokHunterManual = onCall({
   if (!orgId || !hashtag) {
     throw new HttpsError('invalid-argument', 'orgId and hashtag are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   console.log(`🎯 Manual TikTok Hunt: org=${orgId}, hashtag=${hashtag}`)
 
@@ -607,6 +610,8 @@ export const getTikTokHunterStats = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
 

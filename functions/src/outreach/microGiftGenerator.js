@@ -16,6 +16,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -60,6 +61,7 @@ export const generateMicroGift = onCall({
 
   const { orgId, prospectId, giftType, customData } = request.data || {}
   if (!orgId || !prospectId) throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const type = giftType || 'digital_maturity'
   if (!GIFT_TYPES[type]) throw new HttpsError('invalid-argument', `Type invalide. Valides: ${Object.keys(GIFT_TYPES).join(', ')}`)
@@ -117,6 +119,7 @@ export const listMicroGifts = onCall({
 
   const { orgId, prospectId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   let query = db.collection(`organizations/${orgId}/microGifts`)

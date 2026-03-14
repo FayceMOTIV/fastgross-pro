@@ -3,19 +3,13 @@
  */
 
 export async function analyzeGoogleReviews(placeId, businessName) {
-  const apiKey = process.env.SERPER_API_KEY;
-  if (!apiKey || !businessName) return null;
+  if (!businessName) return null;
 
   try {
-    const resp = await fetch('https://google.serper.dev/reviews', {
-      method: 'POST',
-      headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: businessName, gl: 'fr', hl: 'fr', num: 20 }),
-      signal: AbortSignal.timeout(10000),
-    });
+    const { cachedSerperFetch } = await import('../../utils/serperCache.js');
+    const data = await cachedSerperFetch('reviews', { q: businessName, gl: 'fr', hl: 'fr', num: 20 }, { timeoutMs: 10000 });
 
-    if (!resp.ok) return null;
-    const data = await resp.json();
+    if (data.error) return null;
     const reviews = data.reviews || [];
 
     if (reviews.length === 0) return { hasReviews: false, totalReviews: 0 };

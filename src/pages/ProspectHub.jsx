@@ -474,6 +474,14 @@ export default function ProspectHub() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [filters, setFilters] = useState({ search: '', source: '', scoreMin: '', scoreMax: '' })
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768)
+  const [mobileTab, setMobileTab] = useState('nouveau')
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   // Realtime listener
   useEffect(() => {
@@ -606,12 +614,76 @@ export default function ProspectHub() {
         />
       </div>
 
-      {/* Kanban Board */}
+      {/* Board */}
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
         </div>
+      ) : isMobile ? (
+        /* Mobile: status tabs + vertical list */
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex overflow-x-auto border-b border-gray-200 bg-white px-2 gap-1 flex-shrink-0">
+            {PIPELINE_COLUMNS.map(col => {
+              const count = (grouped[col.id] || []).length
+              const style = COLUMN_STYLES[col.color]
+              return (
+                <button
+                  key={col.id}
+                  onClick={() => setMobileTab(col.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    mobileTab === col.id
+                      ? 'border-indigo-500 text-indigo-700'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                  {col.label}
+                  {count > 0 && <span className={`px-1 py-0.5 rounded text-[10px] ${style.badge}`}>{count}</span>}
+                </button>
+              )
+            })}
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {(grouped[mobileTab] || []).length === 0 ? (
+              <div className="text-center py-12 text-gray-300">
+                <Users className="w-8 h-8 mx-auto mb-2" />
+                <p className="text-sm">Aucun prospect</p>
+              </div>
+            ) : (
+              (grouped[mobileTab] || []).map(p => (
+                <div
+                  key={p.id}
+                  onClick={() => setSelected(p)}
+                  className="bg-white rounded-lg border border-gray-200 p-3 cursor-pointer active:bg-gray-50"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-medium text-sm text-gray-900 truncate flex-1">{p.name}</p>
+                    <ScoreBadge score={p.score || 0} />
+                  </div>
+                  <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+                    <Building2 className="w-3 h-3 flex-shrink-0" />
+                    {p.company || 'N/A'}
+                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-1.5">
+                      {p.source && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-600">
+                          {SOURCE_LABELS[p.source] || p.source}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                      <Clock className="w-2.5 h-2.5" />
+                      {formatDate(p.lastActivity || p.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       ) : (
+        /* Desktop: kanban board */
         <div className="flex-1 overflow-x-auto">
           <div className="flex gap-3 p-4 min-w-max h-full">
             {PIPELINE_COLUMNS.map(col => {

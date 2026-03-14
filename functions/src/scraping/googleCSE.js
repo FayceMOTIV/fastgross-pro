@@ -45,30 +45,16 @@ export async function searchProspects(query, options = {}) {
     }
   }
 
+  const { cachedSerperFetch } = await import('../utils/serperCache.js')
   const allResults = []
   const pages = Math.min(Math.ceil(maxResults / 10), 10)
 
   for (let page = 0; page < pages; page++) {
     try {
-      const response = await fetch('https://google.serper.dev/search', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          q: query,
-          gl,
-          hl,
-          num: 10,
-          page: page + 1
-        })
-      })
+      const data = await cachedSerperFetch('search', { q: query, gl, hl, num: 10, page: page + 1 })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        console.error('[Search] Serper API error:', data.message || response.statusText)
+      if (data.error) {
+        console.error('[Search] Serper API error:', data.error)
         break
       }
 

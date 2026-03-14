@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore } from 'firebase-admin/firestore'
 import { calculateAlexMetrics } from '../alex/autoOptimizer.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -22,6 +23,8 @@ export const getAlexAnalytics = onCall(
 
     const { orgId, period = '7d' } = request.data || {}
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId required')
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     try {
       // Charger les metriques calculees

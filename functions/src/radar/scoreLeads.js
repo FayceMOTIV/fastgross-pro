@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI, parseJsonResponse } from '../utils/gemini.js'
 import { checkQuota, incrementUsage } from '../utils/quotas.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -34,6 +35,11 @@ export const scoreLeads = onCall(
     }
 
     const userId = request.auth.uid
+
+    // Verify org membership if orgId provided
+    if (orgId) {
+      await verifyOrgMembership(userId, orgId)
+    }
 
     // Check quota (each lead counts as 1 enrichment)
     const quotaCheck = await checkQuota(userId, 'enrichments', leads.length)

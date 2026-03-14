@@ -9,7 +9,6 @@ import { logger } from 'firebase-functions/v2'
 import { callAI, extractJSON } from '../ai/callAI.js'
 
 const getDb = () => getFirestore()
-const SERPER_API_KEY = process.env.SERPER_API_KEY
 
 // --- Config par defaut ---
 const DEFAULT_ICP = {
@@ -23,31 +22,20 @@ const DEFAULT_ICP = {
 // --- Recherche Google Maps via Serper.dev ---
 
 async function searchGoogleMaps(query, location, limit = 20) {
-  if (!SERPER_API_KEY) {
-    logger.warn('[LeadFactory] SERPER_API_KEY manquante, utilisation mock data')
-    return getMockResults(query, location)
-  }
-
   try {
-    const response = await fetch('https://google.serper.dev/maps', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': SERPER_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: `${query} ${location}`,
-        num: limit,
-        gl: 'fr',
-        hl: 'fr',
-      }),
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
+    const data = await cachedSerperFetch('maps', {
+      q: `${query} ${location}`,
+      num: limit,
+      gl: 'fr',
+      hl: 'fr',
     })
 
-    if (!response.ok) {
-      throw new Error(`Serper API ${response.status}: ${await response.text()}`)
+    if (data.error) {
+      logger.warn(`[LeadFactory] Serper error for "${query} ${location}": ${data.error}`)
+      return getMockResults(query, location)
     }
 
-    const data = await response.json()
     return (data.places || []).map(place => ({
       name: place.title || '',
       address: place.address || '',

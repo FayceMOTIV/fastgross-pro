@@ -13,6 +13,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -45,6 +46,8 @@ export const clarifyICP = onCall(
     if (!userInput?.trim()) {
       throw new HttpsError('invalid-argument', 'Decrivez votre client ideal')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const userId = request.auth.uid
     const maxRounds = 3
@@ -264,6 +267,8 @@ export const generateCampaignStrategy = onCall(
       throw new HttpsError('invalid-argument', 'orgId et campaignId requis')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     try {
       // Read campaign with ICP
       const campaignRef = db
@@ -391,6 +396,8 @@ export const estimateProspects = onCall(
     if (!orgId || !campaignId) {
       throw new HttpsError('invalid-argument', 'orgId et campaignId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     try {
       const campaignDoc = await db

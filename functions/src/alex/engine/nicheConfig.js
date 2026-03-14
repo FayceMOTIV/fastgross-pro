@@ -4,6 +4,7 @@
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { getFirestore } from 'firebase-admin/firestore';
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js';
 
 const getDb = () => getFirestore();
 
@@ -113,6 +114,8 @@ export const updateNicheConfig = onCall(
     const { organizationId, presetKey, customConfig } = request.data;
     if (!organizationId) throw new HttpsError('invalid-argument', 'organizationId requis');
 
+    await verifyOrgMembership(uid, organizationId);
+
     const db = getDb();
 
     let config;
@@ -151,6 +154,8 @@ export const getNicheConfig = onCall(
 
     const { organizationId } = request.data;
     if (!organizationId) throw new HttpsError('invalid-argument', 'organizationId requis');
+
+    await verifyOrgMembership(uid, organizationId);
 
     const db = getDb();
     const doc = await db

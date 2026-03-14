@@ -13,6 +13,7 @@ import { normalizeLeadsBatch } from './leadNormalizer.js'
 import { deduplicateBatch } from './deduplicator.js'
 import { scoreLeadsBatch } from './qualityScorer.js'
 import { promoteToProspect } from './outreachRouter.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -199,6 +200,8 @@ export const runPipelineManual = onCall(
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     const stats = await processUnprocessed(orgId, batchSize || 100)
     return { success: true, stats }
   }
@@ -222,6 +225,8 @@ export const getPipelineFunnelStats = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId is required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
     const orgRef = db.collection('organizations').doc(orgId)

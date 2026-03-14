@@ -14,6 +14,7 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -145,11 +146,11 @@ async function sendIntelReport(db, orgId, orgData) {
 
   if (phone) {
     try {
-      const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js')
-      await sendWhatsAppMessage({
-        to: phone,
-        message: report,
-        organizationId: orgId,
+      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js')
+      await sendWhatsApp(orgId, null, {
+        type: 'text',
+        text: report,
+        phone,
         isNotification: true,
       })
     } catch (e) {
@@ -232,11 +233,11 @@ export const onProspectReplyAlert = onDocumentCreated(
       }
 
       // Send alert
-      const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js')
-      await sendWhatsAppMessage({
-        to: phone,
-        message: alert,
-        organizationId: orgId,
+      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js')
+      await sendWhatsApp(orgId, null, {
+        type: 'text',
+        text: alert,
+        phone,
         isNotification: true,
       })
 
@@ -257,6 +258,8 @@ export const sendAlexConfirmation = onCall({
 
   const { orgId, action, details, count } = request.data || {}
   if (!orgId || !action) throw new HttpsError('invalid-argument', 'orgId et action requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const [orgDoc, prefsDoc] = await Promise.all([
@@ -287,11 +290,11 @@ export const sendAlexConfirmation = onCall({
     message += `\n_Reponds OUI pour confirmer ou NON pour annuler._`
 
     try {
-      const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js')
-      await sendWhatsAppMessage({
-        to: phone,
-        message,
-        organizationId: orgId,
+      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js')
+      await sendWhatsApp(orgId, null, {
+        type: 'text',
+        text: message,
+        phone,
         isNotification: true,
       })
     } catch (e) {
@@ -311,6 +314,8 @@ export const getIntelReports = onCall({
 
   const { orgId, limit: lim } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const snap = await db.collection(`organizations/${orgId}/alexReports`)

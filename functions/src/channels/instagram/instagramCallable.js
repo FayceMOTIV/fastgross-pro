@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 import {
   sendInstagramDM as sendDMInternal,
   sendPrivateReply as sendReplyInternal,
@@ -21,6 +22,7 @@ export const sendInstagramDM = onCall(
     if (!orgId || !prospectId || !message) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId et message requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendDMInternal(orgId, prospectId, message, options)
   }
 )
@@ -33,6 +35,7 @@ export const sendPrivateReply = onCall(
     if (!orgId || !commentId || !message) {
       throw new HttpsError('invalid-argument', 'orgId, commentId et message requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendReplyInternal(orgId, commentId, message, options)
   }
 )
@@ -45,6 +48,7 @@ export const processCommentTrigger = onCall(
     if (!orgId || !commentId || !text) {
       throw new HttpsError('invalid-argument', 'orgId, commentId et text requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return processCommentTriggerInternal(orgId, commentId, text, from, media)
   }
 )
@@ -57,6 +61,7 @@ export const createCommentTrigger = onCall(
     if (!orgId || !triggerData) {
       throw new HttpsError('invalid-argument', 'orgId et triggerData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createCommentTriggerInternal(orgId, triggerData)
   }
 )

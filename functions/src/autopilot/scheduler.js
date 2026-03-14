@@ -7,6 +7,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import * as cheerio from 'cheerio'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -197,12 +198,6 @@ async function getActiveAutopilotOrgs() {
  */
 async function searchProspects(config, orgId) {
   const db = getDb()
-  const apiKey = process.env.SERPER_API_KEY
-
-  if (!apiKey) {
-    console.log(`Org ${orgId}: SERPER_API_KEY manquante, skip recherche`)
-    return []
-  }
 
   const results = []
   const seenDomains = new Set()
@@ -229,28 +224,16 @@ async function searchProspects(config, orgId) {
     }
   }
 
+  const { cachedSerperFetch } = await import('../utils/serperCache.js')
+
   for (const { query, niche } of searchQueries) {
     console.log(`[${orgId}] Serper search [${niche}]: "${query}"`)
 
     try {
-      const response = await fetch('https://google.serper.dev/search', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          q: query,
-          gl: 'fr',
-          hl: 'fr',
-          num: 10
-        })
-      })
+      const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 10 })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        console.warn('Serper API error:', data.message || response.statusText)
+      if (data.error) {
+        console.warn('Serper API error:', data.error)
         continue
       }
 
@@ -749,6 +732,8 @@ export const runAutoPilotManual = onCall(
     }
 
     const { orgId } = request.data
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     // Verifier que l'user est admin de l'org
     const memberDoc = await db

@@ -9,6 +9,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
 import { sendNotification } from '../notifications/notificationSender.js'
 import { NOTIFICATION_TYPES } from '../notifications/notificationTemplates.js'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -53,6 +54,11 @@ export const transferLeadToClient = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId and prospectId are required')
     }
+
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Auth requis')
+    }
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 

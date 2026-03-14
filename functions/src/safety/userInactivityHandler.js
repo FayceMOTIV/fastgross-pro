@@ -11,6 +11,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -206,8 +207,8 @@ async function sendInactivityAlert(db, orgId, orgData, alertType, details) {
   // Envoyer via WhatsApp si numero disponible
   if (ownerPhone) {
     try {
-      const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js')
-      await sendWhatsAppMessage(orgId, null, {
+      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js')
+      await sendWhatsApp(orgId, null, {
         type: 'text',
         text: `[Alex] ${message}`,
         phone: ownerPhone,
@@ -232,6 +233,8 @@ export const getUserActivityStatus = onCall({
 
   const { orgId } = request.data || {}
   if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const db = getDb()
   const orgDoc = await db.doc(`organizations/${orgId}`).get()

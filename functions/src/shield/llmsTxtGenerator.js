@@ -16,6 +16,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -30,6 +31,8 @@ export const generateLlmsTxt = onCall({
 
   const { orgId, domain, companyName, customInfo } = request.data || {}
   if (!orgId || !domain) throw new HttpsError('invalid-argument', 'orgId et domain requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
 
   const result = await generateLlmsContent(domain, companyName, customInfo)
 

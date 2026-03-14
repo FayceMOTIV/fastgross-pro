@@ -12,6 +12,7 @@ import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
 import { callAI, extractJSON } from '../../ai/callAI.js'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -191,6 +192,8 @@ export const runInstagramHunterManual = onCall({
   if (!orgId || !hashtag) {
     throw new HttpsError('invalid-argument', 'orgId and hashtag are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   console.log(`🎯 Manual Instagram Hunt: org=${orgId}, hashtag=${hashtag}`)
 
@@ -549,6 +552,8 @@ export const runAdvancedInstagramScrape = onCall({
   if (!orgId || !type || !target) {
     throw new HttpsError('invalid-argument', 'orgId, type and target are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const validTypes = ['followers', 'likers', 'commenters']
   if (!validTypes.includes(type)) {
@@ -974,6 +979,8 @@ export const getHunterStats = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
 

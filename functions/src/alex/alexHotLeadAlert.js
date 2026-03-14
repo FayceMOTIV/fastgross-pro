@@ -48,11 +48,11 @@ export const alertHotLead = onDocumentUpdated(
 
     // Envoyer la notification WhatsApp
     try {
-      const { sendWhatsAppMessage } = await import('../channels/whatsapp/sender.js');
-      await sendWhatsAppMessage({
-        to: prefs.userWhatsApp,
-        message: alertMessage,
-        organizationId: orgId,
+      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js');
+      await sendWhatsApp(orgId, null, {
+        type: 'text',
+        text: alertMessage,
+        phone: prefs.userWhatsApp,
         isNotification: true,
       });
       console.log(`[Alex Alert] Alerte envoyee pour prospect ${after.companyName || event.params.prospectId}`);

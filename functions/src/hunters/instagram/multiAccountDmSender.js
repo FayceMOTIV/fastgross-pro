@@ -19,6 +19,7 @@ import { ALLOWED_ORIGINS } from '../../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { spawn } from 'child_process'
 import * as crypto from 'crypto'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -591,6 +592,8 @@ export const addInstagramAccount = onCall({
     throw new HttpsError('invalid-argument', 'orgId, username, and password are required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   try {
     const db = getDb()
 
@@ -718,6 +721,8 @@ export const removeInstagramAccount = onCall({
     throw new HttpsError('invalid-argument', 'orgId and accountId are required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   try {
     const db = getDb()
 
@@ -753,6 +758,8 @@ export const listInstagramAccounts = onCall({
   if (!orgId) {
     throw new HttpsError('invalid-argument', 'orgId is required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   try {
     const db = getDb()
@@ -814,6 +821,8 @@ export const updateAccountStatus = onCall({
   if (!orgId || !accountId || !status) {
     throw new HttpsError('invalid-argument', 'orgId, accountId, and status are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const validStatuses = ['active', 'paused', 'warming_up', 'rate_limited', 'banned']
   if (!validStatuses.includes(status)) {

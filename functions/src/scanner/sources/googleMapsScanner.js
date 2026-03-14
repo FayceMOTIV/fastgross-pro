@@ -7,8 +7,6 @@
  * Cout: utilise le quota Serper existant (2500 free/mois)
  */
 
-const SERPER_API_KEY = process.env.SERPER_API_KEY || '';
-
 /**
  * Recherche sur Google Maps via Serper.dev
  *
@@ -28,17 +26,14 @@ export async function scanGoogleMaps(params = {}) {
     maxResults = 20,
   } = params;
 
-  if (!SERPER_API_KEY) {
-    console.warn('[GoogleMapsScanner] SERPER_API_KEY non configure');
-    return [];
-  }
-
   const searchTerms = keywords.length > 0 ? keywords : (keyword ? [keyword] : []);
 
   if (searchTerms.length === 0) {
     console.warn('[GoogleMapsScanner] Aucun mot-cle fourni');
     return [];
   }
+
+  const { cachedSerperFetch } = await import('../../utils/serperCache.js');
 
   const allPlaces = [];
   const seen = new Set();
@@ -49,27 +44,18 @@ export async function scanGoogleMaps(params = {}) {
       const query = `${term} ${location}`.trim();
       console.log(`[GoogleMapsScanner] Serper Maps: "${query}"`);
 
-      const response = await fetch('https://google.serper.dev/maps', {
-        method: 'POST',
-        headers: {
-          'X-API-KEY': SERPER_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          q: query,
-          num: Math.min(maxResults, 20),
-          gl: 'fr',
-          hl: 'fr',
-        }),
-        signal: AbortSignal.timeout(15000),
-      });
+      const data = await cachedSerperFetch('maps', {
+        q: query,
+        num: Math.min(maxResults, 20),
+        gl: 'fr',
+        hl: 'fr',
+      }, { timeoutMs: 15000 });
 
-      if (!response.ok) {
-        console.error(`[GoogleMapsScanner] Serper HTTP ${response.status}`);
+      if (data.error) {
+        console.error(`[GoogleMapsScanner] Serper error: ${data.error}`);
         continue;
       }
 
-      const data = await response.json();
       const places = data.places || [];
 
       for (const place of places) {

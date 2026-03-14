@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { ALLOWED_ORIGINS } from '../utils/corsConfig.js'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -108,6 +109,8 @@ export const indexKBDocument = onCall({
     throw new HttpsError('invalid-argument', 'Either text or url is required')
   }
 
+  await verifyOrgMembership(auth.uid, orgId)
+
   try {
     // Get content
     let content = text || ''
@@ -190,6 +193,8 @@ export const deleteKBDocument = onCall({
   if (!orgId || !docId) {
     throw new HttpsError('invalid-argument', 'orgId and docId are required')
   }
+
+  await verifyOrgMembership(auth.uid, orgId)
 
   const db = getDb()
   const kbRef = db.collection('organizations').doc(orgId).collection('kb')

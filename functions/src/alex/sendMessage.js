@@ -7,6 +7,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -283,6 +284,8 @@ export const sendManualMessage = onCall(
     if (!orgId || !prospectId || !channel || !message || !to) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId, channel, message, to are required')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const result = await sendMessage({
       orgId,

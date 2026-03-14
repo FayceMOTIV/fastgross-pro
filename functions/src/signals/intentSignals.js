@@ -145,22 +145,15 @@ async function fetchBODACCEvents(siren) {
 }
 
 async function fetchActiveJobs(nom, naf) {
-  const serperKey = process.env.SERPER_API_KEY
-  if (!serperKey || !nom) return []
+  if (!nom) return []
 
   try {
+    const { cachedSerperFetch } = await import('../utils/serperCache.js')
     const query = `"${nom}" site:indeed.fr OR site:welcometothejungle.com OR site:linkedin.com/jobs`
 
-    const res = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: query, gl: 'fr', hl: 'fr', num: 10, tbs: 'qdr:m' }),
-      signal: AbortSignal.timeout(7000),
-    })
+    const data = await cachedSerperFetch('search', { q: query, gl: 'fr', hl: 'fr', num: 10, tbs: 'qdr:m' }, { timeoutMs: 7000 })
+    if (data.error) return []
 
-    if (!res.ok) return []
-
-    const data = await res.json()
     const results = data.organic || []
 
     const offres = results.filter(r =>

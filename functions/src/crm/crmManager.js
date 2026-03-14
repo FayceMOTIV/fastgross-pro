@@ -11,6 +11,7 @@
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 const getDb = () => getFirestore()
 
@@ -57,6 +58,8 @@ export const getProspectsPage = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     if (pageSize < 1 || pageSize > 100) {
       throw new HttpsError('invalid-argument', 'pageSize doit etre entre 1 et 100')
@@ -173,6 +176,8 @@ export const moveProspect = onCall(
       throw new HttpsError('invalid-argument', 'orgId, prospectId et toColumn requis')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     if (!VALID_COLUMNS.includes(toColumn)) {
       throw new HttpsError('invalid-argument', `Colonne invalide: ${toColumn}. Valeurs acceptees: ${VALID_COLUMNS.join(', ')}`)
     }
@@ -256,6 +261,8 @@ export const addInternalNote = onCall(
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
 
+    await verifyOrgMembership(request.auth.uid, orgId)
+
     if (!content || content.trim().length === 0) {
       throw new HttpsError('invalid-argument', 'Le contenu de la note ne peut pas etre vide')
     }
@@ -325,6 +332,8 @@ export const sendManualMessage = onCall(
     if (!orgId || !prospectId || !channel || !content) {
       throw new HttpsError('invalid-argument', 'orgId, prospectId, channel et content requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     if (!VALID_CHANNELS.includes(channel)) {
       throw new HttpsError('invalid-argument', `Canal invalide: ${channel}. Valeurs acceptees: ${VALID_CHANNELS.join(', ')}`)
@@ -430,6 +439,8 @@ export const exportProspectsCSV = onCall(
     if (!orgId) {
       throw new HttpsError('invalid-argument', 'orgId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     const db = getDb()
 
@@ -547,6 +558,8 @@ export const deleteProspectGDPR = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+
+    await verifyOrgMembership(request.auth.uid, orgId)
 
     if (!reason || reason.trim().length === 0) {
       throw new HttpsError('invalid-argument', 'Une raison de suppression est requise pour la conformite RGPD')

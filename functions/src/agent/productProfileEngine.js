@@ -12,6 +12,7 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import { onCall } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
 
 // Cache in-memory par orgId { [orgId]: { data, expiresAt } }
 const profileCache = new Map()
@@ -199,6 +200,8 @@ export const updateProductProfile = onCall({
   if (!uid) throw new Error('Non authentifie')
   if (!orgId || !profile) throw new Error('orgId et profile requis')
 
+  await verifyOrgMembership(uid, orgId)
+
   await saveProductProfile(orgId, profile)
   return { success: true }
 })
@@ -210,6 +213,8 @@ export const getProductProfileCallable = onCall({
   const { orgId } = request.data
   const uid = request.auth?.uid
   if (!uid) throw new Error('Non authentifie')
+
+  if (orgId) await verifyOrgMembership(uid, orgId)
 
   const profile = await getProductProfile(orgId)
   return { profile }

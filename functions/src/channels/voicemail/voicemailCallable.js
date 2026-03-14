@@ -4,6 +4,7 @@
  */
 
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { verifyOrgMembership } from '../../utils/verifyOrgMembership.js'
 import {
   sendVoicemailDrop as sendDropInternal,
   getDropStatus as getDropStatusInternal,
@@ -35,6 +36,7 @@ export const sendVoicemailDrop = onCall(
     if (!orgId || !prospectId) {
       throw new HttpsError('invalid-argument', 'orgId et prospectId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return sendDropInternal(orgId, prospectId, options)
   }
 )
@@ -47,6 +49,7 @@ export const getDropStatus = onCall(
     if (!orgId || !dropId) {
       throw new HttpsError('invalid-argument', 'orgId et dropId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getDropStatusInternal(orgId, dropId)
   }
 )
@@ -59,6 +62,7 @@ export const cancelDrop = onCall(
     if (!orgId || !dropId) {
       throw new HttpsError('invalid-argument', 'orgId et dropId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return cancelDropInternal(orgId, dropId)
   }
 )
@@ -75,6 +79,7 @@ export const createVoiceClone = onCall(
     if (!orgId || !audioData) {
       throw new HttpsError('invalid-argument', 'orgId et audioData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createCloneInternal(orgId, audioData, metadata)
   }
 )
@@ -85,6 +90,7 @@ export const listVoices = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return listVoicesInternal(orgId)
   }
 )
@@ -97,6 +103,7 @@ export const getVoice = onCall(
     if (!orgId || !voiceId) {
       throw new HttpsError('invalid-argument', 'orgId et voiceId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return getVoiceInternal(orgId, voiceId)
   }
 )
@@ -109,6 +116,7 @@ export const deleteVoice = onCall(
     if (!orgId || !voiceId) {
       throw new HttpsError('invalid-argument', 'orgId et voiceId requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return deleteVoiceInternal(orgId, voiceId)
   }
 )
@@ -121,6 +129,7 @@ export const previewTTS = onCall(
     if (!orgId || !voiceId || !text) {
       throw new HttpsError('invalid-argument', 'orgId, voiceId et text requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return previewTTSInternal(orgId, voiceId, text)
   }
 )
@@ -137,6 +146,7 @@ export const generateScript = onCall(
     if (!orgId || !templateId || !prospect) {
       throw new HttpsError('invalid-argument', 'orgId, templateId et prospect requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return generateScriptInternal(orgId, templateId, prospect, customVariables)
   }
 )
@@ -149,6 +159,7 @@ export const generateScriptWithAI = onCall(
     if (!orgId || !context) {
       throw new HttpsError('invalid-argument', 'orgId et context requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return generateScriptWithAIInternal(orgId, context)
   }
 )
@@ -161,6 +172,7 @@ export const createScriptTemplate = onCall(
     if (!orgId || !templateData) {
       throw new HttpsError('invalid-argument', 'orgId et templateData requis')
     }
+    await verifyOrgMembership(request.auth.uid, orgId)
     return createScriptTemplateInternal(orgId, templateData)
   }
 )
@@ -171,6 +183,7 @@ export const listScriptTemplates = onCall(
     if (!request.auth) throw new HttpsError('unauthenticated', 'Non autorise')
     const { orgId, category } = request.data
     if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+    await verifyOrgMembership(request.auth.uid, orgId)
     return listScriptTemplatesInternal(orgId, category)
   }
 )
