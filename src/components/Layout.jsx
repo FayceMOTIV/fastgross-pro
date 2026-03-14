@@ -10,7 +10,6 @@ import NotificationPanel from '@/components/NotificationPanel'
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import {
-  LayoutDashboard,
   MessageSquare,
   Settings,
   LogOut,
@@ -28,28 +27,15 @@ import {
   User,
   Eye,
   Users,
-  Send,
-  Rocket,
-  Wand2,
-  Kanban,
-  Compass,
-  Crosshair,
-  Gauge,
-  BadgeDollarSign,
+  Bot,
 } from 'lucide-react'
 
-// v5.0 Navigation — 9 items max
+// Navigation — Alex au centre, chaque item a sa couleur
 const navItems = [
-  { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/app/sourcing', icon: Compass, label: 'Sourcing' },
-  { to: '/app/tools', icon: Wand2, label: 'Outils IA' },
-  { to: '/app/crm', icon: Kanban, label: 'CRM' },
-  { to: '/app/outreach', icon: Send, label: 'Outreach' },
-  { to: '/app/inbox', icon: MessageSquare, label: 'Inbox' },
-  { to: '/app/intent-hunter', icon: Crosshair, label: 'Intent Hunter' },
-  { to: '/app/social-omniscient', icon: Rocket, label: 'Social Omniscient' },
-  { to: '/app/roi', icon: Gauge, label: 'ROI' },
-  { to: '/app/performance', icon: BarChart3, label: 'Performance' },
+  { to: '/app', icon: Bot, label: 'Alex', end: true, color: 'indigo', activeBg: 'bg-indigo-50', activeText: 'text-indigo-600', activeBorder: 'border-indigo-500', iconBg: 'bg-indigo-100' },
+  { to: '/app/crm', icon: Users, label: 'Prospects', color: 'emerald', activeBg: 'bg-emerald-50', activeText: 'text-emerald-600', activeBorder: 'border-emerald-500', iconBg: 'bg-emerald-100' },
+  { to: '/app/inbox', icon: MessageSquare, label: 'Inbox', color: 'purple', activeBg: 'bg-purple-50', activeText: 'text-purple-600', activeBorder: 'border-purple-500', iconBg: 'bg-purple-100' },
+  { to: '/app/performance', icon: BarChart3, label: 'Analytics', color: 'amber', activeBg: 'bg-amber-50', activeText: 'text-amber-600', activeBorder: 'border-amber-500', iconBg: 'bg-amber-100' },
 ]
 
 // Role icons
@@ -63,7 +49,7 @@ const roleIcons = {
 
 // Page titles for top bar
 const pageTitles = {
-  '/app': 'Dashboard',
+  '/app': 'Alex',
   '/app/autopilot': 'AutoPilot',
   '/app/sourcing': 'Sourcing',
   '/app/tools': 'Outils IA',
@@ -204,17 +190,17 @@ export default function Layout() {
         `}
       >
         {/* Logo */}
-        <div className="p-5 border-b border-accent/5">
+        <div className="p-5 border-b border-accent/5 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-accent flex items-center justify-center shadow-accent-glow">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
                 <Zap className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="font-display font-bold text-text text-lg leading-none">
+                <h1 className="font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 text-lg leading-none">
                   Face Media
                 </h1>
-                <span className="text-xs text-accent font-medium">Factory</span>
+                <span className="text-xs text-purple-500 font-semibold tracking-wide">Factory</span>
               </div>
             </div>
             <button
@@ -308,36 +294,8 @@ export default function Layout() {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {/* AutoPilot Section - Premium */}
-          <div className="mb-4 p-3 rounded-xl bg-gradient-to-br from-purple-500/10 via-indigo-500/10 to-cyan-500/10 border border-purple-500/20">
-            <p className="px-1 pb-2 text-[10px] font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Rocket className="w-3 h-3" />
-              AutoPilot AI
-            </p>
-            <NavLink
-              to="/app/autopilot"
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/10'
-                    : 'text-purple-300/70 hover:text-purple-300 hover:bg-purple-500/10'
-                }`
-              }
-            >
-              <Rocket className="w-5 h-5 animate-pulse" />
-              <span className="flex-1">AutoPilot</span>
-              <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded shadow-lg shadow-purple-500/30">
-                AI
-              </span>
-            </NavLink>
-          </div>
-
-          <p className="px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-            Menu principal
-          </p>
-          {navItems.map(({ to, icon: Icon, label, end }) => (
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+          {navItems.map(({ to, icon: Icon, label, end, activeBg, activeText, activeBorder, iconBg }) => (
             <NavLink
               key={to}
               to={to}
@@ -346,13 +304,20 @@ export default function Layout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-accent/10 text-accent border-l-2 border-accent'
+                    ? `${activeBg} ${activeText} border-l-3 ${activeBorder} shadow-sm`
                     : 'text-text-secondary hover:text-text hover:bg-surface-hover'
                 }`
               }
             >
-              <Icon className="w-5 h-5" />
-              <span className="flex-1">{label}</span>
+              {({ isActive }) => (
+                <>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isActive ? iconBg : 'bg-transparent'}`}>
+                    <Icon className="w-4.5 h-4.5" />
+                  </div>
+                  <span className="flex-1">{label}</span>
+                  {isActive && <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -372,22 +337,6 @@ export default function Layout() {
           >
             <Settings className="w-5 h-5" />
             <span>Configuration</span>
-          </NavLink>
-
-          {/* Reseller link */}
-          <NavLink
-            to="/app/reseller"
-            onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? 'bg-emerald-50 text-emerald-600'
-                  : 'text-text-secondary hover:text-text hover:bg-surface-hover'
-              }`
-            }
-          >
-            <BadgeDollarSign className="w-5 h-5" />
-            <span>Revendeur</span>
           </NavLink>
 
           {/* Admin links - only for super admins */}
@@ -424,7 +373,7 @@ export default function Layout() {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-surface-hover transition-colors"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-accent flex items-center justify-center text-sm font-bold text-white shadow-accent-glow">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-purple-500/20">
                 {initials}
               </div>
               <div className="flex-1 min-w-0 text-left">
@@ -488,7 +437,7 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-accent/5 bg-white/80 backdrop-blur-xl">
+        <header className="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-accent/5 bg-white/90 backdrop-blur-xl">
           {/* Left: Mobile menu + Page title */}
           <div className="flex items-center gap-4">
             <button

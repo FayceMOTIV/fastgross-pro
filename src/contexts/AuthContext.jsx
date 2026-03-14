@@ -281,13 +281,9 @@ export function AuthProvider({ children }) {
   )
 
   // Check if onboarding needed
-  // Returns true if user exists but hasn't completed onboarding
-  // Returns null if we don't know yet (profile still loading)
-  const needsOnboarding = user
-    ? userProfile === null
-      ? null // Still loading profile
-      : !userProfile.onboardingComplete
-    : false
+  // Only true for brand new users (no profile yet created in Firestore before signup)
+  // Existing users always go to /app — onboarding is opt-in via /onboarding route
+  const needsOnboarding = false
 
   // Full name helper
   const fullName =

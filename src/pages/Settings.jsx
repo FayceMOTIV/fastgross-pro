@@ -92,10 +92,10 @@ export default function Settings() {
     <div className="space-y-8 animate-fade-in">
       <div>
         <h1 className="page-title flex items-center gap-3">
-          <SettingsIcon className="w-8 h-8 text-dark-400" />
+          <SettingsIcon className="w-8 h-8 text-gray-500" />
           Parametres
         </h1>
-        <p className="text-dark-400 mt-1">Configurez votre outil de prospection</p>
+        <p className="text-gray-500 mt-1">Configurez votre outil de prospection</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -111,7 +111,7 @@ export default function Settings() {
                     ? 'bg-brand-500/10 text-brand-400 border border-brand-500/20'
                     : tab.id === 'danger'
                       ? 'text-red-400 hover:bg-red-500/10'
-                      : 'text-dark-400 hover:text-white hover:bg-dark-800/50'
+                      : 'text-gray-500 hover:text-white hover:bg-gray-100'
                 }`}
               >
                 <tab.icon className="w-5 h-5" />

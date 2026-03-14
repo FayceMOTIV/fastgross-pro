@@ -60,20 +60,20 @@ export default function NotificationsSettings({ saving, setSaving }) {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium text-white">Notifications par email</h3>
-            <p className="text-sm text-dark-400 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               Recevoir les notifications sur {user?.email}
             </p>
           </div>
           <button
             onClick={() => setEmailNotifications(!emailNotifications)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              emailNotifications ? 'bg-brand-500' : 'bg-dark-700'
+              emailNotifications ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {emailNotifications ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
@@ -82,81 +82,81 @@ export default function NotificationsSettings({ saving, setSaving }) {
       {emailNotifications && (
         <div className="space-y-3 ml-4">
           {/* Notify on reply */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
             <div>
               <p className="text-sm font-medium text-white">Nouvelles reponses</p>
-              <p className="text-xs text-dark-500">Quand un prospect repond a votre email</p>
+              <p className="text-xs text-gray-400">Quand un prospect repond a votre email</p>
             </div>
             <button
               onClick={() => setNotifyOnReply(!notifyOnReply)}
               className={`p-0.5 rounded-full transition-colors ${
-                notifyOnReply ? 'bg-brand-500' : 'bg-dark-700'
+                notifyOnReply ? 'bg-brand-500' : 'bg-gray-200'
               }`}
             >
               {notifyOnReply ? (
                 <ToggleRight className="w-6 h-6 text-white" />
               ) : (
-                <ToggleLeft className="w-6 h-6 text-dark-400" />
+                <ToggleLeft className="w-6 h-6 text-gray-500" />
               )}
             </button>
           </div>
 
           {/* Notify on open */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
             <div>
               <p className="text-sm font-medium text-white">Ouvertures d'email</p>
-              <p className="text-xs text-dark-500">Quand un prospect ouvre votre email</p>
+              <p className="text-xs text-gray-400">Quand un prospect ouvre votre email</p>
             </div>
             <button
               onClick={() => setNotifyOnOpen(!notifyOnOpen)}
               className={`p-0.5 rounded-full transition-colors ${
-                notifyOnOpen ? 'bg-brand-500' : 'bg-dark-700'
+                notifyOnOpen ? 'bg-brand-500' : 'bg-gray-200'
               }`}
             >
               {notifyOnOpen ? (
                 <ToggleRight className="w-6 h-6 text-white" />
               ) : (
-                <ToggleLeft className="w-6 h-6 text-dark-400" />
+                <ToggleLeft className="w-6 h-6 text-gray-500" />
               )}
             </button>
           </div>
 
           {/* Daily digest */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
             <div>
               <p className="text-sm font-medium text-white">Resume quotidien</p>
-              <p className="text-xs text-dark-500">Recap de la journee chaque soir a 18h</p>
+              <p className="text-xs text-gray-400">Recap de la journee chaque soir a 18h</p>
             </div>
             <button
               onClick={() => setNotifyDailyDigest(!notifyDailyDigest)}
               className={`p-0.5 rounded-full transition-colors ${
-                notifyDailyDigest ? 'bg-brand-500' : 'bg-dark-700'
+                notifyDailyDigest ? 'bg-brand-500' : 'bg-gray-200'
               }`}
             >
               {notifyDailyDigest ? (
                 <ToggleRight className="w-6 h-6 text-white" />
               ) : (
-                <ToggleLeft className="w-6 h-6 text-dark-400" />
+                <ToggleLeft className="w-6 h-6 text-gray-500" />
               )}
             </button>
           </div>
 
           {/* Weekly report */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-dark-900/50">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
             <div>
               <p className="text-sm font-medium text-white">Rapport hebdomadaire</p>
-              <p className="text-xs text-dark-500">Statistiques de la semaine chaque lundi</p>
+              <p className="text-xs text-gray-400">Statistiques de la semaine chaque lundi</p>
             </div>
             <button
               onClick={() => setNotifyWeeklyReport(!notifyWeeklyReport)}
               className={`p-0.5 rounded-full transition-colors ${
-                notifyWeeklyReport ? 'bg-brand-500' : 'bg-dark-700'
+                notifyWeeklyReport ? 'bg-brand-500' : 'bg-gray-200'
               }`}
             >
               {notifyWeeklyReport ? (
                 <ToggleRight className="w-6 h-6 text-white" />
               ) : (
-                <ToggleLeft className="w-6 h-6 text-dark-400" />
+                <ToggleLeft className="w-6 h-6 text-gray-500" />
               )}
             </button>
           </div>

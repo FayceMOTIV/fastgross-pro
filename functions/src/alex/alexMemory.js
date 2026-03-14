@@ -36,9 +36,13 @@ export async function loadUserContext(organizationId, userId) {
   };
 }
 
-export async function loadConversationHistory(organizationId, limit = 20) {
+export async function loadConversationHistory(organizationId, limit = 20, threadId = null) {
   const db = getDb();
-  const snapshot = await db.collection(`organizations/${organizationId}/alexConversations`)
+  let q = db.collection(`organizations/${organizationId}/alexConversations`);
+  if (threadId) {
+    q = q.where('threadId', '==', threadId);
+  }
+  const snapshot = await q
     .orderBy('timestamp', 'desc')
     .limit(limit)
     .get();

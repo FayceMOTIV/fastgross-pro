@@ -124,7 +124,7 @@ export default function Interactions() {
       {/* Header */}
       <div>
         <h1 className="page-title">Interactions</h1>
-        <p className="text-dark-400 mt-1">
+        <p className="text-gray-500 mt-1">
           Historique de toutes les interactions avec vos prospects
         </p>
       </div>
@@ -134,28 +134,28 @@ export default function Interactions() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageSquare className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Total</span>
+            <span className="text-xs text-gray-500">Total</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.total}</p>
         </div>
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <ArrowUpRight className="w-4 h-4 text-blue-400" />
-            <span className="text-xs text-dark-400">Sortants</span>
+            <span className="text-xs text-gray-500">Sortants</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.outbound}</p>
         </div>
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <ArrowDownLeft className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-dark-400">Entrants</span>
+            <span className="text-xs text-gray-500">Entrants</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.inbound}</p>
         </div>
         <div className="glass-card p-4 border-brand-500/20">
           <div className="flex items-center gap-2 mb-2">
             <Reply className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Reponses</span>
+            <span className="text-xs text-gray-500">Reponses</span>
           </div>
           <p className="text-2xl font-bold text-brand-400">{stats.replies}</p>
         </div>
@@ -166,7 +166,7 @@ export default function Interactions() {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Rechercher par prospect, entreprise, contenu..."
@@ -178,7 +178,7 @@ export default function Interactions() {
 
           {/* Channel filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-dark-500" />
+            <Filter className="w-4 h-4 text-gray-400" />
             <select
               value={channelFilter}
               onChange={(e) => setChannelFilter(e.target.value)}
@@ -225,7 +225,7 @@ export default function Interactions() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.03 }}
-              className={`p-4 hover:bg-dark-800/30 transition-colors ${
+              className={`p-4 hover:bg-gray-100/30 transition-colors ${
                 isReply ? 'bg-brand-500/5' : ''
               }`}
             >
@@ -239,7 +239,7 @@ export default function Interactions() {
                         ? 'bg-blue-500/10 border border-blue-500/20'
                         : interaction.direction === 'track'
                           ? 'bg-amber-500/10 border border-amber-500/20'
-                          : 'bg-dark-800 border border-dark-700'
+                          : 'bg-gray-100 border border-gray-300'
                   }`}
                 >
                   <TypeIcon
@@ -250,7 +250,7 @@ export default function Interactions() {
                           ? 'text-blue-400'
                           : interaction.direction === 'track'
                             ? 'text-amber-400'
-                            : 'text-dark-400'
+                            : 'text-gray-500'
                     }`}
                   />
                 </div>
@@ -260,24 +260,24 @@ export default function Interactions() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-medium text-white">{interaction.prospectName}</span>
                     {interaction.prospectCompany && (
-                      <span className="text-sm text-dark-400">• {interaction.prospectCompany}</span>
+                      <span className="text-sm text-gray-500">• {interaction.prospectCompany}</span>
                     )}
                     {interaction.channel && ChannelIcon && (
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-dark-800 text-xs text-dark-400">
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-500">
                         <ChannelIcon className="w-3 h-3" />
                         {interaction.channel}
                       </span>
                     )}
                   </div>
 
-                  <p className={`text-sm mt-1 ${typeInfo.color || 'text-dark-400'}`}>
+                  <p className={`text-sm mt-1 ${typeInfo.color || 'text-gray-500'}`}>
                     {typeInfo.label}
                     {interaction.subject && ` - "${interaction.subject}"`}
                   </p>
 
                   {interaction.content && (
                     <p
-                      className={`text-sm mt-2 ${isReply ? 'text-white italic' : 'text-dark-400'} line-clamp-2`}
+                      className={`text-sm mt-2 ${isReply ? 'text-white italic' : 'text-gray-500'} line-clamp-2`}
                     >
                       {isReply && '"'}
                       {interaction.content}
@@ -287,7 +287,7 @@ export default function Interactions() {
                 </div>
 
                 {/* Time */}
-                <div className="flex items-center gap-1 text-xs text-dark-500 flex-shrink-0">
+                <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
                   <Clock className="w-3 h-3" />
                   {formatDistanceToNow(interaction.createdAt, { addSuffix: true, locale: fr })}
                 </div>
@@ -299,7 +299,7 @@ export default function Interactions() {
                       ? 'bg-brand-500/10'
                       : interaction.direction === 'out'
                         ? 'bg-blue-500/10'
-                        : 'bg-dark-800'
+                        : 'bg-gray-100'
                   }`}
                 >
                   {isInbound ? (
@@ -307,7 +307,7 @@ export default function Interactions() {
                   ) : interaction.direction === 'out' ? (
                     <ArrowUpRight className="w-3 h-3 text-blue-400" />
                   ) : (
-                    <Eye className="w-3 h-3 text-dark-400" />
+                    <Eye className="w-3 h-3 text-gray-500" />
                   )}
                 </div>
               </div>
@@ -319,9 +319,9 @@ export default function Interactions() {
       {/* Empty state */}
       {filteredInteractions.length === 0 && (
         <div className="glass-card p-12 text-center">
-          <MessageSquare className="w-12 h-12 text-dark-600 mx-auto mb-4" />
+          <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">Aucune interaction trouvee</h3>
-          <p className="text-dark-400">
+          <p className="text-gray-500">
             {searchQuery || channelFilter !== 'all' || directionFilter !== 'all'
               ? 'Essayez de modifier vos filtres'
               : 'Les interactions avec vos prospects apparaitront ici'}

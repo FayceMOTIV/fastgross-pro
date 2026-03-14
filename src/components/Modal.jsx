@@ -75,7 +75,7 @@ const Modal = memo(function Modal({
             >
               {/* Header */}
               {(title || showClose) && (
-                <div className="flex items-center justify-between p-6 border-b border-dark-800/50">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
                   {title && (
                     <h2 id="modal-title" className="text-xl font-display font-semibold text-white">
                       {title}
@@ -85,7 +85,7 @@ const Modal = memo(function Modal({
                     <button
                       onClick={onClose}
                       aria-label="Fermer"
-                      className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                      className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                     >
                       <X className="w-5 h-5" />
                     </button>

@@ -116,12 +116,12 @@ export function useBetaUsers() {
 export function useTestEmail() {
   const send = useCloudFunction('sendTestEmail')
   const logs = useCloudFunction('getTestEmailLogs')
-  const verify = useCloudFunction('verifyResendConfig')
+  const verify = useCloudFunction('verifyEmailConfig')
 
   return {
     sendTestEmail: send.call,
     getTestEmailLogs: logs.call,
-    verifyResendConfig: verify.call,
+    verifyEmailConfig: verify.call,
     emailLogs: logs.data?.logs || [],
     resendConfig: verify.data,
     sending: send.loading,

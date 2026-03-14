@@ -35,6 +35,7 @@ import {
   EyeOff,
 } from 'lucide-react'
 import { getFunctions, httpsCallable } from 'firebase/functions'
+import { useOrg } from '@/contexts/OrgContext'
 
 // TikTok icon component (not in lucide)
 const TikTokIcon = ({ className }) => (
@@ -217,7 +218,8 @@ export default function Hunter() {
   const [addingAccount, setAddingAccount] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const functions = getFunctions()
+  const { currentOrg } = useOrg()
+  const functions = getFunctions(undefined, 'europe-west1')
 
   // Load stats on mount
   useEffect(() => {
@@ -253,8 +255,8 @@ export default function Hunter() {
       const huntFunction = httpsCallable(functions, functionName)
 
       const params = platform === 'facebook'
-        ? { orgId: 'default', keyword: hashtag || config.facebookKeywords[0], location: config.facebookLocation }
-        : { orgId: 'default', hashtag: hashtag || config[`${platform}Hashtags`][0] }
+        ? { orgId: currentOrg?.id || 'default', keyword: hashtag || config.facebookKeywords[0], location: config.facebookLocation }
+        : { orgId: currentOrg?.id || 'default', hashtag: hashtag || config[`${platform}Hashtags`][0] }
 
       const result = await huntFunction(params)
 
@@ -275,7 +277,7 @@ export default function Hunter() {
     try {
       const campaignFunction = httpsCallable(functions, 'runSocialHuntingCampaign')
       const result = await campaignFunction({
-        orgId: 'default',
+        orgId: currentOrg?.id || 'default',
         config: {
           enableInstagram: config.instagramEnabled,
           enableTiktok: config.tiktokEnabled,
@@ -302,7 +304,7 @@ export default function Hunter() {
     try {
       const sendDMFunction = httpsCallable(functions, 'sendManualDM')
       const result = await sendDMFunction({
-        orgId: 'default',
+        orgId: currentOrg?.id || 'default',
         prospectId
       })
 
@@ -322,7 +324,7 @@ export default function Hunter() {
   const loadInstagramAccounts = async () => {
     try {
       const listAccounts = httpsCallable(functions, 'listInstagramAccounts')
-      const result = await listAccounts({ orgId: 'default' })
+      const result = await listAccounts({ orgId: currentOrg?.id || 'default' })
       if (result.data.accounts) {
         setInstagramAccounts(result.data.accounts)
       }
@@ -344,7 +346,7 @@ export default function Hunter() {
     try {
       const addAccount = httpsCallable(functions, 'addInstagramAccount')
       const result = await addAccount({
-        orgId: 'default',
+        orgId: currentOrg?.id || 'default',
         username: newAccount.username,
         password: newAccount.password
       })
@@ -368,7 +370,7 @@ export default function Hunter() {
     try {
       const updateStatus = httpsCallable(functions, 'updateAccountStatus')
       await updateStatus({
-        orgId: 'default',
+        orgId: currentOrg?.id || 'default',
         accountId,
         status: newStatus
       })
@@ -391,7 +393,7 @@ export default function Hunter() {
     try {
       const removeAccount = httpsCallable(functions, 'removeInstagramAccount')
       await removeAccount({
-        orgId: 'default',
+        orgId: currentOrg?.id || 'default',
         accountId
       })
 

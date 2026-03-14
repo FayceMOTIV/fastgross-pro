@@ -20,16 +20,16 @@ const getDb = () => getFirestore();
 // ============================================
 const CHANNEL_PRIORITY_BY_SCORE = {
   // Score 80+ (Hot leads) - Canaux haute conversion
-  hot: ['email', 'whatsapp', 'linkedin', 'voicemail', 'postal', 'sms', 'instagram', 'twitter'],
+  hot: ['email', 'whatsapp', 'linkedin', 'voicemail', 'postal', 'sms', 'instagram'],
 
   // Score 50-79 (Warm leads) - Mix equilibre
-  warm: ['email', 'sms', 'whatsapp', 'linkedin', 'instagram', 'voicemail', 'postal', 'twitter'],
+  warm: ['email', 'sms', 'whatsapp', 'linkedin', 'instagram', 'voicemail', 'postal'],
 
   // Score 25-49 (Cold leads) - Canaux volume
-  cold: ['email', 'sms', 'instagram', 'linkedin', 'whatsapp', 'voicemail', 'postal', 'twitter'],
+  cold: ['email', 'sms', 'instagram', 'linkedin', 'whatsapp', 'voicemail', 'postal'],
 
   // Score <25 (Ice leads) - Email principalement
-  ice: ['email', 'sms', 'instagram', 'whatsapp', 'linkedin', 'twitter']
+  ice: ['email', 'sms', 'instagram', 'whatsapp', 'linkedin']
 };
 
 // ============================================
@@ -39,7 +39,7 @@ const PLAN_CHANNELS = {
   starter: ['email'],
   pro: ['email', 'sms', 'whatsapp'],
   enterprise: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal'],
-  agency: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal', 'linkedin', 'twitter']
+  agency: ['email', 'sms', 'whatsapp', 'instagram', 'voicemail', 'postal', 'linkedin']
 };
 
 // ============================================
@@ -52,8 +52,7 @@ const CHANNEL_COSTS = {
   instagram: 0,
   voicemail: 0.004,
   postal: 1.50,
-  linkedin: 0,
-  twitter: 0
+  linkedin: 0
 };
 
 // ============================================

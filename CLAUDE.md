@@ -198,14 +198,36 @@ face-media-factory/
 │   │   ├── voicemail/ (5)         # Drop Cowboy, voice clone, scripts
 │   │   └── postal/ (5)            # PostGrid + Merci Facteur, tracking
 │   │
-│   ├── alex/ (7)                   # Agent Alex (IA autonome)
+│   ├── alex/ (16)                  # Agent Alex (IA autonome + Associe Commercial)
+│   │   ├── alexBrain.js            # Chat IA principal (Claude + Groq fallback, SPIN 10 phases)
+│   │   ├── alexActionExecutor.js   # 35+ actions (search, CRM, monitors, contact)
+│   │   ├── alexSystemPrompt.js     # System prompt builder (org context, memory, persona)
+│   │   ├── alexAutonomousWorker.js # Worker autonome (hourly, dispatch reel, relances)
+│   │   ├── alexMissionTracker.js   # Parsing missions langage naturel
+│   │   ├── alexDailyReport.js      # Rapport quotidien
+│   │   ├── alexHotLeadAlert.js     # Alertes leads chauds
+│   │   ├── alexMemory.js           # Memoire conversationnelle
+│   │   ├── alexWhatsAppHandler.js  # Handler WhatsApp entrant
+│   │   ├── alexWhatsAppLink.js     # Liaison compte WhatsApp
+│   │   ├── alexWhatsAppSender.js   # Envoi WhatsApp Alex
+│   │   ├── autoOptimizer.js        # Auto-optimisation strategies
 │   │   ├── webhookIncoming.js      # Reception webhooks
 │   │   ├── rescueScheduler.js      # Relance automatique
 │   │   ├── transferLeadToClient.js # Transfert leads qualifies
 │   │   ├── dailyReset.js           # Reset quotidien
 │   │   ├── scoreAndReply.js        # Scoring + reponse IA + J+3 voice trigger
 │   │   ├── sendMessage.js          # Envoi messages
-│   │   └── sendTelegramAlert.js    # Alertes Telegram
+│   │   ├── sendTelegramAlert.js    # Alertes Telegram
+│   │   └── engine/ (12)            # Moteur Alex (recherche, scoring, monitoring)
+│   │       ├── searchOrchestrator.js  # Pipeline recherche (sources → Serper → qualification)
+│   │       ├── monitorExecutor.js     # 12 monitors Serper-driven (veille temps reel)
+│   │       ├── nicheReasoner.js       # Analyse niche → sources + signals (Groq)
+│   │       ├── smartSourceSelector.js # Selection sources optimale
+│   │       ├── prospectQualifier.js   # Qualification BANT (100pts)
+│   │       ├── sourceRegistry.js      # 200+ sources prospection
+│   │       ├── adaptiveScorer.js      # Scoring ML adaptatif
+│   │       ├── signalCorrelator.js    # Correlation signaux d'achat
+│   │       └── lookalikeFinder.js     # Recherche prospects similaires
 │   │
 │   ├── ai/ (7)                     # Systeme IA multi-provider
 │   │   ├── personalizeMessage.js   # Personnalisation messages
@@ -377,6 +399,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | `resetDailyCounts` | daily | Reset compteurs journaliers |
 | `rescueScheduler` | periodic | Agent Alex — relance auto |
 | `dailyReset` | daily | Agent Alex — reset quotidien |
+| `alexAutonomousWorker` | every hour | Alex Worker — contact + relance auto (dispatch reel) |
 | `computeNightlyROI` | daily 00:00 | Snapshot ROI (NRR, LTV, CAC) |
 | `dailyCompetitorReviewsScan` | daily | Scraping avis concurrents |
 | `fetchConferenceSpeakersCron` | daily | Intelligence speakers |
@@ -416,7 +439,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | Signals | `scrapeCompetitorReviewsCallable`, `fetchGithubSignalsCallable`, `enrichLeadSignals` |
 | A/B Testing | `runABTest`, `recordABTestResultCallable`, `getWinningVariant`, `getABTestDashboard`, `rotateAbVariants` |
 | Voice | `vapiOutbound`, `initiateVoiceCall`, `getAgentStatus`, `initiateAlexCallFn`, `scheduleVoiceCampaignFn` |
-| Agent Alex | `agentRespond`, `agentLearning`, `getEscalations`, `handleEscalation` |
+| Agent Alex | `chatWithAlex`, `resetAlexConversation`, `alexDailyReporter`, `alertHotLead`, `alexAutonomousWorker` |
 
 ### Fonctions HTTP (18)
 | Function | Description |
@@ -572,16 +595,20 @@ npm run lint                         # ESLint
 npm run build                        # Production build frontend
 cd functions && npm run build        # Validation imports backend
 
-# Deploy complet
-firebase deploy --project face-media-factory
+# Deploy complet (IMPORTANT: le timeout est obligatoire, 200+ functions depassent le 10s par defaut)
+FUNCTIONS_DISCOVERY_TIMEOUT=30000 firebase deploy --project face-media-factory
 
 # Deploy partiel
 firebase deploy --only hosting --project face-media-factory
-firebase deploy --only functions --project face-media-factory
+FUNCTIONS_DISCOVERY_TIMEOUT=30000 firebase deploy --only functions --project face-media-factory
 firebase deploy --only firestore:rules --project face-media-factory
+
+# Deploy cible (evite le quota CPU Cloud Run — max ~50 functions a la fois)
+FUNCTIONS_DISCOVERY_TIMEOUT=30000 firebase deploy --only functions:chatWithAlex,functions:alexAutonomousWorker --project face-media-factory
 
 # Logs
 firebase functions:log --only emailAgent --project face-media-factory
+firebase functions:log --only chatWithAlex --project face-media-factory
 firebase functions:log --only orchestratorCron,masterScheduler --project face-media-factory
 
 # Lister fonctions
@@ -595,6 +622,7 @@ cd functions && node run_battle_test_v2.mjs       # V2 complet (7 avatars, 10 ed
 cd functions && node run_battle_test_v5.mjs       # V5 regression (GeoZone, AlexMemory, dry run)
 cd functions && node run_signals_test.mjs          # Signals V2 (8 dimensions, 88 tests)
 cd functions && node run_voice_test.mjs            # Alex Voice (scheduler, tools, imports, 46 tests)
+cd functions && node test_3fixes_alex.mjs          # Alex 3 fixes (worker dispatch, monitors, Serper quota)
 node scripts/run_battle_test.mjs                   # V1 (5 avatars, DScore, messages, pipeline)
 ```
 
@@ -691,3 +719,6 @@ CLOUD_TASKS_SERVICE_ACCOUNT=...
 - **RGPD** : toujours verifier compliance avant envoi
 - **Rate limits** : respecter les limites Cloud Tasks par canal
 - **Exports** : tout export dans `functions/src/index.js` doit correspondre a une fonction existante
+- **Deploy** : TOUJOURS prefixer avec `FUNCTIONS_DISCOVERY_TIMEOUT=30000` (200+ functions timeout sans)
+- **Deploy CPU quota** : max ~50 functions par deploy, sinon quota Cloud Run depasse → deploy cible
+- **Lazy imports** dans les Cloud Functions lourdes (eviter import statique de googleapis, protobuf, gRPC)

@@ -73,7 +73,7 @@ export default function ScheduleSettings({ saving, setSaving }) {
         <h3 className="font-medium text-white mb-4">Heures d'envoi</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">Debut</label>
+            <label className="block text-sm font-medium text-gray-600 mb-2">Debut</label>
             <select
               value={sendStartHour}
               onChange={(e) => setSendStartHour(parseInt(e.target.value))}
@@ -87,7 +87,7 @@ export default function ScheduleSettings({ saving, setSaving }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">Fin</label>
+            <label className="block text-sm font-medium text-gray-600 mb-2">Fin</label>
             <select
               value={sendEndHour}
               onChange={(e) => setSendEndHour(parseInt(e.target.value))}
@@ -101,7 +101,7 @@ export default function ScheduleSettings({ saving, setSaving }) {
             </select>
           </div>
         </div>
-        <p className="text-xs text-dark-500 mt-3">
+        <p className="text-xs text-gray-400 mt-3">
           Les emails seront envoyes entre {sendStartHour}h et {sendEndHour}h ({timezone})
         </p>
       </div>
@@ -117,14 +117,14 @@ export default function ScheduleSettings({ saving, setSaving }) {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 sendDays.includes(day)
                   ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
-                  : 'bg-dark-800 text-dark-400 border border-dark-700 hover:border-dark-600'
+                  : 'bg-gray-100 text-gray-500 border border-gray-300 hover:border-dark-600'
               }`}
             >
               {label}
             </button>
           ))}
         </div>
-        <p className="text-xs text-dark-500 mt-3">
+        <p className="text-xs text-gray-400 mt-3">
           Recommande : evitez le week-end pour de meilleurs taux d'ouverture
         </p>
       </div>

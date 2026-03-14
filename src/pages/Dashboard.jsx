@@ -32,6 +32,7 @@ import {
   Power,
   Crown,
   Infinity,
+  BarChart3,
 } from 'lucide-react'
 import {
   Chart as ChartJS,
@@ -747,60 +748,64 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="card p-5 hover:shadow-soft-md transition-all"
+          className="card p-5 hover:shadow-soft-md transition-all bg-gradient-to-br from-blue-50 to-indigo-50/50 border-blue-100"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Users className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xs font-medium text-blue-500 bg-blue-100 px-2 py-0.5 rounded-full">Total</span>
           </div>
           <p className="text-2xl font-display font-bold text-text">{stats.totalProspects || 0}</p>
-          <p className="text-xs text-text-muted mt-1">Prospects total</p>
+          <p className="text-xs text-blue-600/70 mt-1 font-medium">Prospects</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="card p-5 hover:shadow-soft-md transition-all"
+          className="card p-5 hover:shadow-soft-md transition-all bg-gradient-to-br from-purple-50 to-fuchsia-50/50 border-purple-100"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Mail className="w-5 h-5 text-purple-600" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <Mail className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xs font-medium text-purple-500 bg-purple-100 px-2 py-0.5 rounded-full">Envoyes</span>
           </div>
           <p className="text-2xl font-display font-bold text-text">{stats.totalMessages || 0}</p>
-          <p className="text-xs text-text-muted mt-1">Messages envoyes</p>
+          <p className="text-xs text-purple-600/70 mt-1 font-medium">Messages</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="card p-5 hover:shadow-soft-md transition-all"
+          className="card p-5 hover:shadow-soft-md transition-all bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <TrendingUp className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Taux</span>
           </div>
           <p className="text-2xl font-display font-bold text-text">{stats.replyRate || 0}%</p>
-          <p className="text-xs text-text-muted mt-1">Taux de reponse</p>
+          <p className="text-xs text-amber-600/70 mt-1 font-medium">Reponses</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="card p-5 border-success/20 hover:shadow-soft-md transition-all"
+          className="card p-5 hover:shadow-soft-md transition-all bg-gradient-to-br from-emerald-50 to-teal-50/50 border-emerald-100"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-              <Target className="w-5 h-5 text-success" />
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <Target className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xs font-medium text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">Chauds</span>
           </div>
-          <p className="text-2xl font-display font-bold text-success">{stats.hotLeads || 0}</p>
-          <p className="text-xs text-text-muted mt-1">Leads chauds</p>
+          <p className="text-2xl font-display font-bold text-emerald-600">{stats.hotLeads || 0}</p>
+          <p className="text-xs text-emerald-600/70 mt-1 font-medium">Leads</p>
         </motion.div>
       </div>
 
@@ -814,7 +819,12 @@ export default function Dashboard() {
           className="lg:col-span-2 card p-6"
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="section-title">Performance cette semaine</h2>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm">
+                <BarChart3 className="w-4 h-4 text-white" />
+              </div>
+              <h2 className="section-title">Performance cette semaine</h2>
+            </div>
             <div className="flex items-center gap-4 text-xs text-text-secondary">
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-accent" />
@@ -956,11 +966,20 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {['email', 'sms', 'whatsapp', 'voicemail', 'courrier'].map((channel) => {
             const style = CHANNEL_STYLES[channel]
+            const gradients = {
+              email: 'from-blue-500 to-indigo-500',
+              sms: 'from-emerald-500 to-teal-500',
+              whatsapp: 'from-green-500 to-emerald-500',
+              voicemail: 'from-purple-500 to-violet-500',
+              courrier: 'from-amber-500 to-orange-500',
+            }
             return (
-              <div key={channel} className={`p-4 rounded-xl ${style.bg} border ${style.border}`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <ChannelIcon channel={channel} className={`w-5 h-5 ${style.color}`} />
-                  <span className="text-sm font-medium text-text">{style.label}</span>
+              <div key={channel} className={`p-4 rounded-xl ${style.bg} border ${style.border} hover:shadow-md transition-all`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradients[channel]} flex items-center justify-center shadow-sm`}>
+                    <ChannelIcon channel={channel} className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-semibold text-text">{style.label}</span>
                 </div>
                 <p className="text-2xl font-bold text-text">{stats.byChannel?.[channel] || 0}</p>
                 <p className="text-xs text-text-muted mt-1">

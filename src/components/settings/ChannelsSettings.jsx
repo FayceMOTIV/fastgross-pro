@@ -125,7 +125,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
         <h2 className="section-title">Configuration des canaux</h2>
       </div>
 
-      <p className="text-sm text-dark-400">
+      <p className="text-sm text-gray-500">
         Configurez les canaux de contact pour vos sequences multicanales. Plus de canaux = plus de
         chances de reponse.
       </p>
@@ -139,7 +139,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
             </div>
             <div>
               <h3 className="font-medium text-white">Email</h3>
-              <p className="text-sm text-dark-400">Canal principal - toujours actif</p>
+              <p className="text-sm text-gray-500">Canal principal - toujours actif</p>
             </div>
           </div>
           <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium">
@@ -160,7 +160,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
               </div>
               <div>
                 <h3 className="font-medium text-white">SMS / WhatsApp</h3>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Taux d'ouverture de 98% - max 2 par prospect
                 </p>
               </div>
@@ -169,20 +169,20 @@ export default function ChannelsSettings({ saving, setSaving }) {
           <button
             onClick={() => setSmsEnabled(!smsEnabled)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              smsEnabled ? 'bg-brand-500' : 'bg-dark-700'
+              smsEnabled ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {smsEnabled ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
 
         {smsEnabled && (
-          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50">
-            <label className="block text-sm font-medium text-dark-300 mb-2">
+          <div className="mt-4 ml-13 p-4 rounded-lg bg-gray-50">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
               Numero d'envoi SMS
             </label>
             <input
@@ -192,7 +192,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
               className="input-field"
               placeholder="+33 6 12 34 56 78"
             />
-            <p className="text-xs text-dark-500 mt-2">
+            <p className="text-xs text-gray-400 mt-2">
               Le numero depuis lequel les SMS seront envoyes (necessite integration Twilio)
             </p>
           </div>
@@ -216,7 +216,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                     Sur demande
                   </span>
                 </div>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Approche sociale pour commerces locaux - max 1 DM
                 </p>
               </div>
@@ -244,11 +244,11 @@ export default function ChannelsSettings({ saving, setSaving }) {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium text-white">Message vocal</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-dark-700 text-dark-400 text-[10px] font-semibold uppercase">
+                  <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 text-[10px] font-semibold uppercase">
                     Bientot disponible
                   </span>
                 </div>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Voicemail drop — le telephone ne sonne pas. Disponible Q2 2026.
                 </p>
               </div>
@@ -270,11 +270,11 @@ export default function ChannelsSettings({ saving, setSaving }) {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-medium text-white">Courrier postal</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-dark-700 text-dark-400 text-[10px] font-semibold uppercase">
+                  <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 text-[10px] font-semibold uppercase">
                     Bientot disponible
                   </span>
                 </div>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Envoi de courrier physique automatise — carte + QR code. Disponible Q2 2026.
                 </p>
               </div>
@@ -298,7 +298,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                     NEW
                   </span>
                 </div>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Cold DM automatise via Instagram et WhatsApp avec anti-ban
                 </p>
               </div>
@@ -308,7 +308,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
 
         <div className="mt-4 space-y-4">
           {/* Instagram DM Outreach toggle */}
-          <div className="p-4 rounded-lg bg-dark-900/50">
+          <div className="p-4 rounded-lg bg-gray-50">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Instagram className="w-4 h-4 text-pink-400" />
@@ -317,19 +317,19 @@ export default function ChannelsSettings({ saving, setSaving }) {
               <button
                 onClick={() => setSocialDmEnabled(!socialDmEnabled)}
                 className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-                  socialDmEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                  socialDmEnabled ? 'bg-brand-500' : 'bg-gray-200'
                 }`}
               >
                 {socialDmEnabled ? (
                   <ToggleRight className="w-6 h-6 text-white" />
                 ) : (
-                  <ToggleLeft className="w-6 h-6 text-dark-400" />
+                  <ToggleLeft className="w-6 h-6 text-gray-500" />
                 )}
               </button>
             </div>
             {socialDmEnabled && (
               <div>
-                <label className="block text-xs font-medium text-dark-300 mb-2">
+                <label className="block text-xs font-medium text-gray-600 mb-2">
                   Limite quotidienne par compte
                 </label>
                 <div className="flex items-center gap-3">
@@ -346,7 +346,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                     {socialDmDailyLimit}/jour
                   </span>
                 </div>
-                <p className="text-xs text-dark-500 mt-2">
+                <p className="text-xs text-gray-400 mt-2">
                   Warmup progressif : jour 1-3 = 3/jour, jour 4-7 = 15/jour, puis augmentation
                   graduelle
                 </p>
@@ -355,7 +355,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
           </div>
 
           {/* WhatsApp Outreach toggle */}
-          <div className="p-4 rounded-lg bg-dark-900/50">
+          <div className="p-4 rounded-lg bg-gray-50">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Send className="w-4 h-4 text-emerald-400" />
@@ -364,19 +364,19 @@ export default function ChannelsSettings({ saving, setSaving }) {
               <button
                 onClick={() => setWhatsappOutreachEnabled(!whatsappOutreachEnabled)}
                 className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-                  whatsappOutreachEnabled ? 'bg-brand-500' : 'bg-dark-700'
+                  whatsappOutreachEnabled ? 'bg-brand-500' : 'bg-gray-200'
                 }`}
               >
                 {whatsappOutreachEnabled ? (
                   <ToggleRight className="w-6 h-6 text-white" />
                 ) : (
-                  <ToggleLeft className="w-6 h-6 text-dark-400" />
+                  <ToggleLeft className="w-6 h-6 text-gray-500" />
                 )}
               </button>
             </div>
             {whatsappOutreachEnabled && (
               <div>
-                <label className="block text-xs font-medium text-dark-300 mb-2">
+                <label className="block text-xs font-medium text-gray-600 mb-2">
                   Limite quotidienne par instance
                 </label>
                 <div className="flex items-center gap-3">
@@ -393,7 +393,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                     {whatsappOutreachDailyLimit}/jour
                   </span>
                 </div>
-                <p className="text-xs text-dark-500 mt-2">
+                <p className="text-xs text-gray-400 mt-2">
                   Evolution API avec anti-ban : horaires business, rotation instances, monitoring
                   block rate
                 </p>
@@ -425,7 +425,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                     NEW
                   </span>
                 </div>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Prospection LinkedIn automatisee via HeyReach
                 </p>
               </div>
@@ -434,21 +434,21 @@ export default function ChannelsSettings({ saving, setSaving }) {
           <button
             onClick={() => setLinkedinEnabled(!linkedinEnabled)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              linkedinEnabled ? 'bg-brand-500' : 'bg-dark-700'
+              linkedinEnabled ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {linkedinEnabled ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
 
         {linkedinEnabled && (
-          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
+          <div className="mt-4 ml-13 p-4 rounded-lg bg-gray-50 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 Cle API HeyReach
               </label>
               <input
@@ -458,12 +458,12 @@ export default function ChannelsSettings({ saving, setSaving }) {
                 className="input-field"
                 placeholder="hr_api_..."
               />
-              <p className="text-xs text-dark-500 mt-2">
+              <p className="text-xs text-gray-400 mt-2">
                 Obtenez votre cle API depuis votre compte HeyReach
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
                 Limite quotidienne (connexions + messages)
               </label>
               <div className="flex items-center gap-3">
@@ -506,7 +506,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                     NEW
                   </span>
                 </div>
-                <p className="text-sm text-dark-400">
+                <p className="text-sm text-gray-500">
                   Scraping et enrichissement de prospects via Google Maps (Apify)
                 </p>
               </div>
@@ -515,21 +515,21 @@ export default function ChannelsSettings({ saving, setSaving }) {
           <button
             onClick={() => setGoogleMapsEnabled(!googleMapsEnabled)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              googleMapsEnabled ? 'bg-brand-500' : 'bg-dark-700'
+              googleMapsEnabled ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {googleMapsEnabled ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
 
         {googleMapsEnabled && (
-          <div className="mt-4 ml-13 p-4 rounded-lg bg-dark-900/50 space-y-4">
+          <div className="mt-4 ml-13 p-4 rounded-lg bg-gray-50 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">Cle API Apify</label>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Cle API Apify</label>
               <input
                 type="password"
                 value={googleMapsApiKey}
@@ -537,7 +537,7 @@ export default function ChannelsSettings({ saving, setSaving }) {
                 className="input-field"
                 placeholder="apify_api_..."
               />
-              <p className="text-xs text-dark-500 mt-2">
+              <p className="text-xs text-gray-400 mt-2">
                 Utilisee pour le scraping avance Google Maps. Sans cle, le systeme utilise
                 Serper.dev en fallback.
               </p>

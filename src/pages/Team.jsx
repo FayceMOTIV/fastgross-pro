@@ -137,7 +137,7 @@ export default function Team() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Equipe</h1>
-          <p className="text-dark-400 mt-1">Gerez les membres de votre organisation</p>
+          <p className="text-gray-500 mt-1">Gerez les membres de votre organisation</p>
         </div>
         {canInviteMembers && (
           <button
@@ -155,14 +155,14 @@ export default function Team() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Membres</span>
+            <span className="text-xs text-gray-500">Membres</span>
           </div>
           <p className="text-2xl font-bold text-white">{members.length}</p>
         </div>
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Shield className="w-4 h-4 text-purple-400" />
-            <span className="text-xs text-dark-400">Admins</span>
+            <span className="text-xs text-gray-500">Admins</span>
           </div>
           <p className="text-2xl font-bold text-white">
             {members.filter((m) => m.role === 'admin' || m.role === 'owner').length}
@@ -171,14 +171,14 @@ export default function Team() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Mail className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-dark-400">Invitations</span>
+            <span className="text-xs text-gray-500">Invitations</span>
           </div>
           <p className="text-2xl font-bold text-white">{invitations.length}</p>
         </div>
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-blue-400" />
-            <span className="text-xs text-dark-400">Actifs aujourd'hui</span>
+            <span className="text-xs text-gray-500">Actifs aujourd'hui</span>
           </div>
           <p className="text-2xl font-bold text-white">
             {
@@ -195,7 +195,7 @@ export default function Team() {
       {/* Search */}
       <div className="glass-card p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Rechercher un membre..."
@@ -219,7 +219,7 @@ export default function Team() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="p-4 flex items-center gap-4 hover:bg-dark-800/30 transition-colors"
+              className="p-4 flex items-center gap-4 hover:bg-gray-100/30 transition-colors"
             >
               {/* Avatar */}
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-400/20 to-blue-400/20 flex items-center justify-center text-lg font-bold text-brand-400 border border-brand-500/20 flex-shrink-0">
@@ -244,30 +244,30 @@ export default function Team() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-dark-400 truncate">{member.email}</p>
+                <p className="text-sm text-gray-500 truncate">{member.email}</p>
               </div>
 
               {/* Role */}
               <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-dark-800'} border ${roleInfo?.border || 'border-dark-700'}`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-gray-100'} border ${roleInfo?.border || 'border-gray-300'}`}
               >
-                <RoleIcon className={`w-4 h-4 ${roleInfo?.color || 'text-dark-400'}`} />
-                <span className={`text-sm font-medium ${roleInfo?.color || 'text-dark-400'}`}>
+                <RoleIcon className={`w-4 h-4 ${roleInfo?.color || 'text-gray-500'}`} />
+                <span className={`text-sm font-medium ${roleInfo?.color || 'text-gray-500'}`}>
                   {roleInfo?.label || member.role}
                 </span>
               </div>
 
               {/* Last active */}
               <div className="hidden md:block text-right">
-                <p className="text-xs text-dark-500">Derniere activite</p>
-                <p className="text-sm text-dark-400">
+                <p className="text-xs text-gray-400">Derniere activite</p>
+                <p className="text-sm text-gray-500">
                   {formatDistanceToNow(member.lastActiveAt, { addSuffix: true, locale: fr })}
                 </p>
               </div>
 
               {/* Actions */}
               {canManageTeam && !isCurrentUser && member.role !== 'owner' && (
-                <button className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors">
+                <button className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               )}
@@ -279,7 +279,7 @@ export default function Team() {
       {/* Pending Invitations */}
       {invitations.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-sm font-medium text-dark-300">Invitations en attente</h2>
+          <h2 className="text-sm font-medium text-gray-600">Invitations en attente</h2>
           <div className="glass-card divide-y divide-dark-800">
             {invitations.map((invite) => {
               const roleInfo = ROLES[invite.role]
@@ -288,14 +288,14 @@ export default function Team() {
               return (
                 <div key={invite.id} className="p-4 flex items-center gap-4">
                   {/* Icon */}
-                  <div className="w-12 h-12 rounded-xl bg-dark-800 border border-dark-700 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-dark-400" />
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-300 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-5 h-5 text-gray-500" />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-white truncate">{invite.email}</p>
-                    <p className="text-sm text-dark-400">
+                    <p className="text-sm text-gray-500">
                       Invite par {invite.invitedBy.displayName} •{' '}
                       {formatDistanceToNow(invite.createdAt, { addSuffix: true, locale: fr })}
                     </p>
@@ -303,10 +303,10 @@ export default function Team() {
 
                   {/* Role */}
                   <div
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-dark-800'} border ${roleInfo?.border || 'border-dark-700'}`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${roleInfo?.bg || 'bg-gray-100'} border ${roleInfo?.border || 'border-gray-300'}`}
                   >
-                    <RoleIcon className={`w-4 h-4 ${roleInfo?.color || 'text-dark-400'}`} />
-                    <span className={`text-sm font-medium ${roleInfo?.color || 'text-dark-400'}`}>
+                    <RoleIcon className={`w-4 h-4 ${roleInfo?.color || 'text-gray-500'}`} />
+                    <span className={`text-sm font-medium ${roleInfo?.color || 'text-gray-500'}`}>
                       {roleInfo?.label || invite.role}
                     </span>
                   </div>
@@ -320,14 +320,14 @@ export default function Team() {
                   {canInviteMembers && (
                     <div className="flex items-center gap-1">
                       <button
-                        className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-brand-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-brand-400 transition-colors"
                         title="Renvoyer"
                         onClick={() => handleResendInvitation(invite)}
                       >
                         <RefreshCw className="w-4 h-4" />
                       </button>
                       <button
-                        className="p-2 rounded-lg hover:bg-red-500/10 text-dark-400 hover:text-red-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors"
                         title="Annuler"
                         onClick={() => handleCancelInvitation(invite)}
                       >
@@ -360,11 +360,11 @@ export default function Team() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-dark-800">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <h2 className="text-lg font-bold text-white">Inviter un membre</h2>
                 <button
                   onClick={() => setInviteModalOpen(false)}
-                  className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -373,7 +373,7 @@ export default function Team() {
               {/* Content */}
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
                   <input
                     type="email"
                     value={inviteEmail}
@@ -384,7 +384,7 @@ export default function Team() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-dark-300 mb-2">Role</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Role</label>
                   <div className="space-y-2">
                     {Object.entries(ROLES)
                       .filter(([key]) => key !== 'owner')
@@ -394,7 +394,7 @@ export default function Team() {
                           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
                             inviteRole === key
                               ? `${role.bg} ${role.border}`
-                              : 'bg-dark-800/50 border-dark-700 hover:border-dark-600'
+                              : 'bg-gray-100 border-gray-300 hover:border-gray-400'
                           }`}
                         >
                           <input
@@ -411,7 +411,7 @@ export default function Team() {
                           })()}
                           <div className="flex-1">
                             <p className="font-medium text-white">{role.label}</p>
-                            <p className="text-xs text-dark-400">{role.description}</p>
+                            <p className="text-xs text-gray-500">{role.description}</p>
                           </div>
                           {inviteRole === key && <Check className="w-5 h-5 text-brand-400" />}
                         </label>
@@ -421,7 +421,7 @@ export default function Team() {
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-end gap-3 p-6 border-t border-dark-800">
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
                 <button
                   onClick={() => setInviteModalOpen(false)}
                   className="btn-ghost"

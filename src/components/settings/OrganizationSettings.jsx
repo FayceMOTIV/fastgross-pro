@@ -33,7 +33,7 @@ export default function OrganizationSettings({ saving, setSaving }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-dark-300 mb-2">
+          <label className="block text-sm font-medium text-gray-600 mb-2">
             Nom de l'organisation
           </label>
           <input
@@ -45,7 +45,7 @@ export default function OrganizationSettings({ saving, setSaving }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-dark-300 mb-2">Identifiant</label>
+          <label className="block text-sm font-medium text-gray-600 mb-2">Identifiant</label>
           <input
             type="text"
             value={currentOrg?.id || ''}

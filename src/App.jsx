@@ -30,6 +30,7 @@ const OnboardingSequence = lazy(() => import('@/pages/OnboardingSequence'))
 const OnboardingComplete = lazy(() => import('@/pages/OnboardingComplete'))
 
 // Lazy loaded pages - App (v5.0 Hubs)
+const AlexChatPage = lazy(() => import('@/pages/AlexChatPage'))
 const Dashboard = lazy(() => import('@/pages/Dashboard'))
 const AutoPilotHub = lazy(() => import('@/pages/AutoPilotHub'))
 const SourcingHub = lazy(() => import('@/pages/SourcingHub'))
@@ -54,6 +55,9 @@ const ResellerDashboard = lazy(() => import('@/pages/ResellerDashboard'))
 
 // V5 Social Omniscient
 const SocialOmniscient = lazy(() => import('@/pages/SocialOmniscient'))
+
+// Alex V4 War Dashboard
+const WarDashboard = lazy(() => import('@/pages/WarDashboard'))
 
 // CRM pages
 const CRMList = lazy(() => import('@/pages/CRMList'))
@@ -125,7 +129,7 @@ function OnboardingRoute({ children }) {
 
 // Public route - redirects authenticated users to app
 function PublicRoute({ children }) {
-  const { user, loading, needsOnboarding } = useAuth()
+  const { user, loading } = useAuth()
   const { isDemo } = useDemo()
 
   // Show loader while checking auth
@@ -133,15 +137,8 @@ function PublicRoute({ children }) {
     return <PageLoader />
   }
 
-  // If user is logged in (and not in demo mode), redirect appropriately
+  // If user is logged in (and not in demo mode), go to app
   if (user && !isDemo) {
-    // Still loading profile, show loader
-    if (needsOnboarding === null) {
-      return <PageLoader />
-    }
-    if (needsOnboarding) {
-      return <Navigate to="/onboarding" replace />
-    }
     return <Navigate to="/app" replace />
   }
 
@@ -294,8 +291,9 @@ export default function App() {
                             </ProtectedRoute>
                           }
                         >
-                          {/* Dashboard */}
-                          <Route index element={<Dashboard />} />
+                          {/* Alex Chat — page par defaut apres login */}
+                          <Route index element={<AlexChatPage />} />
+                          <Route path="dashboard" element={<Dashboard />} />
 
                           {/* v5.0 Hub Pages */}
                           <Route path="autopilot" element={<AutoPilotHub />} />
@@ -324,6 +322,9 @@ export default function App() {
 
                           {/* V5 — Social Omniscient */}
                           <Route path="social-omniscient" element={<SocialOmniscient />} />
+
+                          {/* Alex V4 — Dashboard de Guerre */}
+                          <Route path="war-dashboard" element={<WarDashboard />} />
 
                           {/* Intent Hunter */}
                           <Route path="intent-hunter" element={<IntentHunterHome />} />

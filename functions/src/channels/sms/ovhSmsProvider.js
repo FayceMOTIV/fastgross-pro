@@ -184,22 +184,10 @@ export async function sendSMS(orgId, prospectId, message, options = {}) {
     const config = getOvhConfig(orgConfig)
 
     if (!config.appKey || !config.appSecret || !config.consumerKey || !config.serviceName) {
-      // Fallback mock
-      console.warn('OVH SMS not configured - using mock')
-      result.success = true
-      result.messageId = `mock_${Date.now()}`
+      console.warn('OVH SMS not configured — skipping send')
+      result.success = false
+      result.error = 'OVH SMS not configured for this organization'
       result.mock = true
-      await recordTouchpoint(orgId, prospectId, 'sms')
-      await logSMSInteraction(orgId, prospectId, {
-        type: 'sms_sent',
-        to: formattedPhone,
-        body: finalMessage,
-        segmentCount: result.segmentCount,
-        encoding: result.encoding,
-        provider: 'ovh_mock',
-        sequenceId: options.sequenceId,
-        stepId: options.stepId,
-      })
       return result
     }
 

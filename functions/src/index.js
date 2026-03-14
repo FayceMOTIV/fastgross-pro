@@ -208,6 +208,69 @@ export { runPhantomScrape, listPhantoms } from './hunters/phantom/phantomHunter.
 export { whatsappChecker, checkWhatsAppManual } from './hunters/whatsapp/whatsappChecker.js'
 export { whatsappSender, sendWhatsAppManual, getWhatsAppStats } from './hunters/whatsapp/whatsappSender.js'
 
+// --- New Domain Hunter (Alex V4 Module 1) ---
+export { newDomainHunter, runNewDomainHunterManual, getNewDomainHunterStats } from './hunters/domains/newDomainHunter.js'
+
+// --- Reddit Intent Hunter (Alex V4 Module 3) ---
+export { redditIntentHunter, runRedditIntentHunterManual, getRedditIntentHunterStats } from './hunters/reddit/redditIntentHunter.js'
+
+// --- Tech Stack Hunter (Alex V4 Module 4) ---
+export { techStackHunter, runTechStackHunterManual, getTechStackHunterStats } from './hunters/techstack/techStackHunter.js'
+
+// --- Google Maps Review Miner (Alex V4 Module 5) ---
+export { googleMapsReviewMiner, runGoogleMapsReviewMinerManual, getGoogleMapsReviewMinerStats } from './hunters/googlemaps/googleMapsReviewMiner.js'
+
+// --- Signal-Based Email (Alex V4 Super Pouvoir 1) ---
+export { generateSignalEmail } from './outreach/signalEmail.js'
+
+// --- Prospect Scorer (Alex V4 Scoring Engine) ---
+export { scoreProspects } from './outreach/prospectScorer.js'
+
+// --- Sniper Follow-Up Sequence (Alex V4 Super Pouvoir 9) ---
+export { createSniperSequence, sniperSequenceWorker, pauseSniperSequence, getSniperSequenceStatus } from './outreach/sniperSequence.js'
+
+// --- Qualification Bot IA (Alex V4 Systeme 1) ---
+export { classifyAndRespond } from './outreach/qualificationBot.js'
+
+// --- Job Postings Hunter (Alex V4 Module 2) ---
+export { jobPostingsHunter, runJobPostingsHunterManual, getJobPostingsHunterStats } from './hunters/jobs/jobPostingsHunter.js'
+
+// --- AI Crawler Audit (Alex V4 Module 9 SHIELD) ---
+export { runAiCrawlerAudit } from './shield/aiCrawlerAudit.js'
+
+// --- llms.txt Generator (Alex V4 Module 7 SHIELD) ---
+export { generateLlmsTxt } from './shield/llmsTxtGenerator.js'
+
+// --- Citability Score (Alex V4 Module 10 SHIELD) ---
+export { calculateCitability } from './shield/citabilityScore.js'
+
+// --- EAV-E Content Rewriter (Alex V4 Module 8 SHIELD) ---
+export { rewriteContent } from './shield/eaveRewriter.js'
+
+// --- Nurturing Perpetuel (Alex V4 Systeme 2) ---
+export { enrollInNurturing, getNurturingStatus, toggleNurturing, nurturingWorker } from './outreach/nurturingEngine.js'
+
+// --- Social Proof Engine (Alex V4 Systeme 3) ---
+export { matchSocialProof, addCaseStudy, getSocialProofStats } from './outreach/socialProofEngine.js'
+
+// --- Booking Automatise (Alex V4 Systeme 4) ---
+export { createBooking, generatePreCallBrief, updateBookingOutcome, bookingReminderWorker } from './outreach/bookingEngine.js'
+
+// --- Agent Fantome Reddit (Alex V4 Super Pouvoir 4) ---
+export { findRedditOpportunities, generateRedditDraft, reviewRedditDraft, listRedditDrafts } from './outreach/redditGhostAgent.js'
+
+// --- Micro-Gift Digital (Alex V4 Super Pouvoir 7) ---
+export { generateMicroGift, listMicroGifts, getMicroGiftTypes } from './outreach/microGiftGenerator.js'
+
+// --- Social Warming (Alex V4 Super Pouvoir 8) ---
+export { enrollInSocialWarming, getSocialWarmingStatus, cancelSocialWarming, socialWarmingWorker } from './outreach/socialWarming.js'
+
+// --- Timing Predictif (Alex V4 Super Pouvoir 10) ---
+export { predictOptimalTiming, recordTimingFeedback, getTimingAnalytics } from './outreach/timingPredictor.js'
+
+// --- Wikidata Entity Creator (Alex V4 Module 6 SHIELD) ---
+export { checkWikidataEntity, generateWikidataEntity, getWikidataStats } from './shield/wikidataEntityCreator.js'
+
 // --- Social Hunter Orchestrator (Cross-Platform) ---
 export { runSocialHuntingCampaign, getOrchestrationStatus, deduplicateProspects } from './hunters/socialHunterOrchestrator.js'
 
@@ -267,7 +330,8 @@ export { dailyReset } from './alex/dailyReset.js'
 export { sendManualMessage } from './alex/sendMessage.js'
 
 // Alex Associe Commercial — Chat IA + Actions + Rapports + Alertes
-export { chatWithAlex } from './alex/alexBrain.js'
+export { chatWithAlex, resetAlexConversation } from './alex/alexBrain.js'
+export { createAlexThread, listAlexThreads, deleteAlexThread, renameAlexThread, migrateAlexConversations } from './alex/alexThreads.js'
 export { alexDailyReporter } from './alex/alexDailyReport.js'
 export { alertHotLead } from './alex/alexHotLeadAlert.js'
 export { alexAutonomousWorker } from './alex/alexAutonomousWorker.js'

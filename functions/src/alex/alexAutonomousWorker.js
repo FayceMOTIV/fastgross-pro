@@ -9,6 +9,11 @@ import Groq from 'groq-sdk';
 const getDb = () => getFirestore();
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Lazy imports (evite de charger toute la chaine channelDispatcher/compliance/senders au boot)
+const getChannelRouter = async () => import('../engine/channelRouter.js');
+const getChannelDispatcher = async () => import('../engine/channelDispatcher.js');
+const getBudgetCalculator = async () => import('../orchestrator/helpers/budgetCalculator.js');
+
 export const alexAutonomousWorker = onSchedule(
   {
     schedule: '0 * * * *',
@@ -72,19 +77,52 @@ async function autoContactNewProspects(orgId, strategy) {
     const prospect = doc.data();
     if ((prospect.finalScore || 0) < threshold) continue;
 
+    // Selectionner le canal optimal
+    const { selectOptimalChannel } = await getChannelRouter();
+    const routerResult = await selectOptimalChannel(orgId, doc.id);
+    const channel = routerResult.channel;
+    if (!channel) {
+      console.log(`[Alex Worker] Aucun canal dispo pour ${doc.id}: ${routerResult.reason}`);
+      continue;
+    }
+
+    // Verifier le budget quotidien
+    const { getRemainingBudget } = await getBudgetCalculator();
+    const remaining = await getRemainingBudget(orgId, channel);
+    if (remaining <= 0) {
+      console.log(`[Alex Worker] Budget ${channel} epuise pour ${orgId}`);
+      break;
+    }
+
     // Generer un message personnalise
     const message = await generatePersonalizedMessage(orgId, prospect);
     if (!message) continue;
 
-    // Marquer comme contacte (le dispatch reel se fait via le channel dispatcher)
-    await doc.ref.update({
-      status: 'contacted',
-      contactedAt: FieldValue.serverTimestamp(),
-      contactMessage: message,
-      contactChannel: prospect.phone ? 'whatsapp' : 'email',
+    // Fallback channels (alternatives du routeur)
+    const fallbackChannels = (routerResult.alternatives || []).slice(0, 2);
+
+    // Envoi reel via le channel dispatcher
+    const { dispatchMessage } = await getChannelDispatcher();
+    const res = await dispatchMessage(orgId, doc.id, {
+      channel,
+      content: message,
+      subject: `Proposition ${prospect.companyName || ''}`.trim(),
+      fallbackChannels,
     });
 
-    contacted++;
+    if (res.success) {
+      await doc.ref.update({
+        status: 'contacted',
+        contactedAt: FieldValue.serverTimestamp(),
+        contactMessage: message,
+        contactChannel: res.channel,
+      });
+      const { recordBudgetUsage } = await getBudgetCalculator();
+      await recordBudgetUsage(orgId, res.channel);
+      contacted++;
+    } else {
+      console.warn(`[Alex Worker] Echec envoi ${doc.id} via ${channel}: ${res.error}`);
+    }
   }
 
   if (contacted > 0) {
@@ -105,14 +143,46 @@ async function autoFollowUp(orgId, strategy) {
   let followedUp = 0;
   for (const doc of noReply.docs) {
     const prospect = doc.data();
-    if ((prospect.followUpCount || 0) >= 3) continue;
+    const followUpCount = prospect.followUpCount || 0;
+    if (followUpCount >= 3) continue;
 
-    await doc.ref.update({
-      followUpCount: (prospect.followUpCount || 0) + 1,
-      lastFollowUpAt: FieldValue.serverTimestamp(),
+    // Reutiliser le canal du premier contact, sinon router
+    const channel = prospect.contactChannel || null;
+
+    // Verifier le budget
+    if (channel) {
+      const { getRemainingBudget } = await getBudgetCalculator();
+      const remaining = await getRemainingBudget(orgId, channel);
+      if (remaining <= 0) {
+        console.log(`[Alex Worker] Budget ${channel} epuise pour relance ${orgId}`);
+        continue;
+      }
+    }
+
+    // Generer un message de relance adapte au numero de relance
+    const message = await generateFollowUpMessage(orgId, prospect, followUpCount + 1);
+    if (!message) continue;
+
+    // Dispatcher la relance
+    const { dispatchMessage } = await getChannelDispatcher();
+    const res = await dispatchMessage(orgId, doc.id, {
+      channel,
+      content: message,
+      subject: `Relance ${prospect.companyName || ''}`.trim(),
     });
 
-    followedUp++;
+    if (res.success) {
+      await doc.ref.update({
+        followUpCount: followUpCount + 1,
+        lastFollowUpAt: FieldValue.serverTimestamp(),
+        lastFollowUpChannel: res.channel,
+      });
+      const { recordBudgetUsage } = await getBudgetCalculator();
+      await recordBudgetUsage(orgId, res.channel);
+      followedUp++;
+    } else {
+      console.warn(`[Alex Worker] Echec relance ${doc.id}: ${res.error}`);
+    }
   }
 
   if (followedUp > 0) {
@@ -156,6 +226,57 @@ Reponds uniquement avec le message.`;
     return response.choices[0].message.content;
   } catch (e) {
     console.warn('[Alex Worker] Message generation failed:', e.message);
+    return null;
+  }
+}
+
+async function generateFollowUpMessage(orgId, prospect, followUpNumber) {
+  const db = getDb();
+  const profile = (await db.doc(`organizations/${orgId}/alexMemory/businessProfile`).get()).data();
+  if (!profile) return null;
+
+  const angles = {
+    1: `Relance #1 : Apporte une NOUVELLE VALEUR (astuce, stat, insight) liee au secteur du prospect. Ne repete pas le premier message. Commence par "Je repensais a..." ou "Un detail qui pourrait vous interesser..."`,
+    2: `Relance #2 : Utilise la PREUVE SOCIALE (resultat client similaire, temoignage, chiffre). Commence par "Un de mes clients dans [secteur similaire]..." ou "Recemment, j'ai aide..."`,
+    3: `Relance #3 : Message FINAL, direct et honnete. Derniere tentative. Commence par "Je ne veux pas insister..." ou "Dernier message de ma part..."`,
+  };
+
+  const angle = angles[followUpNumber] || angles[3];
+
+  try {
+    const prompt = `Tu es Alex. Genere un message de RELANCE (tentative ${followUpNumber}/3).
+
+TON CLIENT :
+- Activite : ${profile.activity || 'Non renseigne'}
+- Services : ${profile.services || 'Non renseigne'}
+
+LE PROSPECT :
+- Nom : ${prospect.contactName || prospect.companyName || 'Inconnu'}
+- Entreprise : ${prospect.companyName || 'Non renseigne'}
+- Secteur : ${prospect.sector || 'Non renseigne'}
+- Premier message envoye : ${prospect.contactMessage ? 'oui' : 'non'}
+
+ANGLE DE RELANCE :
+${angle}
+
+REGLES :
+- Max 3 phrases
+- NE REPETE PAS le premier message
+- Ton naturel, pas robotique
+- Termine par une question fermee (oui/non facile)
+
+Reponds uniquement avec le message.`;
+
+    const response = await getGroq().chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      max_tokens: 300,
+    });
+
+    return response.choices[0].message.content;
+  } catch (e) {
+    console.warn(`[Alex Worker] Follow-up #${followUpNumber} generation failed:`, e.message);
     return null;
   }
 }

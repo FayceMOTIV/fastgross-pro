@@ -412,6 +412,14 @@ service cloud.firestore {
       }
 
       // ------------------------------------------
+      // VOICE CALLS - Org-level voice call records
+      // ------------------------------------------
+      match /voiceCalls/{callId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
       // AUTOPILOT LOGS - Autopilot execution logs
       // ------------------------------------------
       match /autoPilotLogs/{logId} {
@@ -743,6 +751,38 @@ service cloud.firestore {
         allow read: if canRead(orgId);
         allow write: if false; // Only Cloud Functions
       }
+
+      // ------------------------------------------
+      // ALEX CONVERSATIONS - Chat history
+      // ------------------------------------------
+      match /alexConversations/{msgId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ALEX THREADS - Conversation threads
+      // ------------------------------------------
+      match /alexThreads/{threadId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ALEX MEMORY - KPIs, preferences, strategy
+      // ------------------------------------------
+      match /alexMemory/{docId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
+
+      // ------------------------------------------
+      // ALEX ACTION LOGS - Audit trail
+      // ------------------------------------------
+      match /alexActionLogs/{logId} {
+        allow read: if canRead(orgId);
+        allow write: if false; // Only Cloud Functions
+      }
     }
 
     // ============================================
@@ -901,11 +941,19 @@ service cloud.firestore {
     }
 
     // ============================================
-    // LEADS - Legacy leads collection
+    // LEADS - Legacy leads collection (org-scoped via orgId field)
     // ============================================
     match /leads/{leadId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow read: if isAuthenticated()
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
+      allow create: if isAuthenticated()
+        && request.resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(request.resource.data.orgId)/members/$(request.auth.uid));
+      allow update: if isAuthenticated()
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
+      allow delete: if false;
     }
 
     // ============================================
@@ -925,12 +973,18 @@ service cloud.firestore {
     }
 
     // ============================================
-    // SCANS - Global website scan results
+    // SCANS - Global website scan results (org-scoped via organizationId field)
     // ============================================
     match /scans/{scanId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
+      allow read: if isAuthenticated()
+        && resource.data.organizationId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.organizationId)/members/$(request.auth.uid));
+      allow create: if isAuthenticated()
+        && request.resource.data.organizationId != null
+        && exists(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)/members/$(request.auth.uid));
+      allow update: if isAuthenticated()
+        && resource.data.organizationId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.organizationId)/members/$(request.auth.uid));
       allow delete: if false;
     }
 
@@ -943,26 +997,38 @@ service cloud.firestore {
     }
 
     // ============================================
-    // CLIENTS - Legacy client collection
+    // CLIENTS - Legacy client collection (org-scoped via orgId field)
     // ============================================
     match /clients/{clientId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow read: if isAuthenticated()
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
+      allow create: if isAuthenticated()
+        && request.resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(request.resource.data.orgId)/members/$(request.auth.uid));
+      allow update: if isAuthenticated()
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
+      allow delete: if false;
     }
 
     // ============================================
-    // VOICE CALLS - Alex Voice call records
+    // VOICE CALLS - Alex Voice call records (org-scoped via orgId field)
     // ============================================
     match /voiceCalls/{callId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated()
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
       allow write: if false; // Only Cloud Functions
     }
 
     // ============================================
-    // SCHEDULED CALLS - Voice call scheduling
+    // SCHEDULED CALLS - Voice call scheduling (org-scoped via orgId field)
     // ============================================
     match /scheduledCalls/{schedId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated()
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
       allow write: if false; // Only Cloud Functions
     }
 
@@ -1034,15 +1100,18 @@ service cloud.firestore {
 
     match /socialSignals/{signalId} {
       allow read: if isAuthenticated()
-        && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
       allow write: if false; // Cloud Functions uniquement
     }
 
     match /socialLeads/{leadId} {
       allow read: if isAuthenticated()
-        && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId;
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid));
       allow update: if isAuthenticated()
-        && resource.data.orgId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.orgId
+        && resource.data.orgId != null
+        && exists(/databases/$(database)/documents/organizations/$(resource.data.orgId)/members/$(request.auth.uid))
         && request.resource.data.diff(resource.data).affectedKeys()
            .hasOnly(['status', 'updatedAt', 'sequence']);
       allow create, delete: if false;

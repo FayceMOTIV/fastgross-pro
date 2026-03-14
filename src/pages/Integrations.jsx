@@ -421,7 +421,7 @@ export default function Integrations() {
       {/* Header */}
       <div>
         <h1 className="page-title">Integrations</h1>
-        <p className="text-dark-400 mt-1">
+        <p className="text-gray-500 mt-1">
           Connectez vos services externes pour automatiser votre prospection
         </p>
       </div>
@@ -431,21 +431,21 @@ export default function Integrations() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Plug className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Disponibles</span>
+            <span className="text-xs text-gray-500">Disponibles</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.total}</p>
         </div>
         <div className="glass-card p-4 border-brand-500/20">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Connectees</span>
+            <span className="text-xs text-gray-500">Connectees</span>
           </div>
           <p className="text-2xl font-bold text-brand-400">{stats.connected}</p>
         </div>
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-dark-400">En attente</span>
+            <span className="text-xs text-gray-500">En attente</span>
           </div>
           <p className="text-2xl font-bold text-white">{stats.pending}</p>
         </div>
@@ -464,7 +464,7 @@ export default function Integrations() {
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
-                    : 'bg-dark-800/50 text-dark-400 border border-dark-700 hover:border-dark-600 hover:text-white'
+                    : 'bg-gray-100 text-gray-500 border border-gray-300 hover:border-gray-400 hover:text-gray-900'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -489,7 +489,7 @@ export default function Integrations() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className={`glass-card p-5 transition-all ${
-                isConnected ? 'border-brand-500/30 bg-brand-500/5' : 'hover:border-dark-600'
+                isConnected ? 'border-brand-500/30 bg-brand-500/5' : 'hover:border-gray-400'
               }`}
             >
               {/* Header */}
@@ -508,7 +508,7 @@ export default function Integrations() {
                           ? 'bg-brand-500/10 text-brand-400'
                           : isPending
                             ? 'bg-amber-500/10 text-amber-400'
-                            : 'bg-dark-800 text-dark-400'
+                            : 'bg-gray-100 text-gray-500'
                       }`}
                     >
                       {isConnected ? 'Connectee' : isPending ? 'En attente' : 'Non connectee'}
@@ -519,7 +519,7 @@ export default function Integrations() {
                   href={integration.docs}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                   title="Documentation"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -527,20 +527,20 @@ export default function Integrations() {
               </div>
 
               {/* Description */}
-              <p className="text-sm text-dark-400 mb-4">{integration.description}</p>
+              <p className="text-sm text-gray-500 mb-4">{integration.description}</p>
 
               {/* Features */}
               <div className="flex flex-wrap gap-1 mb-4">
                 {integration.features.slice(0, 3).map((feature, i) => (
                   <span
                     key={i}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-dark-800 text-dark-400"
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500"
                   >
                     {feature}
                   </span>
                 ))}
                 {integration.features.length > 3 && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-dark-800 text-dark-400">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                     +{integration.features.length - 3}
                   </span>
                 )}
@@ -548,7 +548,7 @@ export default function Integrations() {
 
               {/* Last sync */}
               {isConnected && lastSync && (
-                <div className="flex items-center gap-1 text-xs text-dark-500 mb-4">
+                <div className="flex items-center gap-1 text-xs text-gray-400 mb-4">
                   <RefreshCw className="w-3 h-3" />
                   Derniere sync:{' '}
                   {new Date(lastSync).toLocaleTimeString('fr-FR', {
@@ -559,7 +559,7 @@ export default function Integrations() {
               )}
 
               {/* Actions */}
-              <div className="flex items-center gap-2 pt-4 border-t border-dark-800">
+              <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
                 {isConnected ? (
                   <>
                     <button
@@ -572,7 +572,7 @@ export default function Integrations() {
                     {canManageIntegrations && (
                       <button
                         onClick={() => handleDisconnect(integration.id)}
-                        className="p-2 rounded-lg hover:bg-red-500/10 text-dark-400 hover:text-red-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors"
                         title="Deconnecter"
                       >
                         <Unlink className="w-4 h-4" />
@@ -598,9 +598,9 @@ export default function Integrations() {
       {/* Empty state */}
       {filteredIntegrations.length === 0 && (
         <div className="glass-card p-12 text-center">
-          <Plug className="w-12 h-12 text-dark-600 mx-auto mb-4" />
+          <Plug className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">Aucune integration trouvee</h3>
-          <p className="text-dark-400">Essayez de modifier votre filtre</p>
+          <p className="text-gray-500">Essayez de modifier votre filtre</p>
         </div>
       )}
 
@@ -622,7 +622,7 @@ export default function Integrations() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-dark-800">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div className="flex items-center gap-3">
                   <div
                     className={`w-10 h-10 rounded-lg ${selectedIntegration.bg} border ${selectedIntegration.border} flex items-center justify-center`}
@@ -634,7 +634,7 @@ export default function Integrations() {
                   </div>
                   <div>
                     <h2 className="font-bold text-white">{selectedIntegration.name}</h2>
-                    <p className="text-xs text-dark-400">
+                    <p className="text-xs text-gray-500">
                       {selectedIntegration.authType === 'api_key' && 'Authentification par cle API'}
                       {selectedIntegration.authType === 'credentials' &&
                         'Authentification par identifiants'}
@@ -645,7 +645,7 @@ export default function Integrations() {
                 </div>
                 <button
                   onClick={() => setConfigModalOpen(false)}
-                  className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -667,7 +667,7 @@ export default function Integrations() {
                 {/* Form fields */}
                 {selectedIntegration.fields.map((field) => (
                   <div key={field.key}>
-                    <label className="block text-sm font-medium text-dark-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-600 mb-2">
                       {field.label}
                       {field.required && <span className="text-red-400 ml-1">*</span>}
                     </label>
@@ -706,7 +706,7 @@ export default function Integrations() {
                               <button
                                 type="button"
                                 onClick={() => toggleSecret(field.key)}
-                                className="p-1.5 rounded hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                                className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                               >
                                 {showSecrets[field.key] ? (
                                   <EyeOff className="w-4 h-4" />
@@ -718,7 +718,7 @@ export default function Integrations() {
                                 <button
                                   type="button"
                                   onClick={() => copyToClipboard(formData[field.key])}
-                                  className="p-1.5 rounded hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                                  className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                                 >
                                   <Copy className="w-4 h-4" />
                                 </button>
@@ -732,9 +732,9 @@ export default function Integrations() {
                 ))}
 
                 {/* Help text */}
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-dark-800/50 border border-dark-700">
-                  <AlertCircle className="w-4 h-4 text-dark-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs text-dark-400">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-gray-100 border border-gray-300">
+                  <AlertCircle className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-xs text-gray-500">
                     <p>
                       Consultez la{' '}
                       <a
@@ -752,7 +752,7 @@ export default function Integrations() {
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between gap-3 p-6 border-t border-dark-800">
+              <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200">
                 <button
                   onClick={handleTestConnection}
                   disabled={testing || !canManageIntegrations}

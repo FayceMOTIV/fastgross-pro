@@ -94,8 +94,10 @@ export async function sendInstagramDM(orgId, prospectId, message, options = {}) 
 
     // 4. Verifier Instagram ID ou handle
     const igUserId = prospect.channels?.instagram?.igUserId ||
+                     prospect.channels?.instagram?.platformId ||
                      prospect.instagramId ||
-                     prospect.instagram_id;
+                     prospect.instagram_id ||
+                     prospect.platformId;
 
     if (!igUserId) {
       result.error = 'No Instagram user ID for prospect';

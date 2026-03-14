@@ -90,24 +90,24 @@ export default function ProfileSettings({ saving, setSaving }) {
           <button
             onClick={() => avatarInputRef.current?.click()}
             disabled={uploadingAvatar}
-            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center hover:bg-dark-700 transition-colors disabled:opacity-50"
+            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
           >
             {uploadingAvatar ? (
-              <Loader2 className="w-4 h-4 text-dark-400 animate-spin" />
+              <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
             ) : (
-              <Camera className="w-4 h-4 text-dark-400" />
+              <Camera className="w-4 h-4 text-gray-500" />
             )}
           </button>
         </div>
         <div>
-          <p className="text-sm text-dark-500">Photo de profil</p>
-          <p className="text-xs text-dark-600 mt-1">JPG, PNG. Max 2MB</p>
+          <p className="text-sm text-gray-400">Photo de profil</p>
+          <p className="text-xs text-gray-300 mt-1">JPG, PNG. Max 2MB</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-dark-300 mb-2">Nom complet</label>
+          <label className="block text-sm font-medium text-gray-600 mb-2">Nom complet</label>
           <input
             type="text"
             value={displayName}
@@ -117,14 +117,14 @@ export default function ProfileSettings({ saving, setSaving }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-dark-300 mb-2">Email</label>
+          <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
           <input
             type="email"
             value={email}
             disabled
             className="input-field opacity-50 cursor-not-allowed"
           />
-          <p className="text-xs text-dark-500 mt-1">L'email ne peut pas etre modifie</p>
+          <p className="text-xs text-gray-400 mt-1">L'email ne peut pas etre modifie</p>
         </div>
       </div>
 

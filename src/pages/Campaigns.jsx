@@ -535,7 +535,7 @@ export default function Campaigns() {
                 <Calendar className="w-5 h-5 text-violet-500" />
                 <h3 className="font-semibold text-gray-900">Envois aujourd'hui</h3>
               </div>
-              <p className="text-sm text-gray-500 mt-1">8 fevrier 2026</p>
+              <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
             </div>
             <div className="p-3 divide-y divide-gray-100">
               {upcomingSends.map((send, idx) => (

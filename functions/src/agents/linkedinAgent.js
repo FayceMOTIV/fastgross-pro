@@ -78,11 +78,13 @@ export const linkedinAgentHandler = onRequest(
 
       // ─── VISIT PROFILE ────────────────────────────────────────────────
       if (action === 'visitProfile') {
+        let heyreachSuccess = false
         if (heyreachAvailable && linkedinService) {
           try {
             await linkedinService.visitProfile(accountId, linkedinUrl)
+            heyreachSuccess = true
           } catch (err) {
-            logger.warn(`[linkedinAgent] HeyReach visitProfile failed, recording engagement:`, err.message)
+            logger.warn(`[linkedinAgent] HeyReach visitProfile failed:`, err.message)
           }
         }
 
@@ -93,7 +95,11 @@ export const linkedinAgentHandler = onRequest(
         })
 
         const duration = Date.now() - startTime
-        res.status(200).json({ success: true, action, prospectId, duration, via: heyreachAvailable ? 'heyreach' : 'recorded' })
+        res.status(200).json({
+          success: heyreachSuccess, action, prospectId, duration,
+          via: heyreachSuccess ? 'heyreach' : 'recorded',
+          warning: !heyreachSuccess ? 'HeyReach action failed, engagement recorded only' : undefined
+        })
         return
       }
 
@@ -101,11 +107,13 @@ export const linkedinAgentHandler = onRequest(
       if (action === 'sendConnectionRequest') {
         const note = template?.connectionNote || template?.message || ''
 
+        let heyreachSuccess = false
         if (heyreachAvailable && linkedinService) {
           try {
             await linkedinService.sendConnectionRequest(accountId, linkedinUrl, note)
+            heyreachSuccess = true
           } catch (err) {
-            logger.warn(`[linkedinAgent] HeyReach connect failed, recording:`, err.message)
+            logger.warn(`[linkedinAgent] HeyReach connect failed:`, err.message)
           }
         }
 
@@ -117,7 +125,12 @@ export const linkedinAgentHandler = onRequest(
         })
 
         const duration = Date.now() - startTime
-        res.status(200).json({ success: true, action, prospectId, duration, note: note.substring(0, 50) })
+        res.status(200).json({
+          success: heyreachSuccess, action, prospectId, duration,
+          note: note.substring(0, 50),
+          via: heyreachSuccess ? 'heyreach' : 'recorded',
+          warning: !heyreachSuccess ? 'HeyReach action failed, engagement recorded only' : undefined
+        })
         return
       }
 
@@ -125,11 +138,13 @@ export const linkedinAgentHandler = onRequest(
       if (action === 'sendMessage') {
         const message = template?.message || template?.text || ''
 
+        let heyreachSuccess = false
         if (heyreachAvailable && linkedinService) {
           try {
             await linkedinService.sendMessage(accountId, linkedinUrl, message)
+            heyreachSuccess = true
           } catch (err) {
-            logger.warn(`[linkedinAgent] HeyReach message failed, recording:`, err.message)
+            logger.warn(`[linkedinAgent] HeyReach message failed:`, err.message)
           }
         }
 
@@ -142,7 +157,11 @@ export const linkedinAgentHandler = onRequest(
         })
 
         const duration = Date.now() - startTime
-        res.status(200).json({ success: true, action, prospectId, duration })
+        res.status(200).json({
+          success: heyreachSuccess, action, prospectId, duration,
+          via: heyreachSuccess ? 'heyreach' : 'recorded',
+          warning: !heyreachSuccess ? 'HeyReach action failed, engagement recorded only' : undefined
+        })
         return
       }
 

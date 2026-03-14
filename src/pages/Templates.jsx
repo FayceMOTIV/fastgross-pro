@@ -128,7 +128,7 @@ export default function Templates() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Templates</h1>
-          <p className="text-dark-400 mt-1">Gerez vos modeles de messages pour tous les canaux</p>
+          <p className="text-gray-500 mt-1">Gerez vos modeles de messages pour tous les canaux</p>
         </div>
         {canCreateTemplates && (
           <button className="btn-primary flex items-center gap-2">
@@ -143,14 +143,14 @@ export default function Templates() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <FileText className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Total</span>
+            <span className="text-xs text-gray-500">Total</span>
           </div>
           <p className="text-2xl font-bold text-white">{templates.length}</p>
         </div>
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs text-dark-400">Taux d'ouverture moyen</span>
+            <span className="text-xs text-gray-500">Taux d'ouverture moyen</span>
           </div>
           <p className="text-2xl font-bold text-white">
             {templates.filter((t) => t.stats?.avgOpenRate).length > 0
@@ -167,7 +167,7 @@ export default function Templates() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-dark-400">Taux de reponse moyen</span>
+            <span className="text-xs text-gray-500">Taux de reponse moyen</span>
           </div>
           <p className="text-2xl font-bold text-white">
             {templates.length > 0
@@ -182,7 +182,7 @@ export default function Templates() {
         <div className="glass-card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-4 h-4 text-blue-400" />
-            <span className="text-xs text-dark-400">Utilisations totales</span>
+            <span className="text-xs text-gray-500">Utilisations totales</span>
           </div>
           <p className="text-2xl font-bold text-white">
             {templates.reduce((acc, t) => acc + (t.stats?.usageCount || 0), 0)}
@@ -195,7 +195,7 @@ export default function Templates() {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Rechercher un template..."
@@ -207,7 +207,7 @@ export default function Templates() {
 
           {/* Channel filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-dark-500" />
+            <Filter className="w-4 h-4 text-gray-400" />
             <select
               value={channelFilter}
               onChange={(e) => setChannelFilter(e.target.value)}
@@ -245,10 +245,10 @@ export default function Templates() {
             <span
               className={`w-2 h-2 rounded-full ${TEMPLATE_CATEGORIES[category]?.color.replace('text-', 'bg-')}`}
             />
-            <h2 className="text-sm font-medium text-dark-300">
+            <h2 className="text-sm font-medium text-gray-600">
               {TEMPLATE_CATEGORIES[category]?.label || category}
             </h2>
-            <span className="text-xs text-dark-500">({categoryTemplates.length})</span>
+            <span className="text-xs text-gray-400">({categoryTemplates.length})</span>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -268,17 +268,17 @@ export default function Templates() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-xl ${channelConfig?.bg || 'bg-dark-800'} border ${channelConfig?.border || 'border-dark-700'} flex items-center justify-center`}
+                        className={`w-10 h-10 rounded-xl ${channelConfig?.bg || 'bg-gray-100'} border ${channelConfig?.border || 'border-gray-300'} flex items-center justify-center`}
                       >
                         <ChannelIcon
-                          className={`w-5 h-5 ${channelConfig?.color || 'text-dark-400'}`}
+                          className={`w-5 h-5 ${channelConfig?.color || 'text-gray-500'}`}
                         />
                       </div>
                       <div>
                         <h3 className="font-medium text-white group-hover:text-brand-400 transition-colors">
                           {template.name}
                         </h3>
-                        <p className="text-xs text-dark-500">{channelConfig?.label}</p>
+                        <p className="text-xs text-gray-400">{channelConfig?.label}</p>
                       </div>
                     </div>
                     {template.isDefault && (
@@ -287,18 +287,18 @@ export default function Templates() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-dark-400 mb-4 line-clamp-2">{template.description}</p>
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2">{template.description}</p>
 
                   {/* Subject (email only) */}
                   {template.subject && (
-                    <div className="px-3 py-2 rounded-lg bg-dark-800/50 mb-4">
-                      <p className="text-xs text-dark-500 mb-0.5">Objet</p>
+                    <div className="px-3 py-2 rounded-lg bg-gray-100 mb-4">
+                      <p className="text-xs text-gray-400 mb-0.5">Objet</p>
                       <p className="text-sm text-white truncate">{template.subject}</p>
                     </div>
                   )}
 
                   {/* Stats */}
-                  <div className="flex items-center gap-4 text-xs text-dark-500">
+                  <div className="flex items-center gap-4 text-xs text-gray-400">
                     <span>{template.stats?.usageCount || 0} utilisations</span>
                     {template.stats?.avgOpenRate && (
                       <span className="text-emerald-400">
@@ -311,7 +311,7 @@ export default function Templates() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-dark-800 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       className="flex-1 btn-ghost text-xs py-2 flex items-center justify-center gap-1"
                       onClick={(e) => {
@@ -332,7 +332,7 @@ export default function Templates() {
                       </button>
                     )}
                     <button
-                      className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                      className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDuplicate(template)
@@ -343,7 +343,7 @@ export default function Templates() {
                     </button>
                     {canDeleteTemplates && (
                       <button
-                        className="p-2 rounded-lg hover:bg-red-500/10 text-dark-400 hover:text-red-400 transition-colors"
+                        className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleDelete(template)
@@ -364,9 +364,9 @@ export default function Templates() {
       {/* Empty state */}
       {filteredTemplates.length === 0 && (
         <div className="glass-card p-12 text-center">
-          <FileText className="w-12 h-12 text-dark-600 mx-auto mb-4" />
+          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">Aucun template trouve</h3>
-          <p className="text-dark-400 mb-6">
+          <p className="text-gray-500 mb-6">
             {searchQuery || channelFilter !== 'all' || categoryFilter !== 'all'
               ? 'Essayez de modifier vos filtres'
               : 'Creez votre premier template pour commencer'}
@@ -398,14 +398,14 @@ export default function Templates() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-dark-800">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <div>
                   <h2 className="text-lg font-bold text-white">{selectedTemplate.name}</h2>
-                  <p className="text-sm text-dark-400">{selectedTemplate.description}</p>
+                  <p className="text-sm text-gray-500">{selectedTemplate.description}</p>
                 </div>
                 <button
                   onClick={() => setPreviewOpen(false)}
-                  className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
+                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -415,15 +415,15 @@ export default function Templates() {
               <div className="p-6 overflow-y-auto max-h-[60vh]">
                 {selectedTemplate.subject && (
                   <div className="mb-4">
-                    <p className="text-xs text-dark-500 mb-1">Objet</p>
-                    <p className="text-white bg-dark-800/50 px-4 py-2 rounded-lg">
+                    <p className="text-xs text-gray-400 mb-1">Objet</p>
+                    <p className="text-white bg-gray-100 px-4 py-2 rounded-lg">
                       {getTemplatePreview(selectedTemplate).subject}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-xs text-dark-500 mb-1">Contenu</p>
-                  <div className="bg-dark-800/50 px-4 py-3 rounded-lg">
+                  <p className="text-xs text-gray-400 mb-1">Contenu</p>
+                  <div className="bg-gray-100 px-4 py-3 rounded-lg">
                     <pre className="text-sm text-white whitespace-pre-wrap font-sans">
                       {getTemplatePreview(selectedTemplate).content}
                     </pre>
@@ -432,7 +432,7 @@ export default function Templates() {
 
                 {/* Variables */}
                 <div className="mt-6">
-                  <p className="text-xs text-dark-500 mb-2">Variables disponibles</p>
+                  <p className="text-xs text-gray-400 mb-2">Variables disponibles</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(TEMPLATE_VARIABLES).map(([key, info]) => (
                       <span
@@ -447,7 +447,7 @@ export default function Templates() {
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-end gap-3 p-6 border-t border-dark-800">
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
                 <button onClick={() => setPreviewOpen(false)} className="btn-ghost">
                   Fermer
                 </button>

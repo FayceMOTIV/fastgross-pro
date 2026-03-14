@@ -88,15 +88,15 @@ export default function DangerSettings() {
             <AlertTriangle className="w-5 h-5 text-red-400" />
             <h3 className="font-display font-semibold text-white">Zone dangereuse</h3>
           </div>
-          <p className="text-sm text-dark-400 mb-6">
+          <p className="text-sm text-gray-500 mb-6">
             Ces actions sont irreversibles. Procedez avec precaution.
           </p>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-dark-900/50 border border-dark-800">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-200">
               <div>
                 <p className="text-sm font-medium text-white">Exporter mes donnees</p>
-                <p className="text-xs text-dark-500 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   Telechargez toutes vos donnees au format JSON
                 </p>
               </div>
@@ -114,10 +114,10 @@ export default function DangerSettings() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-xl bg-dark-900/50 border border-red-500/20">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-red-500/20">
               <div>
                 <p className="text-sm font-medium text-red-400">Supprimer mon compte</p>
-                <p className="text-xs text-dark-500 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   Supprime definitivement votre compte et toutes vos donnees
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default function DangerSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
               Confirmez avec votre mot de passe
             </label>
             <input

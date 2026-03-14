@@ -63,7 +63,7 @@ export default function SourcesSettings({ saving, setSaving }) {
         <h2 className="section-title">Sources d'emails</h2>
       </div>
 
-      <p className="text-sm text-dark-400">
+      <p className="text-sm text-gray-500">
         Configurez les sources utilisees pour trouver les emails de vos prospects. Plus de sources =
         plus de chances de trouver l'email valide.
       </p>
@@ -79,20 +79,20 @@ export default function SourcesSettings({ saving, setSaving }) {
                 Gratuit
               </span>
             </div>
-            <p className="text-sm text-dark-400 mt-2 ml-8">
+            <p className="text-sm text-gray-500 mt-2 ml-8">
               Extraction automatique des emails depuis les pages contact, mentions legales, etc.
             </p>
           </div>
           <button
             onClick={() => setScrapingEnabled(!scrapingEnabled)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              scrapingEnabled ? 'bg-brand-500' : 'bg-dark-700'
+              scrapingEnabled ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {scrapingEnabled ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
@@ -109,27 +109,27 @@ export default function SourcesSettings({ saving, setSaving }) {
                 Premium
               </span>
             </div>
-            <p className="text-sm text-dark-400 mt-2 ml-8">
+            <p className="text-sm text-gray-500 mt-2 ml-8">
               API professionnelle pour trouver et verifier les emails. ~50 credits/mois gratuits.
             </p>
           </div>
           <button
             onClick={() => setHunterEnabled(!hunterEnabled)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              hunterEnabled ? 'bg-brand-500' : 'bg-dark-700'
+              hunterEnabled ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {hunterEnabled ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
 
         {hunterEnabled && (
-          <div className="mt-4 ml-8 p-4 rounded-lg bg-dark-900/50">
-            <label className="block text-sm font-medium text-dark-300 mb-2">
+          <div className="mt-4 ml-8 p-4 rounded-lg bg-gray-50">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
               Cle API Hunter.io
             </label>
             <input
@@ -163,27 +163,27 @@ export default function SourcesSettings({ saving, setSaving }) {
                 Premium
               </span>
             </div>
-            <p className="text-sm text-dark-400 mt-2 ml-8">
+            <p className="text-sm text-gray-500 mt-2 ml-8">
               Enrichissement B2B francais. Excellent pour les entreprises francaises.
             </p>
           </div>
           <button
             onClick={() => setDropcontactEnabled(!dropcontactEnabled)}
             className={`flex-shrink-0 p-1 rounded-full transition-colors ${
-              dropcontactEnabled ? 'bg-brand-500' : 'bg-dark-700'
+              dropcontactEnabled ? 'bg-brand-500' : 'bg-gray-200'
             }`}
           >
             {dropcontactEnabled ? (
               <ToggleRight className="w-8 h-8 text-white" />
             ) : (
-              <ToggleLeft className="w-8 h-8 text-dark-400" />
+              <ToggleLeft className="w-8 h-8 text-gray-500" />
             )}
           </button>
         </div>
 
         {dropcontactEnabled && (
-          <div className="mt-4 ml-8 p-4 rounded-lg bg-dark-900/50">
-            <label className="block text-sm font-medium text-dark-300 mb-2">
+          <div className="mt-4 ml-8 p-4 rounded-lg bg-gray-50">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
               Cle API Dropcontact
             </label>
             <input
@@ -213,19 +213,19 @@ export default function SourcesSettings({ saving, setSaving }) {
             <div className="flex items-center gap-3">
               <Users className="w-5 h-5 text-blue-400" />
               <h3 className="font-medium text-white">LinkedIn Sales Navigator</h3>
-              <span className="px-2 py-0.5 rounded-full bg-dark-700 text-dark-400 text-xs">
+              <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 text-xs">
                 Bientot disponible
               </span>
             </div>
-            <p className="text-sm text-dark-400 mt-2 ml-8">
+            <p className="text-sm text-gray-500 mt-2 ml-8">
               Import de leads depuis LinkedIn avec enrichissement automatique.
             </p>
           </div>
           <button
             disabled
-            className="flex-shrink-0 p-1 rounded-full bg-dark-700 cursor-not-allowed"
+            className="flex-shrink-0 p-1 rounded-full bg-gray-200 cursor-not-allowed"
           >
-            <ToggleLeft className="w-8 h-8 text-dark-500" />
+            <ToggleLeft className="w-8 h-8 text-gray-400" />
           </button>
         </div>
       </div>

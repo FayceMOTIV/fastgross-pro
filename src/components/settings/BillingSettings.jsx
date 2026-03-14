@@ -50,7 +50,7 @@ export default function BillingSettings() {
       <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-dark-400">Plan actuel</p>
+            <p className="text-sm text-gray-500">Plan actuel</p>
             <p className="text-2xl font-display font-bold text-white mt-1">
               {currentOrg?.plan === 'scale'
                 ? 'Scale'
@@ -60,11 +60,11 @@ export default function BillingSettings() {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-dark-400">Usage ce mois</p>
+            <p className="text-sm text-gray-500">Usage ce mois</p>
             <p className="text-lg font-medium text-white mt-1">
               0 / {currentOrg?.settings?.emailsPerMonth || 2000} emails
             </p>
-            <div className="w-32 h-2 bg-dark-800 rounded-full mt-2 overflow-hidden">
+            <div className="w-32 h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
               <div className="h-full bg-brand-500 rounded-full" style={{ width: '0%' }} />
             </div>
           </div>
@@ -88,11 +88,11 @@ export default function BillingSettings() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-display font-bold text-white">{plan.price}EUR</span>
-                <span className="text-dark-500">/mois</span>
+                <span className="text-gray-400">/mois</span>
               </div>
               <ul className="space-y-2">
                 {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-dark-300">
+                  <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                     <Check className="w-4 h-4 text-brand-400" />
                     {feature}
                   </li>
@@ -109,7 +109,7 @@ export default function BillingSettings() {
         })}
       </div>
 
-      <p className="text-xs text-dark-500 text-center">
+      <p className="text-xs text-gray-400 text-center">
         Besoin d'un plan personnalise ?{' '}
         <a href="mailto:contact@facemedia.fr" className="text-brand-400 hover:underline">
           Contactez-nous

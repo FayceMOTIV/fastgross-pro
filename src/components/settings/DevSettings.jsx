@@ -35,18 +35,18 @@ export default function DevSettings() {
           <Wrench className="w-5 h-5 text-amber-400" />
           <h3 className="font-display font-semibold text-white">Outils de developpement</h3>
         </div>
-        <p className="text-sm text-dark-400 mb-6">
+        <p className="text-sm text-gray-500 mb-6">
           Ces outils sont disponibles uniquement en environnement de developpement.
         </p>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-dark-900/50 border border-amber-500/20">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-amber-500/20">
             <div>
               <p className="text-sm font-medium text-white flex items-center gap-2">
                 <Database className="w-4 h-4 text-amber-400" />
                 Peupler avec des donnees de demo
               </p>
-              <p className="text-xs text-dark-500 mt-1">
+              <p className="text-xs text-gray-400 mt-1">
                 Cree 1 organisation, 3 clients, 20 leads, 2 campagnes, 50 events email
               </p>
             </div>
@@ -64,7 +64,7 @@ export default function DevSettings() {
             </button>
           </div>
 
-          <div className="p-4 rounded-xl bg-dark-900/50 border border-dark-800">
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
             <p className="text-sm font-medium text-white mb-3">Liens rapides</p>
             <div className="flex flex-wrap gap-2">
               <a

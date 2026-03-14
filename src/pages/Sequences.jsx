@@ -135,10 +135,10 @@ export default function Sequences() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="page-title">Sequences</h1>
-          <p className="text-dark-400 mt-1">Automatisez votre prospection multicanale</p>
+          <p className="text-gray-500 mt-1">Automatisez votre prospection multicanale</p>
         </div>
         {canCreateSequences && (
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => toast('Creation de sequence bientot disponible')}>
             <Plus className="w-4 h-4" />
             Nouvelle sequence
           </button>
@@ -147,44 +147,44 @@ export default function Sequences() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="glass-card p-4">
+        <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Workflow className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Sequences actives</span>
+            <span className="text-xs text-gray-500">Sequences actives</span>
           </div>
-          <p className="text-2xl font-bold text-white">
+          <p className="text-2xl font-bold text-gray-900">
             {sequences.filter((s) => s.status === 'active').length}
           </p>
         </div>
-        <div className="glass-card p-4">
+        <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-4 h-4 text-blue-400" />
-            <span className="text-xs text-dark-400">Prospects inscrits</span>
+            <span className="text-xs text-gray-500">Prospects inscrits</span>
           </div>
-          <p className="text-2xl font-bold text-white">{totalStats.enrolled}</p>
+          <p className="text-2xl font-bold text-gray-900">{totalStats.enrolled}</p>
         </div>
-        <div className="glass-card p-4">
+        <div className="card p-4">
           <div className="flex items-center gap-2 mb-2">
             <MessageCircle className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-dark-400">Reponses</span>
+            <span className="text-xs text-gray-500">Reponses</span>
           </div>
-          <p className="text-2xl font-bold text-white">{totalStats.replied}</p>
+          <p className="text-2xl font-bold text-gray-900">{totalStats.replied}</p>
         </div>
-        <div className="glass-card p-4 border-brand-500/20">
+        <div className="card p-4 border-brand-500/20">
           <div className="flex items-center gap-2 mb-2">
             <Target className="w-4 h-4 text-brand-400" />
-            <span className="text-xs text-dark-400">Conversions</span>
+            <span className="text-xs text-gray-500">Conversions</span>
           </div>
           <p className="text-2xl font-bold text-brand-400">{totalStats.converted}</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="glass-card p-4">
+      <div className="card p-4">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               placeholder="Rechercher une sequence..."
@@ -196,7 +196,7 @@ export default function Sequences() {
 
           {/* Status filter */}
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-dark-500" />
+            <Filter className="w-4 h-4 text-gray-400" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -218,8 +218,8 @@ export default function Sequences() {
         {filteredSequences.map((sequence) => {
           const statusInfo = SEQUENCE_STATUS[sequence.status] || {
             label: sequence.status,
-            bg: 'bg-dark-800',
-            color: 'text-dark-400',
+            bg: 'bg-gray-100',
+            color: 'text-gray-500',
           }
           const enrolled = sequence.stats?.enrolled || 0
           const replied = sequence.stats?.replied || 0
@@ -232,14 +232,14 @@ export default function Sequences() {
               key={sequence.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-5 hover:border-brand-500/30 transition-all cursor-pointer group"
+              className="card p-5 hover:border-brand-500/30 transition-all cursor-pointer group"
               onClick={() => setSelectedSequence(sequence)}
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-white truncate group-hover:text-brand-400 transition-colors">
+                    <h3 className="font-medium text-gray-900 truncate group-hover:text-brand-400 transition-colors">
                       {sequence.name}
                     </h3>
                     <span
@@ -248,10 +248,10 @@ export default function Sequences() {
                       {statusInfo.label}
                     </span>
                   </div>
-                  <p className="text-sm text-dark-400 line-clamp-1">{sequence.description}</p>
+                  <p className="text-sm text-gray-500 line-clamp-1">{sequence.description}</p>
                 </div>
                 <button
-                  className="p-1.5 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 opacity-0 group-hover:opacity-100 transition-all"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -267,15 +267,15 @@ export default function Sequences() {
                   return (
                     <div key={i} className="flex items-center">
                       <div
-                        className={`w-8 h-8 rounded-lg ${channelConfig?.bg || 'bg-dark-800'} border ${channelConfig?.border || 'border-dark-700'} flex items-center justify-center flex-shrink-0`}
+                        className={`w-8 h-8 rounded-lg ${channelConfig?.bg || 'bg-gray-100'} border ${channelConfig?.border || 'border-gray-200'} flex items-center justify-center flex-shrink-0`}
                         title={`${channelConfig?.label} - J+${step.day}`}
                       >
                         <ChannelIcon
-                          className={`w-4 h-4 ${channelConfig?.color || 'text-dark-400'}`}
+                          className={`w-4 h-4 ${channelConfig?.color || 'text-gray-500'}`}
                         />
                       </div>
                       {i < (sequence.steps?.length || 0) - 1 && (
-                        <ArrowRight className="w-3 h-3 text-dark-600 mx-0.5" />
+                        <ArrowRight className="w-3 h-3 text-gray-400 mx-0.5" />
                       )}
                     </div>
                   )
@@ -284,22 +284,22 @@ export default function Sequences() {
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-2 text-center mb-4">
-                <div className="p-2 rounded-lg bg-dark-800/50">
-                  <p className="text-lg font-bold text-white">{sequence.stats?.active || 0}</p>
-                  <p className="text-[10px] text-dark-500">En cours</p>
+                <div className="p-2 rounded-lg bg-gray-50">
+                  <p className="text-lg font-bold text-gray-900">{sequence.stats?.active || 0}</p>
+                  <p className="text-[10px] text-gray-400">En cours</p>
                 </div>
-                <div className="p-2 rounded-lg bg-dark-800/50">
+                <div className="p-2 rounded-lg bg-gray-50">
                   <p className="text-lg font-bold text-amber-400">{replyRate}%</p>
-                  <p className="text-[10px] text-dark-500">Reponse</p>
+                  <p className="text-[10px] text-gray-400">Reponse</p>
                 </div>
-                <div className="p-2 rounded-lg bg-dark-800/50">
+                <div className="p-2 rounded-lg bg-gray-50">
                   <p className="text-lg font-bold text-brand-400">{conversionRate}%</p>
-                  <p className="text-[10px] text-dark-500">Conversion</p>
+                  <p className="text-[10px] text-gray-400">Conversion</p>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 pt-4 border-t border-dark-800">
+              <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
                 {sequence.status === 'active' && canActivateSequences && (
                   <button
                     className="flex-1 btn-ghost text-xs py-2 flex items-center justify-center gap-1 text-amber-400 hover:bg-amber-500/10"
@@ -327,21 +327,22 @@ export default function Sequences() {
                 {canEditSequences && (
                   <button
                     className="flex-1 btn-ghost text-xs py-2 flex items-center justify-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => { e.stopPropagation(); toast('Edition de sequence bientot disponible') }}
                   >
                     <Edit3 className="w-3 h-3" />
                     Editer
                   </button>
                 )}
                 <button
-                  className="p-2 rounded-lg hover:bg-dark-800 text-dark-400 hover:text-white transition-colors"
-                  onClick={(e) => e.stopPropagation()}
+                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); toast('Copie de sequence bientot disponible') }}
+                  title="Copier"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 {canDeleteSequences && (
                   <button
-                    className="p-2 rounded-lg hover:bg-red-500/10 text-dark-400 hover:text-red-400 transition-colors"
+                    className="p-2 rounded-lg hover:bg-red-500/10 text-gray-500 hover:text-red-400 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
                       handleDelete(sequence)
@@ -359,10 +360,10 @@ export default function Sequences() {
 
       {/* Empty state */}
       {filteredSequences.length === 0 && (
-        <div className="glass-card p-12 text-center">
-          <Workflow className="w-12 h-12 text-dark-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">Aucune sequence trouvee</h3>
-          <p className="text-dark-400 mb-6">
+        <div className="card p-12 text-center">
+          <Workflow className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune sequence trouvee</h3>
+          <p className="text-gray-500 mb-6">
             {searchQuery || statusFilter !== 'all'
               ? 'Essayez de modifier vos filtres'
               : 'Creez votre premiere sequence pour automatiser votre prospection'}
