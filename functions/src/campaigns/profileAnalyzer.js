@@ -15,6 +15,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
 import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -271,7 +272,7 @@ Reponds en JSON avec cette structure :
         const aiResponse = await callAI(prompt, 1500)
         const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
-          summary = JSON.parse(jsonMatch[0])
+          summary = safeParseLLMJson(jsonMatch[0])
         } else {
           summary = { summary: aiResponse }
         }

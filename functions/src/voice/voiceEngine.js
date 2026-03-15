@@ -9,6 +9,7 @@
  */
 
 import Groq from 'groq-sdk'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 // ---------------------------------------------------------------------------
 // Private helpers
@@ -138,7 +139,7 @@ Reponds UNIQUEMENT en JSON valide, sans markdown.`
 
     const raw = completion.choices?.[0]?.message?.content?.trim()
     const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim()
-    const parsed = JSON.parse(cleaned)
+    const parsed = safeParseLLMJson(cleaned)
 
     if (!parsed.systemPrompt || !parsed.firstMessage) {
       throw new Error('Missing required fields in AI response')

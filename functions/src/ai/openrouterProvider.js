@@ -6,6 +6,7 @@
  */
 
 import OpenAI from 'openai'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 class OpenRouterProvider {
   constructor() {
@@ -126,7 +127,7 @@ REPONSE :`
       // Clean response (remove markdown if present)
       responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 
-      const response = JSON.parse(responseText)
+      const response = safeParseLLMJson(responseText)
 
       return {
         angles: [response.angle1, response.angle2, response.angle3],

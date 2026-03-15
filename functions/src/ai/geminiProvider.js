@@ -6,6 +6,7 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const GEMINI_MODELS = [
   'gemini-2.0-flash-lite',
@@ -103,7 +104,7 @@ FORMAT DE REPONSE (JSON strict, sans markdown) :
       // Clean response (remove markdown if present)
       responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 
-      const response = JSON.parse(responseText)
+      const response = safeParseLLMJson(responseText)
 
       this.config.model = modelName
 

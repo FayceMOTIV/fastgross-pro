@@ -17,6 +17,7 @@
 
 import Groq from 'groq-sdk'
 import { logger } from 'firebase-functions/v2'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 // ============================================
 // CONFIGURATION
@@ -312,7 +313,7 @@ REPONSE :`
       return null
     }
 
-    const parsed = JSON.parse(content)
+    const parsed = safeParseLLMJson(content)
 
     return {
       whatsapp: parsed.whatsapp || null,

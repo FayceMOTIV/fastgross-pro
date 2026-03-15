@@ -12,6 +12,7 @@
  */
 
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
+import { safeParseLLMJson } from '../../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -86,7 +87,7 @@ Si aucun referral clair, reponds : { "firstName": null }`
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) return null
 
-    const parsed = JSON.parse(jsonMatch[0])
+    const parsed = safeParseLLMJson(jsonMatch[0])
     if (!parsed.firstName) return null
 
     return parsed

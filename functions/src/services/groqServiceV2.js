@@ -5,6 +5,7 @@
 
 import Groq from 'groq-sdk';
 import { buildEmailSystemPrompt, FOLLOWUP_ANGLES } from '../knowledge/emailBestPractices.js';
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -108,7 +109,7 @@ export class GroqService {
       max_tokens: 1000,
     });
 
-    const result = JSON.parse(response.choices[0].message.content);
+    const result = safeParseLLMJson(response.choices[0].message.content);
 
     // P2 — Enforce channel length limits post-generation
     if (result.message) {
@@ -144,7 +145,7 @@ Longueur : 60-90 mots max. Ton différent de la première approche.`;
       max_tokens: 500,
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return safeParseLLMJson(response.choices[0].message.content);
   }
 
   /**
@@ -169,7 +170,7 @@ Règle : 1 point commun + 1 raison spécifique. JAMAIS générique. Pas de "je m
       max_tokens: 200,
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return safeParseLLMJson(response.choices[0].message.content);
   }
 
   /**
@@ -209,7 +210,7 @@ Les prospects doivent penser "Tiens, ça me parle" et s'identifier au problème 
       max_tokens: 600,
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return safeParseLLMJson(response.choices[0].message.content);
   }
 
   /**
@@ -243,7 +244,7 @@ Critères : présence web, secteur actif, taille, indicateurs de budget, signaux
       max_tokens: 200,
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return safeParseLLMJson(response.choices[0].message.content);
   }
 }
 

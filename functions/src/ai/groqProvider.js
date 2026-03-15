@@ -6,6 +6,7 @@
  */
 
 import Groq from 'groq-sdk'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 class GroqProvider {
   constructor() {
@@ -99,7 +100,7 @@ REPONSE :`
       const latency = Date.now() - startTime
       this.usage.current++
 
-      const response = JSON.parse(completion.choices[0].message.content)
+      const response = safeParseLLMJson(completion.choices[0].message.content)
 
       return {
         angles: [response.angle1, response.angle2, response.angle3],

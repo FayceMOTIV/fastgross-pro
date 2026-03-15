@@ -10,6 +10,7 @@ import { onRequest } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { launchVoiceCall, processVapiWebhookEvent } from './voiceEngine.js'
 import { callAI } from '../ai/callAI.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -280,7 +281,7 @@ ${callData.transcript.slice(0, 3000)}`,
       )
 
       const cleaned = aiResponse.replace(/```json\n?|\n?```/g, '').trim()
-      analysis = JSON.parse(cleaned)
+      analysis = safeParseLLMJson(cleaned)
     } catch {
       // Keep default analysis
     }

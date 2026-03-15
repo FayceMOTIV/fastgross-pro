@@ -14,6 +14,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
 import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -109,7 +110,7 @@ ${currentRound < maxRounds ? `Pose 2-3 questions courtes et precises pour mieux 
         let parsed
         try {
           const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
-          parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null
+          parsed = jsonMatch ? safeParseLLMJson(jsonMatch[0]) : null
         } catch {
           parsed = null
         }
@@ -213,7 +214,7 @@ Reponds en JSON strict:
 
   const aiResponse = await callAI(prompt, 600)
   const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
-  const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : null
+  const parsed = jsonMatch ? safeParseLLMJson(jsonMatch[0]) : null
 
   if (!parsed?.icp) {
     throw new HttpsError('internal', 'Impossible de generer l\'ICP')
@@ -328,7 +329,7 @@ Genere une strategie de prospection optimale. Reponds en JSON strict:
       let strategy
       try {
         const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
-        strategy = jsonMatch ? JSON.parse(jsonMatch[0]) : null
+        strategy = jsonMatch ? safeParseLLMJson(jsonMatch[0]) : null
       } catch {
         strategy = null
       }

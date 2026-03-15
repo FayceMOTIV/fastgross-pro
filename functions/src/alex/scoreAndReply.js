@@ -13,6 +13,7 @@ import { sendNotification } from '../notifications/notificationSender.js'
 import { NOTIFICATION_TYPES } from '../notifications/notificationTemplates.js'
 import { addToHotQueue } from '../notifications/hotQueueManager.js'
 import { buildAlexUniversalPrompt } from '../agent/alexSystemPromptBuilder.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 import { initiateAlexCall } from '../voice/alexVoiceEngine.js'
 
 const getDb = () => getFirestore()
@@ -116,7 +117,7 @@ export async function scoreAndReply(params) {
     })
 
     const rawScoring = scoringResponse.choices?.[0]?.message?.content
-    scoring = JSON.parse(rawScoring || '{}')
+    scoring = safeParseLLMJson(rawScoring || '{}')
     score = Math.min(100, Math.max(0, Number(scoring.score) || 0))
     scoring.score = score
 

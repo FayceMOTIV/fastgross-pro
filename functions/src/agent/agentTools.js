@@ -5,6 +5,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { searchKnowledgeBase } from '../knowledge/kbSearch.js'
 import { callAI } from '../ai/callAI.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -177,7 +178,7 @@ Message: "${text.slice(0, 500)}"`,
     )
 
     const cleaned = response.replace(/```json\n?|\n?```/g, '').trim()
-    return JSON.parse(cleaned)
+    return safeParseLLMJson(cleaned)
   } catch {
     return { score: 0, label: 'neutral', confidence: 0.5 }
   }

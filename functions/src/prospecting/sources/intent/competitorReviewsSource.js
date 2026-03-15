@@ -9,6 +9,7 @@
 
 import { logger } from 'firebase-functions/v2'
 import { normalizeToLead, createSourceRun, updateSourceRun, saveRawLeads, withRateLimit } from '../_baseSource.js'
+import { safeParseLLMJson } from '../../../utils/safeParseLLMJson.js'
 
 const SOURCE_ID = 'competitor_reviews'
 const SOURCE_GROUP = 'intent'
@@ -79,7 +80,7 @@ async function analyzeIntentWithAI(reviewText, competitor) {
 
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
+      return safeParseLLMJson(jsonMatch[0])
     }
   } catch (error) {
     logger.warn(`[competitorReviewsSource] AI analysis failed:`, error.message)

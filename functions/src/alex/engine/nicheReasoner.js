@@ -5,6 +5,7 @@
  */
 import Groq from 'groq-sdk';
 import { getAllDescriptions, getSourceCount } from './sourceRegistry.js';
+import { safeParseLLMJson } from '../../utils/safeParseLLMJson.js';
 
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -88,6 +89,6 @@ Reponds en JSON structure :
     }
   }
 
-  const plan = JSON.parse(response.choices[0].message.content);
+  const plan = safeParseLLMJson(response.choices[0].message.content);
   return plan;
 }

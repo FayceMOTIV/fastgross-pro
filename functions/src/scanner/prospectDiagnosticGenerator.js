@@ -4,6 +4,7 @@
  */
 
 import Groq from 'groq-sdk';
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
 
 /**
  * Genere un diagnostic IA a partir des signaux detectes
@@ -80,7 +81,7 @@ Reponds UNIQUEMENT en JSON :
       return buildFallbackDiagnostic(domain, signals);
     }
 
-    const parsed = JSON.parse(content);
+    const parsed = safeParseLLMJson(content);
     return {
       summary: parsed.summary || '',
       approachMessage: parsed.approachMessage || '',

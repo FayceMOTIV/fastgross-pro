@@ -12,6 +12,7 @@ import { loadConversationHistory } from './alexMemory.js';
 import { executeAlexActions } from './alexActionExecutor.js';
 import { parseMission, activateMission, getMissionPromptSection, updateMissionProgress } from './alexMissionTracker.js';
 import { verifyOrgMembership } from '../utils/verifyOrgMembership.js';
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
 
 const getDb = () => getFirestore();
 const getAnthropic = () => new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -177,7 +178,7 @@ isConfirmation = true si le message contient : "go", "lance", "oui", "c'est bon"
   try {
     const raw = await callLLM(extractionPrompt, [{ role: 'user', content: userMessage }], true);
     const json = raw.match(/\{[\s\S]*\}/)?.[0] || raw;
-    const parsed = JSON.parse(json);
+    const parsed = safeParseLLMJson(json);
 
     // Post-processing : mapper les champs alternatifs vers 'volume'
     if (!parsed.volume) {
@@ -313,7 +314,7 @@ function parseAlexResponse(raw) {
   let parsed;
   try {
     const json = raw.match(/\{[\s\S]*\}/)?.[0] || raw;
-    parsed = JSON.parse(json);
+    parsed = safeParseLLMJson(json);
   } catch {
     parsed = { message: raw, actions: [], suggestions: [] };
   }

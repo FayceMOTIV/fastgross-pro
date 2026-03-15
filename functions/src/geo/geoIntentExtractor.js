@@ -9,6 +9,7 @@
 
 import Groq from 'groq-sdk';
 import { resolveGeoZone } from './geoZoneResolver.js';
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
 
 const MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
 
@@ -84,7 +85,7 @@ Exemples :
 
   try {
     const raw = await callGroqWithFallback([{ role: 'user', content: prompt }]);
-    const parsed = JSON.parse(raw);
+    const parsed = safeParseLLMJson(raw);
 
     const resolvedZones = [];
     for (const zoneText of (parsed.zones_texte || [])) {

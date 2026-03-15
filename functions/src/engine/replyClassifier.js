@@ -4,6 +4,7 @@
  */
 
 import { getFirestore } from 'firebase-admin/firestore'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -255,7 +256,7 @@ Retourne UNIQUEMENT ce JSON:
   const response = await geminiCall(prompt)
 
   try {
-    const parsed = JSON.parse(response)
+    const parsed = safeParseLLMJson(response)
     return {
       category: parsed.category,
       categoryInfo: REPLY_CATEGORIES[parsed.category] || REPLY_CATEGORIES.NEUTRAL,
@@ -271,7 +272,7 @@ Retourne UNIQUEMENT ce JSON:
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       try {
-        const parsed = JSON.parse(jsonMatch[0])
+        const parsed = safeParseLLMJson(jsonMatch[0])
         return {
           category: parsed.category || 'NEUTRAL',
           categoryInfo: REPLY_CATEGORIES[parsed.category] || REPLY_CATEGORIES.NEUTRAL,

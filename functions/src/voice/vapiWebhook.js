@@ -6,6 +6,7 @@
 import { onRequest } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -97,7 +98,7 @@ ${transcript.slice(0, 2000)}`,
             300
           )
           const cleaned = aiResponse.replace(/```json\n?|\n?```/g, '').trim()
-          analysis = JSON.parse(cleaned)
+          analysis = safeParseLLMJson(cleaned)
         } catch {
           // Use default analysis
         }

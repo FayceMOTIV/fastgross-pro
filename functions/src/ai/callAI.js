@@ -7,6 +7,8 @@
  *   const text = await callAI('Your prompt here', 500)
  */
 
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
+
 const PROVIDERS = [
   {
     name: 'groq',
@@ -100,7 +102,7 @@ export function extractJSON(text) {
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) return null
   try {
-    return JSON.parse(match[0])
+    return safeParseLLMJson(match[0])
   } catch {
     return null
   }

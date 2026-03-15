@@ -105,23 +105,4 @@ async function callClaude(prompt, options = {}) {
  * @param {string} text - AI response text
  * @returns {object} - Parsed JSON
  */
-export function parseJsonResponse(text) {
-  // Try direct parse first
-  try {
-    return JSON.parse(text)
-  } catch {
-    // Try extracting from code block
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
-    if (codeBlockMatch) {
-      return JSON.parse(codeBlockMatch[1].trim())
-    }
-
-    // Try finding JSON object
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
-    }
-
-    throw new Error('Could not parse JSON from AI response')
-  }
-}
+export { safeParseLLMJson as parseJsonResponse } from './safeParseLLMJson.js'

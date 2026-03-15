@@ -16,6 +16,7 @@
  */
 
 import { getFirestore } from 'firebase-admin/firestore'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -212,7 +213,7 @@ Reponds en JSON strict :
 
     const content = response?.choices?.[0]?.message?.content?.trim()
     const jsonMatch = content?.match(/\{[\s\S]*\}/)
-    if (jsonMatch) return JSON.parse(jsonMatch[0])
+    if (jsonMatch) return safeParseLLMJson(jsonMatch[0])
   } catch {
     // Fallback silencieux
   }

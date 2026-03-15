@@ -20,6 +20,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
 import { logger } from 'firebase-functions';
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
 
 const GROQ_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
 
@@ -114,7 +115,7 @@ Score : ${score}
 Tags : ${tags?.join(', ')}
 Reponds en JSON : {"importance": <1-10>}`
     }], 20);
-    const parsed = JSON.parse(raw);
+    const parsed = safeParseLLMJson(raw);
     const val = parsed.importance;
     if (val >= 1 && val <= 10) importance = val;
   } catch { /* keep default 5 */ }
@@ -204,7 +205,7 @@ Extrais en JSON strict :
   let analysis;
   try {
     const raw = await callGroq([{ role: 'user', content: analysisPrompt }], 1000);
-    analysis = JSON.parse(raw);
+    analysis = safeParseLLMJson(raw);
   } catch (e) {
     logger.error('extractAndConsolidate Groq error', e);
     return null;

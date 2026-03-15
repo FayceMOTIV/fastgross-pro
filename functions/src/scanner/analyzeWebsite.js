@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Anthropic from '@anthropic-ai/sdk'
 import * as cheerio from 'cheerio'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 // Get db lazily to avoid initialization order issues
 const getDb = () => getFirestore()
@@ -171,5 +172,5 @@ Réponds UNIQUEMENT en JSON avec cette structure exacte:
     throw new Error('Could not parse AI response')
   }
 
-  return JSON.parse(jsonMatch[0])
+  return safeParseLLMJson(jsonMatch[0])
 }

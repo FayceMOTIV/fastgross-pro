@@ -6,6 +6,7 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { callAI } from '../ai/callAI.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -99,7 +100,7 @@ Reponds en JSON strict:
       let playbook
       try {
         const cleaned = analysis.replace(/```json\n?|\n?```/g, '').trim()
-        playbook = JSON.parse(cleaned)
+        playbook = safeParseLLMJson(cleaned)
       } catch {
         playbook = {
           winningPatterns: [],

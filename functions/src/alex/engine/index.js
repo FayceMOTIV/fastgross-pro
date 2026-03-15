@@ -12,6 +12,9 @@ export { buildSearchPlan } from './nicheReasoner.js';
 // Intelligent Source Selection
 export { selectSources } from './smartSourceSelector.js';
 
+// Niche Normalizer (maps raw niche names → 16 sourceRegistry types)
+export { normalizeNicheType } from './nicheNormalizer.js';
+
 // Multi-Signal Correlation
 export { correlateSignals } from './signalCorrelator.js';
 

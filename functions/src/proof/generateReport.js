@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Anthropic from '@anthropic-ai/sdk'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -178,7 +179,7 @@ Chaque insight fait 1-2 phrases max. Sois spécifique et actionnable.`,
     const text = message.content[0].text
     const match = text.match(/\{[\s\S]*\}/)
     if (match) {
-      return JSON.parse(match[0]).insights
+      return safeParseLLMJson(match[0]).insights
     }
   } catch (error) {
     console.error('AI insights error:', error)

@@ -11,6 +11,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -160,7 +161,7 @@ ${searchContext}`
     const text = response?.text || response?.content || ''
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
+      const parsed = safeParseLLMJson(jsonMatch[0])
       return {
         usps: parsed.usps || [],
         objections: parsed.objections || [],

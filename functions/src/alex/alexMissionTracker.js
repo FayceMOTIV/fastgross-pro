@@ -8,6 +8,7 @@
  */
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import Groq from 'groq-sdk';
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
 
 const getDb = () => getFirestore();
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -146,7 +147,7 @@ Si le message n'est PAS une mission de prospection, mets isMission: false.`,
       }
     }
 
-    const parsed = JSON.parse(response.choices[0].message.content);
+    const parsed = safeParseLLMJson(response.choices[0].message.content);
     if (!parsed.isMission) return null;
 
     // Nettoyer les criteres : supprimer les nulls et les arrays vides

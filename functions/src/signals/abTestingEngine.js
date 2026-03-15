@@ -9,6 +9,7 @@
 
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Groq from 'groq-sdk'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -133,7 +134,7 @@ REPONSE :`
     response_format: { type: 'json_object' },
   })
 
-  const parsed = JSON.parse(completion.choices[0].message.content)
+  const parsed = safeParseLLMJson(completion.choices[0].message.content)
   const variants = (parsed.variants || []).map((v, i) => ({
     id: `variant_${i}`,
     style: v.style || VARIANT_STYLES[i],

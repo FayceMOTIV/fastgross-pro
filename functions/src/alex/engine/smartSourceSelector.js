@@ -5,15 +5,22 @@
  * en utilisant le sourceRegistry comme reference.
  */
 import { getTopSourcesForNiche } from './sourceRegistry.js';
+import { normalizeNicheType } from './nicheNormalizer.js';
 
 /**
  * Selectionne les sources optimales pour une recherche.
  * Utilise le searchPlan du nicheReasoner si disponible,
  * sinon le sourceRegistry trie par pertinence pour la niche.
+ *
+ * Le nicheType est TOUJOURS normalise avant lookup, ce qui permet
+ * d'appeler selectSources("restaurant") au lieu de selectSources("restauration").
  */
 export function selectSources(nicheType, searchPlan, options = {}) {
   const defaultLimit = options.maxSources || 8;
   const hardMax = 10;
+
+  // Normaliser le nicheType brut vers l'un des 16 types du sourceRegistry
+  nicheType = normalizeNicheType(nicheType);
 
   // Si le nicheReasoner a produit un plan, l'utiliser en priorite
   if (searchPlan?.rankedSources) {

@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Anthropic from '@anthropic-ai/sdk'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -149,6 +150,6 @@ Réponds UNIQUEMENT en JSON avec cette structure:
     throw new Error('Could not parse AI response')
   }
 
-  const parsed = JSON.parse(jsonMatch[0])
+  const parsed = safeParseLLMJson(jsonMatch[0])
   return parsed.emails
 }

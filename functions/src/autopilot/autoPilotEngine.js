@@ -15,6 +15,7 @@ import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { sendEmail as sendEmailViaRouter } from '../email/emailRouter.js'
 import { searchProspects as searchCSE } from '../scraping/googleCSE.js'
 import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 const getDb = () => getFirestore()
 
@@ -266,7 +267,7 @@ Reponds en JSON avec ce format exact:
         try {
           const aiResponse = await callAI(aiPrompt, 500)
           const jsonMatch = aiResponse.match(/\{[\s\S]*\}/)
-          aiAnalysis = jsonMatch ? JSON.parse(jsonMatch[0]) : null
+          aiAnalysis = jsonMatch ? safeParseLLMJson(jsonMatch[0]) : null
         } catch {
           aiAnalysis = {
             matchScore: 70,

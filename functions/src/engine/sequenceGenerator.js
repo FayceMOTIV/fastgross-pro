@@ -4,6 +4,7 @@
  */
 
 import { getOptimalSendTime } from './sendTimeOptimizer.js'
+import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 
 // Delai Gemini
 const GEMINI_DELAY = 4000
@@ -194,19 +195,19 @@ Retourne UNIQUEMENT ce JSON (pas de commentaires):
  */
 function parseSequenceResponse(text) {
   try {
-    return JSON.parse(text)
+    return safeParseLLMJson(text)
   } catch {
     const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
     if (codeBlockMatch) {
       try {
-        return JSON.parse(codeBlockMatch[1].trim())
+        return safeParseLLMJson(codeBlockMatch[1].trim())
       } catch {}
     }
 
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       try {
-        return JSON.parse(jsonMatch[0])
+        return safeParseLLMJson(jsonMatch[0])
       } catch {}
     }
   }
