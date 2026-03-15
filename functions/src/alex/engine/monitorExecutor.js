@@ -4,6 +4,7 @@
  * Resultats sauvegardes dans alexMemory pour diff et suivi.
  */
 import { getFirestore } from 'firebase-admin/firestore';
+import { logAlexActivity } from '../../utils/logAlexActivity.js';
 
 const getDb = () => getFirestore();
 
@@ -242,6 +243,13 @@ export async function executeMonitor(type, orgId, params = {}) {
   const withPhone = prospects.filter(p => p.phone).length;
 
   console.log(`[Monitor ${type}] ${prospects.length} resultats, ${newDiscoveries.length} nouveaux, ${withEmail} emails, ${withPhone} tel`);
+
+  logAlexActivity(orgId, {
+    type: 'monitor',
+    title: `Monitor ${config.label} — ${newDiscoveries.length} nouvelles decouvertes`,
+    details: `${prospects.length} resultats total, ${withEmail} emails, ${withPhone} telephones. Domaines cumules: ${allDomains.length}`,
+    status: 'success',
+  });
 
   return {
     type,

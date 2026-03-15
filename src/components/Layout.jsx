@@ -28,6 +28,7 @@ import {
   Eye,
   Users,
   Bot,
+  Inbox,
 } from 'lucide-react'
 
 // Navigation — Alex au centre, chaque item a sa couleur
@@ -35,6 +36,7 @@ const navItems = [
   { to: '/app', icon: Bot, label: 'Alex', end: true, color: 'indigo', activeBg: 'bg-indigo-50', activeText: 'text-indigo-600', activeBorder: 'border-indigo-500', iconBg: 'bg-indigo-100' },
   { to: '/app/crm', icon: Users, label: 'Prospects', color: 'emerald', activeBg: 'bg-emerald-50', activeText: 'text-emerald-600', activeBorder: 'border-emerald-500', iconBg: 'bg-emerald-100' },
   { to: '/app/inbox', icon: MessageSquare, label: 'Inbox', color: 'purple', activeBg: 'bg-purple-50', activeText: 'text-purple-600', activeBorder: 'border-purple-500', iconBg: 'bg-purple-100' },
+  { to: '/app/unified-inbox', icon: Inbox, label: 'Inbox Unifiee', color: 'violet', activeBg: 'bg-violet-50', activeText: 'text-violet-600', activeBorder: 'border-violet-500', iconBg: 'bg-violet-100' },
   { to: '/app/performance', icon: BarChart3, label: 'Analytics', color: 'amber', activeBg: 'bg-amber-50', activeText: 'text-amber-600', activeBorder: 'border-amber-500', iconBg: 'bg-amber-100' },
 ]
 
@@ -56,6 +58,7 @@ const pageTitles = {
   '/app/crm': 'CRM',
   '/app/outreach': 'Outreach',
   '/app/inbox': 'Inbox',
+  '/app/unified-inbox': 'Inbox Unifiee',
   '/app/intent-hunter': 'Intent Hunter',
   '/app/intent-hunter/pro': 'Intent Hunter Pro',
   '/app/intent-hunter/particuliers': 'Intent Hunter Particuliers',

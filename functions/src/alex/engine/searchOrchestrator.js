@@ -19,6 +19,7 @@ import { qualifyProspect } from './prospectQualifier.js';
 import { applyLearnedWeights } from './adaptiveScorer.js';
 import { getSourceById, buildSerperQuery } from './sourceRegistry.js';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { logAlexActivity } from '../../utils/logAlexActivity.js';
 
 const getDb = () => getFirestore();
 
@@ -220,6 +221,13 @@ export async function intelligentProspectSearch(organizationId, objective, optio
   }
 
   console.log(`[Reacteur] ${topProspects.length} prospects qualifies sauvegardes`);
+
+  logAlexActivity(organizationId, {
+    type: 'search',
+    title: `Recherche terminee — ${topProspects.length} prospects qualifies`,
+    details: `${allProspects.length} trouves, ${topProspects.length} qualifies. Niche: ${nicheType}. Sources: ${selectedSources.slice(0, 3).map(s => s.source).join(', ')}`,
+    status: 'success',
+  });
 
   return {
     totalFound: allProspects.length,

@@ -9,6 +9,7 @@
 import { onRequest } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { logAlexActivity } from '../utils/logAlexActivity.js'
 
 const getDb = () => getFirestore()
 
@@ -106,6 +107,15 @@ export const whatsappAgentHandler = onRequest(
           .collection('organizations').doc(orgId)
           .collection('dailyBudgets').doc(today)
           .set({ usage: { whatsapp: FieldValue.increment(1) } }, { merge: true })
+
+        logAlexActivity(orgId, {
+          type: 'whatsapp_sent',
+          title: `WhatsApp envoye — ${prospect.phone || prospect.mobile}`,
+          details: `Action: ${action}. Instance: ${instanceName || 'default'}`,
+          status: 'success',
+          prospectId,
+          channel: 'whatsapp',
+        });
       }
 
       const duration = Date.now() - startTime

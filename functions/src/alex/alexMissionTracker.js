@@ -9,6 +9,7 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import Groq from 'groq-sdk';
 import { safeParseLLMJson } from '../utils/safeParseLLMJson.js';
+import { logAlexActivity } from '../utils/logAlexActivity.js';
 
 const getDb = () => getFirestore();
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -160,7 +161,7 @@ Si le message n'est PAS une mission de prospection, mets isMission: false.`,
       criteria[key] = value;
     }
 
-    return {
+    const mission = {
       objective: parsed.objective,
       target: normalizeTarget(parsed.target) || 10,
       niche: parsed.niche || null,
@@ -169,6 +170,15 @@ Si le message n'est PAS une mission de prospection, mets isMission: false.`,
       zone: parsed.zone || null,
       criteria: Object.keys(criteria).length > 0 ? criteria : null,
     };
+
+    logAlexActivity(null, {
+      type: 'mission_parsed',
+      title: `Mission detectee — ${mission.objective}`,
+      details: `Cible: ${mission.target} prospects. Niche: ${mission.niche || 'non specifiee'}. Zone: ${mission.zone || 'non specifiee'}. Deadline: ${mission.deadline}`,
+      status: 'success',
+    });
+
+    return mission;
   } catch (error) {
     console.warn('[Mission] Parse error:', error.message);
     return null;

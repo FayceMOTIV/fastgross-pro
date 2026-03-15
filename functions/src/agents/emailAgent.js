@@ -8,6 +8,7 @@
 import { onRequest } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { logAlexActivity } from '../utils/logAlexActivity.js'
 
 const getDb = () => getFirestore()
 
@@ -101,6 +102,15 @@ export const emailAgentHandler = onRequest(
         }
 
         await prospectDoc.ref.update(updates)
+
+        logAlexActivity(orgId, {
+          type: 'email_sent',
+          title: `Email envoye — ${prospect.email}`,
+          details: `Action: ${action}. Sujet: ${template?.subject || 'non specifie'}`,
+          status: 'success',
+          prospectId,
+          channel: 'email',
+        });
       }
 
       const duration = Date.now() - startTime

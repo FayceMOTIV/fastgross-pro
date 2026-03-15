@@ -15,6 +15,7 @@ import { addToHotQueue } from '../notifications/hotQueueManager.js'
 import { buildAlexUniversalPrompt } from '../agent/alexSystemPromptBuilder.js'
 import { safeParseLLMJson } from '../utils/safeParseLLMJson.js'
 import { initiateAlexCall } from '../voice/alexVoiceEngine.js'
+import { logAlexActivity } from '../utils/logAlexActivity.js'
 
 const getDb = () => getFirestore()
 
@@ -325,6 +326,15 @@ export async function scoreAndReply(params) {
       logger.error('Telegram alert failed:', err.message)
     }
   }
+
+  logAlexActivity(orgId, {
+    type: 'scoring',
+    title: `Score prospect — ${score}/100 (${scoring.intent || 'unknown'})`,
+    details: `Urgence: ${scoring.urgency || 'medium'}. Reponse envoyee: ${sendResult.success}. Canal: ${channel}`,
+    status: 'success',
+    prospectId,
+    channel,
+  });
 
   return {
     success: true,

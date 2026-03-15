@@ -160,6 +160,10 @@ async function sendViaResend({ to, subject, html, text, from, replyTo }) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   const defaultFrom = process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'Face Media Factory <onboarding@resend.dev>'
 
+  if (defaultFrom.includes('onboarding@resend.dev')) {
+    console.warn('[EmailRouter] WARNING: Using Resend sandbox domain (onboarding@resend.dev). Set RESEND_FROM_EMAIL or EMAIL_FROM in .env for production deliverability.')
+  }
+
   const payload = {
     from: from || defaultFrom,
     to: Array.isArray(to) ? to : [to],

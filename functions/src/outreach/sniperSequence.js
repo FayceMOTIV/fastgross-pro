@@ -382,6 +382,7 @@ async function executeStep(db, orgId, sequence) {
 
   const step = sequence.steps[currentStepIndex]
   let sent = false
+  let skippedNotConfigured = false
 
   try {
     // Execute based on channel
@@ -485,7 +486,8 @@ async function executeStep(db, orgId, sequence) {
 
         if (!liAccountId || !liConfig?.apiKey) {
           logger.info(`[sniperSequence] LinkedIn skipped for ${sequence.id}: no accountId/apiKey configured`)
-          break // sent stays false → marked as 'failed'
+          skippedNotConfigured = true
+          break
         }
 
         const linkedinUrl = sequence.linkedinUrl || sequence.prospectLinkedinUrl
@@ -518,6 +520,13 @@ async function executeStep(db, orgId, sequence) {
         }
         break
       }
+
+      default: {
+        // Canal inconnu (voice, twitter, etc.) — pas un echec, juste pas configure
+        logger.info(`[sniperSequence] Unknown channel ${step.channel} skipped for ${sequence.id}`)
+        skippedNotConfigured = true
+        break
+      }
     }
   } catch (err) {
     logger.warn(`Error executing step ${step.step} for sequence ${sequence.id}:`, err.message)
@@ -527,7 +536,7 @@ async function executeStep(db, orgId, sequence) {
   const updatedSteps = [...sequence.steps]
   updatedSteps[currentStepIndex] = {
     ...step,
-    status: sent ? 'sent' : 'failed',
+    status: sent ? 'sent' : skippedNotConfigured ? 'skipped_not_configured' : 'failed',
     sentAt: new Date().toISOString()
   }
 

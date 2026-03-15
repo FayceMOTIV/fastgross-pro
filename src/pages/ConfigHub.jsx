@@ -40,6 +40,7 @@ import VoiceConfig from '@/pages/VoiceConfig'
 import BookingSettings from '@/components/settings/BookingSettings'
 import Integrations from '@/pages/Integrations'
 import WhatsAppSettings from '@/components/settings/WhatsAppSettings'
+import WhatsAppLinkSettings from '@/components/settings/WhatsAppLinkSettings'
 import Team from '@/pages/Team'
 import ClientSetup from '@/pages/ClientSetup'
 
@@ -104,7 +105,12 @@ export default function ConfigHub() {
       case 'team':
         return <Team />
       case 'notifications':
-        return <NotificationsSettings />
+        return (
+          <div className="space-y-6">
+            <WhatsAppLinkSettings />
+            <NotificationsSettings />
+          </div>
+        )
       case 'profile':
         return <ProfileSettings />
       case 'organization':

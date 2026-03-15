@@ -6,6 +6,7 @@
 import { logger } from 'firebase-functions/v2'
 import { getRemainingBudget, recordBudgetUsage } from '../helpers/budgetCalculator.js'
 import { calculateBatchSize, calculateDelay, splitIntoBatches } from '../helpers/batchCalculator.js'
+import { logAlexActivity } from '../../utils/logAlexActivity.js'
 
 /**
  * Dispatcher SMS pour l'orchestrateur
@@ -55,6 +56,14 @@ export async function dispatchSMS(orgId, prospects, config = {}) {
           if (result.success) {
             results.sent++
             await recordBudgetUsage(orgId, 'sms')
+            logAlexActivity(orgId, {
+              type: 'sms_sent',
+              title: `SMS envoye — prospect ${prospect.id}`,
+              details: `Message: ${(config.message || '').substring(0, 80)}`,
+              status: 'success',
+              prospectId: prospect.id,
+              channel: 'sms',
+            });
           } else {
             results.failed++
           }

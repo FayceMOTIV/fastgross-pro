@@ -15,6 +15,7 @@ import { logger } from 'firebase-functions/v2'
 import { buildAlexVoicePrompt } from './alexVoicePromptBuilder.js'
 import { buildVapiTools } from './alexVoiceTools.js'
 import { isCallAllowed, getNextLegalWindow } from './callScheduler.js'
+import { logAlexActivity } from '../utils/logAlexActivity.js'
 
 const getDb = () => getFirestore()
 
@@ -196,6 +197,15 @@ export async function initiateAlexCall(lead, options = {}) {
   } catch (err) {
     logger.warn('[AlexVoice] Firestore record failed (non-blocking):', err.message)
   }
+
+  logAlexActivity(orgId, {
+    type: 'voice_call',
+    title: `Appel vocal lance — ${lead.name || lead.firstName || leadId}`,
+    details: `Telephone: ${phone}. Trigger: ${trigger}. Call ID: ${vapiResponse.id}`,
+    status: 'success',
+    prospectId: leadId,
+    channel: 'voice',
+  });
 
   return {
     success: true,

@@ -4,6 +4,7 @@
  */
 import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { getFirestore } from 'firebase-admin/firestore';
+import { logAlexActivity } from '../utils/logAlexActivity.js';
 
 const getDb = () => getFirestore();
 
@@ -27,10 +28,16 @@ export const alertHotLead = onDocumentUpdated(
 
     const db = getDb();
 
-    // Charger les preferences du user
-    const prefsDoc = await db.doc(`organizations/${orgId}/alexMemory/preferences`).get();
-    const prefs = prefsDoc.exists ? prefsDoc.data() : null;
-    if (!prefs?.userWhatsApp) return;
+    // Charger preferences + org data en parallele
+    const [prefsDoc, orgDoc] = await Promise.all([
+      db.doc(`organizations/${orgId}/alexMemory/preferences`).get(),
+      db.doc(`organizations/${orgId}`).get(),
+    ]);
+    const prefs = prefsDoc.exists ? prefsDoc.data() : {};
+    const orgData = orgDoc.exists ? orgDoc.data() : {};
+
+    // Respecter le toggle hot lead alerts (default: true)
+    if (prefs.hotLeadAlertsWhatsApp === false) return;
 
     // Construire le message d'alerte
     let alertMessage = '';
@@ -46,16 +53,65 @@ export const alertHotLead = onDocumentUpdated(
       alertMessage = `Nouveau prospect chaud : ${name} (score: ${after.score || after.finalScore || 'N/A'})`;
     }
 
-    // Envoyer la notification WhatsApp
+    // Resoudre le numero: prefs.userWhatsApp > orgData.ownerPhone
+    const userPhone = prefs.userWhatsApp || orgData.ownerPhone;
+
+    // Si pas de numero, sauvegarder une notification in-app et sortir
+    if (!userPhone) {
+      await db.collection(`organizations/${orgId}/notifications`).add({
+        type: 'hot_lead',
+        title: alertMessage.split('\n')[0],
+        message: alertMessage,
+        prospectId: event.params.prospectId,
+        read: false,
+        createdAt: new Date(),
+      });
+      logAlexActivity(orgId, {
+        type: 'hot_lead',
+        title: `Alerte lead chaud (in-app) — ${name}`,
+        details: 'Pas de WhatsApp configure — notification sauvegardee in-app',
+        status: 'warning',
+        prospectId: event.params.prospectId,
+        channel: 'in_app',
+      });
+      return;
+    }
+
+    // Envoyer la notification WhatsApp (appel direct Evolution API — pas de compliance prospect)
     try {
-      const { sendWhatsApp } = await import('../channels/whatsapp/sender.js');
-      await sendWhatsApp(orgId, null, {
-        type: 'text',
-        text: alertMessage,
-        phone: prefs.userWhatsApp,
-        isNotification: true,
+      const apiUrl = process.env.EVOLUTION_API_URL;
+      const apiKey = process.env.EVOLUTION_API_KEY;
+      if (!apiUrl || !apiKey) {
+        console.warn('[Alex Alert] Evolution API non configuree, alerte ignoree');
+        return;
+      }
+
+      // Multi-tenant: chercher l'instance org, fallback globale
+      let instance = process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3';
+      const waDoc = await db.doc(`organizations/${orgId}/integrations/whatsapp`).get();
+      if (waDoc.exists) {
+        const waData = waDoc.data();
+        if (waData?.status === 'connected' && waData?.instanceName) {
+          instance = waData.instanceName;
+        }
+      }
+
+      const phone = String(userPhone).replace(/\D/g, '');
+      await fetch(`${apiUrl}/message/sendText/${instance}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: apiKey },
+        body: JSON.stringify({ number: phone, text: alertMessage }),
       });
       console.log(`[Alex Alert] Alerte envoyee pour prospect ${after.companyName || event.params.prospectId}`);
+
+      logAlexActivity(orgId, {
+        type: 'hot_lead',
+        title: `Alerte lead chaud — ${after.companyName || after.contactName || event.params.prospectId}`,
+        details: alertMessage.substring(0, 200),
+        status: 'success',
+        prospectId: event.params.prospectId,
+        channel: 'whatsapp',
+      });
     } catch (e) {
       console.warn('[Alex Alert] WhatsApp send failed:', e.message);
     }

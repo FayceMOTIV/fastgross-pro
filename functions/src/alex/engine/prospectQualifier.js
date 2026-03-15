@@ -14,6 +14,7 @@
  */
 import Groq from 'groq-sdk';
 import { safeParseLLMJson } from '../../utils/safeParseLLMJson.js';
+import { logAlexActivity } from '../../utils/logAlexActivity.js';
 
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -151,11 +152,17 @@ export async function qualifyProspect(prospect, businessProfile, scanResult, sea
 
   // 3. Fusion hybride : prendre le MAX entre rule-based et LLM pour chaque critere
   //    Sauf si le LLM donne un score 0 (skip explicite) — dans ce cas respecter le LLM
-  if (llmScore) {
-    return mergeScores(ruleScore, llmScore);
-  }
+  const finalScore = llmScore ? mergeScores(ruleScore, llmScore) : ruleScore;
 
-  return ruleScore;
+  logAlexActivity(null, {
+    type: 'qualify',
+    title: `Qualification ${prospect.companyName || prospect.contactName || 'prospect'} — ${finalScore.totalScore}/100`,
+    details: `BANT: ${finalScore.recommendation}. Source: ${finalScore._source || 'rule_based'}. Budget: ${finalScore.budget?.score}/25, Need: ${finalScore.need?.score}/25`,
+    status: finalScore.recommendation === 'skip' ? 'info' : 'success',
+    prospectId: prospect.id || null,
+  });
+
+  return finalScore;
 }
 
 /**

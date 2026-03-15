@@ -57,6 +57,9 @@ const ResellerDashboard = lazy(() => import('@/pages/ResellerDashboard'))
 // V5 Social Omniscient
 const SocialOmniscient = lazy(() => import('@/pages/SocialOmniscient'))
 
+// Unified Inbox
+const UnifiedInbox = lazy(() => import('@/pages/UnifiedInbox'))
+
 // Alex V4 War Dashboard
 const WarDashboard = lazy(() => import('@/pages/WarDashboard'))
 
@@ -359,6 +362,7 @@ export default function App() {
 
                           <Route path="outreach" element={<OutreachHub />} />
                           <Route path="inbox" element={<InboxHub />} />
+                          <Route path="unified-inbox" element={<UnifiedInbox />} />
                           <Route path="performance" element={<PerformanceHub />} />
                           <Route path="config" element={<ConfigHub />} />
                           <Route path="admin" element={<AdminHub />} />

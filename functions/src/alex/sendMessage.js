@@ -8,6 +8,7 @@ import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import axios from 'axios'
 import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+import { logAlexActivity } from '../utils/logAlexActivity.js'
 
 const getDb = () => getFirestore()
 
@@ -109,6 +110,15 @@ export async function sendMessage(params) {
     } catch (err) {
       logger.error('Failed to log interaction:', err.message)
     }
+
+    logAlexActivity(orgId, {
+      type: 'whatsapp_sent',
+      title: `Message envoye via ${channel} — ${to}`,
+      details: `${message.substring(0, 100)}`,
+      status: 'success',
+      prospectId,
+      channel,
+    });
   }
 
   return result

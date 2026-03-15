@@ -9,11 +9,12 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { getFirestore } from 'firebase-admin/firestore';
 import Groq from 'groq-sdk';
+import { logAlexActivity } from '../utils/logAlexActivity.js';
 
 const getDb = () => getFirestore();
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-const REPORT_HOURS = [8, 14, 21];
+const DEFAULT_REPORT_HOURS = [8, 14, 21];
 
 export const alexDailyReporter = onSchedule(
   {
@@ -32,12 +33,10 @@ export const alexDailyReporter = onSchedule(
       timeZone: 'Europe/Paris',
     }), 10);
 
-    // Verifier si c'est une heure de rapport
-    if (!REPORT_HOURS.includes(parisHour)) return;
+    // Ce cron tourne chaque heure — on filtre par org selon ses preferences
+    if (!DEFAULT_REPORT_HOURS.includes(parisHour) && parisHour < 7) return;
 
-    const reportType = parisHour === 8 ? 'morning' : parisHour === 14 ? 'midday' : 'evening';
-
-    console.log(`[Alex Report] Demarrage rapport ${reportType} (${parisHour}H)`);
+    console.log(`[Alex Report] Check rapports pour heure ${parisHour}H`);
 
     // Trouver toutes les orgs actives
     const orgsSnap = await db.collection('organizations')
@@ -46,24 +45,41 @@ export const alexDailyReporter = onSchedule(
 
     for (const orgDoc of orgsSnap.docs) {
       try {
-        await generateAndSendReport(orgDoc.id, orgDoc.data(), reportType);
+        // Charger preferences pour cette org
+        const prefsDoc = await db.doc(`organizations/${orgDoc.id}/alexMemory/preferences`).get();
+        const prefs = prefsDoc.exists ? prefsDoc.data() : {};
+
+        // Si le user a desactive les rapports WhatsApp, on genere quand meme (saas_only)
+        // mais uniquement aux heures par defaut
+        const userReportHour = prefs.dailyReportHour ? parseInt(prefs.dailyReportHour, 10) : null;
+
+        // Determiner les heures de rapport pour cette org
+        // Si userReportHour est defini, rapport unique a cette heure (remplace les 3 rapports)
+        // Sinon, comportement par defaut [8, 14, 21]
+        const orgReportHours = userReportHour ? [userReportHour] : DEFAULT_REPORT_HOURS;
+
+        if (!orgReportHours.includes(parisHour)) continue;
+
+        const reportType = parisHour <= 10 ? 'morning' : parisHour <= 16 ? 'midday' : 'evening';
+        const whatsAppEnabled = prefs.dailyReportWhatsApp !== false; // default true
+
+        await generateAndSendReport(orgDoc.id, orgDoc.data(), reportType, prefs, whatsAppEnabled);
       } catch (error) {
-        console.error(`[Alex Report] Erreur ${reportType} pour ${orgDoc.id}:`, error.message);
+        console.error(`[Alex Report] Erreur pour ${orgDoc.id}:`, error.message);
       }
     }
   }
 );
 
-async function generateAndSendReport(organizationId, orgData, reportType) {
+async function generateAndSendReport(organizationId, orgData, reportType, prefs, whatsAppEnabled) {
   const db = getDb();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   // Charger stats + mission en parallele
-  const [statsToday, missionDoc, prefsDoc, topHot] = await Promise.all([
+  const [statsToday, missionDoc, topHot] = await Promise.all([
     loadTodayStats(db, organizationId, today),
     db.doc(`organizations/${organizationId}/alexMemory/currentMission`).get(),
-    db.doc(`organizations/${organizationId}/alexMemory/preferences`).get(),
     db.collection(`organizations/${organizationId}/prospects`)
       .where('alexScore', '>=', 80)
       .orderBy('alexScore', 'desc')
@@ -71,7 +87,6 @@ async function generateAndSendReport(organizationId, orgData, reportType) {
       .get(),
   ]);
 
-  const prefs = prefsDoc.exists ? prefsDoc.data() : {};
   const mission = missionDoc.exists ? missionDoc.data() : null;
 
   // Top hot leads
@@ -92,9 +107,11 @@ async function generateAndSendReport(organizationId, orgData, reportType) {
 
   const reportMessage = response.choices[0].message.content;
 
-  // Envoyer via WhatsApp si configure
+  // Envoyer via WhatsApp si configure ET active
   const userPhone = prefs.userWhatsApp || orgData.ownerPhone;
-  if (userPhone) {
+  let sentVia = 'saas_only';
+
+  if (whatsAppEnabled && userPhone) {
     try {
       const { sendWhatsApp } = await import('../channels/whatsapp/sender.js');
       await sendWhatsApp(organizationId, null, {
@@ -103,12 +120,13 @@ async function generateAndSendReport(organizationId, orgData, reportType) {
         phone: userPhone,
         isNotification: true,
       });
+      sentVia = 'whatsapp';
     } catch (e) {
       console.warn(`[Alex Report] WhatsApp send failed for ${organizationId}:`, e.message);
     }
   }
 
-  // Sauvegarder le rapport (consultable dans le SaaS)
+  // Sauvegarder le rapport (toujours consultable dans le SaaS)
   const dateKey = today.toISOString().split('T')[0];
   await db.doc(`organizations/${organizationId}/alexReports/${dateKey}_${reportType}`).set({
     type: reportType,
@@ -116,11 +134,18 @@ async function generateAndSendReport(organizationId, orgData, reportType) {
     mission: mission ? { objective: mission.objective, target: mission.target, current: mission.current } : null,
     hotLeads,
     message: reportMessage,
-    sentVia: userPhone ? 'whatsapp' : 'saas_only',
+    sentVia,
     sentAt: new Date(),
   });
 
   console.log(`[Alex Report] ${reportType} envoye pour ${organizationId}`);
+
+  logAlexActivity(organizationId, {
+    type: 'daily_report',
+    title: `Rapport ${reportType === 'morning' ? 'matin' : reportType === 'midday' ? 'mi-journee' : 'soir'} envoye`,
+    details: `Prospects trouves: ${statsToday.foundToday}, contactes: ${statsToday.contactedToday}, reponses: ${statsToday.repliedToday}, hot leads: ${statsToday.hotTotal}`,
+    status: 'success',
+  });
 }
 
 async function loadTodayStats(db, organizationId, today) {

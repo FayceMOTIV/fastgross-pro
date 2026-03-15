@@ -16,6 +16,7 @@ export default function WhatsAppLinkSettings() {
   const [loading, setLoading] = useState(false);
   const [reportEnabled, setReportEnabled] = useState(false);
   const [reportHour, setReportHour] = useState('08');
+  const [hotLeadAlerts, setHotLeadAlerts] = useState(true);
 
   const orgId = currentOrg?.id;
 
@@ -33,6 +34,7 @@ export default function WhatsAppLinkSettings() {
           }
           if (data.dailyReportWhatsApp) setReportEnabled(true);
           if (data.dailyReportHour) setReportHour(data.dailyReportHour);
+          if (data.hotLeadAlertsWhatsApp === false) setHotLeadAlerts(false);
         }
       } catch {
         // ignore
@@ -47,6 +49,7 @@ export default function WhatsAppLinkSettings() {
       await setDoc(doc(db, `organizations/${orgId}/alexMemory/preferences`), {
         dailyReportWhatsApp: enabled,
         dailyReportHour: hour,
+        hotLeadAlertsWhatsApp: hotLeadAlerts,
       }, { merge: true });
     } catch {
       toast.error('Erreur de sauvegarde');
@@ -64,6 +67,20 @@ export default function WhatsAppLinkSettings() {
     const hour = e.target.value;
     setReportHour(hour);
     saveReportPrefs(reportEnabled, hour);
+  };
+
+  const handleToggleHotLeadAlerts = async () => {
+    const next = !hotLeadAlerts;
+    setHotLeadAlerts(next);
+    if (!orgId) return;
+    try {
+      await setDoc(doc(db, `organizations/${orgId}/alexMemory/preferences`), {
+        hotLeadAlertsWhatsApp: next,
+      }, { merge: true });
+      toast.success(next ? 'Alertes hot lead activees' : 'Alertes hot lead desactivees');
+    } catch {
+      toast.error('Erreur de sauvegarde');
+    }
   };
 
   const handleSendCode = async () => {
@@ -153,7 +170,7 @@ export default function WhatsAppLinkSettings() {
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
             <div>
               <p className="text-sm font-medium text-gray-900">Rapport quotidien par WhatsApp</p>
-              <p className="text-xs text-gray-500">Recois tes KPIs chaque matin</p>
+              <p className="text-xs text-gray-500">Recois tes KPIs chaque jour</p>
             </div>
             <div className="flex items-center gap-2">
               <select
@@ -180,6 +197,25 @@ export default function WhatsAppLinkSettings() {
                 />
               </button>
             </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Alertes hot lead en temps reel</p>
+              <p className="text-xs text-gray-500">Notification immediate quand un prospect repond ou devient chaud</p>
+            </div>
+            <button
+              onClick={handleToggleHotLeadAlerts}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                hotLeadAlerts ? 'bg-indigo-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  hotLeadAlerts ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
       ) : step === 'sent' ? (

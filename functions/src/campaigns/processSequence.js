@@ -275,6 +275,21 @@ async function sendSMS(to, message, orgId) {
     throw new Error('OVH SMS non configure')
   }
 
+  // Check business hours (8h-20h, Europe/Paris)
+  const now = new Date()
+  const parisHour = parseInt(now.toLocaleString('fr-FR', { timeZone: 'Europe/Paris', hour: 'numeric', hour12: false }))
+  if (parisHour < 8 || parisHour >= 20) {
+    throw new Error('SMS bloque : hors heures ouvrables (8h-20h)')
+  }
+
+  // Check STOP/opt-out suppression list
+  const db = getDb()
+  const cleanedNumber = to.replace(/\D/g, '')
+  const suppressionDoc = await db.doc(`organizations/${orgId}/suppressionList/${cleanedNumber}`).get()
+  if (suppressionDoc.exists) {
+    throw new Error('SMS bloque : numero dans la liste de suppression')
+  }
+
   // Clean phone number → format 0033XXXXXXXXX
   let phone = to.replace(/[\s\-\.\(\)]/g, '')
   if (phone.startsWith('+')) phone = '00' + phone.substring(1)

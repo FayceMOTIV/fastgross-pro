@@ -61,7 +61,10 @@ import { useRealDashboardStats, useEngineStatus } from '@/hooks/useFirestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
 import { useAdminStatus } from '@/hooks/useCloudFunctions'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import HotQueueWidget from '@/components/HotQueueWidget'
+import AlexActivityFeed from '@/components/AlexActivityFeed'
 import AlexMemoryDashboard from '@/components/AlexMemoryDashboard'
 
 // Channel icon mapping
@@ -584,6 +587,9 @@ export default function Dashboard() {
   // Beta status
   const [betaStatus, setBetaStatus] = useState({ isBetaUser: false, isSuperAdmin: false })
 
+  // WhatsApp config banner
+  const [showWhatsAppBanner, setShowWhatsAppBanner] = useState(false)
+
   // Check beta status on mount
   useEffect(() => {
     const checkBeta = async () => {
@@ -598,6 +604,22 @@ export default function Dashboard() {
       checkBeta()
     }
   }, [user])
+
+  // Check WhatsApp config
+  useEffect(() => {
+    if (!currentOrg?.id) return
+    const checkWa = async () => {
+      try {
+        const prefDoc = await getDoc(doc(db, `organizations/${currentOrg.id}/alexMemory/preferences`))
+        if (!prefDoc.exists() || !prefDoc.data().userWhatsApp) {
+          setShowWhatsAppBanner(true)
+        }
+      } catch {
+        // ignore
+      }
+    }
+    checkWa()
+  }, [currentOrg?.id])
 
   // Chart data
   const defaultChartData = [
@@ -727,6 +749,41 @@ export default function Dashboard() {
                   <span className="text-xl font-bold">Emails</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* WhatsApp Config Banner */}
+      {showWhatsAppBanner && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-4 bg-gradient-to-r from-green-50 to-emerald-50/30 border-green-200"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Smartphone className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-green-800">Connecte ton WhatsApp pour recevoir les rapports d'Alex</p>
+                <p className="text-xs text-green-600">Rapports quotidiens + alertes hot lead en temps reel</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/app/config?section=notifications"
+                className="px-3 py-1.5 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Configurer
+              </Link>
+              <button
+                onClick={() => setShowWhatsAppBanner(false)}
+                className="p-1 hover:bg-green-100 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4 text-green-600" />
+              </button>
             </div>
           </div>
         </motion.div>
@@ -1058,6 +1115,9 @@ export default function Dashboard() {
           </div>
         )}
       </motion.div>
+
+      {/* Alex Activity Feed */}
+      <AlexActivityFeed />
 
       {/* Alex Memory Dashboard */}
       <AlexMemoryDashboard />

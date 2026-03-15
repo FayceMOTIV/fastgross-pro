@@ -5,6 +5,7 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import Groq from 'groq-sdk';
+import { logAlexActivity } from '../utils/logAlexActivity.js';
 
 const getDb = () => getFirestore();
 const getGroq = () => new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -119,6 +120,14 @@ async function autoContactNewProspects(orgId, strategy) {
       });
       const { recordBudgetUsage } = await getBudgetCalculator();
       await recordBudgetUsage(orgId, res.channel);
+      logAlexActivity(orgId, {
+        type: 'autonomous_action',
+        title: `Prospect contacte — ${prospect.companyName || doc.id}`,
+        details: `Canal: ${res.channel}. Score: ${prospect.finalScore || 0}. Message envoye automatiquement.`,
+        status: 'success',
+        prospectId: doc.id,
+        channel: res.channel,
+      });
       contacted++;
     } else {
       console.warn(`[Alex Worker] Echec envoi ${doc.id} via ${channel}: ${res.error}`);

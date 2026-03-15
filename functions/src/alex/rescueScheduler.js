@@ -9,6 +9,7 @@ import { logger } from 'firebase-functions/v2'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import Groq from 'groq-sdk'
 import { sendMessage } from './sendMessage.js'
+import { logAlexActivity } from '../utils/logAlexActivity.js'
 
 const getDb = () => getFirestore()
 
@@ -238,6 +239,17 @@ REGLES:
       .update(updateData)
   } catch (err) {
     logger.error('Failed to update prospect after rescue:', err.message)
+  }
+
+  if (result.success) {
+    logAlexActivity(orgId, {
+      type: 'rescue',
+      title: `Relance #${rescueCount} — ${prospect.name || prospect.company || prospect.id}`,
+      details: `Canal: ${channel}. Relance ${rescueCount}/3. Message envoye.`,
+      status: 'success',
+      prospectId: prospect.id,
+      channel,
+    });
   }
 
   return result.success

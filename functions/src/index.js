@@ -235,6 +235,12 @@ export { classifyAndRespond } from './outreach/qualificationBot.js'
 // --- Job Postings Hunter (Alex V4 Module 2) ---
 export { jobPostingsHunter, runJobPostingsHunterManual, getJobPostingsHunterStats } from './hunters/jobs/jobPostingsHunter.js'
 
+// --- Social Signal Hunter (buying signals via Serper) ---
+export { socialSignalHunterCron, runSocialSignalHunterManual, getSocialSignalStats } from './hunters/social/socialSignalHunter.js'
+
+// --- Job Change Detector (LinkedIn job changes via Serper) ---
+export { jobChangeDetectorCron, runJobChangeDetectorManual } from './hunters/linkedin/jobChangeDetector.js'
+
 // --- AI Crawler Audit (Alex V4 Module 9 SHIELD) ---
 export { runAiCrawlerAudit } from './shield/aiCrawlerAudit.js'
 
@@ -317,6 +323,10 @@ export { pipelineWatcher, runPipelineRefill, getPipelineStats, updatePipelineSet
 // Reply Handler (Structured Reply Processing)
 // ============================================
 export { handleIncomingReply, markReplyHandled, getReplyHandlerStats } from './services/replyHandler.js'
+
+// --- Unified Inbox (reply + AI suggest) ---
+export { replyToProspect } from './services/replyToProspect.js'
+export { suggestInboxReply } from './services/suggestInboxReply.js'
 
 // ============================================
 // Onboarding / Client Setup Wizard

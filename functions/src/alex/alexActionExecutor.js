@@ -1321,6 +1321,56 @@ export async function executeAlexActions(actions, organizationId, userId) {
           break;
         }
 
+        // ========== SOCIAL SIGNAL HUNTER ==========
+
+        case 'check_social_signals': {
+          try {
+            const { cachedSerperFetch } = await import('../utils/serperCache.js');
+            const prospectId = action.params?.prospectId;
+            const company = action.params?.company;
+            if (!company) { results.push({ type: 'check_social_signals', status: 'error', error: 'company requis' }); break; }
+
+            const queries = [
+              `"${company}" hiring OR recrute OR recrutement`,
+              `"${company}" funding OR levee de fonds`,
+              `"${company}" launch OR lancement OR nouveau produit`,
+              `"${company}" avis negatif OR plainte`,
+            ];
+            const signals = [];
+            for (const q of queries) {
+              const data = await cachedSerperFetch('search', { q, gl: 'fr', hl: 'fr', num: 3 }, { timeoutMs: 10000 });
+              for (const item of (data.organic || []).slice(0, 2)) {
+                signals.push({ title: item.title, url: item.link, snippet: (item.snippet || '').substring(0, 200) });
+              }
+            }
+            results.push({ type: 'check_social_signals', status: 'found', total: signals.length, signals: signals.slice(0, 8), prospectId });
+          } catch (e) {
+            results.push({ type: 'check_social_signals', status: 'error', error: e.message });
+          }
+          break;
+        }
+
+        // ========== JOB CHANGE DETECTOR ==========
+
+        case 'check_job_changes': {
+          try {
+            const { cachedSerperFetch } = await import('../utils/serperCache.js');
+            const contactName = action.params?.contactName;
+            const company = action.params?.company;
+            if (!contactName) { results.push({ type: 'check_job_changes', status: 'error', error: 'contactName requis' }); break; }
+
+            const q = `site:linkedin.com/in/ "${contactName}" ${company || ''} new role OR joined OR promoted OR rejoint`;
+            const data = await cachedSerperFetch('search', { q, gl: 'fr', hl: 'fr', num: 5 }, { timeoutMs: 10000 });
+            const items = (data.organic || []).slice(0, 3).map(item => ({
+              title: item.title, url: item.link, snippet: (item.snippet || '').substring(0, 200),
+            }));
+            results.push({ type: 'check_job_changes', status: items.length > 0 ? 'found' : 'no_change', total: items.length, results: items, contactName });
+          } catch (e) {
+            results.push({ type: 'check_job_changes', status: 'error', error: e.message });
+          }
+          break;
+        }
+
         default:
           console.warn(`[Alex] Action inconnue : ${action.type}`);
           results.push({ type: action.type, status: 'unknown_action' });
