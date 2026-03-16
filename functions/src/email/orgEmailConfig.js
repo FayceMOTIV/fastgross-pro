@@ -111,3 +111,180 @@ export function parseReplyToAddress(replyToAddress) {
     orgId: match[2],
   }
 }
+
+// ─── Callables for custom domain setup ──────────────────────────────
+
+import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { FieldValue } from 'firebase-admin/firestore'
+import { verifyOrgMembership } from '../utils/verifyOrgMembership.js'
+
+/**
+ * Save custom email domain config for an org
+ * If no custom domain, uses automatic {slug}@outreach.facemedia.tech
+ */
+export const saveCustomEmailDomain = onCall({
+  region: 'europe-west1',
+  timeoutSeconds: 30,
+}, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Authentification requise')
+
+  const { orgId, domain, senderName } = request.data || {}
+  if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
+
+  const db = getDb()
+  const integrationRef = db.collection('organizations').doc(orgId).collection('integrations').doc('email')
+
+  if (!domain) {
+    // Reset to automatic mode
+    const orgDoc = await db.doc(`organizations/${orgId}`).get()
+    const org = orgDoc.exists ? orgDoc.data() : {}
+    const slug = org.slug || orgId.slice(0, 8)
+    const orgName = org.name || 'FMF'
+
+    await integrationRef.set({
+      mode: 'automatic',
+      senderEmail: `Alex <${slug}@outreach.facemedia.tech>`,
+      senderName: senderName || `Alex — ${orgName}`,
+      senderDomain: 'outreach.facemedia.tech',
+      signature: `Alex | ${orgName}`,
+      replyToDomain: 'inbound.facemedia.tech',
+      verified: true, // Wildcard domain is pre-verified
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true })
+
+    // Invalidate cache
+    cache.delete(orgId)
+
+    return { success: true, mode: 'automatic', senderEmail: `${slug}@outreach.facemedia.tech` }
+  }
+
+  // Custom domain mode
+  const cleanDomain = domain.toLowerCase().trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+
+  await integrationRef.set({
+    mode: 'custom',
+    customDomain: cleanDomain,
+    senderEmail: `Alex <alex@${cleanDomain}>`,
+    senderName: senderName || 'Alex',
+    senderDomain: cleanDomain,
+    signature: '',
+    replyToDomain: 'inbound.facemedia.tech',
+    verified: false,
+    dnsCheckedAt: null,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true })
+
+  // Invalidate cache
+  cache.delete(orgId)
+
+  return { success: true, mode: 'custom', domain: cleanDomain }
+})
+
+/**
+ * Verify DNS configuration for a custom email domain
+ */
+export const verifyCustomDomainDNS = onCall({
+  region: 'europe-west1',
+  timeoutSeconds: 60,
+  memory: '256MiB',
+}, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Authentification requise')
+
+  const { orgId } = request.data || {}
+  if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
+
+  const db = getDb()
+  const integrationRef = db.collection('organizations').doc(orgId).collection('integrations').doc('email')
+  const configDoc = await integrationRef.get()
+
+  if (!configDoc.exists || !configDoc.data().customDomain) {
+    throw new HttpsError('failed-precondition', 'Aucun domaine custom configure')
+  }
+
+  const domain = configDoc.data().customDomain
+
+  // Run actual DNS verification
+  const { verifyDNSConfiguration } = await import('./deliverability.js')
+  const results = await verifyDNSConfiguration(domain)
+
+  const isVerified = results.overallScore >= 60
+
+  await integrationRef.update({
+    verified: isVerified,
+    dnsCheckedAt: FieldValue.serverTimestamp(),
+    dnsResults: {
+      spf: results.spf.configured,
+      dkim: results.dkim.configured,
+      dmarc: results.dmarc.configured,
+      mx: results.mx.configured,
+      score: results.overallScore,
+    },
+  })
+
+  // Invalidate cache
+  cache.delete(orgId)
+
+  return {
+    success: true,
+    verified: isVerified,
+    score: results.overallScore,
+    spf: results.spf,
+    dkim: results.dkim,
+    dmarc: results.dmarc,
+    mx: results.mx,
+    recommendations: results.recommendations,
+  }
+})
+
+/**
+ * Get current email domain config for an org
+ */
+export const getOrgEmailDomainConfig = onCall({
+  region: 'europe-west1',
+}, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Authentification requise')
+
+  const { orgId } = request.data || {}
+  if (!orgId) throw new HttpsError('invalid-argument', 'orgId requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
+
+  const db = getDb()
+
+  const [integrationDoc, orgDoc] = await Promise.all([
+    db.collection('organizations').doc(orgId).collection('integrations').doc('email').get(),
+    db.doc(`organizations/${orgId}`).get(),
+  ])
+
+  const org = orgDoc.exists ? orgDoc.data() : {}
+  const slug = org.slug || orgId.slice(0, 8)
+  const orgName = org.name || 'FMF'
+  const autoEmail = `${slug}@outreach.facemedia.tech`
+
+  if (!integrationDoc.exists) {
+    return {
+      mode: 'automatic',
+      autoEmail,
+      senderEmail: `Alex <${autoEmail}>`,
+      senderName: `Alex — ${orgName}`,
+      verified: true,
+      customDomain: null,
+    }
+  }
+
+  const data = integrationDoc.data()
+  return {
+    mode: data.mode || (data.customDomain ? 'custom' : 'automatic'),
+    autoEmail,
+    senderEmail: data.senderEmail || `Alex <${autoEmail}>`,
+    senderName: data.senderName || `Alex — ${orgName}`,
+    verified: data.verified || false,
+    customDomain: data.customDomain || null,
+    dnsResults: data.dnsResults || null,
+    dnsCheckedAt: data.dnsCheckedAt || null,
+  }
+})

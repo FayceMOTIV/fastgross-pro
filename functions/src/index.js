@@ -617,6 +617,9 @@ export { deduplicateOrg } from './safety/enhancedDedup.js'
 export { updateConversionAction } from './alex/onboardingSniper.js'
 export { recordCollectPageConversion } from './alex/documentCollector.js'
 
+// Email Domain System (2-level: auto + custom)
+export { saveCustomEmailDomain, verifyCustomDomainDNS, getOrgEmailDomainConfig } from './email/orgEmailConfig.js'
+
 // ============================================
 // Dev functions (only available in development/emulator)
 // ============================================
