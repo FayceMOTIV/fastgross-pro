@@ -64,14 +64,37 @@ export async function sendMessage(params) {
     }
   }
 
+  // Inject CTA if requested and conversionAction exists
+  let finalMessage = message
+  let ctaButton = ''
+  if (metadata.injectCTA !== false && orgId) {
+    try {
+      const { getConversionAction, buildCTAText, buildCTAButton } = await import('./conversionCTA.js')
+      const ca = await getConversionAction(orgId)
+      if (ca && ca.type !== 'reply_positive') {
+        const orgSnap = await getDb().doc(`organizations/${orgId}`).get()
+        const orgSlug = orgSnap.exists ? (orgSnap.data().slug || orgId) : orgId
+        const ctaText = buildCTAText(ca, channel, orgSlug, prospectId)
+        if (ctaText) {
+          finalMessage = message + ctaText
+        }
+        if (channel === 'email') {
+          ctaButton = buildCTAButton(ca, orgSlug, prospectId)
+        }
+      }
+    } catch (err) {
+      logger.warn('CTA injection failed (non-blocking):', err.message)
+    }
+  }
+
   let result
 
   switch (channel) {
     case 'whatsapp':
-      result = await sendViaWhatsApp(to, message, orgId)
+      result = await sendViaWhatsApp(to, finalMessage, orgId)
       break
     case 'email':
-      result = await sendViaEmail(to, message, metadata)
+      result = await sendViaEmail(to, finalMessage, { ...metadata, orgId, prospectId, ctaButton })
       break
     case 'instagram':
       result = await sendViaInstagram(to, message, metadata)
@@ -164,39 +187,60 @@ async function sendViaWhatsApp(phone, text, orgId) {
 }
 
 // ============================================
-// EMAIL via Instantly API
+// EMAIL via emailRouter (Resend → SES → SMTP)
+// Multi-tenant: FROM = org's configured sender, Reply-To = encoded prospect+org
 // ============================================
 async function sendViaEmail(email, text, metadata = {}) {
-  const apiKey = process.env.INSTANTLY_API_KEY
-
-  if (!apiKey) {
-    logger.warn('Instantly API key not configured, email not sent')
-    return { success: false, error: 'instantly_not_configured' }
-  }
-
-  const subject = metadata.subject || 'Suite a votre demande'
-
   try {
-    const response = await axios.post(
-      'https://api.instantly.ai/api/v1/unibox/emails/send',
-      {
-        api_key: apiKey,
-        email_account: metadata.fromEmail || process.env.INSTANTLY_FROM_EMAIL,
-        to_email: email,
-        subject,
-        body: `<p>${text.replace(/\n/g, '<br>')}</p>`,
-      },
-      { timeout: 15000 }
-    )
+    const { sendEmail } = await import('../email/emailRouter.js')
+    const { getOrgEmailConfig } = await import('../email/orgEmailConfig.js')
+
+    const orgId = metadata.orgId || null
+    const prospectId = metadata.prospectId || null
+
+    // Load org-specific email config
+    const emailConfig = orgId ? await getOrgEmailConfig(orgId) : null
+    const fromAddress = emailConfig?.senderEmail
+      || process.env.EMAIL_FROM
+      || 'Face Media Factory <noreply@facemedia.app>'
+
+    // Build Reply-To with encoded prospect+org for inbound routing
+    const replyTo = (orgId && prospectId)
+      ? `reply+${prospectId}+${orgId}@inbound.facemedia.tech`
+      : null
+
+    const subject = metadata.subject || 'Suite a votre demande'
+    const orgName = emailConfig?.senderName || 'Alex'
+    const signature = emailConfig?.signature || ''
+
+    const ctaButtonHtml = metadata.ctaButton || ''
+    const htmlBody = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px;">
+        <p>${text.replace(/\n/g, '<br>')}</p>
+        ${ctaButtonHtml}
+        ${signature ? `<br><p style="color: #666; font-size: 13px;">${signature}</p>` : ''}
+      </div>
+    `
+
+    const result = await sendEmail({
+      to: email,
+      subject,
+      html: htmlBody,
+      text,
+      from: fromAddress,
+      replyTo,
+      orgId,
+      prospectId,
+    })
 
     return {
-      success: true,
-      messageId: response.data?.id,
-      provider: 'instantly',
+      success: result.success,
+      messageId: result.messageId,
+      provider: result.provider,
     }
   } catch (error) {
-    logger.error('Email send error:', error.response?.data || error.message)
-    return { success: false, error: error.message, provider: 'instantly' }
+    logger.error('Email send error:', error.message)
+    return { success: false, error: error.message, provider: 'email_router' }
   }
 }
 

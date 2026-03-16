@@ -81,9 +81,16 @@ const ONBOARDING_QUESTIONS = [
   {
     id: 'b2b_or_b2c',
     question: 'C\'est du B2B (entreprises) ou B2C (particuliers) ?',
-    whatsappText: 'Derniere question : tu cibles des entreprises (B2B) ou des particuliers (B2C) ?',
+    whatsappText: 'Tu cibles des entreprises (B2B) ou des particuliers (B2C) ?',
     required: true,
     category: 'targeting',
+  },
+  {
+    id: 'conversion_action',
+    question: 'Quand est-ce qu\'un prospect est CHAUD pour toi ? (ex: envoie sa facture, prend RDV, s\'inscrit...)',
+    whatsappText: 'Derniere question : qu\'est-ce qu\'un prospect doit faire pour que tu le consideres qualifie ?',
+    required: false,
+    category: 'conversion',
   },
 ]
 
@@ -303,15 +310,23 @@ async function buildBusinessProfile(db, orgId, answers) {
     profile.competitors = [answers.main_competitor].filter(Boolean)
   }
 
-  // Update org document with niche/sector info
-  await db.doc(`organizations/${orgId}`).update({
+  // Build conversion action from answer
+  profile.conversionAction = buildConversionAction(answers.conversion_action, profile.niche)
+
+  // Update org document with niche/sector info + conversionAction
+  const orgUpdate = {
     niche: profile.niche,
     idealClient: profile.idealClient,
     businessType: profile.businessType,
     valueProp: profile.valueProposition,
     geoZone: profile.geoZone,
     updatedAt: FieldValue.serverTimestamp(),
-  })
+  }
+  if (profile.conversionAction) {
+    orgUpdate.conversionAction = profile.conversionAction
+  }
+
+  await db.doc(`organizations/${orgId}`).update(orgUpdate)
 
   return profile
 }
@@ -365,6 +380,149 @@ Reponds en JSON :
     return { competitors: [], sectors: [], insights: '' }
   }
 }
+
+// ─── Conversion Action parser ────────────────────────────────────────
+
+function buildConversionAction(answer, niche) {
+  if (!answer) {
+    return { type: 'reply_positive', label: 'Reponse positive du prospect', description: '', landingPageEnabled: false, attachmentKeywords: [], ctaUrl: null }
+  }
+
+  const lower = answer.toLowerCase()
+
+  if (/facture|contrat|bilan|document|upload|devis|kbis|rib|attestation|justificatif|piece/i.test(lower)) {
+    const keywords = extractAttachmentKeywords(lower, niche)
+    return {
+      type: 'document_upload',
+      label: extractLabel(lower, 'Envoyez votre document'),
+      description: answer,
+      landingPageEnabled: true,
+      attachmentKeywords: keywords,
+      ctaUrl: null,
+    }
+  }
+
+  if (/rdv|rendez|calendly|creneau|appel|demo|visio|meeting|point/i.test(lower)) {
+    return {
+      type: 'booking',
+      label: 'Reservez votre creneau',
+      description: answer,
+      landingPageEnabled: false,
+      attachmentKeywords: [],
+      ctaUrl: null,
+    }
+  }
+
+  if (/inscri|compte|essai|sign.?up|test gratuit|freemium/i.test(lower)) {
+    return {
+      type: 'signup',
+      label: 'Creez votre compte',
+      description: answer,
+      landingPageEnabled: false,
+      attachmentKeywords: [],
+      ctaUrl: null,
+    }
+  }
+
+  if (/formulaire|form|questionnaire|sondage|audit/i.test(lower)) {
+    return {
+      type: 'form_fill',
+      label: 'Remplissez le formulaire',
+      description: answer,
+      landingPageEnabled: false,
+      attachmentKeywords: [],
+      ctaUrl: null,
+    }
+  }
+
+  return {
+    type: 'reply_positive',
+    label: 'Reponse positive du prospect',
+    description: answer,
+    landingPageEnabled: false,
+    attachmentKeywords: [],
+    ctaUrl: null,
+  }
+}
+
+function extractLabel(text, fallback) {
+  if (/facture.*electri/i.test(text)) return 'Envoyez votre facture d\'electricite'
+  if (/facture/i.test(text)) return 'Envoyez votre facture'
+  if (/contrat/i.test(text)) return 'Envoyez votre contrat actuel'
+  if (/bilan/i.test(text)) return 'Envoyez votre bilan comptable'
+  if (/devis/i.test(text)) return 'Envoyez votre devis actuel'
+  if (/kbis/i.test(text)) return 'Envoyez votre Kbis'
+  return fallback
+}
+
+function extractAttachmentKeywords(text, niche) {
+  const base = []
+  if (/facture/i.test(text)) base.push('facture')
+  if (/electricite|energie|kwh|edf|engie/i.test(text)) base.push('kWh', 'EDF', 'Engie', 'electricite', 'TotalEnergies')
+  if (/contrat/i.test(text)) base.push('contrat')
+  if (/bilan|comptab/i.test(text)) base.push('bilan', 'exercice', 'resultat')
+  if (/assurance/i.test(text)) base.push('assurance', 'prime', 'cotisation', 'sinistre')
+
+  const nicheKeywords = {
+    energie: ['kWh', 'MWh', 'facture', 'EDF', 'Engie', 'TotalEnergies', 'consommation'],
+    liberal: ['bilan', 'liasse fiscale', 'comptabilite'],
+    immobilier: ['mandat', 'compromis', 'diagnostics'],
+    artisan: ['devis', 'facture', 'assurance decennale'],
+  }
+
+  if (niche && nicheKeywords[niche]) {
+    for (const kw of nicheKeywords[niche]) {
+      if (!base.includes(kw)) base.push(kw)
+    }
+  }
+
+  return base.length > 0 ? base : ['document', 'fichier']
+}
+
+// ─── Callable: update conversion action (from Settings UI) ──────────
+
+export const updateConversionAction = onCall({
+  region: 'europe-west1',
+  timeoutSeconds: 30,
+}, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Authentification requise')
+
+  const { orgId, conversionAction } = request.data || {}
+  if (!orgId || !conversionAction) throw new HttpsError('invalid-argument', 'orgId et conversionAction requis')
+
+  await verifyOrgMembership(request.auth.uid, orgId)
+
+  const db = getDb()
+  const validTypes = ['document_upload', 'booking', 'signup', 'form_fill', 'reply_positive', 'custom']
+  if (!validTypes.includes(conversionAction.type)) {
+    throw new HttpsError('invalid-argument', `Type invalide: ${conversionAction.type}`)
+  }
+
+  const sanitized = {
+    type: conversionAction.type,
+    label: String(conversionAction.label || '').slice(0, 200),
+    description: String(conversionAction.description || '').slice(0, 500),
+    landingPageEnabled: conversionAction.type === 'document_upload' ? Boolean(conversionAction.landingPageEnabled) : false,
+    attachmentKeywords: Array.isArray(conversionAction.attachmentKeywords) ? conversionAction.attachmentKeywords.slice(0, 20).map(k => String(k).slice(0, 50)) : [],
+    ctaUrl: conversionAction.ctaUrl ? String(conversionAction.ctaUrl).slice(0, 500) : null,
+  }
+
+  // Update both org doc and businessProfile
+  await Promise.all([
+    db.doc(`organizations/${orgId}`).update({
+      conversionAction: sanitized,
+      updatedAt: FieldValue.serverTimestamp(),
+    }),
+    db.doc(`organizations/${orgId}/alexMemory/businessProfile`).update({
+      conversionAction: sanitized,
+      updatedAt: FieldValue.serverTimestamp(),
+    }).catch(() => {
+      // businessProfile may not exist yet
+    }),
+  ])
+
+  return { success: true, conversionAction: sanitized }
+})
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 

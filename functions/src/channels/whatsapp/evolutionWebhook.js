@@ -60,9 +60,17 @@ async function handleIncomingMessage(orgId, data) {
   const text = data?.message?.conversation
     || data?.message?.extendedTextMessage?.text
     || data?.message?.imageMessage?.caption
+    || data?.message?.documentMessage?.caption
     || null
 
-  if (!from || !text) return
+  // Extract attachment info from WhatsApp media messages
+  const documentMsg = data?.message?.documentMessage
+  const imageMsg = data?.message?.imageMessage
+  const hasAttachment = !!(documentMsg || imageMsg)
+  const attachmentUrl = documentMsg?.url || imageMsg?.url || null
+  const attachmentMimeType = documentMsg?.mimetype || imageMsg?.mimetype || null
+
+  if (!from || (!text && !hasAttachment)) return
 
   // Chercher le prospect par numero de telephone
   const prospectsRef = getDb()
@@ -120,7 +128,23 @@ async function handleIncomingMessage(orgId, data) {
   }
 
   // Router vers le replyHandler existant
-  await handleIncomingReply(orgId, prospectId, 'whatsapp', text, normalizedFrom)
+  await handleIncomingReply(orgId, prospectId, 'whatsapp', text || '', normalizedFrom)
+
+  // Check for conversion action (document upload, positive reply, etc.)
+  try {
+    const { checkAndHandleConversion } = await import('../../alex/documentCollector.js')
+    await checkAndHandleConversion({
+      orgId,
+      prospectId,
+      text: text || '',
+      hasAttachment,
+      attachmentUrl,
+      attachmentMimeType,
+      channel: 'whatsapp',
+    })
+  } catch (err) {
+    console.error('Conversion check failed (non-blocking):', err.message)
+  }
 
   console.log(JSON.stringify({
     event: 'whatsapp_incoming_routed',

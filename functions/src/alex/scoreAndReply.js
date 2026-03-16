@@ -132,13 +132,20 @@ export async function scoreAndReply(params) {
     scoring = { score: 50, error: err.message, intent: 'unknown', urgency: 'medium' }
   }
 
+  // Charger conversionAction pour CTA dynamique
+  let conversionAction = null
+  try {
+    const { getConversionAction } = await import('./conversionCTA.js')
+    conversionAction = await getConversionAction(orgId)
+  } catch { /* non-blocking */ }
+
   // ============================================
   // ETAPE 2 : Generation reponse Alex via Groq
   // ============================================
   let alexReply = ''
 
   try {
-    const replyPrompt = buildReplyPrompt(message, prospect, scoring, channel, orgData, alexConfig)
+    const replyPrompt = buildReplyPrompt(message, prospect, scoring, channel, orgData, alexConfig, conversionAction)
 
     // System prompt 4 couches : invariants + product profile + memory + lead context
     let systemPrompt = ''
@@ -251,12 +258,14 @@ export async function scoreAndReply(params) {
   if (isAlexPaused) {
     logger.info(`Alex paused for prospect ${prospectId}, skipping auto-reply`)
   } else if (alexReply) {
+    const shouldInjectCTA = ['buying_signal', 'interested'].includes(scoring.intent)
     sendResult = await sendMessage({
       orgId,
       prospectId,
       channel,
       message: alexReply,
       to: from,
+      metadata: { injectCTA: shouldInjectCTA },
     })
 
     if (sendResult.success) {
@@ -484,12 +493,32 @@ INTERDICTIONS ABSOLUES (violation = blocage immediat)
 - Si le prospect insiste sur le prix, TOUJOURS rediriger vers un appel: "Chaque projet est different, 15 min ensemble et je vous fais une proposition adaptee"`
 }
 
-function buildReplyPrompt(message, prospect, scoring, channel, orgData, alexConfig) {
+function buildReplyPrompt(message, prospect, scoring, channel, orgData, alexConfig, conversionAction) {
   const services = alexConfig.services || orgData.services || 'services de prospection digitale automatisee'
   const orgName = orgData.name || 'FMF'
 
+  // Build dynamic buying_signal strategy based on conversionAction
+  let buyingSignalStrategy
+  if (conversionAction && conversionAction.type !== 'reply_positive') {
+    const caType = conversionAction.type
+    const caLabel = conversionAction.label || ''
+    if (caType === 'document_upload') {
+      buyingSignalStrategy = `SIGNAL D'ACHAT DETECTE — Demande l'envoi de "${caLabel}". Mentionne le lien de depot qui sera ajoute automatiquement. Sois direct et enthousiaste. "Super ! Pour avancer, il me faudrait votre ${caLabel.toLowerCase()}. Vous pouvez le deposer directement via le lien ci-dessous."`
+    } else if (caType === 'booking') {
+      buyingSignalStrategy = `SIGNAL D'ACHAT DETECTE — Propose le lien de reservation directement. Sois enthousiaste et concret. "Parfait ! Reservez directement votre creneau, le lien est juste en dessous."`
+    } else if (caType === 'signup') {
+      buyingSignalStrategy = `SIGNAL D'ACHAT DETECTE — Propose l'inscription / essai directement. "Genial ! Vous pouvez creer votre compte en 2 minutes via le lien ci-dessous."`
+    } else if (caType === 'form_fill') {
+      buyingSignalStrategy = `SIGNAL D'ACHAT DETECTE — Propose de remplir le formulaire. "Super, remplissez ce court formulaire et je reviens vers vous dans l'heure."`
+    } else {
+      buyingSignalStrategy = `SIGNAL D'ACHAT DETECTE — Mode closing immediat. Propose l'action concrete: "${caLabel}". Le lien sera ajoute automatiquement.`
+    }
+  } else {
+    buyingSignalStrategy = `SIGNAL D'ACHAT DETECTE — Mode closing immediat. Propose un creneau concret pour un appel/demo. Pas de blabla, va droit au but. "Super, on fait un point de 15 min? Je suis dispo [2 creneaux]."`
+  }
+
   const intentStrategy = {
-    buying_signal: `SIGNAL D'ACHAT DETECTE — Mode closing immediat. Propose un creneau concret pour un appel/demo. Pas de blabla, va droit au but. "Super, on fait un point de 15 min? Je suis dispo [2 creneaux]."`,
+    buying_signal: buyingSignalStrategy,
     interested: `Le prospect est interesse — Utilise SPIN pour approfondir le besoin. Pose une question d'implication pour amplifier la valeur. Ne vends pas encore, qualifie.`,
     curious: `Le prospect est curieux — Utilise Challenger Sale. Apporte un insight sur leur secteur qu'ils ne connaissent pas. Cree la dette intellectuelle.`,
     objection_price: `OBJECTION PRIX — NE JAMAIS defendre le prix. Reframe: "Combien vous coute un client rate?" Calcul ROI concret. Principe: reciprocite (offrir de la valeur).`,

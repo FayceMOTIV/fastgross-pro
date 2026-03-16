@@ -44,6 +44,7 @@ const CRM_COLUMNS = [
   { id: 'contacted', label: 'Contacte', color: 'blue' },
   { id: 'replied', label: 'Repondu', color: 'purple' },
   { id: 'meeting', label: 'RDV', color: 'orange' },
+  { id: 'converted', label: 'Converti', color: 'emerald' },
   { id: 'won', label: 'Gagne', color: 'green' },
   { id: 'lost', label: 'Perdu', color: 'red' },
 ]
@@ -89,6 +90,7 @@ const COLUMN_COLORS = {
   contacted: 'bg-blue-100 text-blue-700',
   replied: 'bg-purple-100 text-purple-700',
   meeting: 'bg-orange-100 text-orange-700',
+  converted: 'bg-emerald-100 text-emerald-700',
   won: 'bg-green-100 text-green-700',
   lost: 'bg-red-100 text-red-700',
 }
@@ -196,7 +198,7 @@ export default function CRMLeadDetail() {
             phone: data.phone || '',
             score: data.score || 0,
             source: data.source || 'import',
-            crmColumn: data.crmColumn || 'detected',
+            crmColumn: data.alexStatus === 'conversion_action_done' ? 'converted' : (data.crmColumn || 'detected'),
             city: data.city || '',
             sector: data.sector || '',
             lastActivity: data.updatedAt?.toDate?.()?.toISOString?.()?.slice(0, 10) || '',
@@ -303,14 +305,14 @@ export default function CRMLeadDetail() {
   const handleDelete = async () => {
     if (isDemo) {
       toast.success('Prospect supprime (mode demo)')
-      navigate('/app/crm')
+      navigate('/app/prospects')
       return
     }
 
     try {
       await callDeleteProspect({ orgId, prospectId })
       toast.success('Prospect supprime (RGPD)')
-      navigate('/app/crm')
+      navigate('/app/prospects')
     } catch (err) {
       toast.error('Erreur lors de la suppression')
     }
@@ -365,7 +367,7 @@ export default function CRMLeadDetail() {
       <div className="text-center py-20">
         <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
         <p className="text-gray-500">Prospect introuvable</p>
-        <button onClick={() => navigate('/app/crm')} className="btn-primary mt-4">
+        <button onClick={() => navigate('/app/prospects')} className="btn-primary mt-4">
           Retour au CRM
         </button>
       </div>
@@ -387,7 +389,7 @@ export default function CRMLeadDetail() {
     <div className="space-y-6 animate-fade-in">
       {/* Back link */}
       <button
-        onClick={() => navigate('/app/crm')}
+        onClick={() => navigate('/app/prospects')}
         className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />

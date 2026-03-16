@@ -14,7 +14,8 @@ import { OnboardingProvider } from '@/components/OnboardingTour'
 import { TooltipProvider } from '@/components/Tooltip'
 import PageLoader from '@/components/PageLoader'
 import CookieBanner from '@/components/CookieBanner'
-import OnboardingSniperWizard from '@/components/OnboardingSniperWizard'
+// OnboardingSniperWizard remplace par le chat Alex conversationnel
+// import OnboardingSniperWizard from '@/components/OnboardingSniperWizard'
 
 // Lazy loaded pages - Public
 const Landing = lazy(() => import('@/pages/Landing'))
@@ -22,6 +23,7 @@ const Login = lazy(() => import('@/pages/Login'))
 const Signup = lazy(() => import('@/pages/Signup'))
 const Legal = lazy(() => import('@/pages/Legal'))
 const Unsubscribe = lazy(() => import('@/pages/Unsubscribe'))
+const CollectPage = lazy(() => import('@/pages/CollectPage'))
 const Pricing = lazy(() => import('@/pages/Pricing'))
 
 // Lazy loaded pages - Onboarding
@@ -42,6 +44,11 @@ const InboxHub = lazy(() => import('@/pages/InboxHub'))
 const PerformanceHub = lazy(() => import('@/pages/PerformanceHub'))
 const ConfigHub = lazy(() => import('@/pages/ConfigHub'))
 const AdminHub = lazy(() => import('@/pages/AdminHub'))
+
+// v6.0 — New 4-tab navigation
+const ProspectsPage = lazy(() => import('@/pages/ProspectsPage'))
+const ResultatsPage = lazy(() => import('@/pages/ResultatsPage'))
+const ReglagesPage = lazy(() => import('@/pages/ReglagesPage'))
 
 // Intent Hunter pages
 const IntentHunterHome = lazy(() => import('@/pages/IntentHunterHome'))
@@ -182,44 +189,8 @@ function PermissionGuard({ permission, fallback = null, children }) {
   return children
 }
 
-// Business profile check — shows onboarding wizard if no businessProfile exists
+// Business profile check — passe directement au chat Alex qui gere l'onboarding
 function BusinessProfileCheck({ children }) {
-  const { currentOrg } = useOrg()
-  const { isDemo } = useDemo()
-  const [needsOnboardingSniper, setNeedsOnboardingSniper] = useState(false)
-  const [checked, setChecked] = useState(false)
-
-  useEffect(() => {
-    if (isDemo || !currentOrg?.id) {
-      setChecked(true)
-      return
-    }
-
-    let cancelled = false
-    async function check() {
-      try {
-        const { doc, getDoc } = await import('firebase/firestore')
-        const { db } = await import('@/lib/firebase')
-        const profileDoc = await getDoc(doc(db, `organizations/${currentOrg.id}/alexMemory/businessProfile`))
-        if (!cancelled) {
-          setNeedsOnboardingSniper(!profileDoc.exists())
-          setChecked(true)
-        }
-      } catch {
-        if (!cancelled) setChecked(true)
-      }
-    }
-
-    check()
-    return () => { cancelled = true }
-  }, [currentOrg?.id, isDemo])
-
-  if (!checked) return <PageLoader />
-
-  if (needsOnboardingSniper) {
-    return <OnboardingSniperWizard onComplete={() => setNeedsOnboardingSniper(false)} />
-  }
-
   return children
 }
 
@@ -279,6 +250,9 @@ export default function App() {
                         <Route path="/unsubscribe" element={<Unsubscribe />} />
                         <Route path="/unsubscribe/:token" element={<Unsubscribe />} />
                         <Route path="/unsubscribed" element={<UnsubscribePage />} />
+
+                        {/* Collect page (public, no auth) */}
+                        <Route path="/collect/:orgSlug" element={<CollectPage />} />
 
                         {/* ============================================ */}
                         {/* ONBOARDING ROUTES */}
@@ -345,11 +319,15 @@ export default function App() {
                           <Route index element={<AlexChatPage />} />
                           <Route path="dashboard" element={<Dashboard />} />
 
-                          {/* v5.0 Hub Pages */}
+                          {/* v6.0 — 4 onglets principaux */}
+                          <Route path="prospects" element={<ProspectsPage />} />
+                          <Route path="resultats" element={<ResultatsPage />} />
+                          <Route path="reglages" element={<ReglagesPage />} />
+
+                          {/* v5.0 Hub Pages (kept for sub-routes) */}
                           <Route path="autopilot" element={<AutoPilotHub />} />
                           <Route path="sourcing" element={<SourcingHub />} />
                           <Route path="tools" element={<ToolsHub />} />
-                          <Route path="crm" element={<CRMHub />} />
                           <Route path="crm/list" element={<CRMList />} />
                           <Route path="crm/kanban" element={<CRMKanban />} />
                           <Route path="crm/lead/:prospectId" element={<CRMLeadDetail />} />
@@ -361,10 +339,6 @@ export default function App() {
                           <Route path="campaigns/hitl" element={<HITLQueue />} />
 
                           <Route path="outreach" element={<OutreachHub />} />
-                          <Route path="inbox" element={<InboxHub />} />
-                          <Route path="unified-inbox" element={<UnifiedInbox />} />
-                          <Route path="performance" element={<PerformanceHub />} />
-                          <Route path="config" element={<ConfigHub />} />
                           <Route path="admin" element={<AdminHub />} />
 
                           {/* V4 — ROI + Reseller */}
@@ -398,8 +372,30 @@ export default function App() {
                           <Route path="prospects/:prospectId" element={<Prospects />} />
 
                           {/* ============================================ */}
-                          {/* REDIRECTIONS — anciennes routes vers v5.0 */}
+                          {/* REDIRECTIONS — anciennes routes vers v6.0 */}
                           {/* ============================================ */}
+
+                          {/* v6.0 redirects — old nav items */}
+                          <Route
+                            path="crm"
+                            element={<Navigate to="/app/prospects" replace />}
+                          />
+                          <Route
+                            path="inbox"
+                            element={<Navigate to="/app/prospects" replace />}
+                          />
+                          <Route
+                            path="unified-inbox"
+                            element={<Navigate to="/app/prospects" replace />}
+                          />
+                          <Route
+                            path="performance"
+                            element={<Navigate to="/app/resultats" replace />}
+                          />
+                          <Route
+                            path="config"
+                            element={<Navigate to="/app/reglages" replace />}
+                          />
 
                           {/* AutoPilot */}
                           <Route
@@ -455,12 +451,8 @@ export default function App() {
 
                           {/* CRM */}
                           <Route
-                            path="prospects"
-                            element={<Navigate to="/app/crm?tab=prospects" replace />}
-                          />
-                          <Route
                             path="pipeline"
-                            element={<Navigate to="/app/crm?tab=pipeline" replace />}
+                            element={<Navigate to="/app/prospects" replace />}
                           />
 
                           {/* Outreach */}
@@ -484,64 +476,64 @@ export default function App() {
                           {/* Inbox */}
                           <Route
                             path="escalations"
-                            element={<Navigate to="/app/inbox?tab=escalations" replace />}
+                            element={<Navigate to="/app/prospects" replace />}
                           />
 
                           {/* Performance */}
                           <Route
                             path="analytics"
-                            element={<Navigate to="/app/performance" replace />}
+                            element={<Navigate to="/app/resultats" replace />}
                           />
                           <Route
                             path="proof"
-                            element={<Navigate to="/app/performance?tab=proof" replace />}
+                            element={<Navigate to="/app/resultats" replace />}
                           />
                           <Route
                             path="monitoring"
-                            element={<Navigate to="/app/performance?tab=monitoring" replace />}
+                            element={<Navigate to="/app/resultats" replace />}
                           />
 
-                          {/* Config */}
-                          <Route path="settings" element={<Navigate to="/app/config" replace />} />
+                          {/* Config → Reglages */}
+                          <Route path="settings" element={<Navigate to="/app/reglages" replace />} />
                           <Route
                             path="settings/:section"
-                            element={<Navigate to="/app/config" replace />}
+                            element={<Navigate to="/app/reglages" replace />}
                           />
                           <Route
                             path="email-infra"
-                            element={<Navigate to="/app/config?section=email-infra" replace />}
+                            element={<Navigate to="/app/reglages?section=email-infra" replace />}
                           />
                           <Route
                             path="knowledge-base"
-                            element={<Navigate to="/app/config?section=knowledge" replace />}
+                            element={<Navigate to="/app/reglages?section=knowledge" replace />}
                           />
                           <Route
                             path="base-de-connaissances"
-                            element={<Navigate to="/app/config?section=knowledge" replace />}
+                            element={<Navigate to="/app/reglages?section=knowledge" replace />}
                           />
                           <Route
                             path="sequence-builder"
-                            element={<Navigate to="/app/config?section=sequences" replace />}
+                            element={<Navigate to="/app/reglages?section=sequences" replace />}
                           />
                           <Route
                             path="voice-config"
-                            element={<Navigate to="/app/config?section=voice" replace />}
+                            element={<Navigate to="/app/reglages?section=voice" replace />}
                           />
                           <Route
                             path="integrations"
-                            element={<Navigate to="/app/config?section=integrations" replace />}
+                            element={<Navigate to="/app/reglages?section=integrations" replace />}
                           />
                           <Route
                             path="team"
-                            element={<Navigate to="/app/config?section=team" replace />}
+                            element={<Navigate to="/app/reglages?section=team" replace />}
                           />
                           <Route
                             path="setup"
-                            element={<Navigate to="/app/config?section=setup" replace />}
+                            element={<Navigate to="/app/reglages?section=setup" replace />}
                           />
                           <Route
                             path="hunter-pricing"
-                            element={<Navigate to="/app/config?section=billing" replace />}
+                            element={<Navigate to="/app/reglages?section=billing" replace />}
                           />
 
                           {/* Admin */}

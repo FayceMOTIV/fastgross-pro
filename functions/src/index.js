@@ -56,6 +56,7 @@ export { getProspectsPage, moveProspect, addInternalNote, sendManualMessage as s
 // Email Functions
 // ============================================
 export { sendCampaignEmail, handleEmailWebhook } from './email/sendEmail.js'
+export { handleInboundEmail } from './email/inboundEmailHandler.js'
 
 // ============================================
 // Proof Functions
@@ -349,6 +350,9 @@ export { alexDailyReporter } from './alex/alexDailyReport.js'
 export { alertHotLead } from './alex/alexHotLeadAlert.js'
 export { alexAutonomousWorker } from './alex/alexAutonomousWorker.js'
 
+// Alex Email Approval — Auto-reply approval flow
+export { approveAlexEmailReply, processAlexPendingReplies } from './alex/alexEmailApproval.js'
+
 // Alex WhatsApp Interface
 export { alexWhatsAppIncoming } from './alex/alexWhatsAppHandler.js'
 export { sendWhatsAppVerification, verifyWhatsAppCode, unlinkWhatsApp } from './alex/alexWhatsAppLink.js'
@@ -608,6 +612,10 @@ export { pauseAlexModule, resumeAlexModule, getAlexModuleStatus } from './safety
 
 // --- Enhanced Dedup (Module I) ---
 export { deduplicateOrg } from './safety/enhancedDedup.js'
+
+// Conversion Action System
+export { updateConversionAction } from './alex/onboardingSniper.js'
+export { recordCollectPageConversion } from './alex/documentCollector.js'
 
 // ============================================
 // Dev functions (only available in development/emulator)
