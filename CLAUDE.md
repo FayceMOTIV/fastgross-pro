@@ -198,7 +198,7 @@ face-media-factory/
 │   │   ├── voicemail/ (5)         # Drop Cowboy, voice clone, scripts
 │   │   └── postal/ (5)            # PostGrid + Merci Facteur, tracking
 │   │
-│   ├── alex/ (16)                  # Agent Alex (IA autonome + Associe Commercial)
+│   ├── alex/ (18)                  # Agent Alex (IA autonome + Associe Commercial)
 │   │   ├── alexBrain.js            # Chat IA principal (Claude + Groq fallback, SPIN 10 phases)
 │   │   ├── alexActionExecutor.js   # 35+ actions (search, CRM, monitors, contact)
 │   │   ├── alexSystemPrompt.js     # System prompt builder (org context, memory, persona)
@@ -218,6 +218,8 @@ face-media-factory/
 │   │   ├── scoreAndReply.js        # Scoring + reponse IA + J+3 voice trigger
 │   │   ├── sendMessage.js          # Envoi messages
 │   │   ├── sendTelegramAlert.js    # Alertes Telegram
+│   │   ├── documentCollector.js   # Collect page + conversion detection + WhatsApp owner notif
+│   │   ├── conversionCTA.js       # Config conversion actions par org
 │   │   └── engine/ (12)            # Moteur Alex (recherche, scoring, monitoring)
 │   │       ├── searchOrchestrator.js  # Pipeline recherche (sources → Serper → qualification)
 │   │       ├── monitorExecutor.js     # 12 monitors Serper-driven (veille temps reel)
@@ -440,6 +442,7 @@ API externe (SES, Evolution, HeyReach, etc.)
 | A/B Testing | `runABTest`, `recordABTestResultCallable`, `getWinningVariant`, `getABTestDashboard`, `rotateAbVariants` |
 | Voice | `vapiOutbound`, `initiateVoiceCall`, `getAgentStatus`, `initiateAlexCallFn`, `scheduleVoiceCampaignFn` |
 | Agent Alex | `chatWithAlex`, `resetAlexConversation`, `alexDailyReporter`, `alertHotLead`, `alexAutonomousWorker` |
+| Collect Page | `submitCollectPage`, `resolveCollectPageOrg`, `recordCollectPageConversion` |
 
 ### Fonctions HTTP (18)
 | Function | Description |
@@ -519,6 +522,7 @@ subscriptionPlans/{planId}           # Plans d'abonnement
   },
   timezone: 'Europe/Paris',
   businessHours: { start: 8, end: 20 },
+  ownerPhone: '+33612345678',        // WhatsApp perso owner (notif documents)
   channels: {
     email: { enabled: true, provider: 'ses' },
     sms: { enabled: true, provider: 'ovh' },

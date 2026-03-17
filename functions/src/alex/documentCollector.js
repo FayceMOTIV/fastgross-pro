@@ -232,3 +232,230 @@ export const recordCollectPageConversion = onCall({
 
   return { success: true }
 })
+
+/**
+ * Callable: resolve org slug for public collect page
+ * No auth required — returns only public-safe fields
+ */
+export const resolveCollectPageOrg = onCall({
+  region: 'europe-west1',
+  timeoutSeconds: 10,
+}, async (request) => {
+  const { slug } = request.data || {}
+  if (!slug) throw new HttpsError('invalid-argument', 'slug requis')
+
+  const db = getDb()
+  const snap = await db.collection('organizations')
+    .where('slug', '==', slug)
+    .limit(1)
+    .get()
+
+  if (snap.empty) {
+    throw new HttpsError('not-found', 'Organisation introuvable')
+  }
+
+  const orgDoc = snap.docs[0]
+  const data = orgDoc.data()
+  const ca = data.conversionAction || {}
+
+  return {
+    orgId: orgDoc.id,
+    name: data.name || '',
+    logoUrl: data.logoUrl || null,
+    conversionAction: {
+      type: ca.type || null,
+      label: ca.label || null,
+      description: ca.description || null,
+    },
+    collectPageConfig: data.collectPageConfig || null,
+  }
+})
+
+/**
+ * Callable: submit collect page form (public, no auth)
+ * Creates or updates prospect with contact info + optional document
+ */
+export const submitCollectPage = onCall({
+  region: 'europe-west1',
+  timeoutSeconds: 30,
+}, async (request) => {
+  const { orgId, name, email, phone, message, documentUrl, fileName, mimeType } = request.data || {}
+
+  if (!orgId || !name || !phone) {
+    throw new HttpsError('invalid-argument', 'orgId, name et phone requis')
+  }
+
+  // Validate phone format FR
+  const phoneRegex = /^(?:\+33|0)[67]\d{8}$/
+  const cleanPhone = phone.replace(/[\s.-]/g, '')
+  if (!phoneRegex.test(cleanPhone)) {
+    throw new HttpsError('invalid-argument', 'Numero de telephone invalide')
+  }
+
+  // Normalize phone to +33
+  const normalizedPhone = cleanPhone.startsWith('0')
+    ? '+33' + cleanPhone.slice(1)
+    : cleanPhone
+
+  const db = getDb()
+
+  // Validate org exists
+  const orgSnap = await db.doc(`organizations/${orgId}`).get()
+  if (!orgSnap.exists) {
+    throw new HttpsError('not-found', 'Organisation introuvable')
+  }
+
+  const prospectsRef = db.collection(`organizations/${orgId}/prospects`)
+
+  // Dedup: check if phone already exists (single equality query — no composite index needed)
+  const existingSnap = await prospectsRef
+    .where('phone', '==', normalizedPhone)
+    .limit(5)
+    .get()
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
+  // Find most recent duplicate within 24h
+  let recentDoc = null
+  for (const doc of existingSnap.docs) {
+    const ts = doc.data().createdAt?.toMillis?.() || 0
+    if (ts > oneDayAgo) {
+      if (!recentDoc || ts > (recentDoc.data().createdAt?.toMillis?.() || 0)) {
+        recentDoc = doc
+      }
+    }
+  }
+  const recentDuplicate = !!recentDoc
+
+  let prospectId
+
+  if (recentDuplicate) {
+    // Update existing prospect
+    const existingDoc = recentDoc
+    prospectId = existingDoc.id
+    const updateData = {
+      updatedAt: FieldValue.serverTimestamp(),
+    }
+    if (documentUrl) {
+      updateData.conversionAttachmentUrl = documentUrl
+      updateData.conversionDocumentPath = `organizations/${orgId}/documents/${prospectId}/${Date.now()}_${fileName || 'document'}`
+    }
+    if (message) updateData.message = message
+    if (email) updateData.email = email
+
+    await prospectsRef.doc(prospectId).update(updateData)
+
+    // Log interaction
+    await db.collection(`organizations/${orgId}/interactions`).add({
+      prospectId,
+      channel: 'collect_page',
+      direction: 'in',
+      type: 'conversion_action',
+      conversionType: 'document_upload',
+      reason: 'collect_page_upload_update',
+      message: `Mise a jour via page de collecte${fileName ? ': ' + fileName : ''}`,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+
+    logger.info(`[CollectPage] Updated existing prospect ${prospectId}`, { orgId })
+  } else {
+    // Create new prospect
+    const newProspect = {
+      name,
+      email: email || null,
+      phone: normalizedPhone,
+      source: 'collect_page',
+      alexStatus: 'conversion_action_done',
+      conversionActionDoneAt: FieldValue.serverTimestamp(),
+      conversionActionType: 'document_upload',
+      conversionActionReason: 'collect_page_upload',
+      conversionAttachmentUrl: documentUrl || null,
+      message: message || null,
+      score: 80,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    }
+    if (documentUrl && fileName) {
+      const ts = Date.now()
+      newProspect.conversionDocumentPath = `organizations/${orgId}/documents/new/${ts}_${fileName}`
+    }
+
+    const docRef = await prospectsRef.add(newProspect)
+    prospectId = docRef.id
+
+    // Update document path with actual ID
+    if (documentUrl && fileName) {
+      const ts = Date.now()
+      await docRef.update({
+        conversionDocumentPath: `organizations/${orgId}/documents/${prospectId}/${ts}_${fileName}`,
+      })
+    }
+
+    // Log interaction
+    await db.collection(`organizations/${orgId}/interactions`).add({
+      prospectId,
+      channel: 'collect_page',
+      direction: 'in',
+      type: 'conversion_action',
+      conversionType: 'document_upload',
+      reason: 'collect_page_upload',
+      message: `Document depose via page de collecte${fileName ? ': ' + fileName : ''}`,
+      createdAt: FieldValue.serverTimestamp(),
+    })
+
+    logger.info(`[CollectPage] Created new prospect ${prospectId}`, { orgId })
+  }
+
+  // Notify client (urgent)
+  await db.collection(`organizations/${orgId}/notifications`).add({
+    type: 'conversion_action_done',
+    prospectId,
+    message: `${name} a depose un document via votre page de collecte`,
+    priority: 'urgent',
+    read: false,
+    createdAt: FieldValue.serverTimestamp(),
+  })
+
+  logAlexActivity(orgId, {
+    type: 'conversion_action',
+    title: `Nouveau lead via page de collecte — ${name}`,
+    details: `Tel: ${normalizedPhone}. ${email ? 'Email: ' + email + '. ' : ''}${fileName ? 'Fichier: ' + fileName : 'Sans document'}`,
+    status: 'success',
+    prospectId,
+    channel: 'collect_page',
+  })
+
+  // Notify owner via WhatsApp (non-blocking)
+  try {
+    const orgData = orgSnap.data()
+    const ownerPhone = orgData.ownerPhone || orgData.contactPhone
+    if (ownerPhone) {
+      const apiUrl = process.env.EVOLUTION_API_URL
+      const apiKey = process.env.EVOLUTION_API_KEY
+      if (apiUrl && apiKey) {
+        let instance = process.env.EVOLUTION_INSTANCE_NAME || 'fmf-whatsapp3'
+        const waSnap = await db.doc(`organizations/${orgId}/integrations/whatsapp`).get()
+        if (waSnap.exists) {
+          const wa = waSnap.data()
+          if (wa?.status === 'connected' && wa?.instanceName) instance = wa.instanceName
+        }
+        const cleanOwnerPhone = String(ownerPhone).replace(/\D/g, '')
+        const msg = `*Nouveau document recu*\n\n` +
+          `*${name}* a depose un document via votre page de collecte.\n` +
+          `Tel: ${normalizedPhone}\n` +
+          (email ? `Email: ${email}\n` : '') +
+          (fileName ? `Fichier: ${fileName}\n` : '') +
+          (message ? `Message: ${message}\n` : '') +
+          `\n_Face Media Factory_`
+        await fetch(`${apiUrl}/message/sendText/${instance}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: apiKey },
+          body: JSON.stringify({ number: cleanOwnerPhone, text: msg }),
+        })
+        logger.info(`[CollectPage] WhatsApp sent to owner ${cleanOwnerPhone}`)
+      }
+    }
+  } catch (waErr) {
+    logger.warn('[CollectPage] WhatsApp notification failed:', waErr.message)
+  }
+
+  return { success: true, prospectId }
+})

@@ -29,19 +29,10 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   Mail,
+  FileText,
 } from 'lucide-react'
 
-// Demo data for when no org is connected
-const DEMO_LEADS = [
-  { id: 'demo-1', firstName: 'Jean', lastName: 'Dupont', company: 'Boulangerie Dupont', email: 'jean@boulangerie-dupont.fr', phone: '+33612345678', score: 85, source: 'google-maps', status: 'new', crmColumn: 'NEW', sequenceStatus: 'active', intentSignal: 'Site web visite', createdAt: new Date(Date.now() - 3600000), updatedAt: new Date(Date.now() - 3600000), channels: { email: { available: true }, whatsapp: { available: true } } },
-  { id: 'demo-2', firstName: 'Marie', lastName: 'Martin', company: 'Salon Belle & Zen', email: 'marie@belleetzen.fr', score: 72, source: 'instagram', status: 'contacted', crmColumn: 'CONTACTED', createdAt: new Date(Date.now() - 86400000), updatedAt: new Date(Date.now() - 7200000), channels: { email: { available: true } } },
-  { id: 'demo-3', firstName: 'Pierre', lastName: 'Lefevre', company: 'Garage Lefevre', email: 'pierre@garage-lefevre.fr', score: 91, source: 'linkedin', status: 'replied', crmColumn: 'INTERESTED', intentSignal: 'Demande de prix', createdAt: new Date(Date.now() - 172800000), updatedAt: new Date(Date.now() - 1800000), channels: { email: { available: true }, sms: { available: true } } },
-  { id: 'demo-4', firstName: 'Sophie', lastName: 'Bernard', company: 'Fleuriste Sophie', email: 'sophie@fleuriste-sophie.fr', score: 95, source: 'google-maps', status: 'replied', crmColumn: 'MEETING', meetingDate: new Date(Date.now() + 86400000), createdAt: new Date(Date.now() - 259200000), updatedAt: new Date(Date.now() - 3600000), channels: { email: { available: true }, whatsapp: { available: true } } },
-  { id: 'demo-5', firstName: 'Luc', lastName: 'Moreau', company: 'Restaurant Le Gourmet', email: 'luc@legourmet.fr', score: 98, source: 'referral', status: 'converted', crmColumn: 'SIGNED', createdAt: new Date(Date.now() - 604800000), updatedAt: new Date(Date.now() - 86400000), channels: { email: { available: true } } },
-  { id: 'demo-6', firstName: 'Thomas', lastName: 'Petit', company: 'Agence Immobiliere TP', email: 'thomas@agence-tp.fr', score: 30, source: 'import', status: 'lost', crmColumn: 'LOST', createdAt: new Date(Date.now() - 1209600000), updatedAt: new Date(Date.now() - 604800000), channels: { email: { available: true } } },
-  { id: 'demo-7', firstName: 'Emma', lastName: 'Roux', company: 'Yoga Studio Emma', email: 'emma@yogastudio.fr', score: 78, source: 'facebook', status: 'new', crmColumn: 'NEW', sequenceStatus: 'active', createdAt: new Date(Date.now() - 7200000), updatedAt: new Date(Date.now() - 1200000), channels: { email: { available: true }, instagram: { available: true } } },
-  { id: 'demo-8', firstName: 'Lucas', lastName: 'Durand', company: 'Pizza Express', email: 'lucas@pizzaexpress.fr', score: 65, source: 'google-maps', status: 'contacted', crmColumn: 'CONTACTED', createdAt: new Date(Date.now() - 43200000), updatedAt: new Date(Date.now() - 21600000), channels: { email: { available: true }, sms: { available: true } } },
-]
+// No demo data — only real prospects from Firestore
 
 const VIEWS = [
   { id: 'kanban', label: 'Kanban', icon: Kanban },
@@ -64,11 +55,13 @@ export default function CRM() {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [sortField, setSortField] = useState('score')
   const [sortDir, setSortDir] = useState('desc')
+  const [docFilter, setDocFilter] = useState('all')
 
-  // Realtime listener
+  // Realtime listener — real prospects only
   useEffect(() => {
+    console.log(`[CRM] orgId resolved: ${orgId || 'NONE'} (org name: ${currentOrg?.name || '?'})`)
     if (!orgId) {
-      setLeads(DEMO_LEADS)
+      setLeads([])
       setLoading(false)
       return
     }
@@ -80,12 +73,13 @@ export default function CRM() {
       q,
       (snapshot) => {
         const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        setLeads(data.length > 0 ? data : DEMO_LEADS)
+        console.log(`[CRM] Loaded ${data.length} real prospects from organizations/${orgId}/prospects`)
+        setLeads(data)
         setLoading(false)
       },
       (error) => {
-        console.error('CRM realtime error:', error)
-        setLeads(DEMO_LEADS)
+        console.error('[CRM] Firestore error:', error.code, error.message)
+        setLeads([])
         setLoading(false)
       }
     )
@@ -106,10 +100,13 @@ export default function CRM() {
 
       const matchSource = sourceFilter === 'all' || lead.source === sourceFilter
       const matchScore = normalizedScore >= scoreFilter
+      const matchDoc = docFilter === 'all'
+        || (docFilter === 'with_doc' && lead.conversionAttachmentUrl)
+        || (docFilter === 'collect_page' && lead.source === 'collect_page')
 
-      return matchSearch && matchSource && matchScore
+      return matchSearch && matchSource && matchScore && matchDoc
     })
-  }, [leads, searchQuery, sourceFilter, scoreFilter])
+  }, [leads, searchQuery, sourceFilter, scoreFilter, docFilter])
 
   // Hot leads: score > 70 AND updated in last 72h
   const hotLeads = useMemo(() => {
@@ -142,16 +139,15 @@ export default function CRM() {
     return [...set].sort()
   }, [leads])
 
+  // Count leads with documents
+  const withDocuments = useMemo(() =>
+    leads.filter(l => l.conversionAttachmentUrl || l.source === 'collect_page').length
+  , [leads])
+
   // Handle CRM column change from Kanban
   const handleColumnChange = useCallback(
     async (leadId, newColumn) => {
-      if (!orgId || leadId.startsWith('demo-')) {
-        setLeads((prev) =>
-          prev.map((l) => (l.id === leadId ? { ...l, crmColumn: newColumn } : l))
-        )
-        toast.success(`Lead deplace vers ${CRM_COLUMNS.find((c) => c.id === newColumn)?.label}`)
-        return
-      }
+      if (!orgId) return
 
       try {
         await updateProspect(orgId, leadId, { crmColumn: newColumn })
@@ -387,6 +383,17 @@ export default function CRM() {
             ))}
           </select>
 
+          {/* Document filter */}
+          <select
+            value={docFilter}
+            onChange={(e) => setDocFilter(e.target.value)}
+            className="input-field"
+          >
+            <option value="all">Tous les leads</option>
+            <option value="with_doc">Avec document ({withDocuments})</option>
+            <option value="collect_page">Via page collecte</option>
+          </select>
+
           {/* Score filter */}
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Score min:</span>
@@ -426,8 +433,22 @@ export default function CRM() {
         )}
       </div>
 
+      {/* Empty state */}
+      {leads.length === 0 && !loading && (
+        <div className="card text-center py-16">
+          <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
+            <Users className="w-7 h-7 text-indigo-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucun prospect pour le moment</h3>
+          <p className="text-sm text-gray-500 max-w-md mx-auto">
+            Demande a Alex de lancer une recherche pour remplir ton pipeline.
+            Les prospects trouves apparaitront ici automatiquement.
+          </p>
+        </div>
+      )}
+
       {/* Content */}
-      {view === 'kanban' && (
+      {leads.length > 0 && view === 'kanban' && (
         <KanbanBoard
           leads={filteredLeads}
           onLeadClick={handleLeadClick}
@@ -436,7 +457,7 @@ export default function CRM() {
         />
       )}
 
-      {(view === 'list' || view === 'hot') && (
+      {leads.length > 0 && (view === 'list' || view === 'hot') && (
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -498,8 +519,13 @@ export default function CRM() {
                             {lead.firstName?.charAt(0)}{lead.lastName?.charAt(0)}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
                               {lead.firstName} {lead.lastName}
+                              {lead.conversionAttachmentUrl && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-md font-medium">
+                                  <FileText className="w-3 h-3" /> Doc
+                                </span>
+                              )}
                             </p>
                             <p className="text-xs text-gray-400">{lead.email}</p>
                           </div>

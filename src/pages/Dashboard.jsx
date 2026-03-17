@@ -33,6 +33,7 @@ import {
   Crown,
   Infinity,
   BarChart3,
+  FileText,
 } from 'lucide-react'
 import {
   Chart as ChartJS,
@@ -61,7 +62,7 @@ import { useRealDashboardStats, useEngineStatus } from '@/hooks/useFirestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrg } from '@/contexts/OrgContext'
 import { useAdminStatus } from '@/hooks/useCloudFunctions'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, collection, query, where, limit, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import HotQueueWidget from '@/components/HotQueueWidget'
 import AlexActivityFeed from '@/components/AlexActivityFeed'
@@ -590,6 +591,9 @@ export default function Dashboard() {
   // WhatsApp config banner
   const [showWhatsAppBanner, setShowWhatsAppBanner] = useState(false)
 
+  // Collect page leads (real-time)
+  const [collectLeads, setCollectLeads] = useState([])
+
   // Check beta status on mount
   useEffect(() => {
     const checkBeta = async () => {
@@ -619,6 +623,25 @@ export default function Dashboard() {
       }
     }
     checkWa()
+  }, [currentOrg?.id])
+
+  // Collect page leads (real-time listener)
+  useEffect(() => {
+    if (!currentOrg?.id) return
+    const q = query(
+      collection(db, 'organizations', currentOrg.id, 'prospects'),
+      where('source', '==', 'collect_page'),
+      limit(20)
+    )
+    const unsub = onSnapshot(q, (snap) => {
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      const docs = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => (d.createdAt?.toMillis?.() || 0) > weekAgo)
+        .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0))
+      setCollectLeads(docs)
+    }, () => setCollectLeads([]))
+    return unsub
   }, [currentOrg?.id])
 
   // Chart data
@@ -773,7 +796,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-2">
               <Link
-                to="/app/config?section=notifications"
+                to="/app/reglages?section=notifications"
                 className="px-3 py-1.5 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 Configurer
@@ -785,6 +808,37 @@ export default function Dashboard() {
                 <X className="w-4 h-4 text-green-600" />
               </button>
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Collect Page Documents Alert */}
+      {collectLeads.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-4 bg-gradient-to-r from-blue-50 to-indigo-50/30 border-blue-200"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <FileText className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-blue-800">
+                  {collectLeads.length} document{collectLeads.length > 1 ? 's' : ''} recu{collectLeads.length > 1 ? 's' : ''} cette semaine
+                </p>
+                <p className="text-xs text-blue-600">
+                  Dernier : {collectLeads[0]?.name || 'Prospect'}
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/app/crm"
+              className="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Voir
+            </Link>
           </div>
         </motion.div>
       )}

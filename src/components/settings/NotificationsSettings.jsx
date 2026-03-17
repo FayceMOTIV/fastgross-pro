@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Bell, Save, Loader2, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Bell, Save, Loader2, ToggleLeft, ToggleRight, Smartphone } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useOrg } from '@/contexts/OrgContext'
 import { useDemo } from '@/contexts/DemoContext'
+import { updateOrganization } from '@/services/organization'
 import toast from 'react-hot-toast'
 
 export default function NotificationsSettings({ saving, setSaving }) {
@@ -16,6 +17,7 @@ export default function NotificationsSettings({ saving, setSaving }) {
   const [notifyOnOpen, setNotifyOnOpen] = useState(false)
   const [notifyDailyDigest, setNotifyDailyDigest] = useState(true)
   const [notifyWeeklyReport, setNotifyWeeklyReport] = useState(true)
+  const [ownerPhone, setOwnerPhone] = useState(currentOrg?.ownerPhone || '')
 
   useEffect(() => {
     if (!currentOrg?.id || isDemo) return
@@ -30,6 +32,21 @@ export default function NotificationsSettings({ saving, setSaving }) {
       }
     }).catch(() => {})
   }, [currentOrg?.id])
+
+  const saveOwnerPhone = async () => {
+    const clean = ownerPhone.replace(/[\s.-]/g, '')
+    if (clean && !/^(?:\+33|0)[67]\d{8}$/.test(clean)) {
+      toast.error('Numero invalide (format: 06 ou +33)')
+      return
+    }
+    const normalized = clean.startsWith('0') ? '+33' + clean.slice(1) : clean
+    try {
+      await updateOrganization(currentOrg.id, { ownerPhone: normalized || null })
+      toast.success('Numero WhatsApp enregistre')
+    } catch {
+      toast.error('Erreur lors de la sauvegarde')
+    }
+  }
 
   const handleSave = async () => {
     setSaving(true)
@@ -53,6 +70,32 @@ export default function NotificationsSettings({ saving, setSaving }) {
       <div className="flex items-center gap-3 pb-4 border-b border-white/10">
         <Bell className="w-5 h-5 text-brand-400" />
         <h2 className="section-title">Notifications</h2>
+      </div>
+
+      {/* WhatsApp owner alerts */}
+      <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-3">
+        <div className="flex items-center gap-2">
+          <Smartphone className="w-4 h-4 text-green-500" />
+          <h3 className="font-medium text-white">Alertes WhatsApp</h3>
+        </div>
+        <p className="text-xs text-gray-500">
+          Recevez une notification WhatsApp quand un prospect depose un document
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="tel"
+            value={ownerPhone}
+            onChange={(e) => setOwnerPhone(e.target.value)}
+            placeholder="06 12 34 56 78"
+            className="input-field flex-1"
+          />
+          <button
+            onClick={saveOwnerPhone}
+            className="btn-primary text-sm px-4"
+          >
+            Enregistrer
+          </button>
+        </div>
       </div>
 
       {/* Email notifications toggle */}
